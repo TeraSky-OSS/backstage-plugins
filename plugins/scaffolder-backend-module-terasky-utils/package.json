@@ -31,14 +31,14 @@
     "postpack": "backstage-cli package postpack"
   },
   "dependencies": {
-    "@backstage/backend-plugin-api": "^1.2.0",
-    "@backstage/plugin-scaffolder-node": "^0.7.0",
+    "@backstage/backend-plugin-api": "^1.2.1",
+    "@backstage/plugin-scaffolder-node": "^0.8.0",
     "fs-extra": "^10.0.0",
     "js-yaml": "^4.1.0"
   },
   "devDependencies": {
-    "@backstage/cli": "^0.30.0",
-    "@backstage/plugin-scaffolder-node-test-utils": "^0.1.19",
+    "@backstage/cli": "^0.31.0",
+    "@backstage/plugin-scaffolder-node-test-utils": "^0.2.0",
     "@types/fs-extra": "^9.0.13",
     "@types/js-yaml": "^4",
     "typescript": "^5.7.2"
