@@ -37,10 +37,12 @@ export async function getAuthCredential(
         );
       }
       const requestAuth = {
-        clientId: aksAuthConfig?.getOptionalString('clientId'),
-        clientSecret: aksAuthConfig?.getOptionalString('clientSecret'),
-        tenantId: aksAuthConfig?.getOptionalString('tenantId'),
-        domainHint: aksAuthConfig?.getOptionalString('domainHint'),
+        aks: {
+          clientId: aksAuthConfig?.getOptionalString('clientId'),
+          clientSecret: aksAuthConfig?.getOptionalString('clientSecret'),
+          tenantId: aksAuthConfig?.getOptionalString('tenantId'),
+          domainHint: aksAuthConfig?.getOptionalString('domainHint'),
+        }
       };
       return await aksAuth.getCredential(cluster, requestAuth);
     }
@@ -74,8 +76,10 @@ export async function getAuthCredential(
         );
       }
       const requestAuth = {
-        clientId: googleAuthConfig?.getOptionalString('clientId'),
-        clientSecret: googleAuthConfig?.getOptionalString('clientSecret'),
+        google: {
+          clientId: googleAuthConfig?.getOptionalString('clientId'),
+          clientSecret: googleAuthConfig?.getOptionalString('clientSecret'),
+        }
       };
       return await googleAuth.getCredential(cluster, requestAuth);
     }
