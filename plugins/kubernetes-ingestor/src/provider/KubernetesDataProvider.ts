@@ -157,7 +157,12 @@ export class KubernetesDataProvider {
           'kubernetesIngestor.components.onlyIngestAnnotatedResources',
         ) ?? false;
 
+      const allowedClusters = this.config.getOptionalStringArray("kubernetesIngestor.allowedClusterNames");
       for (const cluster of clusters as ExtendedClusterDetails[]) {
+        if (allowedClusters && !allowedClusters.includes(cluster.name)) {
+          this.logger.debug(`Skipping cluster: ${cluster.name} as it is not included in the allowedClusterNames configuration.`);
+          continue;
+        }
         // Get the auth provider type from the cluster config
         const authProvider =
           cluster.authMetadata[ANNOTATION_KUBERNETES_AUTH_PROVIDER] ||
@@ -426,7 +431,12 @@ export class KubernetesDataProvider {
 
       const crdMapping: Record<string, string> = {};
 
+      const allowedClusters = this.config.getOptionalStringArray("kubernetesIngestor.allowedClusterNames");
       for (const cluster of clusters as ExtendedClusterDetails[]) {
+        if (allowedClusters && !allowedClusters.includes(cluster.name)) {
+          this.logger.debug(`Skipping cluster: ${cluster.name} as it is not included in the allowedClusterNames configuration.`);
+          continue;
+        }
         // Get the auth provider type from the cluster config
         const authProvider =
           cluster.authMetadata[ANNOTATION_KUBERNETES_AUTH_PROVIDER] ||

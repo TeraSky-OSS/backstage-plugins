@@ -50,6 +50,9 @@ kubernetesIngestor:
     titleModel: 'name' # name, name-cluster, name-namespace
     systemModel: 'namespace' # cluster, namespace, cluster-namespace, default
     referencesNamespaceModel: 'default' # default, same
+  # A list of cluster names to ingest resources from. If empty, resources from all clusters under kubernetes.clusterLocatorMethods.clusters will be ingested.
+  # allowedClusterNames:
+  #   - my-cluster-name
   components:
     # Whether to enable creation of backstage components for Kubernetes workloads
     enabled: true
