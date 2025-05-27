@@ -17,6 +17,15 @@ export async function getAuthCredential(
   config: Config,
   logger: LoggerService,
 ): Promise<KubernetesCredential> {
+  // First, check if we have a custom auth strategy registered globally
+  const globalAuthStrategies = (global as any).kubernetesAuthStrategies;
+  if (globalAuthStrategies && globalAuthStrategies.has(authProvider)) {
+    const strategy = globalAuthStrategies.get(authProvider);
+    logger.debug(`Using registered custom auth strategy: ${authProvider}`);
+    return await strategy.getCredential(cluster, {});
+  }
+
+  // Fallback to built-in auth providers
   switch (authProvider) {
     case 'aks': {
       const aksAuth = new AksStrategy();
@@ -88,7 +97,7 @@ export async function getAuthCredential(
       return await googleServiceAccountAuth.getCredential();
     }
     case 'oidc': {
-      const oidcAuth=new OidcStrategy();
+      const oidcAuth = new OidcStrategy();
       const authConfig = config.getConfig('auth');
       const authEnvironment = authConfig?.getOptionalConfig('providers')?.getOptionalString('environment');
       if (!authEnvironment) {
@@ -110,7 +119,7 @@ export async function getAuthCredential(
       return await oidcAuth.getCredential(cluster, requestAuth);
     }
     case 'serviceAccount': {
-      const serviceAccountAuth=new ServiceAccountStrategy();
+      const serviceAccountAuth = new ServiceAccountStrategy();
       return await serviceAccountAuth.getCredential(cluster);
     }
     default:
