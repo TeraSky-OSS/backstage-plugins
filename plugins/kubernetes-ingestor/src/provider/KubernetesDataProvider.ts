@@ -68,6 +68,14 @@ export class KubernetesDataProvider {
         discovery: this.discovery,
       });
 
+      const globalAuthStrategies = (global as any).kubernetesAuthStrategies;
+      if (globalAuthStrategies) {
+        for (const [key, strategy] of globalAuthStrategies) {
+          this.logger.debug(`Adding auth strategy: ${key}`);
+          builder.addAuthStrategy(key, strategy);
+        }
+      }
+
       const { fetcher, clusterSupplier } = await builder.build();
 
       const credentials: BackstageCredentials = {
@@ -414,6 +422,14 @@ export class KubernetesDataProvider {
         permissions: this.permissions,
         discovery: this.discovery,
       });
+
+      const globalAuthStrategies = (global as any).kubernetesAuthStrategies;
+      if (globalAuthStrategies) {
+        for (const [key, strategy] of globalAuthStrategies) {
+          this.logger.debug(`Adding auth strategy: ${key}`);
+          builder.addAuthStrategy(key, strategy);
+        }
+      }
 
       const { fetcher, clusterSupplier } = await builder.build();
 
