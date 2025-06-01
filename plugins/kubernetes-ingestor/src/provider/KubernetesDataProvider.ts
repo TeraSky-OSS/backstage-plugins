@@ -19,6 +19,7 @@ type ObjectToFetch = {
   group: string;
   apiVersion: string;
   plural: string;
+  singular?: string;
   objectType: KubernetesObjectTypes;
 };
 
@@ -131,6 +132,7 @@ export class KubernetesDataProvider {
             group: type.getString('group'),
             apiVersion: type.getString('apiVersion'),
             plural: type.getString('plural'),
+            singular: type.getOptionalString('singular'),
             objectType: type.getString('plural') as KubernetesObjectTypes,
           })) || [];
 
@@ -305,7 +307,7 @@ export class KubernetesDataProvider {
                   return {
                     ...resource,
                     apiVersion: `${objectType.group}/${objectType.apiVersion}`,
-                    kind: objectType.plural?.slice(0, -1),
+                    kind: objectType.singular || pluralize.singular(objectType.plural) || objectType.plural?.slice(0, -1),
                     clusterName: cluster.name,
                     compositionData: {
                       name: resource.spec.compositionRef.name,
@@ -316,7 +318,7 @@ export class KubernetesDataProvider {
                 return {
                   ...resource,
                   apiVersion: `${objectType.group}/${objectType.apiVersion}`,
-                  kind: objectType.plural?.slice(0, -1),
+                  kind: objectType.singular || pluralize.singular(objectType.plural) || objectType.plural?.slice(0, -1),
                   clusterName: cluster.name,
                 };
               }),
