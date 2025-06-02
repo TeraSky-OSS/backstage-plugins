@@ -19,6 +19,13 @@ import yaml from 'js-yaml';
 import pluralize from 'pluralize';
 import { CRDDataProvider } from './CRDDataProvider';
 
+interface BackstageLink {
+  url: string;
+  title: string;
+  icon: string;
+  [key: string]: string;
+}
+
 export class XRDTemplateEntityProvider implements EntityProvider {
   private readonly taskRunner: SchedulerServiceTaskRunner;
   private connection?: EntityProviderConnection;
@@ -1982,8 +1989,11 @@ export class KubernetesEntityProvider implements EntityProvider {
         title: titleValue,
         description: `${resource.kind} ${resource.metadata.name} from ${resource.clusterName}`,
         namespace: annotations[`${prefix}/backstage-namespace`] || namespaceValue,
+        links: this.parseBackstageLinks(annotations),
         annotations: {
-          ...annotations,
+          ...Object.fromEntries(
+            Object.entries(annotations).filter(([key]) => key !== 'backstage.io/links')
+          ),
           'terasky.backstage.io/kubernetes-resource-kind': resource.kind,
           'terasky.backstage.io/kubernetes-resource-name': resource.metadata.name,
           'terasky.backstage.io/kubernetes-resource-api-version': resource.apiVersion,
@@ -2152,8 +2162,11 @@ export class KubernetesEntityProvider implements EntityProvider {
         description: `${claim.kind} ${claim.metadata.name} from ${clusterName}`,
         tags: [`cluster:${clusterName}`, `kind:${claim.kind}`, 'crossplane-claim'],
         namespace: namespaceValue,
+        links: this.parseBackstageLinks(annotations),
         annotations: {
-          ...annotations,
+          ...Object.fromEntries(
+            Object.entries(annotations).filter(([key]) => key !== 'backstage.io/links')
+          ),
           [`${prefix}/component-type`]: 'crossplane-claim',
           ...(systemModel === 'cluster-namespace' || namespaceModel === 'cluster' || nameModel === 'name-cluster' ? {
             'backstage.io/kubernetes-cluster': clusterName,
@@ -2176,5 +2189,28 @@ export class KubernetesEntityProvider implements EntityProvider {
 
   private getAnnotationPrefix(): string {
     return this.config.getOptionalString('kubernetesIngestor.annotationPrefix') || 'terasky.backstage.io';
+  }
+
+  // Helper function to parse and transform backstage.io/links annotation from original claim
+  private parseBackstageLinks(annotations: Record<string, string>): BackstageLink[] {
+    const linksAnnotation = annotations['backstage.io/links'];
+    if (!linksAnnotation) {
+      return [];
+    }
+
+    try {
+      const linksArray = JSON.parse(linksAnnotation) as BackstageLink[];
+      this.logger.debug(`Parsed backstage.io/links: ${JSON.stringify(linksArray)}`);
+
+      return linksArray.map((link: BackstageLink) => ({
+        url: link.url,
+        title: link.title,
+        icon: link.icon
+      }));
+    } catch (error) {
+      this.logger.warn(`Failed to parse backstage.io/links annotation: ${error}`)
+      this.logger.warn(`Raw annotation value: ${linksAnnotation}`)
+      return [];
+    }
   }
 }
