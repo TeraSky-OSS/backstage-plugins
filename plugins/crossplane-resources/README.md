@@ -15,64 +15,94 @@ If you want to enable the permission framework for this plugin, you must also in
 
 To install and configure the `crossplane-resources` frontend plugin in your Backstage instance, follow these steps:
 
-  * Add the package
-  ```bash
-  yarn --cwd packages/app add @terasky/backstage-plugin-crossplane-resources-frontend
-  ```
-  * Add to Entity Page (packages/app/src/components/catalog/EntityPage.tsx)
-  ```javascript
-  import { CrossplaneAllResourcesTable, CrossplaneResourceGraph, isCrossplaneAvailable, CrossplaneOverviewCard } from '@terasky/backstage-plugin-crossplane-resources-frontend';
+1. Add the package
+```bash
+yarn --cwd packages/app add @terasky/backstage-plugin-crossplane-resources-frontend
+```
 
-  const crossplaneOverviewContent = (
-    <Grid container spacing={3} alignItems="stretch">
-      <Grid item md={6}>
-        <EntityAboutCard variant="gridItem" />
-      </Grid>
-      <Grid item md={6}>
-        < CrossplaneOverviewCard />
-      </Grid>
-    </Grid>
-  );
+2. Add to Entity Page (packages/app/src/components/catalog/EntityPage.tsx)
+```typescript
+import {
+  CrossplaneAllResourcesTable,
+  CrossplaneResourceGraph,
+  CrossplaneOverviewCard,
+  useResourceGraphAvailable,
+  useResourcesListAvailable,
+  IfCrossplaneOverviewAvailable,
+  IfCrossplaneResourceGraphAvailable,
+  IfCrossplaneResourcesListAvailable,
+} from '@terasky/backstage-plugin-crossplane-resources-frontend';
 
-  const crossplaneEntityPage = (
+// Create the Crossplane entity page component with permission checks
+const CrossplaneEntityPage = () => {
+  const isResourcesListAvailable = useResourcesListAvailable();
+  const isResourceGraphAvailable = useResourceGraphAvailable();
+
+  return (
     <EntityLayout>
       <EntityLayout.Route path="/" title="Overview">
-        {crossplaneOverviewContent}
+        <Grid container spacing={3} alignItems="stretch">
+          <Grid item md={6}>
+            <EntityAboutCard variant="gridItem" />
+          </Grid>
+          <IfCrossplaneOverviewAvailable>
+            <Grid item md={6}>
+              <CrossplaneOverviewCard />
+            </Grid>
+          </IfCrossplaneOverviewAvailable>
+        </Grid>
       </EntityLayout.Route>
-      <EntityLayout.Route
-        path="/kubernetes"
-        title="Kubernetes"
-        if={isKubernetesAvailable}
-      >
-        <EntityKubernetesContent />
+
+      <EntityLayout.Route if={isResourcesListAvailable} path="/crossplane-resources" title="Crossplane Resources">
+        <IfCrossplaneResourcesListAvailable>
+          <CrossplaneAllResourcesTable />
+        </IfCrossplaneResourcesListAvailable>
       </EntityLayout.Route>
-      <EntityLayout.Route if={isCrossplaneAvailable} path="/crossplane-resources" title="Crossplane Resources">
-        <CrossplaneAllResourcesTable />
-      </EntityLayout.Route>
-      <EntityLayout.Route if={isCrossplaneAvailable} path="/crossplane-graph" title="Crossplane Graph">
-        <CrossplaneResourceGraph />
+
+      <EntityLayout.Route if={isResourceGraphAvailable} path="/crossplane-graph" title="Crossplane Graph">
+        <IfCrossplaneResourceGraphAvailable>
+          <CrossplaneResourceGraph />
+        </IfCrossplaneResourceGraphAvailable>
       </EntityLayout.Route>
     </EntityLayout>
   );
+};
 
-
-  const componentPage = (
+// Use the component in your entity switch
+const componentPage = (
   <EntitySwitch>
-    ...
+    {/* ... other cases ... */}
     <EntitySwitch.Case if={isComponentType('crossplane-claim')}>
-      {crossplaneEntityPage}
+      <CrossplaneEntityPage />
     </EntitySwitch.Case>
-    ...
-  );
-
-  ```
+  </EntitySwitch>
+);
+```
 
 ## Configuration
-* available config options:
+Available config options:
 ```yaml
 crossplane:
   enablePermissions: false # Whether to enable permission checks for the crossplane plugin.
 ```
+
+## Permission Framework Integration
+The plugin provides several permission-related components and hooks to control access to different features:
+
+1. **Permission Hooks**:
+   - `useResourcesListAvailable()`: Controls visibility of the Resources List tab
+   - `useResourceGraphAvailable()`: Controls visibility of the Resource Graph tab
+
+2. **Wrapper Components**:
+   - `IfCrossplaneOverviewAvailable`: Conditionally renders the overview card
+   - `IfCrossplaneResourceGraphAvailable`: Conditionally renders the resource graph
+   - `IfCrossplaneResourcesListAvailable`: Conditionally renders the resources list
+
+These components work together to provide granular access control:
+- If permissions are disabled (`enablePermissions: false`), all features are available
+- If permissions are enabled, each feature checks the user's permissions before rendering
+- Tabs are completely hidden if the user doesn't have permission to view them
+- Content is protected even if somehow accessed directly
 
 ## Usage
 Once installed and configured, the crossplane-resources plugin will provide components for visualizing Crossplane resources in the Backstage UI.
@@ -90,6 +120,7 @@ If you have integrated the permissions elements, the UI will render accordingly
 
 There is also an overview card which shows basic information:
 ![overview](../../images/claim-info.png)
+
 ## Contributing
 Contributions are welcome! Please open an issue or submit a pull request on GitHub.
 

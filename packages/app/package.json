@@ -42,7 +42,7 @@
     "@backstage/theme": "^0.6.5",
     "@material-ui/core": "^4.12.4",
     "@material-ui/icons": "^4.11.3",
-    "@terasky/backstage-plugin-crossplane-resources-frontend": "^1.7.6",
+    "@terasky/backstage-plugin-crossplane-resources-frontend": "^1.8.0",
     "@terasky/backstage-plugin-devpod": "^1.0.11",
     "@terasky/backstage-plugin-entity-scaffolder-content": "^1.0.11",
     "@terasky/backstage-plugin-gitops-manifest-updater": "^1.1.0",

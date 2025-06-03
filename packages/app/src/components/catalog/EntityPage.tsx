@@ -60,7 +60,17 @@ import {
   EntityKubernetesContent,
   isKubernetesAvailable,
 } from '@backstage/plugin-kubernetes';
-import { CrossplaneAllResourcesTable, CrossplaneOverviewCard, CrossplaneResourceGraph, isCrossplaneAvailable } from '@terasky/backstage-plugin-crossplane-resources-frontend';
+import {
+  CrossplaneAllResourcesTable,
+  CrossplaneOverviewCard,
+  CrossplaneResourceGraph,
+  isCrossplaneAvailable,
+  IfCrossplaneOverviewAvailable,
+  IfCrossplaneResourceGraphAvailable,
+  IfCrossplaneResourcesListAvailable,
+  useResourceGraphAvailable,
+  useResourcesListAvailable,
+} from '@terasky/backstage-plugin-crossplane-resources-frontend';
 import { isScaleopsAvailable } from '@terasky/backstage-plugin-scaleops-frontend'
 import { DevpodComponent, isDevpodAvailable } from '@terasky/backstage-plugin-devpod';
 import { ScaffolderFieldExtensions } from '@backstage/plugin-scaffolder-react';
@@ -79,7 +89,6 @@ import {
   VCFAutomationGenericResourceDetails,
   VCFAutomationGenericResourceOverview,
 } from '@terasky/backstage-plugin-vcf-automation';
-
 
 const techdocsContent = (
   <EntityTechdocsContent>
@@ -172,9 +181,11 @@ const crossplaneOverviewContent = (
     <Grid item md={6}>
       <EntityAboutCard variant="gridItem" />
     </Grid>
-    <Grid item md={6}>
-      < CrossplaneOverviewCard />
-    </Grid>
+    <IfCrossplaneOverviewAvailable>
+      <Grid item md={6}>
+        <CrossplaneOverviewCard />
+      </Grid>
+    </IfCrossplaneOverviewAvailable>
     <Grid item md={6}>
       <KyvernoCrossplaneOverviewCard />
     </Grid>
@@ -232,10 +243,14 @@ const serviceEntityPage = (
       {techdocsContent}
     </EntityLayout.Route>
     <EntityLayout.Route if={isCrossplaneAvailable} path="/crossplane-resources" title="Crossplane Resources">
-      <CrossplaneAllResourcesTable />
+      <IfCrossplaneResourcesListAvailable>
+        <CrossplaneAllResourcesTable />
+      </IfCrossplaneResourcesListAvailable>
     </EntityLayout.Route>
     <EntityLayout.Route if={isCrossplaneAvailable} path="/crossplane-graph" title="Crossplane Graph">
-      <CrossplaneResourceGraph />
+      <IfCrossplaneResourceGraphAvailable>
+        <CrossplaneResourceGraph />
+      </IfCrossplaneResourceGraphAvailable>
     </EntityLayout.Route>
     <EntityLayout.Route if={isScaleopsAvailable} path="/scaleops" title="Scale Ops">
       <ScaleOpsDashboard />
@@ -265,33 +280,34 @@ const serviceEntityPage = (
     </EntityLayout.Route>
   </EntityLayout>
 );
-const crossplaneEntityPage = (
-  <EntityLayout>
-    <EntityLayout.Route path="/" title="Overview">
-      {crossplaneOverviewContent}
-    </EntityLayout.Route>
-    <EntityLayout.Route if={isKubernetesAvailable} path="/kyverno-policy-reports" title="Kyverno Policy Reports">
-      <KyvernoCrossplanePolicyReportsTable />
-    </EntityLayout.Route>
 
-    <EntityLayout.Route path="/api" title="XRD API">
-      <Grid container spacing={3} alignItems="stretch">
-        <Grid item md={6}>
-          <EntityProvidedApisCard />
-        </Grid>
-        <Grid item md={6}>
-          <EntityConsumedApisCard />
-        </Grid>
-      </Grid>
-    </EntityLayout.Route>
+const CrossplaneEntityPage = () => {
+  const isResourcesListAvailable = useResourcesListAvailable();
+  const isResourceGraphAvailable = useResourceGraphAvailable();
 
-    <EntityLayout.Route if={isCrossplaneAvailable} path="/crossplane-resources" title="Crossplane Resources">
-      <CrossplaneAllResourcesTable />
-    </EntityLayout.Route>
-    <EntityLayout.Route if={isCrossplaneAvailable} path="/crossplane-graph" title="Crossplane Graph">
-      <CrossplaneResourceGraph />
-    </EntityLayout.Route>
-    <EntityLayout.Route path="/scaffolder" title="Entity Scaffolder">
+  return (
+    <EntityLayout>
+      <EntityLayout.Route path="/" title="Overview">
+        {crossplaneOverviewContent}
+      </EntityLayout.Route>
+
+      <EntityLayout.Route if={isResourcesListAvailable} path="/crossplane-resources" title="Crossplane Resources">
+        <IfCrossplaneResourcesListAvailable>
+          <CrossplaneAllResourcesTable />
+        </IfCrossplaneResourcesListAvailable>
+      </EntityLayout.Route>
+
+      <EntityLayout.Route if={isResourceGraphAvailable} path="/crossplane-graph" title="Crossplane Graph">
+        <IfCrossplaneResourceGraphAvailable>
+          <CrossplaneResourceGraph />
+        </IfCrossplaneResourceGraphAvailable>
+      </EntityLayout.Route>
+
+      <EntityLayout.Route if={isKubernetesAvailable} path="/kyverno-policy-reports" title="Kyverno Policy Reports">
+        <KyvernoCrossplanePolicyReportsTable />
+      </EntityLayout.Route>
+
+      <EntityLayout.Route path="/scaffolder" title="Entity Scaffolder">
         <EntityScaffolderContent
           templateGroupFilters={[
             {
@@ -302,9 +318,8 @@ const crossplaneEntityPage = (
             },
           ]}
           buildInitialState={entity => ({
-              entity: stringifyEntityRef(entity)
-            }
-          )}
+            entity: stringifyEntityRef(entity)
+          })}
           ScaffolderFieldExtensions={
             <ScaffolderFieldExtensions>
               <RepoUrlPickerFieldExtension />
@@ -313,9 +328,11 @@ const crossplaneEntityPage = (
             </ScaffolderFieldExtensions>
           }
         />
-    </EntityLayout.Route>
-  </EntityLayout>
-);
+      </EntityLayout.Route>
+    </EntityLayout>
+  );
+};
+
 const vcfAutomationVSphereVMOverviewContent = (
   <Grid container spacing={3} alignItems="stretch">
     <Grid item md={6}>
@@ -332,6 +349,7 @@ const vcfAutomationVSphereVMOverviewContent = (
     </Grid>
   </Grid>
 );
+
 const vcfAutomationVSphereVMPage = (
   <EntityLayout>
     <EntityLayout.Route path="/" title="Overview">
@@ -342,6 +360,7 @@ const vcfAutomationVSphereVMPage = (
     </EntityLayout.Route>
   </EntityLayout>
 );
+
 const websiteEntityPage = (
   <EntityLayout>
     <EntityLayout.Route path="/" title="Overview">
@@ -400,7 +419,7 @@ const componentPage = (
     </EntitySwitch.Case>
 
     <EntitySwitch.Case if={isComponentType('crossplane-claim')}>
-      {crossplaneEntityPage}
+      <CrossplaneEntityPage />
     </EntitySwitch.Case>
 
     <EntitySwitch.Case if={isComponentType('Cloud.vSphere.Machine')}>
