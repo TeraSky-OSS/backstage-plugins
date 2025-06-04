@@ -23,7 +23,6 @@ Add the plugin to your Backstage project by running:
   ```
   * Add to backend (packages/backend/src/index.ts)
   ```javascript
-  
   backend.add(import('@terasky/backstage-plugin-kubernetes-ingestor'));
   backend.add(import('@backstage/plugin-scaffolder-backend-module-github'));
   backend.add(import('@backstage/plugin-scaffolder-backend-module-gitlab'));
@@ -36,7 +35,7 @@ Add the plugin to your Backstage project by running:
 * available config options:
 ```yaml
 kubernetesIngestor:
-  # Mappings of kubernetes resource metadata to backstage entity metadata 
+  # Mappings of kubernetes resource metadata to backstage entity metadata
   # The list bellow are the default values when the mappings are not set in the app-config.yaml
   # The recommended values are:
   # namespaceModel: 'cluster' # cluster, namespace, default
@@ -60,9 +59,9 @@ kubernetesIngestor:
       # How often to query the clusters for data
       frequency: 10
       # Max time to process the data per cycle
-      timeout: 600 
+      timeout: 600
     # Namespaces to exclude the resources from
-    excludedNamespaces: 
+    excludedNamespaces:
       - kube-public
       - kube-system
     # Custom Resource Types to also generate components for
@@ -70,6 +69,7 @@ kubernetesIngestor:
       - group: pkg.crossplane.io
         apiVersion: v1
         plural: providers
+        # singular: provider # explicit singular form - needed when auto-detection fails
     # By default all standard kubernetes workload types are ingested. This allows you to disable this behavior
     disableDefaultWorkloadTypes: false
     # Allows ingestion to be opt-in or opt-out by either requiring or not a dedicated annotation to ingest a resource (terasky.backstage.io/add-to-catalog or terasky.backstage.io/exclude-from-catalog)
@@ -87,7 +87,7 @@ kubernetesIngestor:
         target: github
         git:
           # Follows the backstage standard format which is github.com?owner=<REPO OWNER>&repo=<REPO NAME>
-          repoUrl: 
+          repoUrl:
           targetBranch: main
         # Whether the user should be able to select the repo they want to push the manifest to or not
         allowRepoSelection: true
@@ -97,7 +97,7 @@ kubernetesIngestor:
         # How often to query the clusters for data
         frequency: 10
         # Max time to process the data per cycle
-        timeout: 600 
+        timeout: 600
       # Allows ingestion to be opt-in or opt-out by either requiring or not a dedicated annotation to ingest a xrd (terasky.backstage.io/add-to-catalog or terasky.backstage.io/exclude-from-catalog)
       ingestAllXRDs: true
       # Will convert default values from the XRD into placeholders in the UI instead of always adding them to the generated manifest.
@@ -111,7 +111,7 @@ kubernetesIngestor:
       target: github
       git:
         # Follows the backstage standard format which is github.com?owner=<REPO OWNER>&repo=<REPO NAME>
-        repoUrl: 
+        repoUrl:
         targetBranch: main
       # Whether the user should be able to select the repo they want to push the manifest to or not
       allowRepoSelection: true
