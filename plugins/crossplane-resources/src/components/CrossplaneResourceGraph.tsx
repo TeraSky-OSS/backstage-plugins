@@ -152,7 +152,7 @@ const CrossplaneResourceGraph = () => {
                     init: {
                         method: 'GET',
                         headers: {
-                            'Accept': 'application/json;g=apidiscovery.k8s.io;v=v2;as=APIGroupDiscoveryList,application/json',
+                            'Accept': 'application/json;as=APIGroupDiscoveryList;v=v2;g=apidiscovery.k8s.io,application/json;as=APIGroupDiscoveryList;v=v2beta1;g=apidiscovery.k8s.io,application/json',
                         },
                     },
                 });
