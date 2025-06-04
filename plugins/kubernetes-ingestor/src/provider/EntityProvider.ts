@@ -662,7 +662,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
           description: "How the composition should be selected.",
           enum: [
             "runtime",
-            "direct-reference",
+            ...(xrd.compositions && xrd.compositions.length > 0 ? ["direct-reference"] : []),
             "label-selector"
           ],
           default: "runtime",
@@ -681,7 +681,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
                 }
               }
             },
-            {
+            ...(xrd.compositions && xrd.compositions.length > 0 ? [{
               properties: {
                 compositionSelectionStrategy: {
                   enum: [
@@ -694,7 +694,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
                     name: {
                       type: "string",
                       title: "Select A Composition By Name",
-                      enum: xrd.compositions ? xrd.compositions : [],
+                      enum: xrd.compositions,
                       ...(xrd.spec?.defaultCompositionRef?.name && { default: xrd.spec.defaultCompositionRef.name })
                     }
                   },
@@ -704,7 +704,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
                   type: "object"
                 }
               }
-            },
+            }] : []),
             {
               properties: {
                 compositionSelectionStrategy: {

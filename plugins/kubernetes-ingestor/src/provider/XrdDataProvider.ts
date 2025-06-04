@@ -221,6 +221,16 @@ export class XrdDataProvider {
           // Group XRDs by their name and add clusters and compositions information
           allFetchedObjects.forEach(xrd => {
             const xrdName = xrd.metadata.name;
+            const compositeType = xrd.status?.controllers?.compositeResourceType;
+            
+            // Check if compositeType exists and has valid values
+            if (!compositeType || !compositeType.kind || !compositeType.apiVersion || compositeType.kind === "" || compositeType.apiVersion === "") {
+              this.logger.error(
+                `XRD ${xrdName} has invalid or missing compositeResourceType controllers status. Kind: ${compositeType?.kind}, ApiVersion: ${compositeType?.apiVersion}. Skipping created a Software Template for this XRD.`,
+              );
+              return; // Skip this XRD
+            }
+
             if (!xrdMap.has(xrdName)) {
               xrdMap.set(xrdName, {
                 ...xrd,
