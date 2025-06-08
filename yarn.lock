@@ -13723,7 +13723,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-crossplane-resources-frontend@npm:^1.8.0, @terasky/backstage-plugin-crossplane-resources-frontend@workspace:plugins/crossplane-resources":
+"@terasky/backstage-plugin-crossplane-resources-frontend@npm:^1.9.0, @terasky/backstage-plugin-crossplane-resources-frontend@workspace:plugins/crossplane-resources":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-crossplane-resources-frontend@workspace:plugins/crossplane-resources"
   dependencies:
@@ -13869,7 +13869,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-kubernetes-ingestor@npm:^1.14.0, @terasky/backstage-plugin-kubernetes-ingestor@workspace:plugins/kubernetes-ingestor":
+"@terasky/backstage-plugin-kubernetes-ingestor@npm:^1.15.0, @terasky/backstage-plugin-kubernetes-ingestor@workspace:plugins/kubernetes-ingestor":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kubernetes-ingestor@workspace:plugins/kubernetes-ingestor"
   dependencies:
@@ -14024,7 +14024,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-kyverno-policy-reports@npm:^1.1.9, @terasky/backstage-plugin-kyverno-policy-reports@workspace:plugins/kyverno-policy-reports":
+"@terasky/backstage-plugin-kyverno-policy-reports@npm:^1.2.0, @terasky/backstage-plugin-kyverno-policy-reports@workspace:plugins/kyverno-policy-reports":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kyverno-policy-reports@workspace:plugins/kyverno-policy-reports"
   dependencies:
@@ -14066,7 +14066,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils@npm:^1.4.4, @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils@workspace:plugins/scaffolder-backend-module-terasky-utils":
+"@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils@npm:^1.5.0, @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils@workspace:plugins/scaffolder-backend-module-terasky-utils":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils@workspace:plugins/scaffolder-backend-module-terasky-utils"
   dependencies:
@@ -16768,12 +16768,12 @@ __metadata:
     "@material-ui/core": "npm:^4.12.4"
     "@material-ui/icons": "npm:^4.11.3"
     "@playwright/test": "npm:^1.32.3"
-    "@terasky/backstage-plugin-crossplane-resources-frontend": "npm:^1.8.0"
+    "@terasky/backstage-plugin-crossplane-resources-frontend": "npm:^1.9.0"
     "@terasky/backstage-plugin-devpod": "npm:^1.0.11"
     "@terasky/backstage-plugin-entity-scaffolder-content": "npm:^1.0.11"
     "@terasky/backstage-plugin-gitops-manifest-updater": "npm:^1.1.0"
     "@terasky/backstage-plugin-kubernetes-resources-frontend": "npm:^0.3.5"
-    "@terasky/backstage-plugin-kyverno-policy-reports": "npm:^1.1.9"
+    "@terasky/backstage-plugin-kyverno-policy-reports": "npm:^1.2.0"
     "@terasky/backstage-plugin-scaleops-frontend": "npm:^1.3.10"
     "@terasky/backstage-plugin-vcf-automation": "npm:^0.1.1"
     "@testing-library/dom": "npm:^9.0.0"
@@ -17512,10 +17512,10 @@ __metadata:
     "@backstage/plugin-techdocs-backend": "npm:^2.0.1"
     "@roadiehq/scaffolder-backend-module-utils": "npm:^3.5.0"
     "@terasky/backstage-plugin-crossplane-permissions-backend": "npm:^1.1.11"
-    "@terasky/backstage-plugin-kubernetes-ingestor": "npm:^1.14.0"
+    "@terasky/backstage-plugin-kubernetes-ingestor": "npm:^1.15.0"
     "@terasky/backstage-plugin-kubernetes-resources-permissions-backend": "npm:^0.2.5"
     "@terasky/backstage-plugin-kyverno-permissions-backend": "npm:^1.0.9"
-    "@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils": "npm:^1.4.4"
+    "@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils": "npm:^1.5.0"
     "@terasky/backstage-plugin-vcf-automation-backend": "npm:^0.1.1"
     "@terasky/backstage-plugin-vcf-automation-ingestor": "npm:^0.1.0"
     app: "link:../app"
