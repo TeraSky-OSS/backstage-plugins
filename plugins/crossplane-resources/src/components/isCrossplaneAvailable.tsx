@@ -1,7 +1,7 @@
 import { Entity } from '@backstage/catalog-model';
 import { useApi, configApiRef } from '@backstage/core-plugin-api';
 import { usePermission } from '@backstage/plugin-permission-react';
-import { showOverview, showResourceGraph, listClaimsPermission } from '@terasky/backstage-plugin-crossplane-common';
+import { showOverview, showResourceGraph, listCompositeResourcesPermission } from '@terasky/backstage-plugin-crossplane-common';
 
 export const isCrossplaneAvailable = (entity: Entity): boolean => {
   return Boolean(entity.metadata.annotations?.['terasky.backstage.io/crossplane-resource']);
@@ -27,7 +27,7 @@ export const IfCrossplaneResourceGraphAvailable = (props: { children: JSX.Elemen
 export const IfCrossplaneResourcesListAvailable = (props: { children: JSX.Element }) => {
   const config = useApi(configApiRef);
   const enablePermissions = config.getOptionalBoolean('crossplane.enablePermissions') ?? false;
-  const { allowed } = usePermission({ permission: listClaimsPermission });
+  const { allowed } = usePermission({ permission: listCompositeResourcesPermission });
   
   return allowed || !enablePermissions ? props.children : null;
 };
@@ -44,7 +44,7 @@ export const useResourceGraphAvailable = () => {
 export const useResourcesListAvailable = () => {
   const config = useApi(configApiRef);
   const enablePermissions = config.getOptionalBoolean('crossplane.enablePermissions') ?? false;
-  const { allowed } = usePermission({ permission: listClaimsPermission });
+  const { allowed } = usePermission({ permission: listCompositeResourcesPermission });
   
   return (entity: Entity) => isCrossplaneAvailable(entity) && (!enablePermissions || allowed);
 };

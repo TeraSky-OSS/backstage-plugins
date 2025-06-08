@@ -21,7 +21,7 @@ export function createCrossplaneClaimAction({config}: {config: any}) {
     schema: {
       input: {
         type: 'object',
-        required: ['parameters', 'nameParam', 'namespaceParam', 'excludeParams', 'apiVersion', 'kind', 'clusters'],
+        required: ['parameters', 'nameParam', 'excludeParams', 'apiVersion', 'kind', 'clusters'],
         properties: {
           parameters: {
             title: 'Pass through of input parameters',
@@ -164,7 +164,7 @@ export function createCrossplaneClaimAction({config}: {config: any}) {
             ...(sourceFileUrl && { 'terasky.backstage.io/source-file-url': sourceFileUrl }),
           },
           name: ctx.input.parameters[ctx.input.nameParam],
-          namespace: ctx.input.parameters[ctx.input.namespaceParam],
+          ...(ctx.input.parameters[ctx.input.namespaceParam] && ctx.input.parameters[ctx.input.namespaceParam] !== '' ? { namespace: ctx.input.parameters[ctx.input.namespaceParam] } : {}),
         },
         spec: filteredParameters,
       };
@@ -175,9 +175,12 @@ export function createCrossplaneClaimAction({config}: {config: any}) {
       // Write the manifest to the file system for each cluster
       const filePaths: string[] = [];
       ctx.input.clusters.forEach(cluster => {
+        const namespaceOrDefault = ctx.input.parameters[ctx.input.namespaceParam] && ctx.input.parameters[ctx.input.namespaceParam] !== ''
+          ? ctx.input.parameters[ctx.input.namespaceParam]
+          : 'cluster-scoped';
         const filePath = path.join(
           cluster,
-          ctx.input.parameters[ctx.input.namespaceParam],
+          namespaceOrDefault,
           ctx.input.kind,
           `${ctx.input.parameters[ctx.input.nameParam]}.yaml`
         );

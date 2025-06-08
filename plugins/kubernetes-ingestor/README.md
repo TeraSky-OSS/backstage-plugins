@@ -75,8 +75,11 @@ kubernetesIngestor:
     # Allows ingestion to be opt-in or opt-out by either requiring or not a dedicated annotation to ingest a resource (terasky.backstage.io/add-to-catalog or terasky.backstage.io/exclude-from-catalog)
     onlyIngestAnnotatedResources: false
   crossplane:
+    # This section is relevant for crossplane v1 claims as well as Crossplane v2 XRs.
+    # In the future when v1 and claims are deprecated this field will change names but currently 
+    # for backwards compatibility will stay as is
     claims:
-      # Whether to create components for all claim resources in your cluster
+      # Whether to create components for all claim resources (v1) and XRs (v2) in your cluster
       ingestAllClaims: true
     xrds:
       # Settings related to the final steps of a software template
@@ -137,16 +140,17 @@ Namespace Annotations:
 - terasky.backstage.io/system-type: Defaults to product
 - terasky.backstage.io/domain: no default
 Workload Resource Annotations:
-- terasky.backstage.io/source-code-repo-url: no default
+- terasky.backstage.io/source-code-repo-url: no default. format: "https://github.com/dambor/yelb-catalog"
 - terasky.backstage.io/source-branch: Defaults to main
-- terasky.backstage.io/techdocs-path: no default
-- terasky.backstage.io/kubernetes-label-selector: Only needed for non crossplane claims
+- terasky.backstage.io/techdocs-path: no default. format: "components/redis-server"
+- terasky.backstage.io/kubernetes-label-selector: Only needed for non crossplane claims. in the format of 'app=yelb-ui,tier=frontend'
 - terasky.backstage.io/component-type: Defaults to service
 - terasky.backstage.io/lifecycle: Defaults to production
-- terasky.backstage.io/dependsOn: no default
-- terasky.backstage.io/providesApis: no default
-- terasky.backstage.io/consumesApis: no default
-- terasky.backstage.io/component-annotations: no default - allows supplying nested annotation key value pairs to be added to components
+- terasky.backstage.io/dependsOn: no default. format: 'Component:yelb-appserver'
+- terasky.backstage.io/providesApis: no default. format: 'petstore-api,other-ns/other-api'
+- terasky.backstage.io/consumesApis: no default. format: 'petstore-api,other-ns/other-api'
+- terasky.backstage.io/component-annotations: no default - allows supplying nested annotation key value pairs to be added to components. format: 'test.terasky.com/example=dummy-value,demo=example'
+- terasky.backstage.io/links: no default - allows supplying backstage links to add to your component. format: '[{"url": "https://docs.crossplane.io/","title": "Crossplane Docs","icon": "docs"}]'
 ```
 
 

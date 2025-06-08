@@ -141,6 +141,42 @@ export class KubernetesDataProvider {
         ...customWorkloadTypes,
       ]);
 
+      // --- BEGIN: Add all v2/Cluster and v2/Namespaced composite kinds (XRs) to objectTypesToFetch ---
+      try {
+        // Import XrdDataProvider here to avoid circular dependency at top
+        const { XrdDataProvider } = await import('./XrdDataProvider');
+        // You may need to pass auth/httpAuth if required by your XrdDataProvider constructor
+        const xrdDataProvider = new XrdDataProvider(
+          this.logger,
+          this.config,
+          this.catalogApi,
+          this.discovery,
+          this.permissions,
+          // @ts-ignore
+          this.auth,
+          // @ts-ignore
+          this.httpAuth,
+        );
+        const xrdObjects = await xrdDataProvider.fetchXRDObjects();
+        for (const xrd of xrdObjects) {
+          const isV2 = !!xrd.spec?.scope;
+          const scope = xrd.spec?.scope || (isV2 ? 'LegacyCluster' : 'Cluster');
+          if (isV2 && scope !== 'LegacyCluster') {
+            for (const version of xrd.spec.versions || []) {
+              objectTypesToFetch.add({
+                group: xrd.spec.group,
+                apiVersion: version.name,
+                plural: xrd.spec.names.plural,
+                objectType: 'customresources' as KubernetesObjectTypes,
+              });
+            }
+          }
+        }
+      } catch (err) {
+        this.logger.warn('Failed to dynamically add v2 composite kinds to fetch list: ' + (err instanceof Error ? err.message : String(err)));
+      }
+      // --- END: Add all v2/Cluster and v2/Namespaced composite kinds (XRs) to objectTypesToFetch ---
+
       const objectTypeMap = Array.from(objectTypesToFetch).reduce(
         (acc, type) => {
           acc[type.plural] = type;
@@ -295,6 +331,28 @@ export class KubernetesDataProvider {
                 ) {
                   return {};
                 }
+                // Handle v2 composites: spec.crossplane.compositionRef.name
+                if (resource.spec?.crossplane?.compositionRef?.name) {
+                  const composition = await this.fetchComposition(
+                    fetcher,
+                    cluster,
+                    credential,
+                    resource.spec.crossplane.compositionRef.name,
+                  );
+                  const usedFunctions = this.extractUsedFunctions(composition);
+
+                  return {
+                    ...resource,
+                    apiVersion: `${objectType.group}/${objectType.apiVersion}`,
+                    kind: objectType.singular || pluralize.singular(objectType.plural) || objectType.plural?.slice(0, -1),
+                    clusterName: cluster.name,
+                    compositionData: {
+                      name: resource.spec.crossplane.compositionRef.name,
+                      usedFunctions,
+                    },
+                  };
+                }
+                // Handle claims: spec.compositionRef.name
                 if (resource.spec?.compositionRef?.name) {
                   const composition = await this.fetchComposition(
                     fetcher,

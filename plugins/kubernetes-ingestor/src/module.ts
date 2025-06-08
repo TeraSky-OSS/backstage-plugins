@@ -67,6 +67,8 @@ export const catalogModuleKubernetes = createBackendModule({
           catalogApi,
           permissions,
           discovery,
+          auth,
+          httpAuth,
         );
 
         const xrdTemplateEntityProvider = new XRDTemplateEntityProvider(
