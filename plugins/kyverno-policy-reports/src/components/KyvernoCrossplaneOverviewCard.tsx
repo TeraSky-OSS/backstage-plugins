@@ -108,59 +108,62 @@ const KyvernoCrossplaneOverviewCard = () => {
       setLoading(true);
       try {
         const annotations = entity.metadata.annotations || {};
-        const claimPlural = annotations['terasky.backstage.io/claim-plural'];
-        const claimGroup = annotations['terasky.backstage.io/claim-group'];
-        const claimVersion = annotations['terasky.backstage.io/claim-version'];
+        const crossplaneVersion = annotations['terasky.backstage.io/crossplane-version'];
         const labelSelector = annotations['backstage.io/kubernetes-label-selector'];
-        const namespace = labelSelector.split(',').find(s => s.startsWith('crossplane.io/claim-namespace'))?.split('=')[1];
-        const clusterOfClaim = annotations['backstage.io/managed-by-location'].split(": ")[1];
+        const cluster = annotations['backstage.io/managed-by-location']?.split(': ')[1];
+        const resourcesToFetch: any[] = [];
 
-        if (!claimPlural || !claimGroup || !claimVersion || !namespace || !clusterOfClaim) {
-          return;
+        if (crossplaneVersion === 'v1') {
+          // Fetch claim
+          const claimPlural = annotations['terasky.backstage.io/claim-plural'];
+          const claimGroup = annotations['terasky.backstage.io/claim-group'];
+          const claimVersion = annotations['terasky.backstage.io/claim-version'];
+          const claimName = annotations['terasky.backstage.io/claim-name'];
+          const namespace = labelSelector?.split(',').find(s => s.startsWith('crossplane.io/claim-namespace'))?.split('=')[1];
+          if (claimPlural && claimGroup && claimVersion && claimName && namespace && cluster) {
+            const claimUrl = `/apis/${claimGroup}/${claimVersion}/namespaces/${namespace}/${claimPlural}/${claimName}`;
+            const claimResponse = await kubernetesApi.proxy({ clusterName: cluster, path: claimUrl, init: { method: 'GET' } });
+            resourcesToFetch.push(await claimResponse.json());
+          }
         }
 
-        const claimResourceName = entity.metadata.name;
-        const claimUrl = `/apis/${claimGroup}/${claimVersion}/namespaces/${namespace}/${claimPlural}/${claimResourceName}`;
-
-        const claimResponse = await kubernetesApi.proxy({
-          clusterName: clusterOfClaim,
-          path: claimUrl,
-          init: { method: 'GET' },
-        });
-        const claimResource = await claimResponse.json();
-
+        // Fetch composite (for both v1 and v2)
         const compositePlural = annotations['terasky.backstage.io/composite-plural'];
         const compositeGroup = annotations['terasky.backstage.io/composite-group'];
         const compositeVersion = annotations['terasky.backstage.io/composite-version'];
         const compositeName = annotations['terasky.backstage.io/composite-name'];
-        const clusterOfComposite = annotations['backstage.io/managed-by-location'].split(": ")[1];
-
-        if (!compositePlural || !compositeGroup || !compositeVersion || !compositeName || !clusterOfComposite) {
-          return;
+        const compositeScope = annotations['terasky.backstage.io/crossplane-scope'];
+        if (compositePlural && compositeGroup && compositeVersion && compositeName && cluster) {
+          let compositeUrl;
+          if (compositeScope === 'Namespaced') {
+            const ns = labelSelector?.split(',').find(s => s.startsWith('crossplane.io/claim-namespace') || s.startsWith('crossplane.io/composite-namespace'))?.split('=')[1]
+              || entity.metadata.namespace
+              || 'default';
+            compositeUrl = `/apis/${compositeGroup}/${compositeVersion}/namespaces/${ns}/${compositePlural}/${compositeName}`;
+          } else {
+            compositeUrl = `/apis/${compositeGroup}/${compositeVersion}/${compositePlural}/${compositeName}`;
+          }
+          const compositeResponse = await kubernetesApi.proxy({ clusterName: cluster, path: compositeUrl, init: { method: 'GET' } });
+          resourcesToFetch.push(await compositeResponse.json());
         }
 
-        const compositeUrl = `/apis/${compositeGroup}/${compositeVersion}/${compositePlural}/${compositeName}`;
-
-        const compositeResponse = await kubernetesApi.proxy({
-          clusterName: clusterOfComposite,
-          path: compositeUrl,
-          init: { method: 'GET' },
-        });
-        const compositeResource = await compositeResponse.json();
-
-        const resources = [claimResource, compositeResource];
+        const resources = resourcesToFetch;
 
         const fetchedPolicyReports = await Promise.all(resources.map(async (resource, index) => {
+          if (!resource || !resource.metadata) return null;
           const { uid, namespace } = resource.metadata || {};
           if (!uid) return null;
 
-          const url = index === 0
-            ? `/apis/wgpolicyk8s.io/v1alpha2/namespaces/${namespace}/policyreports/${uid}`
-            : `/apis/wgpolicyk8s.io/v1alpha2/clusterpolicyreports/${uid}`;
+          let url;
+          if (namespace) {
+            url = `/apis/wgpolicyk8s.io/v1alpha2/namespaces/${namespace}/policyreports/${uid}`;
+          } else {
+            url = `/apis/wgpolicyk8s.io/v1alpha2/clusterpolicyreports/${uid}`;
+          }
 
           try {
             const response = await kubernetesApi.proxy({
-              clusterName: clusterOfClaim,
+              clusterName: cluster,
               path: url,
               init: { method: 'GET' },
             });
