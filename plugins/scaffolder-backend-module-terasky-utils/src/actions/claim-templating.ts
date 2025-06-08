@@ -110,8 +110,18 @@ export function createCrossplaneClaimAction({config}: {config: any}) {
 
       // Remove excluded parameters
       const filteredParameters = { ...ctx.input.parameters };
+      // Helper to delete nested keys using dot notation
+      function deleteNested(obj: any, path: string) {
+        const parts = path.split('.');
+        let current = obj;
+        for (let i = 0; i < parts.length - 1; i++) {
+          if (!current[parts[i]]) return;
+          current = current[parts[i]];
+        }
+        delete current[parts[parts.length - 1]];
+      }
       ctx.input.excludeParams.forEach(param => {
-        delete filteredParameters[param];
+        deleteNested(filteredParameters, param);
       });
 
       // Remove empty parameters if removeEmptyParams is true
@@ -141,39 +151,10 @@ export function createCrossplaneClaimAction({config}: {config: any}) {
             ? `${ctx.input.parameters[ctx.input.namespaceParam]}`
             : `${ctx.input.clusters[0]}/${ctx.input.parameters[ctx.input.namespaceParam]}/${ctx.input.kind}`
       }
-      let sourceFileUrl = '';
-      if (ctx.input.parameters.pushToGit && sourceInfo.gitRepo) {
-        const gitUrl = new URL("https://" + sourceInfo.gitRepo);
-        const owner = gitUrl.searchParams.get('owner');
-        const repo = gitUrl.searchParams.get('repo');
-        if (owner && repo) {
-          sourceFileUrl = `https://${gitUrl.host}/${owner}/${repo}/blob/${sourceInfo.gitBranch}/${sourceInfo.basePath}/${ctx.input.parameters[ctx.input.nameParam]}.yaml`;
-        }
-      }
-
-      // Template the Kubernetes resource manifest
-      const manifest = {
-        apiVersion: ctx.input.apiVersion,
-        kind: ctx.input.kind,
-        metadata: {
-          annotations: {
-            'terasky.backstage.io/source-info': JSON.stringify(sourceInfo),
-            'terasky.backstage.io/add-to-catalog': "true",
-            'terasky.backstage.io/owner': ctx.input.parameters[ctx.input.ownerParam],
-            'terasky.backstage.io/system': ctx.input.parameters[ctx.input.namespaceParam],
-            ...(sourceFileUrl && { 'terasky.backstage.io/source-file-url': sourceFileUrl }),
-          },
-          name: ctx.input.parameters[ctx.input.nameParam],
-          ...(ctx.input.parameters[ctx.input.namespaceParam] && ctx.input.parameters[ctx.input.namespaceParam] !== '' ? { namespace: ctx.input.parameters[ctx.input.namespaceParam] } : {}),
-        },
-        spec: filteredParameters,
-      };
-
-      // Convert manifest to YAML
-      const manifestYaml = yaml.dump(manifest);
 
       // Write the manifest to the file system for each cluster
       const filePaths: string[] = [];
+      let manifestYaml = '';
       ctx.input.clusters.forEach(cluster => {
         const namespaceOrDefault = ctx.input.parameters[ctx.input.namespaceParam] && ctx.input.parameters[ctx.input.namespaceParam] !== ''
           ? ctx.input.parameters[ctx.input.namespaceParam]
@@ -185,12 +166,43 @@ export function createCrossplaneClaimAction({config}: {config: any}) {
           `${ctx.input.parameters[ctx.input.nameParam]}.yaml`
         );
         const destFilepath = resolveSafeChildPath(ctx.workspacePath, filePath);
+
+        // Generate the correct sourceFileUrl for this cluster
+        let sourceFileUrl = '';
+        if (ctx.input.parameters.pushToGit && sourceInfo.gitRepo) {
+          const gitUrl = new URL("https://" + sourceInfo.gitRepo);
+          const owner = gitUrl.searchParams.get('owner');
+          const repo = gitUrl.searchParams.get('repo');
+          if (owner && repo) {
+            sourceFileUrl = `https://${gitUrl.host}/${owner}/${repo}/blob/${sourceInfo.gitBranch}/${filePath}`;
+          }
+        }
+
+        // Create the manifest with the correct annotation for this cluster
+        const manifest = {
+          apiVersion: ctx.input.apiVersion,
+          kind: ctx.input.kind,
+          metadata: {
+            annotations: {
+              'terasky.backstage.io/source-info': JSON.stringify(sourceInfo),
+              'terasky.backstage.io/add-to-catalog': "true",
+              'terasky.backstage.io/owner': ctx.input.parameters[ctx.input.ownerParam],
+              'terasky.backstage.io/system': ctx.input.parameters[ctx.input.namespaceParam],
+              ...(sourceFileUrl && { 'terasky.backstage.io/source-file-url': sourceFileUrl }),
+            },
+            name: ctx.input.parameters[ctx.input.nameParam],
+            ...(ctx.input.parameters[ctx.input.namespaceParam] && ctx.input.parameters[ctx.input.namespaceParam] !== '' ? { namespace: ctx.input.parameters[ctx.input.namespaceParam] } : {}),
+          },
+          spec: filteredParameters,
+        };
+
+        manifestYaml = yaml.dump(manifest);
         fs.outputFileSync(destFilepath, manifestYaml);
         ctx.logger.info(`Manifest written to ${destFilepath}`);
         filePaths.push(destFilepath);
       });
 
-      // Output the manifest and file paths
+      // Output the manifest and file paths (last manifestYaml is output)
       ctx.output('manifest', manifestYaml);
       ctx.output('filePaths', filePaths);
     },
