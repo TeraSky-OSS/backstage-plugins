@@ -152,6 +152,7 @@ export const Root = ({ children }: PropsWithChildren<{}>) => (
             </Typography>
             
             <SidebarSubmenuItem title="Claims" to="catalog?filters[kind]=component&filters[type]=crossplane-claim" icon={SiKubernetes} />
+            <SidebarSubmenuItem title="Composites" to="catalog?filters[kind]=component&filters[type]=crossplane-xr" icon={SiKubernetes} />
             <SidebarSubmenuItem title="CRDs" to="catalog?filters[kind]=api&filters[owners]=group:default/kubernetes-auto-ingested" icon={SiOpenapiinitiative} />
           </SidebarSubmenu>
         </SidebarItem>

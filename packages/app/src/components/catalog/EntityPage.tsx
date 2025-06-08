@@ -62,7 +62,6 @@ import {
 } from '@backstage/plugin-kubernetes';
 import {
   CrossplaneAllResourcesTable,
-  CrossplaneOverviewCard,
   CrossplaneResourceGraph,
   isCrossplaneAvailable,
   IfCrossplaneOverviewAvailable,
@@ -70,6 +69,9 @@ import {
   IfCrossplaneResourcesListAvailable,
   useResourceGraphAvailable,
   useResourcesListAvailable,
+  CrossplaneResourcesTableSelector,
+  CrossplaneOverviewCardSelector,
+  CrossplaneResourceGraphSelector,
 } from '@terasky/backstage-plugin-crossplane-resources-frontend';
 import { isScaleopsAvailable } from '@terasky/backstage-plugin-scaleops-frontend'
 import { DevpodComponent, isDevpodAvailable } from '@terasky/backstage-plugin-devpod';
@@ -183,9 +185,12 @@ const crossplaneOverviewContent = (
     </Grid>
     <IfCrossplaneOverviewAvailable>
       <Grid item md={6}>
-        <CrossplaneOverviewCard />
+        <CrossplaneOverviewCardSelector />
       </Grid>
     </IfCrossplaneOverviewAvailable>
+    <Grid item md={4} xs={12}>
+      <EntityLinksCard />
+    </Grid>
     <Grid item md={6}>
       <KyvernoCrossplaneOverviewCard />
     </Grid>
@@ -293,13 +298,13 @@ const CrossplaneEntityPage = () => {
 
       <EntityLayout.Route if={isResourcesListAvailable} path="/crossplane-resources" title="Crossplane Resources">
         <IfCrossplaneResourcesListAvailable>
-          <CrossplaneAllResourcesTable />
+          <CrossplaneResourcesTableSelector />
         </IfCrossplaneResourcesListAvailable>
       </EntityLayout.Route>
 
       <EntityLayout.Route if={isResourceGraphAvailable} path="/crossplane-graph" title="Crossplane Graph">
         <IfCrossplaneResourceGraphAvailable>
-          <CrossplaneResourceGraph />
+          <CrossplaneResourceGraphSelector />
         </IfCrossplaneResourceGraphAvailable>
       </EntityLayout.Route>
 
@@ -419,6 +424,9 @@ const componentPage = (
     </EntitySwitch.Case>
 
     <EntitySwitch.Case if={isComponentType('crossplane-claim')}>
+      <CrossplaneEntityPage />
+    </EntitySwitch.Case>
+    <EntitySwitch.Case if={isComponentType('crossplane-xr')}>
       <CrossplaneEntityPage />
     </EntitySwitch.Case>
 
