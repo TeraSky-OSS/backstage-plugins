@@ -189,6 +189,11 @@ export class XRDTemplateEntityProvider implements EntityProvider {
                 {
                   title: 'Download YAML Manifest',
                   url: 'data:application/yaml;charset=utf-8,${{ steps.generateManifest.output.manifest }}'
+                },
+                {
+                  title: 'Open Pull Request',
+                  if: '${{ parameters.pushToGit }}',
+                  url: '${{ steps["create-pull-request"].output.remoteUrl }}'
                 }
               ]
             },
@@ -233,6 +238,11 @@ export class XRDTemplateEntityProvider implements EntityProvider {
               {
                 title: 'Download YAML Manifest',
                 url: 'data:application/yaml;charset=utf-8,${{ steps.generateManifest.output.manifest }}'
+              },
+              {
+                title: 'Open Pull Request',
+                if: '${{ parameters.pushToGit }}',
+                url: '${{ steps["create-pull-request"].output.remoteUrl }}'
               }
             ]
           },
@@ -492,17 +502,6 @@ export class XRDTemplateEntityProvider implements EntityProvider {
           pattern: "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
           maxLength: 63,
           type: 'string',
-        },
-        owner: {
-          title: 'Owner',
-          description: 'The owner of the resource',
-          type: 'string',
-          'ui:field': 'OwnerPicker',
-          'ui:options': {
-            'catalogFilter': {
-              'kind': 'Group',
-            },
-          },
         }
       },
       type: 'object',
@@ -517,6 +516,17 @@ export class XRDTemplateEntityProvider implements EntityProvider {
         type: 'string',
       };
     }
+    mainParameterGroup.properties.owner = {
+      title: 'Owner',
+      description: 'The owner of the resource',
+      type: 'string',
+      'ui:field': 'OwnerPicker',
+      'ui:options': {
+        'catalogFilter': {
+          'kind': 'Group',
+        },
+      },
+    };
     // Additional parameters
     const convertDefaultValuesToPlaceholders = this.config.getOptionalBoolean('kubernetesIngestor.crossplane.xrds.convertDefaultValuesToPlaceholders');
     const processProperties = (properties: Record<string, any>): Record<string, any> => {
@@ -572,12 +582,6 @@ export class XRDTemplateEntityProvider implements EntityProvider {
             title: 'Crossplane Configuration',
             type: 'object',
             properties: {
-              compositeDeletePolicy: {
-                title: 'Composite Delete Policy',
-                default: 'Background',
-                enum: ['Background', 'Foreground'],
-                type: 'string',
-              },
               compositionUpdatePolicy: {
                 title: 'Composition Update Policy',
                 enum: ['Automatic', 'Manual'],
@@ -954,7 +958,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
         '    nameParam: xrName\n' +
         (isNamespaced ? '    namespaceParam: xrNamespace\n' : '    namespaceParam: ""\n') +
         '    ownerParam: owner\n' +
-        '    excludeParams: [\'compositionSelectionStrategy\',\'owner\',\'pushToGit\',\'basePath\',\'manifestLayout\',\'_editData\',\'targetBranch\',\'repoUrl\',\'clusters\',\'xrName\'' + (isNamespaced ? ', \'xrNamespace\'' : '') + ']\n' +
+        '    excludeParams: [\'crossplane.compositionSelectionStrategy\',\'owner\',\'pushToGit\',\'basePath\',\'manifestLayout\',\'_editData\',\'targetBranch\',\'repoUrl\',\'clusters\',\'xrName\'' + (isNamespaced ? ', \'xrNamespace\'' : '') + ']\n' +
         '    apiVersion: {API_VERSION}\n' +
         '    kind: {KIND}\n' +
         '    clusters: ${{ parameters.clusters if parameters.manifestLayout === \'cluster-scoped\' and parameters.pushToGit else [\'temp\'] }}\n' +
