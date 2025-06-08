@@ -6,7 +6,7 @@ Welcome to the crossplane-resources plugin!
 
 ## Description
 
-The `crossplane-resources` frontend plugin for Backstage provides visibility into the Crossplane claim, composite resource, and managed resources associated with a component. This relies heavily on system-generated annotations from the Kubernetes Ingestor but technically does not require it if you add all the needed annotations manually. The plugin exposes general data, provides a YAML viewer for each resource including the ability to copy to clipboard the content or download the YAML file. It also supports viewing the events related to a specific resource. It also includes a graph view of the resources related to a claim.
+The `crossplane-resources` frontend plugin for Backstage provides visibility into the Crossplane claim, composite resource, and managed resources associated with a component. This relies heavily on system-generated annotations from the Kubernetes Ingestor but technically does not require it if you add all the needed annotations manually. The plugin exposes general data, provides a YAML viewer for each resource including the ability to copy to clipboard the content or download the YAML file. It also supports viewing the events related to a specific resource. It also includes a graph view of the resources related to a claim (v1) or XR (v2).
 
 ## Installation
 First you should install the relevant backend plugin called Kubernetes Ingestor, and configure it based on the [docs here](../kubernetes-ingestor/README.md).
@@ -23,15 +23,31 @@ yarn --cwd packages/app add @terasky/backstage-plugin-crossplane-resources-front
 2. Add to Entity Page (packages/app/src/components/catalog/EntityPage.tsx)
 ```typescript
 import {
-  CrossplaneAllResourcesTable,
-  CrossplaneResourceGraph,
-  CrossplaneOverviewCard,
+  CrossplaneResourcesTableSelector,
+  CrossplaneOverviewCardSelector,
+  CrossplaneResourceGraphSelector,
   useResourceGraphAvailable,
   useResourcesListAvailable,
   IfCrossplaneOverviewAvailable,
   IfCrossplaneResourceGraphAvailable,
   IfCrossplaneResourcesListAvailable,
 } from '@terasky/backstage-plugin-crossplane-resources-frontend';
+
+const crossplaneOverviewContent = (
+  <Grid container spacing={3} alignItems="stretch">
+    <Grid item md={6}>
+      <EntityAboutCard variant="gridItem" />
+    </Grid>
+    <IfCrossplaneOverviewAvailable>
+      <Grid item md={6}>
+        <CrossplaneOverviewCardSelector />
+      </Grid>
+    </IfCrossplaneOverviewAvailable>
+    <Grid item md={4} xs={12}>
+      <EntityLinksCard />
+    </Grid>
+  </Grid>
+);
 
 // Create the Crossplane entity page component with permission checks
 const CrossplaneEntityPage = () => {
@@ -41,29 +57,21 @@ const CrossplaneEntityPage = () => {
   return (
     <EntityLayout>
       <EntityLayout.Route path="/" title="Overview">
-        <Grid container spacing={3} alignItems="stretch">
-          <Grid item md={6}>
-            <EntityAboutCard variant="gridItem" />
-          </Grid>
-          <IfCrossplaneOverviewAvailable>
-            <Grid item md={6}>
-              <CrossplaneOverviewCard />
-            </Grid>
-          </IfCrossplaneOverviewAvailable>
-        </Grid>
+        {crossplaneOverviewContent}
       </EntityLayout.Route>
 
       <EntityLayout.Route if={isResourcesListAvailable} path="/crossplane-resources" title="Crossplane Resources">
         <IfCrossplaneResourcesListAvailable>
-          <CrossplaneAllResourcesTable />
+          <CrossplaneResourcesTableSelector />
         </IfCrossplaneResourcesListAvailable>
       </EntityLayout.Route>
 
       <EntityLayout.Route if={isResourceGraphAvailable} path="/crossplane-graph" title="Crossplane Graph">
         <IfCrossplaneResourceGraphAvailable>
-          <CrossplaneResourceGraph />
+          <CrossplaneResourceGraphSelector />
         </IfCrossplaneResourceGraphAvailable>
       </EntityLayout.Route>
+
     </EntityLayout>
   );
 };
@@ -73,6 +81,9 @@ const componentPage = (
   <EntitySwitch>
     {/* ... other cases ... */}
     <EntitySwitch.Case if={isComponentType('crossplane-claim')}>
+      <CrossplaneEntityPage />
+    </EntitySwitch.Case>
+    <EntitySwitch.Case if={isComponentType('crossplane-xr')}>
       <CrossplaneEntityPage />
     </EntitySwitch.Case>
   </EntitySwitch>
