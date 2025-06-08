@@ -39,12 +39,12 @@ export const catalogModuleKubernetes = createBackendModule({
           frequency: {
             seconds: config.getOptionalNumber(
               'kubernetesIngestor.components.taskRunner.frequency',
-            ),
+            ) ?? 600,
           },
           timeout: {
             seconds: config.getOptionalNumber(
               'kubernetesIngestor.components.taskRunner.timeout',
-            ),
+            ) ?? 600,
           },
         });
 
@@ -52,12 +52,12 @@ export const catalogModuleKubernetes = createBackendModule({
           frequency: {
             seconds: config.getOptionalNumber(
               'kubernetesIngestor.crossplane.xrds.taskRunner.frequency',
-            ),
+            ) ?? 600,
           },
           timeout: {
             seconds: config.getOptionalNumber(
               'kubernetesIngestor.crossplane.xrds.taskRunner.timeout',
-            ),
+            ) ?? 600,
           },
         });
         const templateEntityProvider = new KubernetesEntityProvider(
