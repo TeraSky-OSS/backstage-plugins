@@ -132,177 +132,89 @@ export class XRDTemplateEntityProvider implements EntityProvider {
     if (!xrd?.metadata || !xrd?.spec?.versions) {
       throw new Error('Invalid XRD object');
     }
-
+    // --- BEGIN VERSION/SCOPE LOGIC REFACTOR ---
+    // Use presence of xrd.spec.scope to determine v2, otherwise v1
+    const isV2 = !!xrd.spec?.scope;
+    const crossplaneVersion = isV2 ? 'v2' : 'v1';
+    const scope = xrd.spec?.scope || (isV2 ? 'LegacyCluster' : 'Cluster');
+    const isLegacyCluster = isV2 && scope === 'LegacyCluster';
+    const isCluster = scope === 'Cluster';
+    const isNamespaced = scope === 'Namespaced';
+    // --- END VERSION/SCOPE LOGIC REFACTOR ---
     const clusters = xrd.clusters || ["kubetopus"];
-
     const templates = xrd.spec.versions.map((version: { name: any }) => {
+      // For v2 Cluster/Namespaced, do not generate claim-based templates
+      if (isV2 && !isLegacyCluster && (isCluster || isNamespaced)) {
+        // No claimNames, use spec.name as resource type
+        const parameters = this.extractParameters(version, clusters, xrd);
+        const prefix = this.getAnnotationPrefix();
+        const steps = this.extractSteps(version, xrd);
+        const clusterTags = clusters.map((cluster: any) => `cluster:${cluster}`);
+        const tags = ['crossplane', ...clusterTags];
+        const crossplaneAnnotations = {
+          [`${prefix}/crossplane-version`]: crossplaneVersion,
+          [`${prefix}/crossplane-scope`]: scope,
+        };
+        return {
+          apiVersion: 'scaffolder.backstage.io/v1beta3',
+          kind: 'Template',
+          metadata: {
+            name: `${xrd.metadata.name}-${version.name}`,
+            title: `${xrd.spec.claimNames?.kind || xrd.spec.names?.kind}`,
+            description: `A template to create a ${xrd.metadata.name} instance`,
+            labels: {
+              forEntity: "system",
+              source: "crossplane",
+            },
+            tags: tags,
+            annotations: {
+              'backstage.io/managed-by-location': `cluster origin: ${xrd.clusterName}`,
+              'backstage.io/managed-by-origin-location': `cluster origin: ${xrd.clusterName}`,
+              ...crossplaneAnnotations,
+            },
+          },
+          spec: {
+            type: xrd.metadata.name,
+            parameters,
+            steps,
+            output: {
+              links: [
+                {
+                  title: 'Download YAML Manifest',
+                  url: 'data:application/yaml;charset=utf-8,${{ steps.generateManifest.output.manifest }}'
+                }
+              ]
+            },
+          },
+        };
+      }
+      // v1 or v2 LegacyCluster or claim-based
       const parameters = this.extractParameters(version, clusters, xrd);
       const prefix = this.getAnnotationPrefix();
       const steps = this.extractSteps(version, xrd);
       const clusterTags = clusters.map((cluster: any) => `cluster:${cluster}`);
       const tags = ['crossplane', ...clusterTags];
-
-      if (this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.target')?.toLowerCase() === 'yaml') {
-        return {
-          apiVersion: 'scaffolder.backstage.io/v1beta3',
-          kind: 'Template',
-          metadata: {
-            name: `${xrd.metadata.name}-${version.name}`,
-            title: `${xrd.spec.claimNames.kind}`,
-            description: `A template to create a ${xrd.metadata.name} instance`,
-            labels: {
-              forEntity: "system",
-              source: "crossplane",
-            },
-            tags: tags,
-            annotations: {
-              'backstage.io/managed-by-location': `cluster origin: ${xrd.clusterName}`,
-              'backstage.io/managed-by-origin-location': `cluster origin: ${xrd.clusterName}`,
-              [`${prefix}/crossplane-claim`]: 'true',
-            },
-          },
-          spec: {
-            type: xrd.metadata.name,
-            parameters,
-            steps,
-            output: {
-              links: [
-                {
-                  title: 'Download YAML Manifest',
-                  url: 'data:application/yaml;charset=utf-8,${{ steps.generateManifest.output.manifest }}'
-                }
-              ]
-            },
-          },
-        };
-      }
-      else if (this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.target')?.toLowerCase() === 'github') {
-        return {
-          apiVersion: 'scaffolder.backstage.io/v1beta3',
-          kind: 'Template',
-          metadata: {
-            name: `${xrd.metadata.name}-${version.name}`,
-            title: `${xrd.spec.claimNames.kind}`,
-            description: `A template to create a ${xrd.metadata.name} instance`,
-            tags: tags,
-            labels: {
-              forEntity: "system",
-              source: "crossplane",
-            },
-            annotations: {
-              'backstage.io/managed-by-location': `cluster origin: ${xrd.clusterName}`,
-              'backstage.io/managed-by-origin-location': `cluster origin: ${xrd.clusterName}`,
-            },
-          },
-          spec: {
-            type: xrd.metadata.name,
-            parameters,
-            steps,
-            output: {
-              links: [
-                {
-                  title: "Pull Request",
-                  url: "${{ steps['create-pull-request'].output.remoteUrl }}"
-                },
-                {
-                  title: 'Download YAML Manifest',
-                  url: 'data:application/yaml;charset=utf-8,${{ steps.generateManifest.output.manifest }}'
-                }
-              ]
-            },
-          },
-        };
-      }
-      else if (this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.target')?.toLowerCase() === 'bitbucket') {
-        return {
-          apiVersion: 'scaffolder.backstage.io/v1beta3',
-          kind: 'Template',
-          metadata: {
-            name: `${xrd.metadata.name}-${version.name}`,
-            title: `${xrd.spec.claimNames.kind}`,
-            description: `A template to create a ${xrd.metadata.name} instance`,
-            tags: tags,
-            labels: {
-              forEntity: "system",
-              source: "crossplane",
-            },
-            annotations: {
-              'backstage.io/managed-by-location': `cluster origin: ${xrd.clusterName}`,
-              'backstage.io/managed-by-origin-location': `cluster origin: ${xrd.clusterName}`,
-            },
-          },
-          spec: {
-            type: xrd.metadata.name,
-            parameters,
-            steps,
-            output: {
-              links: [
-                {
-                  title: "Pull Request",
-                  url: "${{ steps['create-pull-request'].output.pullRequestUrl }}"
-                },
-                {
-                  title: 'Download YAML Manifest',
-                  url: 'data:application/yaml;charset=utf-8,${{ steps.generateManifest.output.manifest }}'
-                }
-              ]
-            },
-          },
-        };
-      }
-      else if (this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.target')?.toLowerCase() === 'gitlab') {
-        return {
-          apiVersion: 'scaffolder.backstage.io/v1beta3',
-          kind: 'Template',
-          metadata: {
-            name: `${xrd.metadata.name}-${version.name}`,
-            title: `${xrd.spec.claimNames.kind}`,
-            description: `A template to create a ${xrd.metadata.name} instance`,
-            tags: tags,
-            labels: {
-              forEntity: "system",
-              source: "crossplane",
-            },
-            annotations: {
-              'backstage.io/managed-by-location': `cluster origin: ${xrd.clusterName}`,
-              'backstage.io/managed-by-origin-location': `cluster origin: ${xrd.clusterName}`,
-            },
-          },
-          spec: {
-            type: xrd.metadata.name,
-            parameters,
-            steps,
-            output: {
-              links: [
-                {
-                  title: "Merge Request",
-                  url: "${{ steps['create-pull-request'].output.mergeRequestUrl }}"
-                },
-                {
-                  title: 'Download YAML Manifest',
-                  url: 'data:application/yaml;charset=utf-8,${{ steps.generateManifest.output.manifest }}'
-                }
-              ]
-            },
-          },
-        };
-      }
-
+      const crossplaneAnnotations = {
+        [`${prefix}/crossplane-version`]: crossplaneVersion,
+        [`${prefix}/crossplane-scope`]: scope,
+      };
       return {
         apiVersion: 'scaffolder.backstage.io/v1beta3',
         kind: 'Template',
         metadata: {
           name: `${xrd.metadata.name}-${version.name}`,
-          title: `${xrd.spec.claimNames.kind}`,
+          title: `${xrd.spec.claimNames?.kind || xrd.spec.names?.kind}`,
           description: `A template to create a ${xrd.metadata.name} instance`,
-          tags: tags,
           labels: {
             forEntity: "system",
             source: "crossplane",
           },
+          tags: tags,
           annotations: {
             'backstage.io/managed-by-location': `cluster origin: ${xrd.clusterName}`,
             'backstage.io/managed-by-origin-location': `cluster origin: ${xrd.clusterName}`,
+            [`${prefix}/crossplane-claim`]: 'true',
+            ...crossplaneAnnotations,
           },
         },
         spec: {
@@ -319,9 +231,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
           },
         },
       };
-
     });
-
     // Filter out invalid templates
     return templates.filter((template: Entity) => this.validateEntityName(template));
   }
@@ -331,11 +241,25 @@ export class XRDTemplateEntityProvider implements EntityProvider {
       throw new Error('Invalid XRD object');
     }
 
+    // --- BEGIN VERSION/SCOPE LOGIC REFACTOR ---
+    // Use presence of xrd.spec.scope to determine v2, otherwise v1
+    const isV2 = !!xrd.spec?.scope;
+    const scope = xrd.spec?.scope || (isV2 ? 'LegacyCluster' : 'Cluster');
+    const isLegacyCluster = isV2 && scope === 'LegacyCluster';
+    // --- END VERSION/SCOPE LOGIC REFACTOR ---
+    // Prefer spec.names.plural/kind if available, fallback to metadata.name
+    const resourcePlural = (!isV2 || isLegacyCluster)
+      ? xrd.spec.claimNames?.plural
+      : (xrd.spec.names?.plural || xrd.metadata.name);
+    const resourceKind = (!isV2 || isLegacyCluster)
+      ? xrd.spec.claimNames?.kind
+      : (xrd.spec.names?.kind || xrd.metadata.name);
+
     const apis = xrd.spec.versions.map((version: any = {}) => {
       let xrdOpenAPIDoc: any = {};
       xrdOpenAPIDoc.openapi = "3.0.0";
       xrdOpenAPIDoc.info = {
-        title: `${xrd.spec.claimNames.plural}.${xrd.spec.group}`,
+        title: `${resourcePlural}.${xrd.spec.group}`,
         version: version.name,
       };
       xrdOpenAPIDoc.servers = xrd.clusterDetails.map((cluster: any) => ({
@@ -355,17 +279,17 @@ export class XRDTemplateEntityProvider implements EntityProvider {
           name: "Specific Object Scoped Operations",
           description: "Operations on a specific resource"
         }
-      ]
+      ];
       // TODO(vrabbi) Add Paths To API for XRD
       xrdOpenAPIDoc.paths = {
-        [`/apis/${xrd.spec.group}/${version.name}/${xrd.spec.claimNames.plural}`]: {
+        [`/apis/${xrd.spec.group}/${version.name}/${resourcePlural}`]: {
           get: {
             tags: ["Cluster Scoped Operations"],
-            summary: `List all ${xrd.spec.claimNames.plural} in all namespaces`,
-            operationId: `list${xrd.spec.claimNames.plural}AllNamespaces`,
+            summary: `List all ${resourcePlural} in all namespaces`,
+            operationId: `list${resourcePlural}AllNamespaces`,
             responses: {
               "200": {
-                description: `List of ${xrd.spec.claimNames.plural} in all namespaces`,
+                description: `List of ${resourcePlural} in all namespaces`,
                 content: {
                   "application/json": {
                     schema: {
@@ -380,11 +304,11 @@ export class XRDTemplateEntityProvider implements EntityProvider {
             }
           }
         },
-        [`/apis/${xrd.spec.group}/${version.name}/namespaces/{namespace}/${xrd.spec.claimNames.plural}`]: {
+        [`/apis/${xrd.spec.group}/${version.name}/namespaces/{namespace}/${resourcePlural}`]: {
           get: {
             tags: ["Namespace Scoped Operations"],
-            summary: `List all ${xrd.spec.claimNames.plural} in a namespace`,
-            operationId: `list${xrd.spec.claimNames.plural}`,
+            summary: `List all ${resourcePlural} in a namespace`,
+            operationId: `list${resourcePlural}`,
             parameters: [
               {
                 name: "namespace",
@@ -397,7 +321,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
             ],
             responses: {
               "200": {
-                description: `List of ${xrd.spec.claimNames.plural}`,
+                description: `List of ${resourcePlural}`,
                 content: {
                   "application/json": {
                     schema: {
@@ -434,11 +358,11 @@ export class XRDTemplateEntityProvider implements EntityProvider {
             },
           },
         },
-        [`/apis/${xrd.spec.group}/${version.name}/namespaces/{namespace}/${xrd.spec.claimNames.plural}/{name}`]: {
+        [`/apis/${xrd.spec.group}/${version.name}/namespaces/{namespace}/${resourcePlural}/{name}`]: {
           get: {
             tags: ["Specific Object Scoped Operations"],
-            summary: `Get a ${xrd.spec.claimNames.kind}`,
-            operationId: `get${xrd.spec.claimNames.kind}`,
+            summary: `Get a ${resourceKind}`,
+            operationId: `get${resourceKind}`,
             parameters: [
               { name: "namespace", in: "path", required: true, schema: { type: "string" } },
               { name: "name", in: "path", required: true, schema: { type: "string" } },
@@ -514,13 +438,13 @@ export class XRDTemplateEntityProvider implements EntityProvider {
         {
           bearerHttpAuthentication: []
         }
-      ]
+      ];
       return {
         apiVersion: 'backstage.io/v1alpha1',
         kind: 'API',
         metadata: {
-          name: `${xrd.spec.claimNames.kind.toLowerCase()}-${xrd.spec.group}--${version.name}`,
-          title: `${xrd.spec.claimNames.kind.toLowerCase()}-${xrd.spec.group}--${version.name}`,
+          name: `${resourceKind?.toLowerCase()}-${xrd.spec.group}--${version.name}`,
+          title: `${resourceKind?.toLowerCase()}-${xrd.spec.group}--${version.name}`,
           annotations: {
             'backstage.io/managed-by-location': `cluster origin: ${xrd.clusterName}`,
             'backstage.io/managed-by-origin-location': `cluster origin: ${xrd.clusterName}`,
@@ -542,21 +466,22 @@ export class XRDTemplateEntityProvider implements EntityProvider {
   }
 
   private extractParameters(version: any, clusters: string[], xrd: any): any[] {
-    // Define the title and properties for xrName and xrNamespace
-    const mainParameterGroup = {
+    // --- BEGIN VERSION/SCOPE LOGIC REFACTOR ---
+    // Use presence of xrd.spec.scope to determine v2, otherwise v1
+    const isV2 = !!xrd.spec?.scope;
+    const scope = xrd.spec?.scope || (isV2 ? 'LegacyCluster' : 'Cluster');
+    const isLegacyCluster = isV2 && scope === 'LegacyCluster';
+    const isCluster = scope === 'Cluster';
+    const isNamespaced = scope === 'Namespaced';
+    // --- END VERSION/SCOPE LOGIC REFACTOR ---
+    // Main parameter group
+    let mainParameterGroup: any = {
       title: 'Resource Metadata',
-      required: ['xrName', 'xrNamespace', 'owner'],
+      required: ['xrName', 'owner'],
       properties: {
         xrName: {
           title: 'Name',
           description: 'The name of the resource',
-          pattern: "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
-          maxLength: 63,
-          type: 'string',
-        },
-        xrNamespace: {
-          title: 'Namespace',
-          description: 'The namespace in which to create the resource',
           pattern: "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
           maxLength: 63,
           type: 'string',
@@ -575,19 +500,25 @@ export class XRDTemplateEntityProvider implements EntityProvider {
       },
       type: 'object',
     };
-
-
+    if ((isV2 && isNamespaced) || (!isV2) || isLegacyCluster) {
+      mainParameterGroup.required.push('xrNamespace');
+      mainParameterGroup.properties.xrNamespace = {
+        title: 'Namespace',
+        description: 'The namespace in which to create the resource',
+        pattern: "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
+        maxLength: 63,
+        type: 'string',
+      };
+    }
+    // Additional parameters
     const convertDefaultValuesToPlaceholders = this.config.getOptionalBoolean('kubernetesIngestor.crossplane.xrds.convertDefaultValuesToPlaceholders');
-
     const processProperties = (properties: Record<string, any>): Record<string, any> => {
       const processedProperties: Record<string, any> = {};
-
       for (const [key, value] of Object.entries(properties)) {
         const typedValue = value as Record<string, any>;
         if (typedValue.type === 'object' && typedValue.properties) {
           const subProperties = processProperties(typedValue.properties);
           processedProperties[key] = { ...typedValue, properties: subProperties };
-
           if (typedValue.properties.enabled && typedValue.properties.enabled.type === 'boolean') {
             const siblingKeys = Object.keys(typedValue.properties).filter(k => k !== 'enabled');
             processedProperties[key].dependencies = {
@@ -613,131 +544,203 @@ export class XRDTemplateEntityProvider implements EntityProvider {
           }
         }
       }
-
       return processedProperties;
     };
-
-    // Extract additional parameters as a separate titled object
     const processedSpec = version.schema?.openAPIV3Schema?.properties?.spec
       ? processProperties(version.schema.openAPIV3Schema.properties.spec.properties)
       : {};
-
     const additionalParameters = {
       title: 'Resource Spec',
       properties: processedSpec,
       type: 'object',
     };
-    const crossplaneParameters = {
-      title: "Crossplane Settings",
-      properties: {
-        writeConnectionSecretToRef: {
-          title: "Crossplane Configuration Details",
-          properties: {
-            name: {
-              title: "Connection Secret Name",
-              type: "string"
-            }
-          },
-          type: "object"
-        },
-        compositeDeletePolicy: {
-          title: "Composite Delete Policy",
-          default: "Background",
-          enum: [
-            "Background",
-            "Foreground"
-          ],
-          type: "string"
-        },
-        compositionUpdatePolicy: {
-          title: "Composition Update Policy",
-          enum: [
-            "Automatic",
-            "Manual"
-          ],
-          type: "string"
-        },
-        compositionSelectionStrategy: {
-          title: "Composition Selection Strategy",
-          description: "How the composition should be selected.",
-          enum: [
-            "runtime",
-            ...(xrd.compositions && xrd.compositions.length > 0 ? ["direct-reference"] : []),
-            "label-selector"
-          ],
-          default: "runtime",
-          type: "string"
-        }
-      },
-      dependencies: {
-        compositionSelectionStrategy: {
-          oneOf: [
-            {
-              properties: {
-                compositionSelectionStrategy: {
-                  enum: [
-                    "runtime"
-                  ]
-                }
-              }
+    // Crossplane settings
+    let crossplaneParameters: any = null;
+    if ((isV2 && (isCluster || isNamespaced)) && !isLegacyCluster) {
+      // v2 Cluster/Namespaced: move crossplane settings under spec.crossplane, remove writeConnectionSecretToRef
+      crossplaneParameters = {
+        title: 'Crossplane Settings',
+        properties: {
+          crossplane: {
+            title: 'Crossplane Configuration',
+            type: 'object',
+            properties: {
+              compositeDeletePolicy: {
+                title: 'Composite Delete Policy',
+                default: 'Background',
+                enum: ['Background', 'Foreground'],
+                type: 'string',
+              },
+              compositionUpdatePolicy: {
+                title: 'Composition Update Policy',
+                enum: ['Automatic', 'Manual'],
+                type: 'string',
+              },
+              compositionSelectionStrategy: {
+                title: 'Composition Selection Strategy',
+                description: 'How the composition should be selected.',
+                enum: [
+                  'runtime',
+                  ...(xrd.compositions && xrd.compositions.length > 0 ? ['direct-reference'] : []),
+                  'label-selector',
+                ],
+                default: 'runtime',
+                type: 'string',
+              },
             },
-            ...(xrd.compositions && xrd.compositions.length > 0 ? [{
-              properties: {
-                compositionSelectionStrategy: {
-                  enum: [
-                    "direct-reference"
-                  ]
-                },
-                compositionRef: {
-                  title: "Composition Reference",
-                  properties: {
-                    name: {
-                      type: "string",
-                      title: "Select A Composition By Name",
-                      enum: xrd.compositions,
-                      ...(xrd.spec?.defaultCompositionRef?.name && { default: xrd.spec.defaultCompositionRef.name })
-                    }
+            dependencies: {
+              compositionSelectionStrategy: {
+                oneOf: [
+                  {
+                    properties: {
+                      compositionSelectionStrategy: { enum: ['runtime'] },
+                    },
                   },
-                  required: [
-                    "name"
-                  ],
-                  type: "object"
-                }
-              }
-            }] : []),
-            {
-              properties: {
-                compositionSelectionStrategy: {
-                  enum: [
-                    "label-selector"
-                  ]
-                },
-                compositionSelector: {
-                  title: "Composition Selector",
-                  properties: {
-                    matchLabels: {
-                      title: "Match Labels",
-                      additionalProperties: {
-                        type: "string"
+                  ...(xrd.compositions && xrd.compositions.length > 0
+                    ? [
+                        {
+                          properties: {
+                            compositionSelectionStrategy: { enum: ['direct-reference'] },
+                            compositionRef: {
+                              title: 'Composition Reference',
+                              properties: {
+                                name: {
+                                  type: 'string',
+                                  title: 'Select A Composition By Name',
+                                  enum: xrd.compositions,
+                                  ...(xrd.spec?.defaultCompositionRef?.name && {
+                                    default: xrd.spec.defaultCompositionRef.name,
+                                  }),
+                                },
+                              },
+                              required: ['name'],
+                              type: 'object',
+                            },
+                          },
+                        },
+                      ]
+                    : []),
+                  {
+                    properties: {
+                      compositionSelectionStrategy: { enum: ['label-selector'] },
+                      compositionSelector: {
+                        title: 'Composition Selector',
+                        properties: {
+                          matchLabels: {
+                            title: 'Match Labels',
+                            additionalProperties: { type: 'string' },
+                            type: 'object',
+                          },
+                        },
+                        required: ['matchLabels'],
+                        type: 'object',
                       },
-                      type: "object"
-                    }
+                    },
                   },
-                  required: [
-                    "matchLabels"
-                  ],
-                  type: "object"
-                }
-              }
-            }
-          ]
-        }
-      }
-    };
+                ],
+              },
+            },
+          },
+        },
+        type: 'object',
+      };
+    } else {
+      // v1 or v2 LegacyCluster: keep current structure
+      crossplaneParameters = {
+        title: 'Crossplane Settings',
+        properties: {
+          writeConnectionSecretToRef: {
+            title: 'Crossplane Configuration Details',
+            properties: {
+              name: {
+                title: 'Connection Secret Name',
+                type: 'string',
+              },
+            },
+            type: 'object',
+          },
+          compositeDeletePolicy: {
+            title: 'Composite Delete Policy',
+            default: 'Background',
+            enum: ['Background', 'Foreground'],
+            type: 'string',
+          },
+          compositionUpdatePolicy: {
+            title: 'Composition Update Policy',
+            enum: ['Automatic', 'Manual'],
+            type: 'string',
+          },
+          compositionSelectionStrategy: {
+            title: 'Composition Selection Strategy',
+            description: 'How the composition should be selected.',
+            enum: [
+              'runtime',
+              ...(xrd.compositions && xrd.compositions.length > 0 ? ['direct-reference'] : []),
+              'label-selector',
+            ],
+            default: 'runtime',
+            type: 'string',
+          },
+        },
+        dependencies: {
+          compositionSelectionStrategy: {
+            oneOf: [
+              {
+                properties: {
+                  compositionSelectionStrategy: { enum: ['runtime'] },
+                },
+              },
+              ...(xrd.compositions && xrd.compositions.length > 0
+                ? [
+                    {
+                      properties: {
+                        compositionSelectionStrategy: { enum: ['direct-reference'] },
+                        compositionRef: {
+                          title: 'Composition Reference',
+                          properties: {
+                            name: {
+                              type: 'string',
+                              title: 'Select A Composition By Name',
+                              enum: xrd.compositions,
+                              ...(xrd.spec?.defaultCompositionRef?.name && {
+                                default: xrd.spec.defaultCompositionRef.name,
+                              }),
+                            },
+                          },
+                          required: ['name'],
+                          type: 'object',
+                        },
+                      },
+                    },
+                  ]
+                : []),
+              {
+                properties: {
+                  compositionSelectionStrategy: { enum: ['label-selector'] },
+                  compositionSelector: {
+                    title: 'Composition Selector',
+                    properties: {
+                      matchLabels: {
+                        title: 'Match Labels',
+                        additionalProperties: { type: 'string' },
+                        type: 'object',
+                      },
+                    },
+                    required: ['matchLabels'],
+                    type: 'object',
+                  },
+                },
+              },
+            ],
+          },
+        },
+        type: 'object',
+      };
+    }
+    // Publish parameters (unchanged)
     let allowedHosts: string[] = [];
     const publishPhaseTarget = this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.target')?.toLowerCase();
     const allowedTargets = this.config.getOptionalStringArray('kubernetesIngestor.crossplane.xrds.publishPhase.allowedTargets');
-
     if (allowedTargets) {
       allowedHosts = allowedTargets;
     } else {
@@ -755,59 +758,59 @@ export class XRDTemplateEntityProvider implements EntityProvider {
           allowedHosts = [];
       }
     }
-
     const publishParameters = this.config.getOptionalBoolean('kubernetesIngestor.crossplane.xrds.publishPhase.allowRepoSelection')
       ? {
-        title: "Creation Settings",
+        title: 'Creation Settings',
         properties: {
           pushToGit: {
-            title: "Push Manifest to GitOps Repository",
-            type: "boolean",
-            default: true
-          }
+            title: 'Push Manifest to GitOps Repository',
+            type: 'boolean',
+            default: true,
+          },
         },
         dependencies: {
           pushToGit: {
             oneOf: [
               {
                 properties: {
-                  pushToGit: { enum: [false] }
-                }
+                  pushToGit: { enum: [false] },
+                },
               },
               {
                 properties: {
                   pushToGit: { enum: [true] },
                   repoUrl: {
-                    content: { type: "string" },
-                    description: "Name of repository",
-                    "ui:field": "RepoUrlPicker",
-                    "ui:options": {
-                      allowedHosts: allowedHosts
-                    }
+                    content: { type: 'string' },
+                    description: 'Name of repository',
+                    'ui:field': 'RepoUrlPicker',
+                    'ui:options': {
+                      allowedHosts: allowedHosts,
+                    },
                   },
                   targetBranch: {
-                    type: "string",
-                    description: "Target Branch for the PR",
-                    default: "main"
+                    type: 'string',
+                    description: 'Target Branch for the PR',
+                    default: 'main',
                   },
                   manifestLayout: {
-                    type: "string",
-                    description: "Layout of the manifest",
-                    default: "cluster-scoped",
-                    "ui:help": "Choose how the manifest should be generated in the repo.\n* Cluster-scoped - a manifest is created for each selected cluster under the root directory of the clusters name\n* namespace-scoped - a manifest is created for the resource under the root directory with the namespace name\n* custom - a manifest is created under the specified base path",
-                    enum: ["cluster-scoped", "namespace-scoped", "custom"]
-                  }
+                    type: 'string',
+                    description: 'Layout of the manifest',
+                    default: 'cluster-scoped',
+                    'ui:help':
+                      'Choose how the manifest should be generated in the repo.\n* Cluster-scoped - a manifest is created for each selected cluster under the root directory of the clusters name\n* namespace-scoped - a manifest is created for the resource under the root directory with the namespace name\n* custom - a manifest is created under the specified base path',
+                    enum: ['cluster-scoped', 'namespace-scoped', 'custom'],
+                  },
                 },
                 dependencies: {
                   manifestLayout: {
                     oneOf: [
                       {
                         properties: {
-                          manifestLayout: { enum: ["cluster-scoped"] },
+                          manifestLayout: { enum: ['cluster-scoped'] },
                           clusters: {
-                            title: "Target Clusters",
-                            description: "The target clusters to apply the resource to",
-                            type: "array",
+                            title: 'Target Clusters',
+                            description: 'The target clusters to apply the resource to',
+                            type: 'array',
                             minItems: 1,
                             items: {
                               enum: clusters,
@@ -817,69 +820,70 @@ export class XRDTemplateEntityProvider implements EntityProvider {
                             'ui:widget': 'checkboxes',
                           },
                         },
-                        required: ["clusters"]
+                        required: ['clusters'],
                       },
                       {
                         properties: {
-                          manifestLayout: { enum: ["custom"] },
+                          manifestLayout: { enum: ['custom'] },
                           basePath: {
-                            type: "string",
-                            description: "Base path in GitOps repository to push the manifest to"
-                          }
+                            type: 'string',
+                            description: 'Base path in GitOps repository to push the manifest to',
+                          },
                         },
-                        required: ["basePath"]
+                        required: ['basePath'],
                       },
                       {
                         properties: {
-                          manifestLayout: { enum: ["namespace-scoped"] }
-                        }
-                      }
-                    ]
-                  }
-                }
-              }
-            ]
-          }
-        }
+                          manifestLayout: { enum: ['namespace-scoped'] },
+                        },
+                      },
+                    ],
+                  },
+                },
+              },
+            ],
+          },
+        },
       }
       : {
-        title: "Creation Settings",
+        title: 'Creation Settings',
         properties: {
           pushToGit: {
-            title: "Push Manifest to GitOps Repository",
-            type: "boolean",
-            default: true
-          }
+            title: 'Push Manifest to GitOps Repository',
+            type: 'boolean',
+            default: true,
+          },
         },
         dependencies: {
           pushToGit: {
             oneOf: [
               {
                 properties: {
-                  pushToGit: { enum: [false] }
-                }
+                  pushToGit: { enum: [false] },
+                },
               },
               {
                 properties: {
                   pushToGit: { enum: [true] },
                   manifestLayout: {
-                    type: "string",
-                    description: "Layout of the manifest",
-                    default: "cluster-scoped",
-                    "ui:help": "Choose how the manifest should be generated in the repo.\n* Cluster-scoped - a manifest is created for each selected cluster under the root directory of the clusters name\n* namespace-scoped - a manifest is created for the resource under the root directory with the namespace name\n* custom - a manifest is created under the specified base path",
-                    enum: ["cluster-scoped", "namespace-scoped", "custom"]
-                  }
+                    type: 'string',
+                    description: 'Layout of the manifest',
+                    default: 'cluster-scoped',
+                    'ui:help':
+                      'Choose how the manifest should be generated in the repo.\n* Cluster-scoped - a manifest is created for each selected cluster under the root directory of the clusters name\n* namespace-scoped - a manifest is created for the resource under the root directory with the namespace name\n* custom - a manifest is created under the specified base path',
+                    enum: ['cluster-scoped', 'namespace-scoped', 'custom'],
+                  },
                 },
                 dependencies: {
                   manifestLayout: {
                     oneOf: [
                       {
                         properties: {
-                          manifestLayout: { enum: ["cluster-scoped"] },
+                          manifestLayout: { enum: ['cluster-scoped'] },
                           clusters: {
-                            title: "Target Clusters",
-                            description: "The target clusters to apply the resource to",
-                            type: "array",
+                            title: 'Target Clusters',
+                            description: 'The target clusters to apply the resource to',
+                            type: 'array',
                             minItems: 1,
                             items: {
                               enum: clusters,
@@ -889,68 +893,118 @@ export class XRDTemplateEntityProvider implements EntityProvider {
                             'ui:widget': 'checkboxes',
                           },
                         },
-                        required: ["clusters"]
+                        required: ['clusters'],
                       },
                       {
                         properties: {
-                          manifestLayout: { enum: ["custom"] },
+                          manifestLayout: { enum: ['custom'] },
                           basePath: {
-                            type: "string",
-                            description: "Base path in GitOps repository to push the manifest to"
-                          }
+                            type: 'string',
+                            description: 'Base path in GitOps repository to push the manifest to',
+                          },
                         },
-                        required: ["basePath"]
+                        required: ['basePath'],
                       },
                       {
                         properties: {
-                          manifestLayout: { enum: ["namespace-scoped"] }
-                        }
-                      }
-                    ]
-                  }
-                }
-              }
-            ]
-          }
-        }
+                          manifestLayout: { enum: ['namespace-scoped'] },
+                        },
+                      },
+                    ],
+                  },
+                },
+              },
+            ],
+          },
+        },
       };
-
-    return [mainParameterGroup, additionalParameters, crossplaneParameters, publishParameters];
+    // Compose parameter groups
+    const paramGroups = [mainParameterGroup, additionalParameters];
+    if (crossplaneParameters) paramGroups.push(crossplaneParameters);
+    paramGroups.push(publishParameters);
+    return paramGroups;
   }
 
   private extractSteps(version: any, xrd: any): any[] {
-    // Define default steps template with placeholders for dynamic values
-    const baseStepsYaml = `
-    - id: generateManifest
-      name: Generate Kubernetes Resource Manifest
-      action: terasky:claim-template
-      input:
-        parameters: \${{ parameters }}
-        nameParam: xrName
-        namespaceParam: xrNamespace
-        ownerParam: owner
-        excludeParams: ['owner', 'compositionSelectionStrategy','pushToGit','basePath','manifestLayout','_editData', 'targetBranch', 'repoUrl', 'clusters', "xrName", "xrNamespace"]
-        apiVersion: {API_VERSION}
-        kind: {KIND}
-        clusters: \${{ parameters.clusters if parameters.manifestLayout === 'cluster-scoped' and parameters.pushToGit else ['temp'] }}
-        removeEmptyParams: true
-    - id: moveNamespacedManifest
-      name: Move and Rename Manifest
-      if: \${{ parameters.manifestLayout === 'namespace-scoped' }}
-      action: fs:rename
-      input:
-        files:
-          - from: \${{ steps.generateManifest.output.filePaths[0] }}
-            to: "./\${{ parameters.xrNamespace }}/\${{ steps.generateManifest.input.kind }}/\${{ steps.generateManifest.output.filePaths[0].split('/').pop() }}"
-    - id: moveCustomManifest
-      name: Move and Rename Manifest
-      if: \${{ parameters.manifestLayout === 'custom' }}
-      action: fs:rename
-      input:
-        files:
-          - from: \${{ steps.generateManifest.output.filePaths[0] }}
-            to: "./\${{ parameters.basePath }}/\${{ parameters.xrName }}.yaml"
-  `;
+    // --- BEGIN VERSION/SCOPE LOGIC REFACTOR ---
+    // Use presence of xrd.spec.scope to determine v2, otherwise v1
+    const isV2 = !!xrd.spec?.scope;
+    const scope = xrd.spec?.scope || (isV2 ? 'LegacyCluster' : 'LegacyCluster');
+    const isLegacyCluster = isV2 && scope === 'LegacyCluster';
+    const isCluster = scope === 'Cluster';
+    const isNamespaced = scope === 'Namespaced';
+    // --- END VERSION/SCOPE LOGIC REFACTOR ---
+    let baseStepsYaml = '';
+    // Compose the YAML as a string, not a template literal with JS expressions inside
+    if (isV2 && (isCluster || isNamespaced) && !isLegacyCluster) {
+      // v2 Cluster/Namespaced: no claim, use resource template action, only set namespaceParam if Namespaced
+      baseStepsYaml =
+        '- id: generateManifest\n' +
+        '  name: Generate Kubernetes Resource Manifest\n' +
+        '  action: terasky:claim-template\n' +
+        '  input:\n' +
+        '    parameters: ${{ parameters }}\n' +
+        '    nameParam: xrName\n' +
+        (isNamespaced ? '    namespaceParam: xrNamespace\n' : '    namespaceParam: ""\n') +
+        '    ownerParam: owner\n' +
+        '    excludeParams: [\'compositionSelectionStrategy\',\'owner\',\'pushToGit\',\'basePath\',\'manifestLayout\',\'_editData\',\'targetBranch\',\'repoUrl\',\'clusters\',\'xrName\'' + (isNamespaced ? ', \'xrNamespace\'' : '') + ']\n' +
+        '    apiVersion: {API_VERSION}\n' +
+        '    kind: {KIND}\n' +
+        '    clusters: ${{ parameters.clusters if parameters.manifestLayout === \'cluster-scoped\' and parameters.pushToGit else [\'temp\'] }}\n' +
+        '    removeEmptyParams: true\n';
+      if (isNamespaced) {
+        baseStepsYaml +=
+          '- id: moveNamespacedManifest\n' +
+          '  name: Move and Rename Manifest\n' +
+          '  if: ${{ parameters.manifestLayout === \'namespace-scoped\' }}\n' +
+          '  action: fs:rename\n' +
+          '  input:\n' +
+          '    files:\n' +
+          '      - from: ${{ steps.generateManifest.output.filePaths[0] }}\n' +
+          '        to: "./${{ parameters.xrNamespace }}/${{ steps.generateManifest.input.kind }}/${{ steps.generateManifest.output.filePaths[0].split(\'/\').pop() }}"\n';
+      }
+      baseStepsYaml +=
+        '- id: moveCustomManifest\n' +
+        '  name: Move and Rename Manifest\n' +
+        '  if: ${{ parameters.manifestLayout === \'custom\' }}\n' +
+        '  action: fs:rename\n' +
+        '  input:\n' +
+        '    files:\n' +
+        '      - from: ${{ steps.generateManifest.output.filePaths[0] }}\n' +
+        '        to: "./${{ parameters.basePath }}/${{ parameters.xrName }}.yaml"'; // <-- removed trailing newline
+    } else {
+      // v1 or v2 LegacyCluster: keep current logic
+      baseStepsYaml =
+        '- id: generateManifest\n' +
+        '  name: Generate Kubernetes Resource Manifest\n' +
+        '  action: terasky:claim-template\n' +
+        '  input:\n' +
+        '    parameters: ${{ parameters }}\n' +
+        '    nameParam: xrName\n' +
+        '    namespaceParam: xrNamespace\n' +
+        '    ownerParam: owner\n' +
+        '    excludeParams: [\'owner\', \'compositionSelectionStrategy\',\'pushToGit\',\'basePath\',\'manifestLayout\',\'_editData\', \'targetBranch\', \'repoUrl\', \'clusters\', \'xrName\', \'xrNamespace\']\n' +
+        '    apiVersion: {API_VERSION}\n' +
+        '    kind: {KIND}\n' +
+        '    clusters: ${{ parameters.clusters if parameters.manifestLayout === \'cluster-scoped\' and parameters.pushToGit else [\'temp\'] }}\n' +
+        '    removeEmptyParams: true\n' +
+        '- id: moveNamespacedManifest\n' +
+        '  name: Move and Rename Manifest\n' +
+        '  if: ${{ parameters.manifestLayout === \'namespace-scoped\' }}\n' +
+        '  action: fs:rename\n' +
+        '  input:\n' +
+        '    files:\n' +
+        '      - from: ${{ steps.generateManifest.output.filePaths[0] }}\n' +
+        '        to: "./${{ parameters.xrNamespace }}/${{ steps.generateManifest.input.kind }}/${{ steps.generateManifest.output.filePaths[0].split(\'/\').pop() }}"\n' +
+        '- id: moveCustomManifest\n' +
+        '  name: Move and Rename Manifest\n' +
+        '  if: ${{ parameters.manifestLayout === \'custom\' }}\n' +
+        '  action: fs:rename\n' +
+        '  input:\n' +
+        '    files:\n' +
+        '      - from: ${{ steps.generateManifest.output.filePaths[0] }}\n' +
+        '        to: "./${{ parameters.basePath }}/${{ parameters.xrName }}.yaml"'; // <-- removed trailing newline
+    }
     const publishPhaseTarget = this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.target')?.toLowerCase();
     let action = '';
     switch (publishPhaseTarget) {
@@ -966,16 +1020,16 @@ export class XRDTemplateEntityProvider implements EntityProvider {
         break;
     }
     const repoSelectionStepsYaml = `
-    - id: create-pull-request
-      name: create-pull-request
-      action: ${action}
-      if: \${{ parameters.pushToGit }}
-      input:
-        repoUrl: \${{ parameters.repoUrl }}
-        branchName: create-\${{ parameters.xrName }}-resource
-        title: Create {KIND} Resource \${{ parameters.xrName }}
-        description: Create {KIND} Resource \${{ parameters.xrName }}
-        targetBranchName: \${{ parameters.targetBranch }}
+- id: create-pull-request
+  name: create-pull-request
+  action: ${action}
+  if: \${{ parameters.pushToGit }}
+  input:
+    repoUrl: \${{ parameters.repoUrl }}
+    branchName: create-\${{ parameters.xrName }}-resource
+    title: Create {KIND} Resource \${{ parameters.xrName }}
+    description: Create {KIND} Resource \${{ parameters.xrName }}
+    targetBranchName: \${{ parameters.targetBranch }}
   `;
 
     let defaultStepsYaml = baseStepsYaml;
@@ -986,16 +1040,16 @@ export class XRDTemplateEntityProvider implements EntityProvider {
       }
       else {
         const repoHardcodedStepsYaml = `
-    - id: create-pull-request
-      name: create-pull-request
-      action: ${action}
-      if: \${{ parameters.pushToGit }}
-      input:
-        repoUrl: ${this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.git.repoUrl')}
-        branchName: create-\${{ parameters.xrName }}-resource
-        title: Create {KIND} Resource \${{ parameters.xrName }}
-        description: Create {KIND} Resource \${{ parameters.xrName }}
-        targetBranchName: ${this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.git.targetBranch')}
+- id: create-pull-request
+  name: create-pull-request
+  action: ${action}
+  if: \${{ parameters.pushToGit }}
+  input:
+    repoUrl: ${this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.git.repoUrl')}
+    branchName: create-\${{ parameters.xrName }}-resource
+    title: Create {KIND} Resource \${{ parameters.xrName }}
+    description: Create {KIND} Resource \${{ parameters.xrName }}
+    targetBranchName: ${this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.git.targetBranch')}
       `;
         defaultStepsYaml += repoHardcodedStepsYaml;
       }
@@ -1003,7 +1057,9 @@ export class XRDTemplateEntityProvider implements EntityProvider {
 
     // Replace placeholders in the default steps YAML with XRD details
     const apiVersion = `${xrd.spec.group}/${version.name}`;
-    const kind = xrd.spec.claimNames?.kind;
+    const kind = (!isV2 || isLegacyCluster)
+      ? xrd.spec.claimNames?.kind
+      : xrd.spec.names?.kind;
 
     const populatedStepsYaml = defaultStepsYaml
       .replaceAll('{API_VERSION}', apiVersion)
@@ -1652,36 +1708,39 @@ export class XRDTemplateEntityProvider implements EntityProvider {
   }
 
   private extractCRDSteps(version: any, crd: any): any[] {
-    const baseStepsYaml = `
-    - id: generateManifest
-      name: Generate Kubernetes Resource Manifest
-      action: terasky:crd-template
-      input:
-        parameters: \${{ parameters }}
-        nameParam: name
-        namespaceParam: ${crd.spec.scope === 'Namespaced' ? 'namespace' : undefined}
-        excludeParams: ['pushToGit','basePath','manifestLayout','_editData', 'targetBranch', 'repoUrl', 'clusters', 'name', 'namespace', 'owner']
-        apiVersion: ${crd.spec.group}/${version.name}
-        kind: ${crd.spec.names.kind}
-        clusters: \${{ parameters.clusters if parameters.manifestLayout === 'cluster-scoped' and parameters.pushToGit else ['temp'] }}
-        removeEmptyParams: true
-    - id: moveNamespacedManifest
-      name: Move and Rename Manifest
-      if: \${{ parameters.manifestLayout === 'namespace-scoped' }}
-      action: fs:rename
-      input:
-        files:
-          - from: \${{ steps.generateManifest.output.filePaths[0] }}
-            to: "./\${{ parameters.namespace }}/\${{ steps.generateManifest.input.kind }}/\${{ steps.generateManifest.output.filePaths[0].split('/').pop() }}"
-    - id: moveCustomManifest
-      name: Move and Rename Manifest
-      if: \${{ parameters.manifestLayout === 'custom' }}
-      action: fs:rename
-      input:
-        files:
-          - from: \${{ steps.generateManifest.output.filePaths[0] }}
-            to: "./\${{ parameters.basePath }}/\${{ parameters.name }}.yaml"
-  `;
+    let baseStepsYaml =
+      '- id: generateManifest\n' +
+      '  name: Generate Kubernetes Resource Manifest\n' +
+      '  action: terasky:crd-template\n' +
+      '  input:\n' +
+      '    parameters: ${{ parameters }}\n' +
+      '    nameParam: name\n' +
+      (crd.spec.scope === 'Namespaced' ? '    namespaceParam: namespace\n' : '    namespaceParam: ""\n') +
+      '    excludeParams: [\'compositionSelectionStrategy\',\'pushToGit\',\'basePath\',\'manifestLayout\',\'_editData\', \'targetBranch\', \'repoUrl\', \'clusters\', \'name\', \'namespace\', \'owner\']\n' +
+      `    apiVersion: ${crd.spec.group}/${version.name}\n` +
+      `    kind: ${crd.spec.names.kind}\n` +
+      '    clusters: ${{ parameters.clusters if parameters.manifestLayout === \'cluster-scoped\' and parameters.pushToGit else [\'temp\'] }}\n' +
+      '    removeEmptyParams: true\n';
+    if (crd.spec.scope === 'Namespaced') {
+      baseStepsYaml +=
+        '- id: moveNamespacedManifest\n' +
+        '  name: Move and Rename Manifest\n' +
+        '  if: ${{ parameters.manifestLayout === \'namespace-scoped\' }}\n' +
+        '  action: fs:rename\n' +
+        '  input:\n' +
+        '    files:\n' +
+        '      - from: ${{ steps.generateManifest.output.filePaths[0] }}\n' +
+        '        to: "./${{ parameters.namespace }}/${{ steps.generateManifest.input.kind }}/${{ steps.generateManifest.output.filePaths[0].split(\'/\').pop() }}"\n';
+    }
+    baseStepsYaml +=
+      '- id: moveCustomManifest\n' +
+      '  name: Move and Rename Manifest\n' +
+      '  if: ${{ parameters.manifestLayout === \'custom\' }}\n' +
+      '  action: fs:rename\n' +
+      '  input:\n' +
+      '    files:\n' +
+      '      - from: ${{ steps.generateManifest.output.filePaths[0] }}\n' +
+      '        to: "./${{ parameters.basePath }}/${{ parameters.name }}.yaml"\n'; // <-- removed trailing newline
 
     const publishPhaseTarget = this.config.getOptionalString('kubernetesIngestor.genericCRDTemplates.publishPhase.target')?.toLowerCase();
     let action = '';
@@ -1702,34 +1761,31 @@ export class XRDTemplateEntityProvider implements EntityProvider {
 
     if (publishPhaseTarget !== 'yaml') {
       if (this.config.getOptionalBoolean('kubernetesIngestor.genericCRDTemplates.publishPhase.allowRepoSelection')) {
-        defaultStepsYaml += `
-    - id: create-pull-request
-      name: create-pull-request
-      action: ${action}
-      if: \${{ parameters.pushToGit }}
-      input:
-        repoUrl: \${{ parameters.repoUrl }}
-        branchName: create-\${{ parameters.name }}-resource
-        title: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}
-        description: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}
-        targetBranchName: \${{ parameters.targetBranch }}
-      `;
+        defaultStepsYaml +=
+          '- id: create-pull-request\n' +
+          '  name: create-pull-request\n' +
+          `  action: ${action}\n` +
+          '  if: ${{ parameters.pushToGit }}\n' +
+          '  input:\n' +
+          '    repoUrl: ${{ parameters.repoUrl }}\n' +
+          '    branchName: create-${{ parameters.name }}-resource\n' +
+          `    title: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}\n` +
+          `    description: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}\n` +
+          '    targetBranchName: ${{ parameters.targetBranch }}\n';
       } else {
-        defaultStepsYaml += `
-    - id: create-pull-request
-      name: create-pull-request
-      action: ${action}
-      if: \${{ parameters.pushToGit }}
-      input:
-        repoUrl: ${this.config.getOptionalString('kubernetesIngestor.genericCRDTemplates.publishPhase.git.repoUrl')}
-        branchName: create-\${{ parameters.name }}-resource
-        title: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}
-        description: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}
-        targetBranchName: ${this.config.getOptionalString('kubernetesIngestor.genericCRDTemplates.publishPhase.git.targetBranch')}
-      `;
+        defaultStepsYaml +=
+          '- id: create-pull-request\n' +
+          '  name: create-pull-request\n' +
+          `  action: ${action}\n` +
+          '  if: ${{ parameters.pushToGit }}\n' +
+          '  input:\n' +
+          `    repoUrl: ${this.config.getOptionalString('kubernetesIngestor.genericCRDTemplates.publishPhase.git.repoUrl')}\n` +
+          '    branchName: create-${{ parameters.name }}-resource\n' +
+          `    title: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}\n` +
+          `    description: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}\n` +
+          `    targetBranchName: ${this.config.getOptionalString('kubernetesIngestor.genericCRDTemplates.publishPhase.git.targetBranch')}\n`;
       }
     }
-
     return yaml.load(defaultStepsYaml) as any[];
   }
 }

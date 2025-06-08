@@ -139,6 +139,12 @@ export class XrdDataProvider {
               plural: 'compositeresourcedefinitions',
               objectType: 'customresources' as KubernetesObjectTypes,
             },
+            {
+              group: 'apiextensions.crossplane.io',
+              apiVersion: 'v2alpha1',
+              plural: 'compositeresourcedefinitions',
+              objectType: 'customresources' as KubernetesObjectTypes,
+            },
           ]);
 
           const fetchedObjects = await fetcher.fetchObjectsForService({
@@ -151,11 +157,19 @@ export class XrdDataProvider {
           });
 
           const fetchedResources = fetchedObjects.responses.flatMap(response =>
-            response.resources.map(resource => ({
-              ...resource,
-              clusterName: cluster.name,
-              clusterEndpoint: cluster.url,
-            })),
+            response.resources.map(resource => {
+              // Detect Crossplane version and scope
+              const isV2 = !!resource.spec?.scope;
+              const crossplaneVersion = isV2 ? 'v2' : 'v1';
+              const scope = resource.spec?.scope || (isV2 ? 'LegacyCluster' : 'Cluster');
+              return {
+                ...resource,
+                clusterName: cluster.name,
+                clusterEndpoint: cluster.url,
+                crossplaneVersion,
+                scope,
+              };
+            })
           );
           const prefix = this.getAnnotationPrefix();
           const filteredObjects = fetchedResources
@@ -175,10 +189,18 @@ export class XrdDataProvider {
                 return false;
               }
 
-              if (!resource.spec?.claimNames?.kind) {
+              // Only require claimNames.kind for v1 and v2alpha1-LegacyCluster XRDs
+              const isV2 = resource.apiVersion === 'apiextensions.crossplane.io/v2alpha1';
+              const scope = resource.spec?.scope || (isV2 ? 'Namespaced' : 'Cluster');
+              const isLegacyCluster = isV2 && scope === 'LegacyCluster';
+
+              if (!isV2 && !resource.spec?.claimNames?.kind) {
                 return false;
               }
-
+              if (isV2 && isLegacyCluster && !resource.spec?.claimNames?.kind) {
+                return false;
+              }
+              // For v2 Cluster/Namespaced, allow through even if claimNames is missing
               return true;
             })
             .map(resource => ({
