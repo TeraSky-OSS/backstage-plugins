@@ -149,7 +149,7 @@ const KyvernoCrossplaneOverviewCard = () => {
 
         const resources = resourcesToFetch;
 
-        const fetchedPolicyReports = await Promise.all(resources.map(async (resource, index) => {
+        const fetchedPolicyReports = await Promise.all(resources.map(async (resource, _index) => {
           if (!resource || !resource.metadata) return null;
           const { uid, namespace } = resource.metadata || {};
           if (!uid) return null;
