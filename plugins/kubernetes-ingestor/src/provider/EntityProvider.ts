@@ -19,6 +19,13 @@ import yaml from 'js-yaml';
 import pluralize from 'pluralize';
 import { CRDDataProvider } from './CRDDataProvider';
 
+interface BackstageLink {
+  url: string;
+  title: string;
+  icon: string;
+  [key: string]: string;
+}
+
 export class XRDTemplateEntityProvider implements EntityProvider {
   private readonly taskRunner: SchedulerServiceTaskRunner;
   private connection?: EntityProviderConnection;
@@ -1798,6 +1805,8 @@ export class KubernetesEntityProvider implements EntityProvider {
   private readonly catalogApi: CatalogApi;
   private readonly permissions: PermissionEvaluator;
   private readonly discovery: DiscoveryService;
+  private readonly auth: AuthService;
+  private readonly httpAuth: HttpAuthService;
 
   private validateEntityName(entity: Entity): boolean {
     if (entity.metadata.name.length > 63) {
@@ -1815,7 +1824,9 @@ export class KubernetesEntityProvider implements EntityProvider {
     config: Config,
     catalogApi: CatalogApi,
     permissions: PermissionEvaluator,
-    discovery: DiscoveryService
+    discovery: DiscoveryService,
+    auth: AuthService,
+    httpAuth: HttpAuthService,
   ) {
     this.taskRunner = taskRunner;
     this.logger = logger;
@@ -1823,6 +1834,8 @@ export class KubernetesEntityProvider implements EntityProvider {
     this.catalogApi = catalogApi;
     this.permissions = permissions;
     this.discovery = discovery;
+    this.auth = auth;
+    this.httpAuth = httpAuth;
   }
 
   getProviderName(): string {
@@ -1851,25 +1864,50 @@ export class KubernetesEntityProvider implements EntityProvider {
         this.permissions,
         this.discovery
       );
-
+      const xrdDataProvider = new XrdDataProvider(
+        this.logger,
+        this.config,
+        this.catalogApi,
+        this.discovery,
+        this.permissions,
+        this.auth,
+        this.httpAuth,
+      );
+      // Build composite kind lookup for v2/Cluster/Namespaced (case-insensitive)
+      const compositeKindLookup = await xrdDataProvider.buildCompositeKindLookup();
+      // Add lowercased keys for case-insensitive matching
+      for (const key of Object.keys(compositeKindLookup)) {
+        compositeKindLookup[key.toLowerCase()] = compositeKindLookup[key];
+      }
       if (this.config.getOptionalBoolean('kubernetesIngestor.components.enabled')) {
         // Fetch all Kubernetes resources and build a CRD mapping
         const kubernetesData = await kubernetesDataProvider.fetchKubernetesObjects();
         const crdMapping = await kubernetesDataProvider.fetchCRDMapping();
-
+        let claimCount = 0, compositeCount = 0, k8sCount = 0;
         const entities = kubernetesData.flatMap(k8s => {
+          // Ingest claims for v1 and v2/LegacyCluster
           if (k8s?.spec?.resourceRef) {
-            this.logger.debug(`Processing Crossplane Claim: ${JSON.stringify(k8s)}`);
             const entity = this.translateCrossplaneClaimToEntity(k8s, k8s.clusterName, crdMapping);
+            if (entity) claimCount++;
             return entity ? [entity] : [];
           }
-          else if (k8s) {
-            this.logger.debug(`Processing Kubernetes Object: ${JSON.stringify(k8s)}`);
+          // Ingest XRs for v2/Cluster or v2/Namespaced (case-insensitive)
+          if (k8s?.spec?.crossplane) {
+            const [group, version] = k8s.apiVersion.split('/');
+            const lookupKey = `${k8s.kind}|${group}|${version}`;
+            const lookupKeyLower = lookupKey.toLowerCase();
+            if (compositeKindLookup[lookupKey] || compositeKindLookup[lookupKeyLower]) {
+              const entity = this.translateCrossplaneCompositeToEntity(k8s, k8s.clusterName, compositeKindLookup);
+              if (entity) compositeCount++;
+              return entity ? [entity] : [];
+            }
+          }
+          // Fallback: treat as regular K8s resource
+          if (k8s) {
+            k8sCount++;
             return this.translateKubernetesObjectsToEntities(k8s);
           }
-          else {
-            return [];
-          }
+          return [];
         });
 
         await this.connection.applyMutation({
@@ -1955,7 +1993,7 @@ export class KubernetesEntityProvider implements EntityProvider {
 
     // Add the Kubernetes label selector annotation if present
     if (!annotations[`${prefix}/kubernetes-label-selector`]) {
-      if (resource.kind.toLowerCase() === 'deployment' || resource.kind.toLowerCase() === 'statefulset' || resource.kind.toLowerCase() === 'daemonset' || resource.kind.toLowerCase() === 'cronjob') {
+      if (resource.kind === 'Deployment' || resource.kind === 'StatefulSet' || resource.kind === 'DaemonSet' || resource.kind === 'CronJob') {
         const commonLabels = this.findCommonLabels(resource);
         if (commonLabels) {
           customAnnotations['backstage.io/kubernetes-label-selector'] = commonLabels;
@@ -1966,7 +2004,7 @@ export class KubernetesEntityProvider implements EntityProvider {
     }
     const apiGroup = resource.apiVersion.split('/')[0];
     const version = resource.apiVersion.split('/')[1];
-    const kindPlural = pluralize(resource.kind.toLowerCase());
+    const kindPlural = pluralize(resource.kind);
     const objectName = resource.metadata.name;
     const customWorkloadUri = resource.metadata.namespace
       ? `/apis/${apiGroup}/${version}/namespaces/${namespace}/${kindPlural}/${objectName}`
@@ -2038,8 +2076,11 @@ export class KubernetesEntityProvider implements EntityProvider {
         title: titleValue,
         description: `${resource.kind} ${resource.metadata.name} from ${resource.clusterName}`,
         namespace: annotations[`${prefix}/backstage-namespace`] || namespaceValue,
+        links: this.parseBackstageLinks(resource.metadata.annotations || {}),
         annotations: {
-          ...annotations,
+            ...Object.fromEntries(
+              Object.entries(annotations).filter(([key]) => key !== `${prefix}/links`)
+            ),
           'terasky.backstage.io/kubernetes-resource-kind': resource.kind,
           'terasky.backstage.io/kubernetes-resource-name': resource.metadata.name,
           'terasky.backstage.io/kubernetes-resource-api-version': resource.apiVersion,
@@ -2208,8 +2249,11 @@ export class KubernetesEntityProvider implements EntityProvider {
         description: `${claim.kind} ${claim.metadata.name} from ${clusterName}`,
         tags: [`cluster:${clusterName}`, `kind:${claim.kind}`, 'crossplane-claim'],
         namespace: namespaceValue,
+        links: this.parseBackstageLinks(annotations),
         annotations: {
-          ...annotations,
+            ...Object.fromEntries(
+              Object.entries(annotations).filter(([key]) => key !== `${prefix}/links`)
+            ),
           [`${prefix}/component-type`]: 'crossplane-claim',
           ...(systemModel === 'cluster-namespace' || namespaceModel === 'cluster' || nameModel === 'name-cluster' ? {
             'backstage.io/kubernetes-cluster': clusterName,
@@ -2230,7 +2274,95 @@ export class KubernetesEntityProvider implements EntityProvider {
     return this.validateEntityName(entity) ? entity : null;
   }
 
+  private translateCrossplaneCompositeToEntity(xr: any, clusterName: string, compositeKindLookup: Record<string, any>): Entity | null {
+    const prefix = this.getAnnotationPrefix();
+    const kind = xr.kind;
+    const [group, version] = xr.apiVersion.split('/');
+    const lookupKey = `${kind}|${group}|${version}`;
+    const lowerKey = lookupKey.toLowerCase();
+    const xrd = compositeKindLookup[lookupKey] || compositeKindLookup[lowerKey];
+    if (!xrd) return null;
+    const scope = xrd.scope;
+    const crossplaneVersion = 'v2';
+    const plural = xrd.spec?.names?.plural;
+    const compositionName = xr.spec?.crossplane?.compositionRef?.name || '';
+    // Compose annotations
+    const annotations: Record<string, string> = {
+      [`${prefix}/crossplane-version`]: crossplaneVersion,
+      [`${prefix}/crossplane-scope`]: scope,
+      [`${prefix}/composite-kind`]: kind,
+      [`${prefix}/composite-name`]: xr.metadata.name,
+      [`${prefix}/composite-group`]: group,
+      [`${prefix}/composite-version`]: version,
+      [`${prefix}/composite-plural`]: plural,
+      [`${prefix}/composition-name`]: compositionName,
+      [`${prefix}/crossplane-resource`]: 'true',
+      [`${prefix}/component-type`]: 'crossplane-xr',
+    };
+    // Add composition-functions annotation if present, just like for claims
+    const compositionData = xr.compositionData || {};
+    const compositionFunctions = compositionData.usedFunctions || [];
+    if (compositionFunctions.length > 0) {
+      annotations[`${prefix}/composition-functions`] = compositionFunctions.join(',');
+    }
+    const resourceAnnotations = xr.metadata.annotations || {};
+    const customAnnotations = this.extractCustomAnnotations(resourceAnnotations, clusterName);
+    // Add label selector for XR
+    annotations['backstage.io/kubernetes-label-selector'] = `crossplane.io/composite=${xr.metadata.name}`;
+    // Compose entity
+    const entity: Entity = {
+      apiVersion: 'backstage.io/v1alpha1',
+      kind: 'Component',
+      metadata: {
+        name: `${xr.metadata.name}-${clusterName}`,
+        title: xr.metadata.name,
+        description: `${kind} ${xr.metadata.name} from ${clusterName}`,
+        tags: [`cluster:${clusterName}`, `kind:${kind}`, 'crossplane-xr'],
+        namespace: xr.metadata.namespace || 'default',
+        links: this.parseBackstageLinks(xr.metadata.annotations || {}),
+        annotations: {
+            ...Object.fromEntries(
+              Object.entries(annotations).filter(([key]) => key !== `${prefix}/links`)
+            ),
+          'backstage.io/kubernetes-cluster': clusterName,
+          ...customAnnotations,
+        },
+      },
+      spec: {
+        type: 'crossplane-xr',
+        lifecycle: annotations[`${prefix}/lifecycle`] || 'production',
+        owner: annotations[`${prefix}/owner`] || 'kubernetes-auto-ingested',
+        system: annotations[`${prefix}/system`] || 'default',
+      },
+    };
+    // Log the full composite entity YAML for debugging
+    return this.validateEntityName(entity) ? entity : null;
+  }
+
   private getAnnotationPrefix(): string {
     return this.config.getOptionalString('kubernetesIngestor.annotationPrefix') || 'terasky.backstage.io';
+  }
+
+  private parseBackstageLinks(annotations: Record<string, string>): BackstageLink[] {
+    const prefix = this.getAnnotationPrefix();
+    const linksAnnotation = annotations[`${prefix}/links`];
+    if (!linksAnnotation) {
+      return [];
+    }
+
+    try {
+      const linksArray = JSON.parse(linksAnnotation) as BackstageLink[];
+      this.logger.debug(`Parsed ${prefix}/links: ${JSON.stringify(linksArray)}`);
+
+      return linksArray.map((link: BackstageLink) => ({
+        url: link.url,
+        title: link.title,
+        icon: link.icon
+      }));
+    } catch (error) {
+      this.logger.warn(`Failed to parse ${prefix}/links annotation: ${error}`)
+      this.logger.warn(`Raw annotation value: ${linksAnnotation}`)
+      return [];
+    }
   }
 }

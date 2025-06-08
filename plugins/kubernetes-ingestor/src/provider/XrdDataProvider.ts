@@ -314,4 +314,26 @@ export class XrdDataProvider {
       throw error;
     }
   }
+
+  // Returns a lookup of composite kinds (and optionally group/version) to XRD metadata for v2 XRDs that are not LegacyCluster
+  async buildCompositeKindLookup(): Promise<Record<string, any>> {
+    const xrdObjects = await this.fetchXRDObjects();
+    const lookup: Record<string, any> = {};
+    for (const xrd of xrdObjects) {
+      const isV2 = !!xrd.spec?.scope;
+      const scope = xrd.spec?.scope || (isV2 ? 'LegacyCluster' : 'Cluster');
+      if (isV2 && scope !== 'LegacyCluster') {
+        const kind = xrd.spec?.names?.kind;
+        const group = xrd.spec?.group;
+        for (const version of xrd.spec.versions || []) {
+          const versionName = version.name;
+          const key = `${kind}|${group}|${versionName}`;
+          const lowerKey = `${kind?.toLowerCase()}|${group}|${versionName}`;
+          lookup[key] = xrd;
+          lookup[lowerKey] = xrd;
+        }
+      }
+    }
+    return lookup;
+  }
 }
