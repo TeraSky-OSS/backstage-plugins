@@ -35,9 +35,9 @@
     "postpack": "backstage-cli package postpack"
   },
   "dependencies": {
-    "@backstage/backend-plugin-api": "^0.6.9",
-    "@backstage/config": "^1.1.1",
-    "@backstage/errors": "^1.2.0",
+    "@backstage/backend-plugin-api": "^1.4.0",
+    "@backstage/config": "^1.3.2",
+    "@backstage/errors": "^1.2.7",
     "@terasky/backstage-plugin-educates-common": "^1.0.0",
     "@types/express": "^4.17.22",
     "express": "^4.17.1",
@@ -47,7 +47,7 @@
     "yn": "^4.0.0"
   },
   "devDependencies": {
-    "@backstage/cli": "^0.24.0",
+    "@backstage/cli": "^0.33.0",
     "@types/express-serve-static-core": "^4.17.5",
     "@types/node": "*",
     "@types/node-fetch": "^2.5.12",
