@@ -61,7 +61,7 @@ kubernetesIngestor:
       publishPhase:
         # Base URLs of Git servers you want to allow publishing to
         allowedTargets: ['github.com', 'gitlab.com']
-        # What to publish to. currently supports github, gitlab, bitbucket, and YAML (provides a link to download the file)
+        # What to publish to. currently supports github, gitlab, bitbucket, bitbucketCloud, and YAML (provides a link to download the file)
         target: github
         git:
           # Follows the backstage standard format which is github.com?owner=<REPO OWNER>&repo=<REPO NAME>
@@ -85,7 +85,7 @@ kubernetesIngestor:
     publishPhase:
       # Base URLs of Git servers you want to allow publishing to
       allowedTargets: ['github.com', 'gitlab.com']
-      # What to publish to. currently supports github, gitlab, bitbucket, and YAML (provides a link to download the file)
+      # What to publish to. currently supports github, gitlab, bitbucket, bitbucketCloud, and YAML (provides a link to download the file)
       target: github
       git:
         # Follows the backstage standard format which is github.com?owner=<REPO OWNER>&repo=<REPO NAME>
