@@ -786,7 +786,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
         case 'bitbucket':
           allowedHosts = ['only-bitbucket-server-is-allowed'];
           break;
-        case 'bitbucketCloud':
+        case 'bitbucketcloud':
           allowedHosts = ['bitbucket.org'];
           break;
         default:
@@ -1049,7 +1049,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
       case 'bitbucket':
         action = 'publish:bitbucketServer:pull-request';
         break;
-      case 'bitbucketCloud':
+      case 'bitbucketcloud':
         action = 'publish:bitbucketCloud:pull-request';
         break;
       case 'github':
@@ -1593,7 +1593,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
         case 'bitbucket':
           allowedHosts = ['only-bitbucket-server-is-allowed'];
           break;
-        case 'bitbucketCloud':
+        case 'bitbucketcloud':
           allowedHosts = ['bitbucket.org'];
           break;
         default:
@@ -1807,7 +1807,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
       case 'bitbucket':
         action = 'publish:bitbucketServer:pull-request';
         break;
-      case 'bitbucketCloud':
+      case 'bitbucketcloud':
         action = 'publish:bitbucketCloud:pull-request';
         break;
       case 'github':
