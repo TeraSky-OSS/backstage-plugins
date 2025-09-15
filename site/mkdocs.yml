@@ -29,12 +29,6 @@ nav:
               - About: plugins/kyverno/frontend/about.md
               - Install: plugins/kyverno/frontend/install.md
               - Configure: plugins/kyverno/frontend/configure.md
-      - GitOps Manifest Updater:
-          - Overview: plugins/gitops-manifest-updater/overview.md
-          - Frontend:
-              - About: plugins/gitops-manifest-updater/frontend/about.md
-              - Install: plugins/gitops-manifest-updater/frontend/install.md
-              - Configure: plugins/gitops-manifest-updater/frontend/configure.md
       - Kubernetes Resources:
           - Overview: plugins/kubernetes/overview.md
           - Backend:
@@ -45,7 +39,19 @@ nav:
               - About: plugins/kubernetes/frontend/about.md
               - Install: plugins/kubernetes/frontend/install.md
               - Configure: plugins/kubernetes/frontend/configure.md
-      
+  - IaC:
+      - GitOps Manifest Updater:
+          - Overview: plugins/gitops-manifest-updater/overview.md
+          - Frontend:
+              - About: plugins/gitops-manifest-updater/frontend/about.md
+              - Install: plugins/gitops-manifest-updater/frontend/install.md
+              - Configure: plugins/gitops-manifest-updater/frontend/configure.md
+      - Terraform Scaffolder:
+          - Overview: plugins/terraform-scaffolder/overview.md
+          - Frontend:
+              - About: plugins/terraform-scaffolder/frontend/about.md
+              - Install: plugins/terraform-scaffolder/frontend/install.md
+              - Configure: plugins/terraform-scaffolder/frontend/configure.md
   - Training & Education:
       - Educates:
           - Overview: plugins/educates/overview.md
