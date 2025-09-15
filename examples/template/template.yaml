@@ -1,6 +1,75 @@
 apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
+  name: terraform-module-template
+  title: Terraform Module Template
+  description: A template that uses a Terraform module from the configured module references
+spec:
+  owner: user:guest
+  type: service
+  parameters:
+    - title: Module Configuration
+      required:
+        - terraformModule
+      properties:
+        terraformModule:
+          title: Terraform Module
+          type: object
+          ui:field: TerraformModule
+    - title: GitOps Configuration
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: Repository Location
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+              - gitlab.com
+  steps:
+    - id: template
+      name: Generate Terraform Configuration
+      action: fetch:template
+      input:
+        url: ./terraform-content
+        values:
+          module: ${{ parameters.terraformModule.module }}
+          moduleUrl: ${{ parameters.terraformModule.moduleUrl }}
+          moduleRef: ${{ parameters.terraformModule.moduleRef }}
+          variables: ${{ parameters.terraformModule.variables }}
+          variableDefinitions: ${{ parameters.terraformModule.variableDefinitions }}
+          repo: ${{ parameters.repoUrl | parseRepoUrl | pick('repo') }}
+
+    - id: publish
+      name: Publish to Repository
+      action: publish:github
+      input:
+        description: Terraform configuration using ${{ parameters.terraformModule.module }}
+        repoUrl: ${{ parameters.repoUrl }}
+        defaultBranch: main
+        gitCommitMessage: Initial commit
+        sourcePath: ./
+
+    - id: register
+      name: Register
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps['publish'].output.repoContentsUrl }}
+        catalogInfoPath: '/catalog-info.yaml'
+
+  output:
+    links:
+      - title: Repository
+        url: ${{ steps['publish'].output.remoteUrl }}
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps['register'].output.entityRef }}
+---
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
   name: manage-via-git
   title: Manage Entity via Git
   labels:
