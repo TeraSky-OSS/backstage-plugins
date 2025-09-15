@@ -1,3 +1,4 @@
+import React from 'react';
 import { useAiRules } from '../../hooks/useAiRules';
 import { InfoCard, Progress, EmptyState, MarkdownContent } from '@backstage/core-components';
 import { Button, makeStyles, useTheme, Typography, Chip, Card, CardContent, Accordion, AccordionSummary, AccordionDetails, FormControlLabel, Checkbox, IconButton, Tooltip } from '@material-ui/core';
@@ -292,32 +293,58 @@ const RuleComponent = ({ rule }: { rule: AIRule }) => {
     );
   };
 
-  const renderCopilotRule = (rule: CopilotRule) => (
-    <Card className={styles.ruleCard}>
-      <CardContent>
-        <div className={styles.ruleHeader}>
-          <div className={styles.ruleHeaderContent}>
-            <RuleTypeIcon type={rule.type} />
-            <Typography variant="h6">Copilot Rule #{rule.order}</Typography>
-            <Chip label={rule.type} size="small" className={styles.ruleType} />
+  const renderCopilotRule = (rule: CopilotRule) => {
+    // Get rule number from either order (legacy) or extract from filename
+    const ruleNumber = rule.order || (rule.fileName.match(/Rule (\d+)/) || [])[1] || rule.id.split('-').pop();
+    
+    return (
+      <Accordion className={styles.ruleCard}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <div className={styles.ruleHeader}>
+            <div className={styles.ruleHeaderContent}>
+              <RuleTypeIcon type={rule.type} />
+              <Typography variant="h6">
+                {rule.title || `Copilot Rule #${ruleNumber}`}
+              </Typography>
+              <Chip label={rule.type} size="small" className={styles.ruleType} />
+              {rule.applyTo && (
+                <Chip 
+                  label={`Applies to: ${rule.applyTo}`} 
+                  size="small" 
+                  variant="outlined" 
+                  style={{ marginLeft: 8 }}
+                />
+              )}
+            </div>
+            {rule.gitUrl && (
+              <Tooltip title="Open file in repository">
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.open(constructFileUrl(rule.gitUrl!, rule.filePath), '_blank');
+                  }}
+                >
+                  <LaunchIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
           </div>
-          {rule.gitUrl && (
-            <Tooltip title="Open file in repository">
-              <IconButton
-                size="small"
-                onClick={() => window.open(constructFileUrl(rule.gitUrl!, rule.filePath), '_blank')}
-              >
-                <LaunchIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          )}
-        </div>
-        <div className={styles.ruleContent}>
-          {rule.content}
-        </div>
-      </CardContent>
-    </Card>
-  );
+        </AccordionSummary>
+        <AccordionDetails>
+          <div>
+            <div className={styles.ruleMetadata}>
+              <Chip label={`Path: ${rule.filePath}`} size="small" variant="outlined" />
+              {rule.frontmatter && renderFrontmatter(theme, rule.frontmatter)}
+            </div>
+            <div className={styles.ruleContent}>
+              <MarkdownContent content={rule.content} />
+            </div>
+          </div>
+        </AccordionDetails>
+      </Accordion>
+    );
+  };
 
   const renderClineRule = (rule: ClineRule) => (
     <Accordion className={styles.ruleCard}>
@@ -407,7 +434,7 @@ const RuleComponent = ({ rule }: { rule: AIRule }) => {
   }
 };
 
-export const AIRulesComponent = ({ title = "AI Coding Rules" }: AIRulesComponentProps = {}) => {
+export const AIRulesComponent: React.FC<AIRulesComponentProps> = ({ title = "AI Coding Rules" } = {}) => {
   const { rulesByType, loading, error, hasGitUrl, totalRules, allowedRuleTypes, selectedRuleTypes, setSelectedRuleTypes, applyFilters, resetFilters, hasUnappliedChanges, hasSearched } = useAiRules();
   const styles = useStyles();
   

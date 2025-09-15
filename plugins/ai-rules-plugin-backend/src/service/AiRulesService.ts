@@ -19,6 +19,7 @@ export interface AIRule {
     title: string;
     content: string;
   }>;
+  applyTo?: string;
 }
 
 export interface AIRulesResponse {
@@ -168,13 +169,43 @@ export class AiRulesService {
 
   private async fetchCopilotRules(gitUrl: string): Promise<AIRule[]> {
     const rules: AIRule[] = [];
-    
+    const processedFiles = new Set<string>();
+
+    // Check for legacy .github/copilot-instructions.md file
     try {
       const content = await this.fetchFileContent(gitUrl, '.github/copilot-instructions.md');
-      const parsedRules = this.parseCopilotRules(content, gitUrl);
+      const parsedRules = this.parseLegacyCopilotRules(content, gitUrl);
       rules.push(...parsedRules);
     } catch (error) {
-      // File not found, continue silently
+      // Legacy file not found, continue silently
+    }
+
+    // Check for new .github/instructions directory
+    try {
+      const files = await this.listDirectoryFiles(gitUrl, '.github/instructions');
+      
+      for (const file of files) {
+        if (file.endsWith('.instructions.md')) {
+          try {
+            // Skip if we've already processed this file
+            if (processedFiles.has(file)) {
+              continue;
+            }
+            
+            const fullPath = `.github/instructions/${file}`;
+            const content = await this.fetchFileContent(gitUrl, fullPath);
+            const rule = this.parseCopilotRule(fullPath, content, gitUrl);
+            if (rule) {
+              rules.push(rule);
+              processedFiles.add(file);
+            }
+          } catch (error) {
+            this.logger.warn(`Failed to fetch copilot rule ${file}: ${error}`);
+          }
+        }
+      }
+    } catch (error) {
+      // Directory not found, continue silently
     }
 
     return rules;
@@ -253,23 +284,49 @@ export class AiRulesService {
 
 
 
-  private parseCopilotRules(content: string, gitUrl: string): AIRule[] {
-    // Split by double newlines to separate rules
-    const ruleContents = content.split(/\n\s*\n/).filter(rule => rule.trim().length > 0);
-    
-    if (ruleContents.length === 0) {
+  private parseLegacyCopilotRules(content: string, gitUrl: string): AIRule[] {
+    if (!content.trim()) {
       return [];
     }
 
-    return ruleContents.map((ruleContent, index) => ({
+    // Parse the entire file as a single rule
+    return [{
       type: 'copilot',
-      id: `copilot-rule-${index + 1}`,
+      id: 'copilot-legacy-instructions',
       filePath: '.github/copilot-instructions.md',
-      fileName: `Rule ${index + 1}`,
-      content: ruleContent.trim(),
+      fileName: 'Copilot Instructions',
+      content: content.trim(),
       gitUrl,
-      order: index + 1,
-    }));
+      title: 'copilot-instructions'
+    }];
+  }
+
+  private parseCopilotRule(filePath: string, content: string, gitUrl: string): AIRule | null {
+    try {
+      const fileName = filePath.split('/').pop() || filePath;
+      
+      // Parse frontmatter using gray-matter
+      const parsed = matter(content);
+      
+      // Extract title from markdown (first # heading)
+      const titleMatch = content.match(/^# (.+)$/m);
+      const title = titleMatch ? titleMatch[1] : fileName.replace('.instructions.md', '');
+
+      return {
+        type: 'copilot',
+        id: `copilot-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`,
+        filePath,
+        fileName: fileName.replace('.instructions.md', ''),
+        content: parsed.content.trim(),
+        gitUrl,
+        title,
+        applyTo: parsed.data.applyTo,
+        frontmatter: Object.keys(parsed.data).length > 0 ? parsed.data : undefined,
+      };
+    } catch (error) {
+      this.logger.warn(`Failed to parse copilot rule ${filePath}: ${error}`);
+      return null;
+    }
   }
 
   private parseClineRule(filePath: string, content: string, gitUrl: string): AIRule | null {
