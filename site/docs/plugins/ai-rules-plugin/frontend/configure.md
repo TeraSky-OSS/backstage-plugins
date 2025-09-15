@@ -2,6 +2,26 @@
 
 This guide covers the configuration options available for the AI Coding Rules frontend plugin.
 
+## Component Overview
+
+The plugin provides three main components:
+
+1. **AiInstructionsComponent** (Recommended)
+   - Unified component with tabbed interface
+   - Combines AI rules and MCP server functionality
+   - Provides seamless navigation between features
+   - Recommended for most use cases
+
+2. **AIRulesComponent**
+   - Standalone component for AI coding rules
+   - Use when you only need rules functionality
+   - Can be used multiple times with different configurations
+
+3. **MCPServersComponent**
+   - Standalone component for MCP server configuration
+   - Displays server configurations from multiple sources
+   - Groups servers by source (Cursor, VSCode, Claude)
+
 ## New Frontend System Configuration (Alpha)
 
 When using the new frontend system through the `/alpha` export, the plugin is configured automatically with sensible defaults. The configuration in `app-config.yaml` is still respected:
@@ -80,41 +100,81 @@ aiRules:
 
 ## Component Configuration
 
-### AIRulesComponent Props
+The plugin provides three main components, each with their own configuration options:
 
-The main component accepts the following props:
+### AiInstructionsComponent Props (Recommended)
+
+The unified component that provides both AI rules and MCP server functionality:
 
 ```typescript
-interface AIRulesComponentProps {
-  title?: string;
+interface AiInstructionsComponentProps {
+  title?: string;  // Optional title for the component
 }
 ```
 
-### Usage Examples
+#### Usage Examples
 
-#### Default Configuration
 ```typescript
+// Default usage
+<EntityLayout.Route path="/ai-rules" title="AI Rules">
+  <AiInstructionsComponent />
+</EntityLayout.Route>
+
+// Custom title
+<EntityLayout.Route path="/coding-rules" title="Coding Rules">
+  <AiInstructionsComponent title="Development Guidelines" />
+</EntityLayout.Route>
+```
+
+### AIRulesComponent Props
+
+The standalone AI rules component:
+
+```typescript
+interface AIRulesComponentProps {
+  title?: string;  // Optional title for the component
+}
+```
+
+#### Usage Examples
+
+```typescript
+// Default usage
 <EntityLayout.Route path="/ai-rules" title="AI Rules">
   <AIRulesComponent />
 </EntityLayout.Route>
-```
 
-#### Custom Title
-```typescript
-<EntityLayout.Route path="/coding-rules" title="Coding Rules">
-  <AIRulesComponent title="Development Guidelines" />
-</EntityLayout.Route>
-```
-
-#### Multiple Instances
-```typescript
-// Different sections with different titles
+// Multiple instances with different titles
 <EntityLayout.Route path="/cursor-rules" title="Cursor Rules">
   <AIRulesComponent title="Cursor IDE Rules" />
 </EntityLayout.Route>
 
 <EntityLayout.Route path="/copilot-rules" title="Copilot Rules">
   <AIRulesComponent title="GitHub Copilot Guidelines" />
+</EntityLayout.Route>
+```
+
+### MCPServersComponent Props
+
+The standalone MCP servers component:
+
+```typescript
+interface MCPServersComponentProps {
+  title?: string;  // Optional title for the component
+}
+```
+
+#### Usage Examples
+
+```typescript
+// Default usage
+<EntityLayout.Route path="/mcp-servers" title="MCP Servers">
+  <MCPServersComponent />
+</EntityLayout.Route>
+
+// Custom title
+<EntityLayout.Route path="/mcp" title="MCP Configuration">
+  <MCPServersComponent title="MCP Server Configurations" />
 </EntityLayout.Route>
 ```
 

@@ -5,10 +5,19 @@ The AI Coding Rules plugin for Backstage provides comprehensive visualization an
 ## Plugin Components
 
 ### Frontend Plugin
-The frontend plugin provides a user interface for:
+The frontend plugin provides two main components:
 
+#### AiInstructionsComponent (Top-Level Component)
+A tabbed interface that integrates both AI rules and MCP server functionality:
+- "Agent Rules" tab for AI coding rules management
+- "MCP Servers" tab for MCP server configuration visualization
+- Unified navigation between both features
+- Configurable title prop
+
+#### AIRulesComponent
+Provides visualization and management of AI coding rules:
 - Visualizing Cursor rules from `.mdc` files in `.cursor/rules/` directories
-- Displaying GitHub Copilot rules from `.github/copilot-instructions.md`
+- Displaying GitHub Copilot rules from `.github/copilot-instructions.md` and `*.instructions.md` files
 - Showing Cline rules from `.clinerules/*.md` files
 - Displaying Claude Code rules from `CLAUDE.md` files
 - Manual filtering with configurable default rule types
@@ -16,6 +25,15 @@ The frontend plugin provides a user interface for:
 - Viewing rule metadata and content in expandable cards
 - Statistics and overview of rule counts
 - Apply Filter functionality for controlled rule searches
+
+#### MCPServersComponent
+Dedicated interface for MCP server configuration management:
+- Groups servers by source (Cursor, VSCode, Claude)
+- Displays server counts per source
+- Shows server type (local/remote) and command information
+- Expandable view of environment variables
+- Raw configuration display with syntax highlighting
+- Support for both local (stdio) and remote server configurations
 
 [Learn more about the frontend plugin](./frontend/about.md)
 
@@ -29,6 +47,11 @@ The backend plugin handles:
 - Support for multiple rule types and formats
 - Rate limiting protection for large repositories
 - Multi-provider git support (GitHub, GitLab, etc.)
+- Discovery and parsing of MCP server configurations from multiple sources:
+  - Cursor MCP configs from `.cursor/mcp.json`
+  - VSCode MCP configs from `.vscode/mcp.json`
+  - Claude MCP configs from `.mcp.json`
+- Support for both local (stdio) and remote MCP servers
 
 [Learn more about the backend plugin](./backend/about.md)
 
@@ -44,6 +67,9 @@ The backend plugin handles:
 - **Repository Integration**: Seamless integration with all Backstage SCM integrations
 - **Rate Limiting Protection**: Retry logic with exponential backoff for large repositories
 - **Multi-Provider Support**: Works with GitHub, GitLab, and other git providers
+- **MCP Server Discovery**: Automatic detection of MCP configurations from Cursor, VSCode, and Claude
+- **Flexible Server Support**: Support for both local (stdio) and remote MCP server configurations
+- **Configuration Visualization**: Display and inspect MCP server configurations with syntax highlighting
 
 ## Screenshots
 

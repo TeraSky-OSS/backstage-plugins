@@ -23,20 +23,35 @@ yarn --cwd packages/app add @terasky/backstage-plugin-ai-rules
 
 ### 2. Add to Entity Pages
 
-Add the AI Rules component to your entity pages in `packages/app/src/components/catalog/EntityPage.tsx`:
+Add the AI Rules components to your entity pages in `packages/app/src/components/catalog/EntityPage.tsx`. You can use either the unified `AiInstructionsComponent` (recommended) or the individual components:
 
 ```typescript
-import { AIRulesComponent } from '@terasky/backstage-plugin-ai-rules';
+import { 
+  AiInstructionsComponent,  // Unified component with tabs
+  AIRulesComponent,         // Just the rules component
+  MCPServersComponent       // Just the MCP servers component
+} from '@terasky/backstage-plugin-ai-rules';
 
 const componentPage = (
   <EntityLayout>
     {/* ... other tabs */}
+    
+    {/* Option 1: Unified Component (Recommended) */}
+    <EntityLayout.Route path="/ai-rules" title="AI Rules">
+      <AiInstructionsComponent />
+    </EntityLayout.Route>
+    
+    {/* Option 2: Separate Components */}
     <EntityLayout.Route path="/ai-rules" title="AI Rules">
       <AIRulesComponent />
     </EntityLayout.Route>
-    {/* Or with a custom title */}
+    <EntityLayout.Route path="/mcp-servers" title="MCP Servers">
+      <MCPServersComponent />
+    </EntityLayout.Route>
+    
+    {/* With custom titles */}
     <EntityLayout.Route path="/coding-rules" title="Coding Rules">
-      <AIRulesComponent title="Development Guidelines" />
+      <AiInstructionsComponent title="Development Guidelines" />
     </EntityLayout.Route>
   </EntityLayout>
 );
