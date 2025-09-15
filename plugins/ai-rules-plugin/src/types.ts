@@ -25,7 +25,10 @@ export interface CopilotRule {
   fileName: string;
   gitUrl?: string;
   content: string;
-  order: number; // Position in the file
+  order?: number; // Position in the file (legacy)
+  title?: string;
+  applyTo?: string;
+  frontmatter?: Record<string, any>;
 }
 
 export interface ClineRule {

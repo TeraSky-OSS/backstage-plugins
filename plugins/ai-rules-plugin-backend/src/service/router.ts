@@ -5,6 +5,7 @@ import { InputError, NotFoundError } from '@backstage/errors';
 import express from 'express';
 import Router from 'express-promise-router';
 import { AiRulesService } from './AiRulesService';
+import { MCPService } from './MCPService';
 
 export interface RouterOptions {
   logger: LoggerService;
@@ -25,12 +26,36 @@ export async function createRouter(
     urlReader,
   });
 
+  const mcpService = new MCPService({
+    logger,
+    urlReader,
+  });
+
   const router = Router();
   router.use(express.json());
 
   router.get('/health', (_, response) => {
     logger.info('PONG!');
     response.json({ status: 'ok' });
+  });
+
+  router.get('/mcp-servers', async (request, response) => {
+    const { gitUrl } = request.query;
+
+    if (!gitUrl || typeof gitUrl !== 'string') {
+      throw new InputError('gitUrl query parameter is required');
+    }
+
+    try {
+      const mcpResponse = await mcpService.getMCPServers(gitUrl);
+      response.json(mcpResponse);
+    } catch (error) {
+      logger.error('Error fetching MCP servers', error as Error);
+      if (error instanceof InputError || error instanceof NotFoundError) {
+        throw error;
+      }
+      throw new Error('Failed to fetch MCP servers');
+    }
   });
 
   router.get('/rules', async (request, response) => {
