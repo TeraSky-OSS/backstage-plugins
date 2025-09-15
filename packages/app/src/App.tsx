@@ -46,6 +46,7 @@ import { configApiRef,  useApi } from '@backstage/core-plugin-api';
 import { GitOpsManifestUpdaterExtension } from '@terasky/backstage-plugin-gitops-manifest-updater';
 import { ScaffolderFieldExtensions } from '@backstage/plugin-scaffolder-react';
 import { EducatesPage } from '@terasky/backstage-plugin-educates';
+import { TerraformModuleExtension } from '@terasky/backstage-plugin-terraform-scaffolder';
 
 const app = createApp({
   apis,
@@ -199,6 +200,7 @@ const routes = (
       }>
       <ScaffolderFieldExtensions>
         <GitOpsManifestUpdaterExtension />
+        <TerraformModuleExtension />
       </ScaffolderFieldExtensions>
     </Route>
     <Route path="/api-docs" element={<ApiExplorerPage />} />

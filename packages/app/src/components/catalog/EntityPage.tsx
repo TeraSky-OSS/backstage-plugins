@@ -93,7 +93,7 @@ import {
   VCFAutomationCCIResourceOverview,
   VCFAutomationCCIResourceDetails,
 } from '@terasky/backstage-plugin-vcf-automation';
-import { AIRulesComponent } from '@terasky/backstage-plugin-ai-rules';
+import { AIRulesComponent, MCPServersComponent, AiInstructionsComponent } from '@terasky/backstage-plugin-ai-rules';
 import { VCFOperationsExplorerComponent } from '@terasky/backstage-plugin-vcf-operations';
 
 const techdocsContent = (
@@ -208,6 +208,12 @@ const serviceEntityPage = (
     <EntityLayout.Route path="/ai-rules" title="AI Rules">
      <AIRulesComponent />
    </EntityLayout.Route>
+   <EntityLayout.Route path="/mcp-servers" title="MCP Servers">
+      <MCPServersComponent />
+    </EntityLayout.Route>
+    <EntityLayout.Route path="/ai-instructions" title="AI Instructions">
+      <AiInstructionsComponent />
+    </EntityLayout.Route>
     <EntityLayout.Route path="/ci-cd" title="CI/CD">
       {cicdContent}
     </EntityLayout.Route>
