@@ -10,6 +10,7 @@ import { KubernetesDataProvider } from './KubernetesDataProvider';
 import { Logger } from 'winston';
 import { CRDDataProvider } from './CRDDataProvider';
 import { XRDDataProvider } from './XRDDataProvider';
+import { RGDDataProvider } from './RGDDataProvider';
 import yaml from 'js-yaml';
 import pluralize from 'pluralize';
 
@@ -1958,6 +1959,7 @@ export class KubernetesEntityProvider implements EntityProvider {
     }
     try {
       const isCrossplaneEnabled = this.config.getOptionalBoolean('kubernetesIngestor.crossplane.enabled') ?? true;
+      const isKROEnabled = this.config.getOptionalBoolean('kubernetesIngestor.kro.enabled') ?? false;
       
       if (this.config.getOptionalBoolean('kubernetesIngestor.components.enabled')) {
         // Initialize providers
@@ -1968,7 +1970,9 @@ export class KubernetesEntityProvider implements EntityProvider {
         );
 
         let compositeKindLookup: { [key: string]: any } = {};
+        let rgdLookup: { [key: string]: any } = {};
         let xrdDataProvider;
+        let rgdDataProvider;
         
         // Only initialize Crossplane providers if enabled
         if (isCrossplaneEnabled) {
@@ -1985,10 +1989,25 @@ export class KubernetesEntityProvider implements EntityProvider {
           }
         }
 
+        // Only initialize KRO providers if enabled
+        if (isKROEnabled) {
+          rgdDataProvider = new RGDDataProvider(
+            this.resourceFetcher,
+            this.config,
+            this.logger,
+          );
+          // Build RGD lookup for case-insensitive matching
+          rgdLookup = await rgdDataProvider.buildRGDLookup();
+          // Add lowercased keys for case-insensitive matching
+          for (const key of Object.keys(rgdLookup)) {
+            rgdLookup[key.toLowerCase()] = rgdLookup[key];
+          }
+        }
+
         // Fetch all Kubernetes resources and build a CRD mapping
         const kubernetesData = await kubernetesDataProvider.fetchKubernetesObjects();
         const crdMapping = await kubernetesDataProvider.fetchCRDMapping();
-        let claimCount = 0, compositeCount = 0, k8sCount = 0;
+        let claimCount = 0, compositeCount = 0, k8sCount = 0, kroCount = 0;
         const entities = kubernetesData.flatMap((k8s: any) => {
           if (!isCrossplaneEnabled) {
             // When Crossplane is disabled, treat everything as regular K8s resources
@@ -2020,6 +2039,18 @@ export class KubernetesEntityProvider implements EntityProvider {
               return entity ? [entity] : [];
             }
           }
+          // Check if it's a KRO instance
+          if (isKROEnabled && k8s?.metadata?.labels?.['kro.run/resource-graph-definition-id']) {
+            this.logger.debug(`Processing KRO instance: ${k8s.kind} ${k8s.metadata?.name}`);
+            const [group, version] = k8s.apiVersion.split('/');
+            const lookupKey = `${k8s.kind}|${group}|${version}`;
+            const lookupKeyLower = lookupKey.toLowerCase();
+            if (rgdLookup[lookupKey] || rgdLookup[lookupKeyLower]) {
+              kroCount++;
+              return this.translateKROInstanceToEntity(k8s, k8s.clusterName, rgdLookup);
+            }
+          }
+
           // Fallback: treat as regular K8s resource
           if (k8s) {
             this.logger.debug(`Processing as regular K8s resource: ${k8s.kind} ${k8s.metadata?.name}`);
@@ -2297,6 +2328,106 @@ export class KubernetesEntityProvider implements EntityProvider {
     };
 
     return this.validateEntityName(entity) ? entity : undefined;
+  }
+
+  private translateKROInstanceToEntity(instance: any, clusterName: string, rgdLookup: any): Entity[] {
+    // First, check if this is a valid KRO instance by looking up its kind in the RGD lookup
+    const [group, version] = instance.apiVersion.split('/');
+    const lookupKey = `${instance.kind}|${group}|${version}`;
+    const lookupKeyLower = lookupKey.toLowerCase();
+    const rgd = rgdLookup[lookupKey] || rgdLookup[lookupKeyLower];
+    if (!rgd) {
+      this.logger.debug(`No RGD lookup found for key ${lookupKey}, skipping KRO instance processing`);
+      return [];
+    }
+
+    const prefix = this.getAnnotationPrefix();
+    const annotations = instance.metadata.annotations || {};
+    const rgdId = instance.metadata.labels['kro.run/resource-graph-definition-id'];
+
+    // Add KRO-specific annotations
+    const kroAnnotations = {
+      [`${prefix}/kro-rgd-name`]: instance.kroData.rgd.metadata.name,
+      [`${prefix}/kro-rgd-id`]: rgdId,
+      [`${prefix}/kro-rgd-crd-name`]: instance.kroData.crd?.metadata?.name,
+      [`${prefix}/kro-instance-uid`]: instance.metadata?.uid,
+      [`${prefix}/kro-sub-resources`]: instance.kroData.rgd.spec.resources.map((r: any) => {
+        if (!r.template) return null;
+        const apiVersion = r.template.apiVersion.toLowerCase();
+        const kind = r.template.kind.toLowerCase();
+        return `${apiVersion}:${kind}`;
+      }).filter(Boolean).join(','),
+      [`${prefix}/component-type`]: 'kro-instance',
+    };
+
+    const resourceAnnotations = instance.metadata.annotations || {};
+    const customAnnotations = this.extractCustomAnnotations(resourceAnnotations, clusterName);
+
+    const systemNamespaceModel = this.config.getOptionalString('kubernetesIngestor.mappings.namespaceModel')?.toLowerCase() || 'default';
+    let systemNamespaceValue = '';
+    if (systemNamespaceModel === 'cluster') {
+      systemNamespaceValue = clusterName;
+    } else if (systemNamespaceModel === 'namespace') {
+      systemNamespaceValue = instance.metadata.namespace || 'default';
+    } else {
+      systemNamespaceValue = 'default';
+    }
+    const systemNameModel = this.config.getOptionalString('kubernetesIngestor.mappings.systemModel')?.toLowerCase() || 'namespace';
+    let systemNameValue = '';
+    if (systemNameModel === 'cluster') {
+      systemNameValue = clusterName;
+    } else if (systemNameModel === 'namespace') {
+      systemNameValue = instance.metadata.namespace || instance.metadata.name;
+    } else if (systemNameModel === 'cluster-namespace') {
+      if (instance.metadata.namespace) {
+        systemNameValue = `${clusterName}-${instance.metadata.namespace}`;
+      } else {
+        systemNameValue = `${clusterName}`;
+      }
+    } else {
+      systemNameValue = 'default';
+    }
+    const systemReferencesNamespaceModel = this.config.getOptionalString('kubernetesIngestor.mappings.referencesNamespaceModel')?.toLowerCase() || 'default';
+    let systemReferencesNamespaceValue = '';
+    if (systemReferencesNamespaceModel === 'same') {
+      systemReferencesNamespaceValue = instance.metadata.name;
+    } else if (systemReferencesNamespaceModel === 'default') {
+      systemReferencesNamespaceValue = 'default';
+    }
+
+    const entity: Entity = {
+      apiVersion: 'backstage.io/v1alpha1',
+      kind: 'Component',
+      metadata: {
+        name: annotations[`${prefix}/name`] || instance.metadata.name,
+        title: annotations[`${prefix}/title`] || instance.metadata.name,
+        tags: [`cluster:${instance.clusterName}`, `kind:${instance.kind?.toLowerCase()}`],
+        namespace: annotations[`${prefix}/backstage-namespace`] || systemNamespaceValue,
+        links: this.parseBackstageLinks(instance.metadata.annotations || {}),
+        annotations: {
+          ...Object.fromEntries(
+            Object.entries(annotations).filter(([key]) => key !== `${prefix}/links`)
+          ),
+          ...(systemNameModel === 'cluster-namespace' || systemNamespaceModel === 'cluster' ? {
+            'backstage.io/kubernetes-cluster': clusterName,
+          } : {}),
+          ...customAnnotations,
+          ...kroAnnotations,
+        },
+      },
+      spec: {
+        type: 'kro-instance',
+        lifecycle: annotations[`${prefix}/lifecycle`] || 'production',
+        owner: annotations[`${prefix}/owner`] ? `${systemReferencesNamespaceValue}/${annotations[`${prefix}/owner`]}` : `${systemReferencesNamespaceValue}/kubernetes-auto-ingested`,
+        system: annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`,
+        consumesApis: [`${systemReferencesNamespaceValue}/${instance.kind}-${instance.apiVersion.split('/').join('--')}`],
+        ...(annotations[`${prefix}/subcomponent-of`] && {
+          subcomponentOf: annotations[`${prefix}/subcomponent-of`],
+        }),
+      },
+    };
+
+    return this.validateEntityName(entity) ? [entity] : [];
   }
 
   private translateCrossplaneCompositeToEntity(xr: any, clusterName: string, compositeKindLookup: any): Entity | undefined {

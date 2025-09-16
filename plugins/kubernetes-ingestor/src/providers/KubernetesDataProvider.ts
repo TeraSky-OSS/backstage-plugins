@@ -2,6 +2,7 @@ import { Config } from '@backstage/config';
 import { LoggerService } from '@backstage/backend-plugin-api';
 import { DefaultKubernetesResourceFetcher } from '../services';
 import { XRDDataProvider } from './XRDDataProvider';
+import { RGDDataProvider } from './RGDDataProvider';
 
 
 export class KubernetesDataProvider {
@@ -85,6 +86,7 @@ export class KubernetesDataProvider {
       ];
 
       const isCrossplaneEnabled = this.config.getOptionalBoolean('kubernetesIngestor.crossplane.enabled') ?? true;
+      const isKROEnabled = this.config.getOptionalBoolean('kubernetesIngestor.kro.enabled') ?? false;
 
       // Only add Crossplane-related objects if the feature is enabled
       if (isCrossplaneEnabled) {
@@ -114,9 +116,36 @@ export class KubernetesDataProvider {
         }
       }
 
+      // Add KRO-related objects if the feature is enabled
+      if (isKROEnabled) {
+        try {
+          const rgdDataProvider = new RGDDataProvider(
+            this.resourceFetcher,
+            this.config,
+            this.logger,
+          );
+          const rgdObjects = await rgdDataProvider.fetchRGDObjects();
+          for (const rgd of rgdObjects) {
+            if (rgd.generatedCRD) {
+              const crd = rgd.generatedCRD;
+              for (const version of crd.spec.versions || []) {
+                workloadTypes.push({
+                  group: crd.spec.group,
+                  apiVersion: version.name,
+                  plural: crd.spec.names.plural,
+                });
+              }
+            }
+          }
+        } catch (error) {
+          this.logger.error('Failed to fetch RGD objects:', error as Error);
+        }
+      }
+
       const onlyIngestAnnotatedResources = this.config.getOptionalBoolean('kubernetesIngestor.components.onlyIngestAnnotatedResources') ?? false;
       const excludedNamespaces = new Set(this.config.getOptionalStringArray('kubernetesIngestor.components.excludedNamespaces') || []);
       const ingestAllCrossplaneClaims = this.config.getOptionalBoolean('kubernetesIngestor.crossplane.claims.ingestAllClaims') ?? false;
+      const ingestAllRGDInstances = this.config.getOptionalBoolean('kubernetesIngestor.kro.instances.ingestAllInstances') ?? false;
 
       const allObjects: any[] = [];
 
@@ -132,6 +161,28 @@ export class KubernetesDataProvider {
                 plural: crd.plural,
               });
             });
+          }
+
+          // Only fetch KRO instances if enabled
+          if (isKROEnabled && ingestAllRGDInstances) {
+            const rgdDataProvider = new RGDDataProvider(
+              this.resourceFetcher,
+              this.config,
+              this.logger,
+            );
+            const rgdObjects = await rgdDataProvider.fetchRGDObjects();
+            for (const rgd of rgdObjects) {
+              if (rgd.generatedCRD) {
+                const crd = rgd.generatedCRD;
+                for (const version of crd.spec.versions || []) {
+                  workloadTypes.push({
+                    group: crd.spec.group,
+                    apiVersion: version.name,
+                    plural: crd.spec.names.plural,
+                  });
+                }
+              }
+            }
           }
 
           if (
@@ -195,6 +246,15 @@ export class KubernetesDataProvider {
                 }
               }
 
+              // Skip KRO-related resources if disabled
+              if (!isKROEnabled) {
+                // Check if it's a KRO resource by looking for the RGD label
+                if (resource.metadata?.labels?.['kro.run/resource-graph-definition-id']) {
+                  this.logger.debug(`Skipping KRO resource: ${resource.kind} ${resource.metadata?.name}`);
+                  return {};
+                }
+              }
+
               // Handle v2 composites: spec.crossplane.compositionRef.name
               if (isCrossplaneEnabled && resource.spec?.crossplane?.compositionRef?.name) {
                 const composition = await this.fetchComposition(
@@ -229,6 +289,106 @@ export class KubernetesDataProvider {
                     name: resource.spec.compositionRef.name,
                     usedFunctions,
                   },
+                };
+              }
+
+              // Handle KRO instances
+              if (isKROEnabled && resource.metadata?.labels?.['kro.run/resource-graph-definition-id']) {
+                const rgdId = resource.metadata.labels['kro.run/resource-graph-definition-id'];
+                this.logger.error('KRO: Processing resource with KRO label', {
+                  kind: resource.kind,
+                  name: resource.metadata?.name,
+                  namespace: resource.metadata?.namespace,
+                  rgdId,
+                  apiVersion: resource.apiVersion,
+                });
+
+                // First get the RGD
+                const rgds = await this.resourceFetcher.fetchResources({
+                  clusterName,
+                  resourcePath: 'kro.run/v1alpha1/resourcegraphdefinitions',
+                });
+                this.logger.error('KRO: Found RGDs in cluster', { 
+                  count: rgds.length, 
+                  clusterName 
+                });
+
+                const rgd = (rgds as any[]).find((r: any) => r.metadata?.uid === rgdId);
+                if (!rgd) {
+                  this.logger.error('KRO: No RGD found with ID', {
+                    rgdId,
+                    resourceKind: resource.kind,
+                    resourceName: resource.metadata?.name,
+                    resourceNamespace: resource.metadata?.namespace,
+                  });
+                  return {
+                    ...resource,
+                    clusterName,
+                    clusterEndpoint: clusterName,
+                  };
+                }
+
+                this.logger.error('KRO: Found matching RGD', {
+                  rgdName: rgd.metadata?.name,
+                  rgdUid: rgd.metadata?.uid,
+                  schemaGroup: rgd.spec?.schema?.group,
+                  schemaKind: rgd.spec?.schema?.kind,
+                  resourceGroup: resource.apiVersion?.split('/')[0],
+                  resourceKind: resource.kind,
+                });
+
+                if (rgd) {
+                  // Check if this resource is an actual RGD instance (matches the RGD's schema)
+                  // and not just a resource created by an RGD instance
+                  const [resourceGroup] = (resource.apiVersion || '').toLowerCase().split('/');
+                  const isRGDInstance = rgd.spec?.schema?.group?.toLowerCase() === resourceGroup && 
+                                      rgd.spec?.schema?.kind?.toLowerCase() === resource.kind?.toLowerCase();
+
+                  this.logger.error('KRO: Resource RGD instance check', { 
+                    isRGDInstance,
+                    resourceGroup,
+                    resourceKind: resource.kind,
+                    schemaGroup: rgd.spec?.schema?.group,
+                    schemaKind: rgd.spec?.schema?.kind,
+                  });
+
+                  if (isRGDInstance) {
+                    // Then get the CRD for this RGD
+                    const crds = await this.resourceFetcher.fetchResources({
+                      clusterName,
+                      resourcePath: 'apiextensions.k8s.io/v1/customresourcedefinitions',
+                      query: {
+                        labelSelector: `kro.run/resource-graph-definition-id=${rgdId}`,
+                      },
+                    });
+
+                    this.logger.error('KRO: Found CRDs for RGD', {
+                      count: crds.length,
+                      rgdName: rgd.metadata?.name,
+                      crdNames: crds.map((c: any) => c.metadata?.name),
+                    });
+
+                    // Just add the RGD and CRD info to the resource for use by EntityProvider
+                    return {
+                      ...resource,
+                      clusterName,
+                      clusterEndpoint: clusterName,
+                      kroData: {
+                        rgd,
+                        crd: crds[0],
+                      },
+                    };
+                  }
+                  return {
+                    ...resource,
+                    clusterName,
+                    clusterEndpoint: clusterName,
+                  };
+                }
+                return {
+                  ...resource,
+                  clusterName,
+                  clusterEndpoint: clusterName,
                 };
               }
 

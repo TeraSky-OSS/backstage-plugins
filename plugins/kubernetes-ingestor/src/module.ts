@@ -5,7 +5,7 @@ import {
 import {
   catalogProcessingExtensionPoint,
 } from '@backstage/plugin-catalog-node/alpha';
-import { KubernetesEntityProvider, XRDTemplateEntityProvider } from './providers';
+import { KubernetesEntityProvider, RGDTemplateEntityProvider, XRDTemplateEntityProvider } from './providers';
 import { DefaultKubernetesResourceFetcher } from './services';
 
 export const catalogModuleKubernetesIngestor = createBackendModule({
@@ -71,6 +71,19 @@ export const catalogModuleKubernetesIngestor = createBackendModule({
           resourceFetcher,
         );
 
+        const rgdTemplateEntityProvider = new RGDTemplateEntityProvider(
+          taskRunner,
+          logger,
+          config,
+          resourceFetcher,
+        );
+        const kroEnabled = config.getOptionalBoolean('kubernetesIngestor.kro.enabled');
+        if (kroEnabled === true) {
+          const kroRGDEnabled = config.getOptionalBoolean('kubernetesIngestor.kro.rgds.enabled');
+          if (kroRGDEnabled === true) {
+            await catalog.addEntityProvider(rgdTemplateEntityProvider);
+          }
+        }
         const xrdEnabled = config.getOptionalBoolean('kubernetesIngestor.crossplane.xrds.enabled');
         await catalog.addEntityProvider(templateEntityProvider);
         // Only disable if explicitly set to false; default is enabled
