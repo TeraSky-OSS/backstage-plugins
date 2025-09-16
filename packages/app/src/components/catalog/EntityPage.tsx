@@ -95,6 +95,8 @@ import {
 } from '@terasky/backstage-plugin-vcf-automation';
 import { AIRulesComponent, MCPServersComponent, AiInstructionsComponent } from '@terasky/backstage-plugin-ai-rules';
 import { VCFOperationsExplorerComponent } from '@terasky/backstage-plugin-vcf-operations';
+import { IfKroOverviewAvailable, IfKroResourceGraphAvailable, IfKroResourcesListAvailable, isKroAvailable, KroOverviewCard, KroResourceGraph } from '@terasky/backstage-plugin-kro-resources-frontend';
+import { KroResourceTable, useKroResourceListAvailable, useKroResourceGraphAvailable } from '@terasky/backstage-plugin-kro-resources-frontend';
 
 const techdocsContent = (
   <EntityTechdocsContent>
@@ -200,6 +202,21 @@ const crossplaneOverviewContent = (
     </Grid>
   </Grid>
 );
+const kroOverviewContent = (
+  <Grid container spacing={3} alignItems="stretch">
+    <Grid item md={6}>
+      <EntityAboutCard variant="gridItem" />
+    </Grid>
+    <IfKroOverviewAvailable>
+      <Grid item md={6}>
+        <KroOverviewCard />
+      </Grid>
+    </IfKroOverviewAvailable>
+    <Grid item md={4} xs={12}>
+      <EntityLinksCard />
+    </Grid>
+  </Grid>
+);
 const serviceEntityPage = (
   <EntityLayout>
     <EntityLayout.Route path="/" title="Overview">
@@ -268,6 +285,11 @@ const serviceEntityPage = (
       <IfCrossplaneResourceGraphAvailable>
         <CrossplaneResourceGraphSelector />
       </IfCrossplaneResourceGraphAvailable>
+    </EntityLayout.Route>
+    <EntityLayout.Route if={isKroAvailable} path="/kro-graph" title="KRO Graph">
+      <IfKroResourceGraphAvailable>
+        <KroResourceGraph />
+      </IfKroResourceGraphAvailable>
     </EntityLayout.Route>
     <EntityLayout.Route if={isScaleopsAvailable} path="/scaleops" title="Scale Ops">
       <ScaleOpsDashboard />
@@ -350,6 +372,53 @@ const CrossplaneEntityPage = () => {
   );
 };
 
+const KroEntityPage = () => {
+  const isKroResourceListAvailable = useKroResourceListAvailable();
+  const isKroResourceGraphAvailable = useKroResourceGraphAvailable();
+
+  return (
+    <EntityLayout>
+      <EntityLayout.Route path="/" title="Overview">
+        {kroOverviewContent}
+      </EntityLayout.Route>
+
+      <EntityLayout.Route if={isKroResourceListAvailable} path="/kro-resources" title="KRO Resources">
+        <IfKroResourcesListAvailable>
+          <KroResourceTable />
+        </IfKroResourcesListAvailable>
+      </EntityLayout.Route>
+
+      <EntityLayout.Route if={isKroResourceGraphAvailable} path="/kro-graph" title="KRO Graph">
+        <IfKroResourceGraphAvailable>
+          <KroResourceGraph />
+        </IfKroResourceGraphAvailable>
+      </EntityLayout.Route>
+
+      <EntityLayout.Route path="/scaffolder" title="Entity Scaffolder">
+        <EntityScaffolderContent
+          templateGroupFilters={[
+            {
+              title: 'Management Templates',
+              filter: (entity, template) =>
+                template.metadata?.labels?.target === 'component' &&
+                entity.metadata?.annotations?.['backstage.io/managed-by-location']?.split(":")[0] === 'cluster origin',
+            },
+          ]}
+          buildInitialState={entity => ({
+            entity: stringifyEntityRef(entity)
+          })}
+          ScaffolderFieldExtensions={
+            <ScaffolderFieldExtensions>
+              <RepoUrlPickerFieldExtension />
+              <EntityPickerFieldExtension />
+              <GitOpsManifestUpdaterExtension />
+            </ScaffolderFieldExtensions>
+          }
+        />
+      </EntityLayout.Route>
+    </EntityLayout>
+  );
+};
 const vcfAutomationVSphereVMOverviewContent = (
   <Grid container spacing={3} alignItems="stretch">
     <Grid item md={6}>
@@ -502,6 +571,9 @@ const componentPage = (
     </EntitySwitch.Case>
     <EntitySwitch.Case if={isComponentType('crossplane-xr')}>
       <CrossplaneEntityPage />
+    </EntitySwitch.Case>
+    <EntitySwitch.Case if={isComponentType('kro-instance')}>
+      <KroEntityPage />
     </EntitySwitch.Case>
 
     <EntitySwitch.Case if={isComponentType('Cloud.vSphere.Machine')}>
