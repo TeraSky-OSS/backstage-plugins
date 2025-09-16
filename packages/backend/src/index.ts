@@ -71,4 +71,5 @@ backend.add(import('@terasky/backstage-plugin-vcf-automation-backend'));
 backend.add(import('@terasky/backstage-plugin-educates-backend'));
 backend.add(import('@terasky/backstage-plugin-ai-rules-backend'));
 backend.add(import('@terasky/backstage-plugin-vcf-operations-backend'));
+backend.add(import('@terasky/backstage-plugin-kro-permissions-backend'));
 backend.start();
