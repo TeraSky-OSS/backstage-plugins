@@ -1,0 +1,101 @@
+{
+  "name": "@terasky/backstage-plugin-kro-resources-frontend",
+  "version": "0.1.0",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public",
+    "main": "dist/index.esm.js",
+    "types": "dist/index.d.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TeraSky-OSS/backstage-plugins.git",
+    "directory": "plugins/kro-resources"
+  },
+  "homepage": "https://terasky.com",
+  "configSchema": "config.d.ts",
+  "backstage": {
+    "role": "frontend-plugin",
+    "pluginId": "kro-resources-frontend",
+    "pluginPackages": [
+      "@terasky/backstage-plugin-kro-resources-frontend"
+    ]
+  },
+  "sideEffects": false,
+  "scripts": {
+    "start": "backstage-cli package start",
+    "build": "backstage-cli package build",
+    "lint": "backstage-cli package lint",
+    "test": "backstage-cli package test",
+    "clean": "backstage-cli package clean",
+    "prepack": "backstage-cli package prepack",
+    "postpack": "backstage-cli package postpack"
+  },
+  "dependencies": {
+    "@backstage/catalog-model": "^1.7.5",
+    "@backstage/core-components": "^0.17.5",
+    "@backstage/core-plugin-api": "^1.10.9",
+    "@backstage/frontend-plugin-api": "^0.11.0",
+    "@backstage/plugin-catalog-react": "^1.20.1",
+    "@backstage/plugin-kubernetes": "^0.12.10",
+    "@backstage/plugin-kubernetes-react": "^0.5.10",
+    "@backstage/plugin-permission-common": "^0.9.1",
+    "@backstage/plugin-permission-react": "^0.4.36",
+    "@backstage/theme": "^0.6.8",
+    "@material-ui/core": "^4.12.4",
+    "@material-ui/icons": "^4.11.3",
+    "@material-ui/lab": "^4.0.0-alpha.61",
+    "@terasky/backstage-plugin-kro-common": "^0.1.0",
+    "@types/pluralize": "^0.0.33",
+    "dagre": "^0.8.5",
+    "file-saver": "^2.0.5",
+    "js-yaml": "^4.1.0",
+    "pluralize": "^8.0.0",
+    "react-copy-to-clipboard": "^5.1.0",
+    "react-flow-renderer": "^10.3.17",
+    "react-json-view": "^1.21.3",
+    "react-syntax-highlighter": "^15.6.1",
+    "react-use": "^17.6.0"
+  },
+  "peerDependencies": {
+    "react": "^16.13.1 || ^17.0.0 || ^18.0.0"
+  },
+  "devDependencies": {
+    "@backstage/cli": "^0.34.1",
+    "@backstage/core-app-api": "^1.18.0",
+    "@backstage/dev-utils": "^1.1.13",
+    "@backstage/test-utils": "^1.7.11",
+    "@testing-library/jest-dom": "^6.0.0",
+    "@testing-library/react": "^14.0.0",
+    "@testing-library/user-event": "^14.0.0",
+    "@types/dagre": "^0",
+    "@types/file-saver": "^2",
+    "@types/js-yaml": "^4",
+    "@types/react-copy-to-clipboard": "^5",
+    "@types/react-syntax-highlighter": "^15",
+    "msw": "^1.0.0",
+    "react": "^18.3.1",
+    "typescript": "^5.8.3"
+  },
+  "files": [
+    "dist",
+    "config.d.ts"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./alpha": "./src/alpha.tsx",
+    "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "alpha": [
+        "src/alpha.tsx"
+      ],
+      "package.json": [
+        "package.json"
+      ]
+    }
+  }
+}
