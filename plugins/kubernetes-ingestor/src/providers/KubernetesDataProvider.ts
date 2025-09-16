@@ -295,47 +295,21 @@ export class KubernetesDataProvider {
               // Handle KRO instances
               if (isKROEnabled && resource.metadata?.labels?.['kro.run/resource-graph-definition-id']) {
                 const rgdId = resource.metadata.labels['kro.run/resource-graph-definition-id'];
-                this.logger.error('KRO: Processing resource with KRO label', {
-                  kind: resource.kind,
-                  name: resource.metadata?.name,
-                  namespace: resource.metadata?.namespace,
-                  rgdId,
-                  apiVersion: resource.apiVersion,
-                });
 
                 // First get the RGD
                 const rgds = await this.resourceFetcher.fetchResources({
                   clusterName,
                   resourcePath: 'kro.run/v1alpha1/resourcegraphdefinitions',
                 });
-                this.logger.error('KRO: Found RGDs in cluster', { 
-                  count: rgds.length, 
-                  clusterName 
-                });
 
                 const rgd = (rgds as any[]).find((r: any) => r.metadata?.uid === rgdId);
                 if (!rgd) {
-                  this.logger.error('KRO: No RGD found with ID', {
-                    rgdId,
-                    resourceKind: resource.kind,
-                    resourceName: resource.metadata?.name,
-                    resourceNamespace: resource.metadata?.namespace,
-                  });
                   return {
                     ...resource,
                     clusterName,
                     clusterEndpoint: clusterName,
                   };
                 }
-
-                this.logger.error('KRO: Found matching RGD', {
-                  rgdName: rgd.metadata?.name,
-                  rgdUid: rgd.metadata?.uid,
-                  schemaGroup: rgd.spec?.schema?.group,
-                  schemaKind: rgd.spec?.schema?.kind,
-                  resourceGroup: resource.apiVersion?.split('/')[0],
-                  resourceKind: resource.kind,
-                });
 
                 if (rgd) {
                   // Check if this resource is an actual RGD instance (matches the RGD's schema)
@@ -344,13 +318,6 @@ export class KubernetesDataProvider {
                   const isRGDInstance = rgd.spec?.schema?.group?.toLowerCase() === resourceGroup && 
                                       rgd.spec?.schema?.kind?.toLowerCase() === resource.kind?.toLowerCase();
 
-                  this.logger.error('KRO: Resource RGD instance check', { 
-                    isRGDInstance,
-                    resourceGroup,
-                    resourceKind: resource.kind,
-                    schemaGroup: rgd.spec?.schema?.group,
-                    schemaKind: rgd.spec?.schema?.kind,
-                  });
 
                   if (isRGDInstance) {
                     // Then get the CRD for this RGD
@@ -362,11 +329,6 @@ export class KubernetesDataProvider {
                       },
                     });
 
-                    this.logger.error('KRO: Found CRDs for RGD', {
-                      count: crds.length,
-                      rgdName: rgd.metadata?.name,
-                      crdNames: crds.map((c: any) => c.metadata?.name),
-                    });
 
                     // Just add the RGD and CRD info to the resource for use by EntityProvider
                     return {

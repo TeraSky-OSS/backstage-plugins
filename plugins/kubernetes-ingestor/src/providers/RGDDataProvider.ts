@@ -113,7 +113,7 @@ export class RGDDataProvider {
             allRGDs.push(enrichedRGD);
           }
         } catch (error) {
-          this.logger.error(
+          this.logger.debug(
             `Failed to fetch RGDs for cluster ${clusterName}: ${error}`,
           );
         }
