@@ -53,4 +53,15 @@ p, role:default/platformteam, kubernetes-resources.yaml.view, read, allow
 p, role:default/platformteam, educates.workshop.start, create, allow
 p, role:default/platformteam, educates.portal.view, read, allow
 p, role:default/platformteam, vcf-operations.metrics.view, read, allow
+p, role:default/platformteam, kro.instances.list, read, allow
+p, role:default/platformteam, kro.instances.view-yaml, read, allow
+p, role:default/platformteam, kro.instances.show-events, read, allow
+p, role:default/platformteam, kro.rgds.list, read, allow
+p, role:default/platformteam, kro.rgds.view-yaml, read, allow
+p, role:default/platformteam, kro.rgds.show-events, read, allow
+p, role:default/platformteam, kro.resources.list, read, allow
+p, role:default/platformteam, kro.resources.view-yaml, read, allow
+p, role:default/platformteam, kro.resources.show-events, read, allow
+p, role:default/platformteam, kro.resource-graph.show, read, allow
+p, role:default/platformteam, kro.overview.view, read, allow
 g, group:default/all_users, role:default/platformteam
