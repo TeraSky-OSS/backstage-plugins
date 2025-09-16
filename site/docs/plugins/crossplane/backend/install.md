@@ -25,8 +25,6 @@ yarn --cwd packages/backend add @terasky/backstage-plugin-crossplane-permissions
 Modify your backend entry point (typically `packages/backend/src/index.ts`):
 
 ```typescript
-import { createRouter } from '@terasky/backstage-plugin-crossplane-permissions-backend';
-
 // In your backend initialization
 backend.add(import('@terasky/backstage-plugin-crossplane-permissions-backend'));
 ```

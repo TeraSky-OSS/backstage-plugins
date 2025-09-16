@@ -19,6 +19,16 @@ nav:
               - About: plugins/crossplane/frontend/about.md
               - Install: plugins/crossplane/frontend/install.md
               - Configure: plugins/crossplane/frontend/configure.md
+      - KRO:
+          - Overview: plugins/kro/overview.md
+          - Backend:
+              - About: plugins/kro/backend/about.md
+              - Install: plugins/kro/backend/install.md
+              - Configure: plugins/kro/backend/configure.md
+          - Frontend:
+              - About: plugins/kro/frontend/about.md
+              - Install: plugins/kro/frontend/install.md
+              - Configure: plugins/kro/frontend/configure.md
       - Kyverno Policy Reports:
           - Overview: plugins/kyverno/overview.md
           - Backend:
@@ -39,7 +49,7 @@ nav:
               - About: plugins/kubernetes/frontend/about.md
               - Install: plugins/kubernetes/frontend/install.md
               - Configure: plugins/kubernetes/frontend/configure.md
-  - IaC:
+  - IaC GitOps:
       - GitOps Manifest Updater:
           - Overview: plugins/gitops-manifest-updater/overview.md
           - Frontend:

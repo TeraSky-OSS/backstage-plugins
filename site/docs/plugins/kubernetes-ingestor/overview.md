@@ -1,15 +1,16 @@
 # Kubernetes Ingestor Plugin
 
-The Kubernetes Ingestor plugin is a powerful backend plugin for Backstage that automatically creates catalog entities from Kubernetes resources. It provides comprehensive support for standard Kubernetes workloads, custom resources, and Crossplane resources, making it easy to maintain an up-to-date catalog of your infrastructure and applications.
+The Kubernetes Ingestor plugin is a powerful backend plugin for Backstage that automatically creates catalog entities from Kubernetes resources. It provides comprehensive support for standard Kubernetes workloads, custom resources, Crossplane resources, and KRO (Kubernetes Resource Orchestrator) resources, making it easy to maintain an up-to-date catalog of your infrastructure and applications.
 
 ## Features
 
 - **Automatic Resource Discovery**: Ingest standard Kubernetes workloads automatically
 - **Custom Resource Support**: Add custom GVKs for ingestion
 - **Crossplane Integration**: Auto-ingest Crossplane claims and XRDs
-- **Template Generation**: Create templates for Crossplane XRDs
-- **API Entity Creation**: Generate API entities for XRDs
-- **Relationship Mapping**: Track dependencies between claims and APIs
+- **KRO Integration**: Auto-ingest KRO RGDs and instances
+- **Template Generation**: Create templates for Crossplane XRDs and KRO RGDs
+- **API Entity Creation**: Generate API entities for XRDs and RGDs
+- **Relationship Mapping**: Track dependencies between resources and APIs
 - **Flexible Configuration**: Customize ingestion behavior and mapping
 - **Annotation Support**: Rich annotation system for entity customization
 
@@ -39,6 +40,13 @@ The plugin provides backend functionality for:
 - XRs (v2)
 - XRDs
 - APIs
+- Dependencies
+
+### KRO Resources
+- RGDs (Resource Graph Definitions)
+- RGD Instances
+- Generated CRDs
+- Managed Resources
 - Dependencies
 
 ### Custom Resources
@@ -82,6 +90,13 @@ Workload Resource Annotations:
   terasky.backstage.io/links: string
   terasky.backstage.io/title: string
   terasky.backstage.io/name: string
+
+KRO Resource Annotations:
+  terasky.backstage.io/kro-rgd-name: string
+  terasky.backstage.io/kro-rgd-id: string
+  terasky.backstage.io/kro-rgd-crd-name: string
+  terasky.backstage.io/kro-instance-uid: string
+  terasky.backstage.io/kro-sub-resources: string
 ```
 
 ## Getting Started
