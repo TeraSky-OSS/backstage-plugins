@@ -40,7 +40,7 @@
     "node-fetch": "^2.7.0"
   },
   "devDependencies": {
-    "@backstage/cli": "^0.34.2",
+    "@backstage/cli": "^0.34.3",
     "@types/express": "*",
     "msw": "^2.3.1",
     "typescript": "^5.8.3"

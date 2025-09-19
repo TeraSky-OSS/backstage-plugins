@@ -51,7 +51,7 @@
     "yn": "^4.0.0"
   },
   "devDependencies": {
-    "@backstage/cli": "^0.34.2",
+    "@backstage/cli": "^0.34.3",
     "@types/express": "*",
     "@types/node-fetch": "^2.6.4",
     "msw": "^1.0.0",
