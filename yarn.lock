@@ -2386,9 +2386,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/cli@npm:^0.34.2":
-  version: 0.34.2
-  resolution: "@backstage/cli@npm:0.34.2"
+"@backstage/cli@npm:^0.34.3":
+  version: 0.34.3
+  resolution: "@backstage/cli@npm:0.34.3"
   dependencies:
     "@backstage/catalog-model": "npm:^1.7.5"
     "@backstage/cli-common": "npm:^0.1.15"
@@ -2526,7 +2526,7 @@ __metadata:
       optional: true
   bin:
     backstage-cli: bin/backstage-cli
-  checksum: 10c0/18d1954065c4812e99bd3c7b667dfdaca15cbd7562b48b0dcd96da05b6f3b4bc9aa1ceb4f15d6795d9f0c3b5cbea6ec12cdd30e43b6839dc338b46330316b69f
+  checksum: 10c0/6fb0441f9c49003b3816b6b4c4e3c010711c63c3ccea87d249cc8e3943c4ff6e2fd58d936a2b8e2236d965b080b75017eb575f512dda217f6952b7775e066e99
   languageName: node
   linkType: hard
 
@@ -12901,7 +12901,7 @@ __metadata:
     "@backstage/backend-plugin-api": "npm:^1.4.3"
     "@backstage/catalog-client": "npm:^1.12.0"
     "@backstage/catalog-model": "npm:^1.7.5"
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/config": "npm:^1.3.3"
     "@backstage/errors": "npm:^1.2.7"
     "@backstage/integration": "npm:^1.18.0"
@@ -12926,7 +12926,7 @@ __metadata:
   resolution: "@terasky/backstage-plugin-ai-rules@workspace:plugins/ai-rules-plugin"
   dependencies:
     "@backstage/catalog-model": "npm:^1.7.5"
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/core-app-api": "npm:^1.19.0"
     "@backstage/core-components": "npm:^0.18.0"
     "@backstage/core-plugin-api": "npm:^1.11.0"
@@ -12952,7 +12952,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-crossplane-common@workspace:plugins/crossplane-common"
   dependencies:
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/plugin-permission-common": "npm:^0.9.1"
     typescript: "npm:^5.8.3"
   languageName: unknown
@@ -12965,7 +12965,7 @@ __metadata:
     "@backstage/backend-defaults": "npm:^0.12.1"
     "@backstage/backend-plugin-api": "npm:^1.4.3"
     "@backstage/backend-test-utils": "npm:^1.9.0"
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/config": "npm:^1.3.3"
     "@backstage/plugin-auth-backend": "npm:^0.25.4"
     "@backstage/plugin-auth-backend-module-guest-provider": "npm:^0.2.12"
@@ -12988,7 +12988,7 @@ __metadata:
   resolution: "@terasky/backstage-plugin-crossplane-resources-frontend@workspace:plugins/crossplane-resources"
   dependencies:
     "@backstage/catalog-model": "npm:^1.7.5"
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/core-app-api": "npm:^1.19.0"
     "@backstage/core-components": "npm:^0.18.0"
     "@backstage/core-plugin-api": "npm:^1.11.0"
@@ -13036,7 +13036,7 @@ __metadata:
   resolution: "@terasky/backstage-plugin-devpod@workspace:plugins/devpod-plugin"
   dependencies:
     "@backstage/catalog-model": "npm:^1.7.5"
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/core-app-api": "npm:^1.19.0"
     "@backstage/core-components": "npm:^0.18.0"
     "@backstage/core-plugin-api": "npm:^1.11.0"
@@ -13063,7 +13063,7 @@ __metadata:
   resolution: "@terasky/backstage-plugin-educates-backend@workspace:plugins/educates-backend"
   dependencies:
     "@backstage/backend-plugin-api": "npm:^1.4.3"
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/config": "npm:^1.3.3"
     "@backstage/errors": "npm:^1.2.7"
     "@backstage/plugin-permission-common": "npm:^0.9.1"
@@ -13090,7 +13090,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-educates-common@workspace:plugins/educates-common"
   dependencies:
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/core-plugin-api": "npm:^1.11.0"
     "@backstage/plugin-permission-common": "npm:^0.9.1"
     "@types/react": "npm:^18.0.0"
@@ -13106,7 +13106,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-educates@workspace:plugins/educates"
   dependencies:
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/core-components": "npm:^0.18.0"
     "@backstage/core-plugin-api": "npm:^1.11.0"
     "@backstage/dev-utils": "npm:^1.1.14"
@@ -13134,7 +13134,7 @@ __metadata:
   resolution: "@terasky/backstage-plugin-entity-scaffolder-content@workspace:plugins/entity-scaffolder-content"
   dependencies:
     "@backstage/catalog-model": "npm:^1.7.5"
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/core-app-api": "npm:^1.19.0"
     "@backstage/core-components": "npm:^0.18.0"
     "@backstage/core-plugin-api": "npm:^1.11.0"
@@ -13168,7 +13168,7 @@ __metadata:
   resolution: "@terasky/backstage-plugin-gitops-manifest-updater@workspace:plugins/gitops-manifest-updater"
   dependencies:
     "@backstage/catalog-model": "npm:^1.7.5"
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/core-app-api": "npm:^1.19.0"
     "@backstage/core-components": "npm:^0.18.0"
     "@backstage/core-plugin-api": "npm:^1.11.0"
@@ -13208,7 +13208,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kro-common@workspace:plugins/kro-common"
   dependencies:
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/plugin-permission-common": "npm:^0.9.1"
     typescript: "npm:^5.8.3"
   languageName: unknown
@@ -13221,7 +13221,7 @@ __metadata:
     "@backstage/backend-defaults": "npm:^0.12.1"
     "@backstage/backend-plugin-api": "npm:^1.4.3"
     "@backstage/backend-test-utils": "npm:^1.9.0"
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/config": "npm:^1.3.3"
     "@backstage/plugin-auth-backend": "npm:^0.25.4"
     "@backstage/plugin-auth-backend-module-guest-provider": "npm:^0.2.12"
@@ -13244,7 +13244,7 @@ __metadata:
   resolution: "@terasky/backstage-plugin-kro-resources-frontend@workspace:plugins/kro-resources"
   dependencies:
     "@backstage/catalog-model": "npm:^1.7.5"
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/core-app-api": "npm:^1.19.0"
     "@backstage/core-components": "npm:^0.18.0"
     "@backstage/core-plugin-api": "npm:^1.11.0"
@@ -13296,7 +13296,7 @@ __metadata:
     "@backstage/backend-test-utils": "npm:^1.9.0"
     "@backstage/catalog-client": "npm:^1.12.0"
     "@backstage/catalog-model": "npm:^1.7.5"
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/config": "npm:^1.3.3"
     "@backstage/plugin-auth-backend": "npm:^0.25.4"
     "@backstage/plugin-auth-backend-module-guest-provider": "npm:^0.2.12"
@@ -13326,7 +13326,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kubernetes-resources-common@workspace:plugins/kubernetes-resources-common"
   dependencies:
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/plugin-permission-common": "npm:^0.9.1"
     typescript: "npm:^5.8.3"
   languageName: unknown
@@ -13337,7 +13337,7 @@ __metadata:
   resolution: "@terasky/backstage-plugin-kubernetes-resources-frontend@workspace:plugins/kubernetes-resources"
   dependencies:
     "@backstage/catalog-model": "npm:^1.7.5"
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/core-app-api": "npm:^1.19.0"
     "@backstage/core-components": "npm:^0.18.0"
     "@backstage/core-plugin-api": "npm:^1.11.0"
@@ -13387,7 +13387,7 @@ __metadata:
     "@backstage/backend-defaults": "npm:^0.12.1"
     "@backstage/backend-plugin-api": "npm:^1.4.3"
     "@backstage/backend-test-utils": "npm:^1.9.0"
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/config": "npm:^1.3.3"
     "@backstage/plugin-auth-backend": "npm:^0.25.4"
     "@backstage/plugin-auth-backend-module-guest-provider": "npm:^0.2.12"
@@ -13409,7 +13409,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kyverno-common@workspace:plugins/kyverno-common"
   dependencies:
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/plugin-permission-common": "npm:^0.9.1"
     typescript: "npm:^5.8.3"
   languageName: unknown
@@ -13422,7 +13422,7 @@ __metadata:
     "@backstage/backend-defaults": "npm:^0.12.1"
     "@backstage/backend-plugin-api": "npm:^1.4.3"
     "@backstage/backend-test-utils": "npm:^1.9.0"
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/config": "npm:^1.3.3"
     "@backstage/plugin-auth-backend": "npm:^0.25.4"
     "@backstage/plugin-auth-backend-module-guest-provider": "npm:^0.2.12"
@@ -13445,7 +13445,7 @@ __metadata:
   resolution: "@terasky/backstage-plugin-kyverno-policy-reports@workspace:plugins/kyverno-policy-reports"
   dependencies:
     "@backstage/catalog-model": "npm:^1.7.5"
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/core-app-api": "npm:^1.19.0"
     "@backstage/core-components": "npm:^0.18.0"
     "@backstage/core-plugin-api": "npm:^1.11.0"
@@ -13488,7 +13488,7 @@ __metadata:
   resolution: "@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils@workspace:plugins/scaffolder-backend-module-terasky-utils"
   dependencies:
     "@backstage/backend-plugin-api": "npm:^1.4.3"
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/plugin-scaffolder-node": "npm:^0.11.1"
     "@backstage/plugin-scaffolder-node-test-utils": "npm:^0.3.3"
     "@types/fs-extra": "npm:^9.0.13"
@@ -13504,7 +13504,7 @@ __metadata:
   resolution: "@terasky/backstage-plugin-scaleops-frontend@workspace:plugins/scaleops-frontend"
   dependencies:
     "@backstage/catalog-model": "npm:^1.7.5"
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/core-app-api": "npm:^1.19.0"
     "@backstage/core-components": "npm:^0.18.0"
     "@backstage/core-plugin-api": "npm:^1.11.0"
@@ -13533,7 +13533,7 @@ __metadata:
   resolution: "@terasky/backstage-plugin-terraform-scaffolder@workspace:plugins/terraform-scaffolder"
   dependencies:
     "@backstage/catalog-model": "npm:^1.7.5"
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/config": "npm:^1.3.3"
     "@backstage/core-components": "npm:^0.18.0"
     "@backstage/core-plugin-api": "npm:^1.11.0"
@@ -13571,7 +13571,7 @@ __metadata:
   resolution: "@terasky/backstage-plugin-vcf-automation-backend@workspace:plugins/vcf-automation-backend"
   dependencies:
     "@backstage/backend-plugin-api": "npm:^1.4.3"
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/config": "npm:^1.3.3"
     "@terasky/backstage-plugin-vcf-automation-common": "npm:^1.2.2"
     "@types/express": "npm:^4.17.22"
@@ -13589,7 +13589,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-vcf-automation-common@workspace:plugins/vcf-automation-common"
   dependencies:
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/plugin-permission-common": "npm:^0.9.1"
     typescript: "npm:^5.8.3"
   languageName: unknown
@@ -13602,7 +13602,7 @@ __metadata:
     "@backstage/backend-plugin-api": "npm:^1.4.3"
     "@backstage/catalog-client": "npm:^1.12.0"
     "@backstage/catalog-model": "npm:^1.7.5"
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/config": "npm:^1.3.3"
     "@backstage/plugin-catalog-node": "npm:^1.19.0"
     "@types/express": "npm:*"
@@ -13616,7 +13616,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-vcf-automation@workspace:plugins/vcf-automation"
   dependencies:
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/core-app-api": "npm:^1.19.0"
     "@backstage/core-components": "npm:^0.18.0"
     "@backstage/core-plugin-api": "npm:^1.11.0"
@@ -13652,7 +13652,7 @@ __metadata:
   resolution: "@terasky/backstage-plugin-vcf-operations-backend@workspace:plugins/vcf-operations-backend"
   dependencies:
     "@backstage/backend-plugin-api": "npm:^1.4.3"
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/config": "npm:^1.3.3"
     "@terasky/backstage-plugin-vcf-operations-common": "npm:^0.1.2"
     "@types/express": "npm:^4.17.22"
@@ -13670,7 +13670,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-vcf-operations-common@workspace:plugins/vcf-operations-common"
   dependencies:
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/plugin-permission-common": "npm:^0.9.1"
     typescript: "npm:^5.8.3"
   languageName: unknown
@@ -13680,7 +13680,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-vcf-operations@workspace:plugins/vcf-operations"
   dependencies:
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/core-app-api": "npm:^1.19.0"
     "@backstage/core-components": "npm:^0.18.0"
     "@backstage/core-plugin-api": "npm:^1.11.0"
@@ -16006,7 +16006,7 @@ __metadata:
     "@backstage-community/plugin-rbac": "npm:^1.42.0"
     "@backstage/app-defaults": "npm:^1.7.0"
     "@backstage/catalog-model": "npm:^1.7.5"
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/core-app-api": "npm:^1.19.0"
     "@backstage/core-components": "npm:^0.18.0"
     "@backstage/core-plugin-api": "npm:^1.11.0"
@@ -16676,7 +16676,7 @@ __metadata:
     "@backstage-community/plugin-rbac-backend": "npm:^7.0.0"
     "@backstage-community/scaffolder-backend-module-regex": "npm:^2.2.2"
     "@backstage/backend-defaults": "npm:^0.12.1"
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/config": "npm:^1.3.3"
     "@backstage/plugin-app-backend": "npm:^0.5.6"
     "@backstage/plugin-auth-backend": "npm:^0.25.4"
@@ -31685,7 +31685,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "root@workspace:."
   dependencies:
-    "@backstage/cli": "npm:^0.34.2"
+    "@backstage/cli": "npm:^0.34.3"
     "@backstage/e2e-test-utils": "npm:^0.1.1"
     "@backstage/plugin-scaffolder-backend-module-azure": "npm:^0.2.13"
     "@backstage/plugin-scaffolder-backend-module-bitbucket": "npm:^0.3.14"
