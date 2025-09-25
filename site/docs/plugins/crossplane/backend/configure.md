@@ -1,6 +1,6 @@
-# Configuring the Crossplane Permissions Backend Plugin
+# Configuring the Crossplane Resources Backend Plugin
 
-The Crossplane Permissions backend plugin integrates with Backstage's permission framework to provide access control for Crossplane resources.
+The Crossplane Resources backend plugin integrates with Backstage's permission framework to provide access control for Crossplane resources.
 
 ## Available Permissions
 

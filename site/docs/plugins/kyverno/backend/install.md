@@ -1,6 +1,6 @@
-# Installing the Kyverno Permissions Backend Plugin
+# Installing the Kyverno Backend Plugin
 
-This guide will help you install and set up the Kyverno Permissions backend plugin in your Backstage instance.
+This guide will help you install and set up the Kyverno backend plugin in your Backstage instance.
 
 ## Prerequisites
 
@@ -17,7 +17,7 @@ Before installing the plugin, ensure you have:
 Install the plugin package using yarn:
 
 ```bash
-yarn --cwd packages/backend add @terasky/backstage-plugin-kyverno-permissions-backend
+yarn --cwd packages/backend add @terasky/backstage-plugin-kyverno-policy-reports-backend
 ```
 
 ### 2. Add to Backend
@@ -25,7 +25,7 @@ yarn --cwd packages/backend add @terasky/backstage-plugin-kyverno-permissions-ba
 Add the plugin to your backend (typically `packages/backend/src/index.ts`):
 
 ```typescript
-backend.add(import('@terasky/backstage-plugin-kyverno-permissions-backend'));
+backend.add(import('@terasky/backstage-plugin-kyverno-policy-reports-backend'));
 ```
 
 ## Verification

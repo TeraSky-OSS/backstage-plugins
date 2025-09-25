@@ -26,7 +26,7 @@ import {
 } from '@material-ui/core';
 import { useApi } from '@backstage/core-plugin-api';
 import { KubernetesObject } from '@backstage/plugin-kubernetes';
-import { kubernetesApiRef } from '@backstage/plugin-kubernetes-react';
+import { crossplaneApiRef } from '../api/CrossplaneApi';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { usePermission } from '@backstage/plugin-permission-react';
 import {
@@ -55,7 +55,6 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import Checkbox from '@material-ui/core/Checkbox';
 import { default as React } from 'react';
-
 // Function to remove managed fields and other sensitive data from resources
 const removeManagedFields = (resource: KubernetesObject) => {
     const resourceCopy = JSON.parse(JSON.stringify(resource)); // Deep copy the resource
@@ -374,7 +373,7 @@ const useStyles = makeStyles((theme) => ({
 
 const CrossplaneV1ResourcesTable = () => {
     const { entity } = useEntity();
-    const kubernetesApi = useApi(kubernetesApiRef);
+    const crossplaneApi = useApi(crossplaneApiRef);
     const config = useApi(configApiRef);
     const navigate = useNavigate();
     const theme = useTheme();
@@ -444,14 +443,16 @@ const CrossplaneV1ResourcesTable = () => {
         const nestedResourcesPromises = resourceRefs.map(async (ref: any, index: number) => {
             const [apiGroup, apiVersion] = ref.apiVersion.split('/');
             const kindPlural = pluralize(ref.kind.toLowerCase());
-            const resourceUrl = `/apis/${apiGroup}/${apiVersion}/${kindPlural}/${ref.name}`;
             try {
-                const resourceResponse = await kubernetesApi.proxy({
+                const resourceResponse = await crossplaneApi.getResources({
                     clusterName: clusterOfComposite,
-                    path: resourceUrl,
-                    init: { method: 'GET' },
+                    namespace: ref.namespace,
+                    group: apiGroup,
+                    version: apiVersion,
+                    plural: kindPlural,
+                    name: ref.name,
                 });
-                const nestedResource: ExtendedKubernetesObject = await resourceResponse.json();
+                const nestedResource = resourceResponse.resources[0].resource;
 
                 // Determine if this is an XR (has resourceRefs) or MR (leaf resource)
                 const resourceType = nestedResource.spec?.resourceRefs && nestedResource.spec.resourceRefs.length > 0 ? 'XR' : 'MR';
@@ -540,25 +541,19 @@ const CrossplaneV1ResourcesTable = () => {
         }
 
         try {
-            let eventsUrl = '';
-            if (resource.metadata?.namespace) {
-                eventsUrl = `/api/v1/namespaces/${resource.metadata.namespace}/events?fieldSelector=involvedObject.name=${resource.metadata?.name}`;
-            } else if (resource.metadata?.name) {
-                // For cluster-scoped resources
-                eventsUrl = `/api/v1/events?fieldSelector=involvedObject.name=${resource.metadata.name}`;
-            } else {
+            if (!resource.metadata?.name) {
                 // No metadata available
                 setLoadingEvents(false);
                 return;
             }
 
-            const eventsResponse = await kubernetesApi.proxy({
+            const eventsResponse = await crossplaneApi.getEvents({
                 clusterName: clusterOfComposite,
-                path: eventsUrl,
-                init: { method: 'GET' },
+                namespace: resource.metadata?.namespace || 'default',
+                resourceName: resource.metadata?.name || 'unknown',
+                resourceKind: resource.kind || 'unknown',
             });
-            const eventsData = await eventsResponse.json();
-            setEvents(eventsData.items || []);
+            setEvents(eventsResponse.events);
         } catch (error) {
             console.error('Error fetching events:', error);
             setEvents([]);
@@ -644,26 +639,28 @@ const CrossplaneV1ResourcesTable = () => {
             const xrdName = `${xrdPlural}.${xrdGroup}`;
 
             if (xrdName) {
-                const xrdUrl = `/apis/apiextensions.crossplane.io/v1/compositeresourcedefinitions/${xrdName}`;
-                const xrdResponse = await kubernetesApi.proxy({
+                const xrdResponse = await crossplaneApi.getResources({
                     clusterName: clusterOfClaim,
-                    path: xrdUrl,
-                    init: { method: 'GET' },
+                    group: 'apiextensions.crossplane.io',
+                    version: 'v1',
+                    plural: 'compositeresourcedefinitions',
+                    name: xrdName,
                 });
-                const xrdResource = await xrdResponse.json();
+                const xrdResource = xrdResponse.resources[0].resource;
                 supportingResources.push(xrdResource);
             }
 
             // Fetch Composition
             const compositionName = annotations['terasky.backstage.io/composition-name'];
             if (compositionName) {
-                const compositionUrl = `/apis/apiextensions.crossplane.io/v1/compositions/${compositionName}`;
-                const compositionResponse = await kubernetesApi.proxy({
+                const compositionResponse = await crossplaneApi.getResources({
                     clusterName: clusterOfClaim,
-                    path: compositionUrl,
-                    init: { method: 'GET' },
+                    group: 'apiextensions.crossplane.io',
+                    version: 'v1',
+                    plural: 'compositions',
+                    name: compositionName,
                 });
-                const compositionResource = await compositionResponse.json();
+                const compositionResource = compositionResponse.resources[0].resource;
                 supportingResources.push(compositionResource);
             }
 
@@ -671,14 +668,15 @@ const CrossplaneV1ResourcesTable = () => {
             const compositionFunctions = annotations['terasky.backstage.io/composition-functions']?.split(',') || [];
             for (const functionName of compositionFunctions) {
                 if (functionName) {
-                    const functionUrl = `/apis/pkg.crossplane.io/v1beta1/functions/${functionName}`;
                     try {
-                        const functionResponse = await kubernetesApi.proxy({
+                        const functionResponse = await crossplaneApi.getResources({
                             clusterName: clusterOfClaim,
-                            path: functionUrl,
-                            init: { method: 'GET' },
+                            group: 'pkg.crossplane.io',
+                            version: 'v1beta1',
+                            plural: 'functions',
+                            name: functionName,
                         });
-                        const functionResource = await functionResponse.json();
+                        const functionResource = functionResponse.resources[0].resource;
                         supportingResources.push(functionResource);
                     } catch (error) {
                         console.error(`Error fetching function ${functionName}:`, error);
@@ -701,14 +699,57 @@ const CrossplaneV1ResourcesTable = () => {
             const compositeVersion = annotations['terasky.backstage.io/composite-version'];
             const compositeName = annotations['terasky.backstage.io/composite-name'];
             if (compositePlural && compositeGroup && compositeVersion && compositeName) {
-                const compositeUrl = `/apis/${compositeGroup}/${compositeVersion}/${compositePlural}/${compositeName}`;
-                const compositeResponse = await kubernetesApi.proxy({
+                const compositeResponse = await crossplaneApi.getResources({
                     clusterName: clusterOfClaim,
-                    path: compositeUrl,
-                    init: { method: 'GET' },
+                    group: compositeGroup,
+                    version: compositeVersion,
+                    plural: compositePlural,
+                    name: compositeName,
+                    kind: 'Composite',
                 });
-                const compositeResource = await compositeResponse.json();
-                const resourceRefs = compositeResource.spec?.resourceRefs || [];
+                const compositeResource = compositeResponse.resources[0].resource;
+                const resourceRefs = (compositeResource as ExtendedKubernetesObject).spec?.resourceRefs || [];
+
+                // Check for provider config refs in the composite resource
+                const providerConfigRefs = resourceRefs.filter(ref => ref.kind === 'ProviderConfig');
+
+                // If we have provider config refs, fetch their providers
+                if (providerConfigRefs.length > 0) {
+                    for (const configRef of providerConfigRefs) {
+                        try {
+                            const configResponse = await crossplaneApi.getResources({
+                                clusterName: clusterOfClaim,
+                                group: configRef.apiVersion.split('/')[0],
+                                version: configRef.apiVersion.split('/')[1],
+                                plural: 'providerconfigs',
+                                name: configRef.name,
+                            });
+                            const config = configResponse.resources[0].resource;
+
+                            if (config.metadata?.ownerReferences) {
+                                const providerRef = config.metadata.ownerReferences.find((ref: any) => ref.kind === 'Provider');
+                                if (providerRef) {
+                                    try {
+                                        const providerResponse = await crossplaneApi.getResources({
+                                            clusterName: clusterOfClaim,
+                                            group: 'pkg.crossplane.io',
+                                            version: 'v1',
+                                            plural: 'providers',
+                                            name: providerRef.name,
+                                        });
+                                        const provider = providerResponse.resources[0].resource;
+                                        supportingResources.push(provider);
+                                    } catch (error) {
+                                        console.error(`Error fetching provider ${providerRef.name}:`, error);
+                                    }
+                                }
+                            }
+                        } catch (error) {
+                            console.error(`Error fetching provider config ${configRef.name}:`, error);
+                        }
+                    }
+                }
+
                 const uniqueManagedResources = Array.from(new Set(resourceRefs.map((ref: { kind: any; apiVersion: any; }) => `${ref.kind}-${ref.apiVersion}`)))
                     .map(key => resourceRefs.find((ref: { kind: any; apiVersion: any; }) => `${ref.kind}-${ref.apiVersion}` === key));
                 const providerResourcesSet = new Set();
@@ -720,38 +761,68 @@ const CrossplaneV1ResourcesTable = () => {
                         apiGroup = '';
                     }
                     const kindPlural = pluralize(ref.kind.toLowerCase());
-                    let crdUrl = '';
+                    // Skip CRD lookup for core API group resources
                     if (!apiGroup || apiGroup === 'v1') {
-                        crdUrl = `/api/v1/${kindPlural}`;
-                    } else {
-                        crdUrl = `/apis/apiextensions.k8s.io/v1/customresourcedefinitions/${kindPlural}.${apiGroup}`;
+                        return [];
                     }
-                    const crdResponse = await kubernetesApi.proxy({
-                        clusterName: clusterOfClaim,
-                        path: crdUrl,
-                        init: { method: 'GET' },
-                    });
-                    const crd = await crdResponse.json();
+
+                    let crd;
+                    try {
+                        const crdResponse = await crossplaneApi.getResources({
+                            clusterName: clusterOfClaim,
+                            group: 'apiextensions.k8s.io',
+                            version: 'v1',
+                            plural: 'customresourcedefinitions',
+                            name: `${kindPlural}.${apiGroup}`,
+                        });
+                        crd = crdResponse.resources[0].resource;
+                    } catch (error) {
+                        console.error(`Error fetching CRD for ${kindPlural}.${apiGroup}:`, error);
+                        return [];
+                    }
+                    
+                    if (!crd) {
+                        console.warn(`No CRD found for ${kindPlural}.${apiGroup}`);
+                        return [];
+                    }
+
                     const ownerReferences = crd.metadata?.ownerReferences || [];
-                    const providerRefs = ownerReferences.filter((ownerRef: { kind: string; }) => ownerRef.kind === 'Provider');
-                    const providerResources = await Promise.all(providerRefs.map(async (providerRef: any) => {
+                    const providerRefs = ownerReferences.filter((ownerRef: { kind: string; }) => ownerRef.kind === 'ProviderRevision');
+                    const providerResources = await Promise.all(providerRefs.map(async (providerRef: { apiVersion: string; name: string; kind: string }) => {
                         const providerKey = `${providerRef.apiVersion}-${providerRef.name}`;
                         if (providerResourcesSet.has(providerKey)) {
                             return null;
                         }
                         providerResourcesSet.add(providerKey);
-                        const providerUrl = `/apis/${providerRef.apiVersion}/providers/${providerRef.name}`;
-                        const providerResponse = await kubernetesApi.proxy({
+                        try {
+                        // Get the provider name by removing the revision hash
+                        const providerName = providerRef.name.split('-').slice(0, -1).join('-');
+                        // Now get the actual provider
+                        const providerResponse = await crossplaneApi.getResources({
                             clusterName: clusterOfClaim,
-                            path: providerUrl,
-                            init: { method: 'GET' },
+                            group: 'pkg.crossplane.io',
+                            version: 'v1',
+                            plural: 'providers',
+                            name: providerName,
                         });
-                        const providerResource = await providerResponse.json();
+                        const providerResource = providerResponse.resources[0].resource;
                         return providerResource;
+                        } catch (error) {
+                            console.error(`Error fetching provider ${providerRef.name}:`, error);
+                            return {
+                                kind: 'Provider',
+                                metadata: {
+                                    name: providerRef.name,
+                                },
+                                status: {
+                                    conditions: [{ type: 'Error', status: 'Error fetching provider' }],
+                                },
+                            };
+                        }
                     }));
-                    return providerResources.filter(Boolean);
+                    return providerResources.filter(r => r !== null);
                 }));
-                supportingResources.push(...providerResources.flat());
+                supportingResources.push(...providerResources.flat().filter(r => r !== null));
             }
 
             setSupportingResources(supportingResources);
@@ -780,14 +851,16 @@ const CrossplaneV1ResourcesTable = () => {
                     const clusterOfClaim = annotations['backstage.io/managed-by-location']?.split(": ")[1];
 
                     if (plural && group && version && namespace && clusterOfClaim) {
-                        const url = `/apis/${group}/${version}/namespaces/${namespace}/${plural}/${claimName}`;
                         try {
-                            const response = await kubernetesApi.proxy({
+                            const response = await crossplaneApi.getResources({
                                 clusterName: clusterOfClaim,
-                                path: url,
-                                init: { method: 'GET' },
+                                namespace: entity.metadata.namespace || 'default',
+                                group: group,
+                                version: version,
+                                plural,
+                                name: claimName,
                             });
-                            const claimResource: ExtendedKubernetesObject = await response.json();
+                            const claimResource = response.resources[0].resource;
                             resources.push({
                                 type: 'Claim',
                                 name: claimResource.metadata?.name || 'Unknown',
@@ -818,14 +891,16 @@ const CrossplaneV1ResourcesTable = () => {
                     const clusterOfComposite = annotations['backstage.io/managed-by-location']?.split(": ")[1];
 
                     if (compositePlural && compositeGroup && compositeVersion && compositeName && clusterOfComposite) {
-                        const url = `/apis/${compositeGroup}/${compositeVersion}/${compositePlural}/${compositeName}`;
                         try {
-                            const response = await kubernetesApi.proxy({
+                            const response = await crossplaneApi.getResources({
                                 clusterName: clusterOfComposite,
-                                path: url,
-                                init: { method: 'GET' },
+                                group: compositeGroup,
+                                version: compositeVersion,
+                                plural: compositePlural,
+                                name: compositeName,
+                                kind: 'Composite',
                             });
-                            const compositeResource: ExtendedKubernetesObject = await response.json();
+                            const compositeResource = response.resources[0].resource;
                             resources.push({
                                 type: 'XR',
                                 name: compositeResource.metadata?.name || 'Unknown',
@@ -868,11 +943,11 @@ const CrossplaneV1ResourcesTable = () => {
         };
 
         fetchAllResources();
-    }, [kubernetesApi, entity, canListClaims, canListComposite, canListManaged, enablePermissions]);
+    }, [crossplaneApi, entity, canListClaims, canListComposite, canListManaged, enablePermissions]);
 
     useEffect(() => {
         fetchSupportingResources();
-    }, [kubernetesApi, entity, canListAdditional]);
+    }, [crossplaneApi, entity, canListAdditional]);
 
       // --- Add state for auto-expanded rows ---
   const [autoExpandedRows, setAutoExpandedRows] = useState<Set<string>>(new Set());

@@ -1,6 +1,6 @@
-# Configuring the Kyverno Permissions Backend Plugin
+# Configuring the Kyverno Policy Reports Backend Plugin
 
-This guide covers the configuration options for the Kyverno Permissions backend plugin.
+This guide covers the configuration options for the Kyverno Policy Reports backend plugin.
 
 ## Basic Configuration
 

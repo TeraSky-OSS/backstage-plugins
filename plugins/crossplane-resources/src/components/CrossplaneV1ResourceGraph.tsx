@@ -20,7 +20,7 @@ import {
 } from '@material-ui/core';
 import { useApi, configApiRef } from '@backstage/core-plugin-api';
 import { KubernetesObject } from '@backstage/plugin-kubernetes';
-import { kubernetesApiRef } from '@backstage/plugin-kubernetes-react';
+import { crossplaneApiRef } from '../api/CrossplaneApi';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import * as yaml from 'js-yaml';
 import CloseIcon from '@material-ui/icons/Close';
@@ -476,7 +476,7 @@ const CrossplaneV1ResourceGraph = () => {
     const { entity } = useEntity();
     const theme = useTheme();
     const classes = useStyles();
-    const kubernetesApi = useApi(kubernetesApiRef);
+    const crossplaneApi = useApi(crossplaneApiRef);
     const config = useApi(configApiRef);
     const enablePermissions = config.getOptionalBoolean('crossplane.enablePermissions') ?? false;
     const [resources, setResources] = useState<Array<KubernetesObject>>([]);
@@ -685,8 +685,6 @@ const CrossplaneV1ResourceGraph = () => {
             descendants.forEach(id => hiddenNodes.add(id));
         });
 
-        console.log('Hidden nodes:', Array.from(hiddenNodes));
-
         // Filter visible nodes
         const visibleNodes = nodes.filter(node => !hiddenNodes.has(node.id));
 
@@ -787,82 +785,34 @@ const CrossplaneV1ResourceGraph = () => {
         }
 
         const fetchResources = async () => {
-            const annotations = entity.metadata.annotations || {};
-            const claimName = annotations['terasky.backstage.io/claim-name'];
-            const clusterOfClaim = annotations['backstage.io/managed-by-location'].split(": ")[1];
-            const plural = annotations['terasky.backstage.io/claim-plural'];
-            const group = annotations['terasky.backstage.io/claim-group'];
-            const version = annotations['terasky.backstage.io/claim-version'];
-            const labelSelector = annotations['backstage.io/kubernetes-label-selector'];
-            const namespace = labelSelector.split(',').find(s => s.startsWith('crossplane.io/claim-namespace'))?.split('=')[1];
-            const crdMap: Map<string, any> = new Map();
-
             try {
-                const response = await kubernetesApi.proxy({
-                    clusterName: clusterOfClaim,
-                    path: '/apis',
-                    init: {
-                        method: 'GET',
-                        headers: {
-                            'Accept': 'application/json;as=APIGroupDiscoveryList;v=v2;g=apidiscovery.k8s.io,application/json;as=APIGroupDiscoveryList;v=v2beta1;g=apidiscovery.k8s.io,application/json',
-                        },
-                    },
-                });
+                const annotations = entity.metadata.annotations || {};
+                const claimName = annotations['terasky.backstage.io/claim-name'];
+                const clusterOfClaim = annotations['backstage.io/managed-by-location'].split(": ")[1];
+                const labelSelector = annotations['backstage.io/kubernetes-label-selector'];
+                const namespace = labelSelector.split(',').find(s => s.startsWith('crossplane.io/claim-namespace'))?.split('=')[1];
 
-                const apiGroupDiscoveryList = await response.json();
+                const claimGroup = annotations['terasky.backstage.io/claim-group'];
+                const claimVersion = annotations['terasky.backstage.io/claim-version'];
+                const claimPlural = annotations['terasky.backstage.io/claim-plural'];
 
-                apiGroupDiscoveryList.items.forEach((group: any) => {
-                    group.versions.forEach((version: any) => {
-                        version.resources.forEach((resource: any) => {
-                            if (resource.categories?.some((category: string) => ['crossplane', 'managed', 'composite', 'claim'].includes(category))) {
-                                // Use composite key to prevent collisions between same resource names in different groups
-                                const resourceKey = `${group.metadata.name}/${version.version}/${resource.resource}`;
-                                crdMap.set(resourceKey, {
-                                    group: group.metadata.name,
-                                    apiVersion: version.version,
-                                    plural: resource.resource,
-                                });
-                            }
-                        });
-                    });
-                });
-
-                const customResources = Array.from(crdMap.values());
-
-                console.log('Discovered custom resources:', customResources.length);
-                console.log('Resource types:', customResources.map(r => `${r.group}/${r.apiVersion}/${r.plural}`));
-
-                const resourcesResponse = await kubernetesApi.getCustomObjectsByEntity({
-                    entity,
-                    auth: { type: 'serviceAccount' },
-                    customResources,
-                });
-
-                const allResources = resourcesResponse.items.flatMap(item =>
-                    item.resources.flatMap(resourceGroup => resourceGroup.resources)
-                ).filter(resource => resource);
-
-                console.log('Fetched resources:', allResources.length);
-                console.log('Resource details:', allResources.map(r => `${r.kind}/${r.metadata?.name} (${(r as any).apiVersion})`));
-
-                // Fetch the claim resource
-                const resourceName = claimName;
-                const url = `/apis/${group}/${version}/namespaces/${namespace}/${plural}/${resourceName}`;
-
-                try {
-                    const response = await kubernetesApi.proxy({
-                        clusterName: clusterOfClaim,
-                        path: url,
-                        init: { method: 'GET' },
-                    });
-                    const claimResource = await response.json();
-                    allResources.push(claimResource);
-                    console.log('Added claim resource:', claimResource.kind, claimResource.metadata?.name);
-                } catch (error) {
-                    console.error('Failed to fetch claim resource:', error);
+                if (!claimName || !claimGroup || !claimVersion || !claimPlural) {
+                    throw new Error('Missing required claim information in annotations');
                 }
 
-                setResources(allResources);
+                const response = await crossplaneApi.getResourceGraph({
+                    clusterName: clusterOfClaim,
+                    namespace: namespace || 'default',
+                    xrdName: claimName,
+                    xrdId: claimName,
+                    claimId: claimName,
+                    claimName,
+                    claimGroup,
+                    claimVersion,
+                    claimPlural,
+                });
+
+                setResources(response.resources);
                 setNodes([]);
                 setEdges([]);
             } catch (error) {
@@ -874,7 +824,7 @@ const CrossplaneV1ResourceGraph = () => {
         };
 
         fetchResources();
-    }, [kubernetesApi, entity, canShowResourceGraph]);
+    }, [crossplaneApi, entity, canShowResourceGraph]);
 
     const handleGetEvents = async (resource: KubernetesObject) => {
         const namespace = resource.metadata?.namespace || 'default';
@@ -887,16 +837,14 @@ const CrossplaneV1ResourceGraph = () => {
         }
 
         setLoadingEvents(true);
-        const url = `/api/v1/namespaces/${namespace}/events?fieldSelector=involvedObject.name=${name}`;
-
         try {
-            const response = await kubernetesApi.proxy({
+            const response = await crossplaneApi.getEvents({
                 clusterName: clusterOfClaim,
-                path: url,
-                init: { method: 'GET' },
+                namespace,
+                resourceName: name,
+                resourceKind: resource.kind || '',
             });
-            const eventsResponse = await response.json();
-            setEvents(eventsResponse.items || []);
+            setEvents(response.events || []);
         } catch (error) {
             console.error('Failed to fetch events:', error);
             setEvents([]);

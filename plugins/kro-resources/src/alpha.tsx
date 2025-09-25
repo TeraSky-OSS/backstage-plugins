@@ -1,12 +1,30 @@
 import {
+  ApiBlueprint,
   createFrontendPlugin,
+  discoveryApiRef,
+  fetchApiRef,
 } from '@backstage/frontend-plugin-api';
 import { EntityCardBlueprint, EntityContentBlueprint } from '@backstage/plugin-catalog-react/alpha';
 import { isKroAvailable } from './components/isKroAvailable';
+import { KroApiClient, kroApiRef } from './api/KroApi';
+
 /** @alpha */
 export const kroResourcesPlugin = createFrontendPlugin({
   pluginId: 'kro-resources',
   extensions: [
+    // API
+    ApiBlueprint.make({
+      name: 'kroResourcesApi',
+      params: defineParams => defineParams({
+        api: kroApiRef,
+        deps: {
+          discoveryApi: discoveryApiRef,
+          fetchApi: fetchApiRef,
+        },
+        factory: ({ discoveryApi, fetchApi }) => new KroApiClient(discoveryApi, fetchApi),
+      }),
+      disabled: false,
+    }),
     // Main tabs
     EntityCardBlueprint.make({
       name: 'kro.overview',

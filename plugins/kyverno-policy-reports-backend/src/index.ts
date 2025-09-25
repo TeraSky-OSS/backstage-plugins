@@ -1,0 +1,1 @@
+export { kyvernoPolicyReportsPlugin as default } from './plugin';

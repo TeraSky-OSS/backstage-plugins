@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - Backstage application
-- KRO permissions backend plugin
+- KRO Resources backend plugin (`@terasky/backstage-plugin-kro-resources-backend`)
 - Kubernetes plugin
 
 ## Installation Steps

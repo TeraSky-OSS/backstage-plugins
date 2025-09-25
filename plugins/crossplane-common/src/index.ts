@@ -1,4 +1,5 @@
 import { createPermission } from '@backstage/plugin-permission-common';
+export * from './types';
 
 export const listClaimsPermission = createPermission({
   name: 'crossplane.claims.list',

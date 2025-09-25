@@ -1,8 +1,6 @@
 import { Fragment, useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableRow, Paper, IconButton, Box, Collapse, Typography, LinearProgress, Chip, Drawer, Button, useTheme } from '@material-ui/core';
 import { configApiRef, useApi } from '@backstage/core-plugin-api';
-import { KubernetesObject } from '@backstage/plugin-kubernetes';
-import { kubernetesApiRef } from '@backstage/plugin-kubernetes-react';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { ExpandMore, ExpandLess, Close as CloseIcon } from '@material-ui/icons';
 import { makeStyles } from '@material-ui/core/styles';
@@ -19,37 +17,9 @@ import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { dark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { usePermission } from '@backstage/plugin-permission-react';
-import { showKyvernoReportsPermission, viewPolicyYAMLPermission } from '@terasky/backstage-plugin-kyverno-common';
+import { showKyvernoReportsPermission, viewPolicyYAMLPermission, PolicyReport } from '@terasky/backstage-plugin-kyverno-common';
+import { kyvernoApiRef } from '../api/KyvernoApi';
 
-interface PolicyReport {
-    metadata: {
-        uid: string;
-        namespace: string;
-    };
-    scope: {
-        kind: string;
-        name: string;
-    };
-    summary: {
-        error: number;
-        fail: number;
-        pass: number;
-        skip: number;
-        warn: number;
-    };
-    results?: Array<{
-        category: string;
-        message: string;
-        policy: string;
-        result: string;
-        rule: string;
-        severity: string;
-        timestamp: {
-            seconds: number;
-        };
-    }>;
-    clusterName: string;
-}
 
 const useStyles = makeStyles((theme: any) => ({
   error: {
@@ -85,8 +55,7 @@ const removeManagedFields = (resource: KubernetesObject) => {
 
 const KyvernoPolicyReportsTable = () => {
     const { entity } = useEntity();
-    const kubernetesApi = useApi(kubernetesApiRef);
-    const [resources, setResources] = useState<Array<{ resource: KubernetesObject, clusterName: string }>>([]);
+    const kyvernoApi = useApi(kyvernoApiRef);
     const [policyReports, setPolicyReports] = useState<PolicyReport[]>([]);
     const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(true);
@@ -109,58 +78,19 @@ const KyvernoPolicyReportsTable = () => {
             return;
         }
 
-        const fetchResources = async () => {
-            setLoading(true);
-            const response = await kubernetesApi.getWorkloadsByEntity({ entity, auth: {} });
-            const fetchedResources = response.items.flatMap(item => 
-                item.resources.flatMap(resourceGroup => 
-                    resourceGroup.resources.map(resource => ({
-                        resource,
-                        clusterName: item.cluster.name
-                    }))
-                )
-            );
-            setResources(fetchedResources);
-            setLoading(false);
-        };
-
-        fetchResources();
-    }, [kubernetesApi, entity, canSeeReports]);
-
-    useEffect(() => {
-        if (!canSeeReports) {
-            return;
-        }
-
         const fetchPolicyReports = async () => {
             setLoading(true);
-            const reports = await Promise.all(resources.map(async ({ resource, clusterName }) => {
-                const { uid, namespace } = resource.metadata || {};
-                if (!uid || !namespace) return null;
-
-                const url = `/apis/wgpolicyk8s.io/v1alpha2/namespaces/${namespace}/policyreports/${uid}`;
-                try {
-                    const response = await kubernetesApi.proxy({
-                        clusterName,
-                        path: url,
-                        init: { method: 'GET' },
-                    });
-                    const report = await response.json();
-                    return { ...report, clusterName };
-                } catch (error) {
-                    console.error(`Failed to fetch policy report for ${uid}:`, error);
-                    return null;
-                }
-            }));
-
-            setPolicyReports(reports.filter(report => report !== null) as PolicyReport[]);
+            try {
+                const response = await kyvernoApi.getPolicyReports({ entity });
+                setPolicyReports(response.items);
+            } catch (error) {
+                console.error('Failed to fetch policy reports:', error);
+            }
             setLoading(false);
         };
 
-        if (resources.length > 0) {
-            fetchPolicyReports();
-        }
-    }, [resources, kubernetesApi, canSeeReports]);
+        fetchPolicyReports();
+    }, [kyvernoApi, entity, canSeeReports]);
 
     const handleRowClick = (uid: string) => {
         setExpandedRows(prev => {
@@ -178,25 +108,8 @@ const KyvernoPolicyReportsTable = () => {
         setDrawerOpen(true);
         setSelectedPolicy(policyName);
         try {
-            const clusterPolicyUrl = `/apis/kyverno.io/v1/clusterpolicies/${policyName}`;
-            const policyUrl = `/apis/kyverno.io/v1/namespaces/${namespace}/policies/${policyName}`;
-
-            let response = await kubernetesApi.proxy({
-                clusterName,
-                path: clusterPolicyUrl,
-                init: { method: 'GET' },
-            });
-
-            if (response.status === 404) {
-                response = await kubernetesApi.proxy({
-                    clusterName,
-                    path: policyUrl,
-                    init: { method: 'GET' },
-                });
-            }
-
-            const policy = await response.json();
-            setPolicyYaml(YAML.dump(removeManagedFields(policy)));
+            const response = await kyvernoApi.getPolicy({ clusterName, namespace, policyName });
+            setPolicyYaml(YAML.dump(removeManagedFields(response.policy)));
         } catch (error) {
             console.error(`Failed to fetch policy ${policyName}:`, error);
             setPolicyYaml(null);

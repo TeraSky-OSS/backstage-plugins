@@ -2,7 +2,11 @@ import {
   coreServices,
   createBackendPlugin,
 } from '@backstage/backend-plugin-api';
+import { actionsRegistryServiceRef } from '@backstage/backend-plugin-api/alpha';
 import { createRouter } from './service/router';
+import { registerMcpActions } from './service/actions';
+import { AiRulesService } from './service/AiRulesService';
+import { MCPService } from './service/MCPService';
 
 /**
  * AI Rules backend plugin
@@ -19,6 +23,7 @@ export const aiRulesPlugin = createBackendPlugin({
         config: coreServices.rootConfig,
         discovery: coreServices.discovery,
         urlReader: coreServices.urlReader,
+        actionsRegistry: actionsRegistryServiceRef,
       },
       async init({
         httpRouter,
@@ -26,7 +31,24 @@ export const aiRulesPlugin = createBackendPlugin({
         config,
         discovery,
         urlReader,
+        actionsRegistry,
       }) {
+        // Create service instances
+        const aiRulesService = new AiRulesService({
+          logger,
+          config,
+          discovery,
+          urlReader,
+        });
+
+        const mcpService = new MCPService({
+          logger,
+          urlReader,
+        });
+        
+        // Register MCP actions
+        registerMcpActions(actionsRegistry, aiRulesService, mcpService);
+        
         httpRouter.use(
           (await createRouter({
             logger,

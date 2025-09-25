@@ -95,6 +95,43 @@ The plugin supports conditional permission decisions that can be configured base
 - `educates.workshops.view` → Use `educates.portal.view` instead
 - `educates.workshop-sessions.create` → Use `educates.workshop.start` instead
 
+## MCP Actions Integration
+
+The Educates plugin provides MCP (Model Control Protocol) actions for interacting with training portals and workshops. To enable these actions:
+
+1. First, ensure you have the MCP actions backend plugin installed and configured. See the [MCP Actions Backend Plugin documentation](https://github.com/backstage/backstage/blob/master/plugins/mcp-actions-backend/README.md) for setup instructions.
+
+2. Add the plugin to your actions configuration in `app-config.yaml`:
+
+```yaml
+backend:
+  actions:
+    pluginSources:
+      - 'catalog'
+      - 'educates'
+      # ... other action sources
+```
+
+### Available MCP Actions
+
+The plugin provides the following MCP actions:
+
+- `get_educates_training_portals`: Get configured training portals
+  - Input: None
+  - Output: List of training portals with their URLs
+
+- `get_educates_workshops`: Get available workshops in a training portal
+  - Input: Portal name
+  - Output: List of workshops with detailed information including:
+    - Title and description
+    - Vendor and authors
+    - Difficulty and duration
+    - Environment capacity and availability
+
+- `request_educates_workshop_session`: Request a new workshop session
+  - Input: Portal name and workshop environment name
+  - Output: Session details including URL, ID, and expiration time
+
 ## Getting Started
 
 To get started with the Educates plugin:
@@ -103,6 +140,7 @@ To get started with the Educates plugin:
 2. Set up the frontend components
 3. Configure your training portal connections
 4. Configure permission rules and access policies
-5. Start discovering and launching workshops
+5. Configure MCP actions in your app-config.yaml
+6. Start discovering and launching workshops
 
 For detailed installation and configuration instructions, refer to the frontend and backend documentation linked above.

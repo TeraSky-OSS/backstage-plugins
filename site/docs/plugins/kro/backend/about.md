@@ -1,13 +1,33 @@
-# KRO Permissions Backend Plugin
+# KRO Resources Backend Plugin
 
-The KRO Permissions backend plugin provides permission management and access control for KRO resources in your Backstage instance.
+The KRO Resources backend plugin (`@terasky/backstage-plugin-kro-resources-backend`) provides comprehensive functionality for managing KRO resources in your Backstage instance, including API integration, resource operations, and permission management.
 
 ## Features
 
-- **Permission Definitions**: Pre-defined permissions for KRO resources
-- **Access Control**: Granular control over KRO resource access
-- **Integration**: Seamless integration with Backstage's permission framework
-- **Policy Support**: Flexible policy configuration for different resource types
+- **Resource Management**:
+  - Resource data retrieval and processing
+  - Event monitoring and tracking
+  - YAML configuration management
+  - Resource relationship mapping
+  - Resource graph generation
+
+- **API Integration**:
+  - Kubernetes cluster communication
+  - Resource status monitoring
+  - Event streaming
+  - Resource operation execution
+
+- **Permission Management**:
+  - Pre-defined permissions for KRO resources
+  - Granular control over resource access
+  - Integration with Backstage's permission framework
+  - Flexible policy configuration
+
+- **MCP Actions**:
+  - Resource data retrieval
+  - Event monitoring
+  - Resource graph generation
+  - Resource operation execution
 
 ## Available Permissions
 

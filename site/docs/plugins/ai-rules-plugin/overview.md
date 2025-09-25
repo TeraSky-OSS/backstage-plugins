@@ -113,6 +113,35 @@ The plugin supports the following AI coding rule sources:
 - **Cline Rules**: `.md` files in `.clinerules/` directories with markdown section extraction
 - **Claude Code Rules**: `CLAUDE.md` files in repository root with markdown content and title extraction
 
+## MCP Actions Integration
+
+The plugin provides MCP (Model Control Protocol) actions that can be used to interact with AI coding rules and MCP servers. To enable these actions:
+
+1. First, ensure you have the MCP actions backend plugin installed and configured. See the [MCP Actions Backend Plugin documentation](https://github.com/backstage/backstage/blob/master/plugins/mcp-actions-backend/README.md) for setup instructions.
+
+2. Add the plugin to your actions configuration in `app-config.yaml`:
+
+```yaml
+backend:
+  actions:
+    pluginSources:
+      - 'catalog'
+      - 'ai-rules'
+      # ... other action sources
+```
+
+### Available MCP Actions
+
+The plugin provides the following MCP actions:
+
+- `get_ai_rules`: Fetch AI coding rules from a Git repository
+  - Input: Git repository URL and rule types to fetch (cursor, copilot, cline, claude-code)
+  - Output: List of rules with metadata, content, and file locations
+
+- `get_mcp_servers`: Get configured MCP servers from a Git repository
+  - Input: Git repository URL
+  - Output: List of MCP server configurations with their settings and metadata
+
 ## Getting Started
 
 To get started with the AI Coding Rules plugin:
@@ -120,7 +149,8 @@ To get started with the AI Coding Rules plugin:
 1. Install and configure the backend plugin
 2. Set up the frontend components
 3. Configure rule types in your app-config.yaml
-4. Add the component to entity pages
-5. Start discovering and managing AI coding rules
+4. Configure MCP actions in your app-config.yaml
+5. Add the component to entity pages
+6. Start discovering and managing AI coding rules
 
-For detailed installation and configuration instructions, refer to the individual plugin documentation linked above. 
+For detailed installation and configuration instructions, refer to the individual plugin documentation linked above.

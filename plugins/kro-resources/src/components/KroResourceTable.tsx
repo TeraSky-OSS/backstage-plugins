@@ -4,8 +4,8 @@ import {
   Card, CardContent, Typography, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Tooltip, makeStyles, CircularProgress, IconButton, Drawer, Tabs, Tab, Chip, Link, useTheme, Popover, TextField
 } from '@material-ui/core';
 import { useApi } from '@backstage/core-plugin-api';
-import { KubernetesObject } from '@backstage/plugin-kubernetes';
-import { kubernetesApiRef } from '@backstage/plugin-kubernetes-react';
+import { kroApiRef } from '../api/KroApi';
+import { KroResource } from '@terasky/backstage-plugin-kro-common';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { usePermission } from '@backstage/plugin-permission-react';
 import {
@@ -178,26 +178,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-interface ExtendedKubernetesObject extends KubernetesObject {
-  apiVersion?: string;
-  status?: {
-    conditions?: Array<{
-      type: string,
-      status: string,
-      reason?: string,
-      lastTransitionTime?: string,
-      message?: string
-    }>;
-  };
-  spec?: {
-    crossplane?: {
-      resourceRefs?: Array<any>;
-    };
-    forProvider?: any; // This indicates it's a Crossplane MR
-    providerConfigRef?: { name?: string };
-    package?: string;
-  };
-}
+// Using KroResource from common package
 
 interface ResourceTableRow {
   type: 'RGD' | 'Instance' | 'Resource';
@@ -211,7 +192,7 @@ interface ResourceTableRow {
     conditions: any[];
   };
   createdAt: string;
-  resource: ExtendedKubernetesObject;
+  resource: KroResource;
   level: number;
   parentId?: string;
   isLastChild?: boolean;
@@ -236,7 +217,7 @@ interface K8sEvent {
   count?: number;
 }
 
-const removeManagedFields = (resource: KubernetesObject) => {
+const removeManagedFields = (resource: KroResource) => {
   const resourceCopy = JSON.parse(JSON.stringify(resource)); // Deep copy the resource
   
   // Create a new object with the desired field order
@@ -291,7 +272,7 @@ const removeManagedFields = (resource: KubernetesObject) => {
 
 const KroResourceTable = () => {
   const { entity } = useEntity();
-  const kubernetesApi = useApi(kubernetesApiRef);
+  const kroApi = useApi(kroApiRef);
   const config = useApi(configApiRef);
   const navigate = useNavigate();
   const theme = useTheme();
@@ -318,7 +299,7 @@ const KroResourceTable = () => {
   const canViewYamlResources = enablePermissions ? canViewYamlResourcesTemp : true;
 
   const [allResources, setAllResources] = useState<ResourceTableRow[]>([]);
-  const [supportingResources, setSupportingResources] = useState<ExtendedKubernetesObject[]>([]);
+  const [supportingResources, setSupportingResources] = useState<KroResource[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [loadingSupportingResources, setLoadingSupportingResources] = useState<boolean>(true);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
@@ -326,7 +307,7 @@ const KroResourceTable = () => {
   const [initialExpansionDone, setInitialExpansionDone] = useState<boolean>(false);
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
   const [selectedTab, setSelectedTab] = useState<number>(0);
-  const [selectedResource, setSelectedResource] = useState<ExtendedKubernetesObject | null>(null);
+  const [selectedResource, setSelectedResource] = useState<KroResource | null>(null);
   const [events, setEvents] = useState<K8sEvent[]>([]);
   const [loadingEvents, setLoadingEvents] = useState<boolean>(false);
   const [filters, setFilters] = useState({
@@ -391,105 +372,46 @@ const KroResourceTable = () => {
     return expandedRows;
   };
 
-  // Helper function to get plural form of a kind
-  const getPluralKind = (kind: string): string => {
-    const pluralMap: Record<string, string> = {
-      'ingress': 'ingresses',
-      'proxy': 'proxies',
-      'index': 'indices',
-      'matrix': 'matrices',
-      'vertex': 'vertices',
-      // Add more special cases as needed
-    };
-    return pluralMap[kind.toLowerCase()] || `${kind.toLowerCase()}s`;
-  };
-
-  // Helper function to extract API group from apiVersion
-  const getApiGroup = (apiVersion?: string): string => {
-    if (!apiVersion) return 'Unknown';
-    
-    if (apiVersion.includes('/')) {
-      const [group, _version] = apiVersion.split('/');
-      return group;
-    } else {
-      // For core Kubernetes resources (v1), return 'core' instead of 'v1'
-      return apiVersion === 'v1' ? 'core' : apiVersion;
-    }
-  };
+  // These functions are now handled by the backend
 
   // Fetch nested resources for a given instance
-  const fetchNestedResources = async (parentId: string, level: number, clusterName: string, namespace?: string) => {
+  const fetchNestedResources = async (parentId: string, level: number, clusterName: string, namespace: string) => {
     const annotations = entity.metadata.annotations || {};
+    const rgdName = annotations['terasky.backstage.io/kro-rgd-name'];
     const rgdId = annotations['terasky.backstage.io/kro-rgd-id'];
     const instanceId = annotations['terasky.backstage.io/kro-instance-uid'];
-    const subResources = annotations['terasky.backstage.io/kro-sub-resources'].split(',').map(r => {
-      const [apiVersion, kind] = r.split(':');
-      return { apiVersion, kind };
-    });
 
-    const managedResourcesPromises = subResources.map(async (resource) => {
-      const [group, version] = resource.apiVersion.split('/');
-      const pluralKind = getPluralKind(resource.kind);
-      const path = group === 'v1' 
-        ? `/api/v1/namespaces/${namespace}/${pluralKind}`
-        : `/apis/${group}/${version}/namespaces/${namespace}/${pluralKind}`;
+    if (!rgdName || !rgdId || !instanceId) {
+      return [];
+    }
 
-      try {
-      const response = await kubernetesApi.proxy({
+    try {
+      const crdName = annotations['terasky.backstage.io/kro-rgd-crd-name'];
+      if (!crdName) {
+        throw new Error('CRD name not found in entity annotations');
+      }
+
+      const { resources } = await kroApi.getResources({
         clusterName,
-        path: path + '?' + new URLSearchParams({
-          labelSelector: [
-            'kro.run/owned=true',
-            `kro.run/instance-id=${instanceId}`,
-            `kro.run/resource-graph-definition-id=${rgdId}`,
-          ].join(','),
-        }).toString(),
-        init: { method: 'GET' },
+        namespace,
+        rgdName,
+        rgdId,
+        instanceId,
+        instanceName: entity.metadata.name,
+        crdName,
       });
-      const resourceList = await response.json();
-      const fetchPromises = (resourceList.items || []).map(async (item: any) => {
-        const kind = resourceList.kind.replace('List', '');
-        const resourcePath = group === 'v1' || group === 'core'
-          ? `/api/v1/namespaces/${namespace}/${pluralKind}/${item.metadata.name}`
-          : `/apis/${group}/${version}/namespaces/${namespace}/${pluralKind}/${item.metadata.name}`;
-      try {
-        const resourceResponse = await kubernetesApi.proxy({
-            clusterName,
-            path: resourcePath,
-          init: { method: 'GET' },
-        });
-          const fullResource = await resourceResponse.json();
-        return {
-            type: 'Resource' as const,
-            name: item.metadata?.name || 'Unknown',
-            namespace: item.metadata?.namespace,
-            group: getApiGroup(resourceList.apiVersion),
-            kind: kind,
-            status: {
-              synced: true,
-              ready: true,
-              conditions: item.status?.conditions || []
-            },
-            createdAt: item.metadata?.creationTimestamp || '',
-            resource: fullResource,
-          level: level,
-            parentId: parentId
-        };
-      } catch (error) {
-          console.error('Failed to fetch individual resource:', resourcePath, error);
-        return null;
-      }
-    });
-      const results = await Promise.all(fetchPromises);
-      return results.filter(Boolean);
-      } catch (error) {
-        console.error(`Failed to fetch ${resource.kind} resources:`, error);
-        return [];
-      }
-    });
 
-    const managedResources = await Promise.all(managedResourcesPromises);
-    return managedResources.flat();
+      return resources
+        .filter(r => r.type === 'Resource')
+        .map(r => ({
+          ...r,
+          level,
+          parentId,
+        }));
+    } catch (error) {
+      console.error('Failed to fetch nested resources:', error);
+      return [];
+    }
   };
 
   // Function to expand all resources recursively
@@ -505,7 +427,7 @@ const KroResourceTable = () => {
           // Fetch nested resources if not already loaded
           if (!nestedResources[resourceId]) {
             const clusterName = entity.metadata.annotations?.['backstage.io/managed-by-location']?.split(": ")[1];
-            const nested = await fetchNestedResources(resourceId, resource.level + 1, clusterName || '', resource.namespace);
+            const nested = await fetchNestedResources(resourceId, resource.level + 1, clusterName || '', resource.namespace || 'default');
             setNestedResources(prev => ({
               ...prev,
               [resourceId]: nested
@@ -529,125 +451,38 @@ const KroResourceTable = () => {
   useEffect(() => {
     const fetchAllResources = async () => {
       setLoading(true);
-      const resources: ResourceTableRow[] = [];
+      setLoadingSupportingResources(true);
       const annotations = entity.metadata.annotations || {};
       try {
-        if (canListRGDs || canListInstances || canListResources) {
-          const rgdName = annotations['terasky.backstage.io/kro-rgd-name'];
-          const rgdId = annotations['terasky.backstage.io/kro-rgd-id'];
-          const instanceId = annotations['terasky.backstage.io/kro-instance-uid'];
-          const clusterName = annotations['backstage.io/managed-by-location']?.split(": ")[1];
-          const namespace = entity.metadata.namespace || annotations['namespace'] || 'default';
+        const rgdName = annotations['terasky.backstage.io/kro-rgd-name'];
+        const rgdId = annotations['terasky.backstage.io/kro-rgd-id'];
+        const instanceId = annotations['terasky.backstage.io/kro-instance-uid'];
+        const clusterName = annotations['backstage.io/managed-by-location']?.split(": ")[1];
+        const namespace = entity.metadata.namespace || annotations['namespace'] || 'default';
 
-          if (!rgdName || !rgdId || !instanceId || !clusterName) {
-            setLoading(false);
-            return;
-          }
-
-          try {
-            if (canListInstances) {
-              // Fetch the instance itself
-              const instanceResponse = await kubernetesApi.proxy({
-                clusterName,
-                path: `/apis/kro.run/v1alpha1/namespaces/${namespace}/applications/${entity.metadata.name}`,
-                init: { method: 'GET' },
-              });
-              const instance = await instanceResponse.json();
-              resources.push({
-                type: 'Instance',
-                name: instance.metadata?.name || 'Unknown',
-                namespace: instance.metadata?.namespace,
-                group: getApiGroup(instance.apiVersion),
-                kind: instance.kind || 'Unknown',
-                status: {
-                  ready: instance.status?.conditions?.find((c: any) => c.type === 'InstanceSynced')?.status === 'True' || false,
-                  synced: instance.status?.conditions?.find((c: any) => c.type === 'InstanceSynced')?.status === 'True' || false,
-                  conditions: instance.status?.conditions || []
-                },
-                createdAt: instance.metadata?.creationTimestamp || '',
-                resource: instance,
-                level: 0,
-                parentId: undefined
-              });
-
-              // Parse sub-resources from annotation and fetch them
-              const subResources = annotations['terasky.backstage.io/kro-sub-resources'].split(',').map((r: string) => {
-                const [apiVersion, kind] = r.split(':');
-                return { apiVersion, kind };
-              });
-
-              // Fetch all managed resources
-              if (canListResources) {
-                const managedResourcesPromises = subResources.map(async (resource: { apiVersion: string; kind: string }) => {
-                  const [group, version] = resource.apiVersion.split('/');
-                  const pluralKind = getPluralKind(resource.kind);
-                  const path = group === 'v1' 
-                    ? `/api/v1/namespaces/${namespace}/${pluralKind}`
-                    : `/apis/${group}/${version}/namespaces/${namespace}/${pluralKind}`;
-
-                  try {
-                    const response = await kubernetesApi.proxy({
-                      clusterName,
-                      path: path + '?' + new URLSearchParams({
-                        labelSelector: [
-                          'kro.run/owned=true',
-                          `kro.run/instance-id=${instanceId}`,
-                          `kro.run/resource-graph-definition-id=${rgdId}`,
-                        ].join(','),
-                      }).toString(),
-                      init: { method: 'GET' },
-                    });
-                    const resourceList = await response.json();
-                  const fetchPromises = (resourceList.items || []).map(async (item: any) => {
-                    const kind = resourceList.kind.replace('List', '');
-                    const resourcePath = group === 'v1' || group === 'core'
-                      ? `/api/v1/namespaces/${namespace}/${pluralKind}/${item.metadata.name}`
-                      : `/apis/${group}/${version}/namespaces/${namespace}/${pluralKind}/${item.metadata.name}`;
-                    try {
-                      const resourceResponse = await kubernetesApi.proxy({
-                        clusterName,
-                        path: resourcePath,
-                        init: { method: 'GET' },
-                      });
-                      const fullResource = await resourceResponse.json();
-                      return {
-                        type: 'Resource',
-                        name: item.metadata?.name || 'Unknown',
-                        namespace: item.metadata?.namespace,
-                        group: getApiGroup(resourceList.apiVersion),
-                        kind: kind,
-                        status: {
-                          synced: true,
-                          ready: true,
-                          conditions: item.status?.conditions || []
-                        },
-                        createdAt: item.metadata?.creationTimestamp || '',
-                        resource: fullResource,
-                        level: 1,
-                        parentId: instance.metadata?.uid || `${instance.kind}-${instance.metadata?.name}`
-                      };
-                    } catch (error) {
-                      console.error('Failed to fetch individual resource:', resourcePath, error);
-                      return null;
-                    }
-                  });
-                  const results = await Promise.all(fetchPromises);
-                  return results.filter(Boolean);
-            } catch (error) {
-                    console.error(`Failed to fetch ${resource.kind} resources:`, error);
-                    return [];
-                  }
-                });
-
-                const managedResources = await Promise.all(managedResourcesPromises);
-                resources.push(...managedResources.flat());
-              }
-            }
-          } catch (error) {
-            console.error('Error fetching KRO resources:', error);
-          }
+        if (!rgdName || !rgdId || !instanceId || !clusterName) {
+          setLoading(false);
+          setLoadingSupportingResources(false);
+          return;
         }
+
+        const crdName = annotations['terasky.backstage.io/kro-rgd-crd-name'];
+        if (!crdName) {
+          throw new Error('CRD name not found in entity annotations');
+        }
+
+        const { resources, supportingResources: supporting } = await kroApi.getResources({
+          clusterName,
+          namespace,
+          rgdName,
+          rgdId,
+          instanceId,
+          instanceName: entity.metadata.name,
+          crdName,
+        });
+
         setAllResources(resources);
+        setSupportingResources(supporting);
 
         // Expand all resources by default after initial load
         if (!initialExpansionDone) {
@@ -656,102 +491,38 @@ const KroResourceTable = () => {
         }
       } catch (error) {
         console.error('Error fetching resources:', error);
+        setAllResources([]);
+        setSupportingResources([]);
       } finally {
         setLoading(false);
+        setLoadingSupportingResources(false);
       }
     };
     fetchAllResources();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [kubernetesApi, entity, canListResources, canListInstances, canListRGDs]);
+  }, [kroApi, entity, canListResources, canListInstances, canListRGDs]);
 
-  // Fetch supporting resources (RGD CRD)
-  useEffect(() => {
-    const fetchSupportingResources = async () => {
-      if (!canListRGDs) {
-        setLoadingSupportingResources(false);
-        return;
-      }
-      const annotations = entity.metadata.annotations || {};
-      const clusterName = annotations['backstage.io/managed-by-location']?.split(": ")[1];
-      const rgdId = annotations['terasky.backstage.io/kro-rgd-id'];
-      if (!clusterName || !rgdId) {
-        setLoadingSupportingResources(false);
-        return;
-      }
-      try {
-        const supportingResources: ExtendedKubernetesObject[] = [];
-        
-        // Fetch RGD
-        const rgdResponse = await kubernetesApi.proxy({
-          clusterName,
-          path: `/apis/kro.run/v1alpha1/resourcegraphdefinitions/${annotations['terasky.backstage.io/kro-rgd-name']}`,
-            init: { method: 'GET' },
-          });
-        const rgd = await rgdResponse.json();
-        supportingResources.push(rgd);
-
-        // Fetch RGD CRD
-            const crdResponse = await kubernetesApi.proxy({
-          clusterName,
-          path: `/apis/apiextensions.k8s.io/v1/customresourcedefinitions`,
-              init: { method: 'GET' },
-            });
-        const crds = await crdResponse.json();
-        const crdName = crds.items.find((crd: any) => crd.metadata?.labels?.['kro.run/resource-graph-definition-id'] === rgdId)?.metadata?.name;
-        if (crdName) {
-          const crdDetailResponse = await kubernetesApi.proxy({
-            clusterName,
-            path: `/apis/apiextensions.k8s.io/v1/customresourcedefinitions/${crdName}`,
-                init: { method: 'GET' },
-              });
-          const crd = await crdDetailResponse.json();
-          supportingResources.push(crd);
-        }
-        setSupportingResources(supportingResources);
-      } catch (error) {
-        console.error("Error fetching supporting resources:", error);
-      } finally {
-        setLoadingSupportingResources(false);
-      }
-    };
-    fetchSupportingResources();
-  }, [kubernetesApi, entity, canListRGDs]);
+  // Supporting resources are now fetched as part of getResources
 
   // Utility functions
-  const fetchEvents = async (resource: ExtendedKubernetesObject) => {
+  const fetchEvents = async (resource: KroResource) => {
     setLoadingEvents(true);
-    const annotations = entity.metadata.annotations || {};
-    const clusterOfComposite = annotations['backstage.io/managed-by-location']?.split(": ")[1];
-    if (!clusterOfComposite) {
-      setLoadingEvents(false);
-      return;
-    }
     try {
-      let eventsUrl = '';
-      if (resource.metadata?.namespace) {
-        eventsUrl = `/api/v1/namespaces/${resource.metadata.namespace}/events?fieldSelector=involvedObject.name=${resource.metadata?.name}`;
-      } else if (resource.metadata?.name) {
-        eventsUrl = `/api/v1/events?fieldSelector=involvedObject.name=${resource.metadata.name}`;
-      } else {
-        setLoadingEvents(false);
-        return;
-      }
-      const eventsResponse = await kubernetesApi.proxy({
-        clusterName: clusterOfComposite,
-        path: eventsUrl,
-        init: { method: 'GET' },
+      const { events: resourceEvents } = await kroApi.getEvents({
+        clusterName: entity.metadata.annotations?.['backstage.io/managed-by-location']?.split(": ")[1] || '',
+        namespace: resource.metadata?.namespace || 'default',
+        resourceName: resource.metadata?.name || '',
+        resourceKind: resource.kind || '',
       });
-      const eventsData = await eventsResponse.json();
-      setEvents(eventsData.items || []);
+      setEvents(resourceEvents);
     } catch (error) {
-      console.error('Error fetching events:', error);
+      console.error('Failed to fetch events:', error);
       setEvents([]);
     } finally {
       setLoadingEvents(false);
     }
   };
 
-  const handleOpenDrawer = (resource: ExtendedKubernetesObject, tab: number) => {
+  const handleOpenDrawer = (resource: KroResource, tab: number) => {
     const resourceType = resource.kind === 'ResourceGraphDefinition' ? 'RGD' :
       resource.metadata?.labels?.['kro.run/resource-graph-definition-id'] ? 
         (resource.metadata?.uid === entity.metadata.annotations?.['terasky.backstage.io/kro-instance-uid'] ? 'Instance' : 'Resource') : 'Resource';
@@ -836,8 +607,9 @@ const KroResourceTable = () => {
     newExpandedRows.add(resourceId);
     setExpandedRows(newExpandedRows);
     if (!nestedResources[resourceId] && resource.type === 'Instance') {
-      const clusterName = entity.metadata.annotations?.['backstage.io/managed-by-location']?.split(": ")[1];
-      const nested = await fetchNestedResources(resourceId, resource.level + 1, clusterName || '', resource.namespace);
+      const clusterName = entity.metadata.annotations?.['backstage.io/managed-by-location']?.split(": ")[1] || '';
+      const namespace = resource.namespace || 'default';
+      const nested = await fetchNestedResources(resourceId, resource.level + 1, clusterName, namespace);
       setNestedResources(prev => ({ ...prev, [resourceId]: nested }));
     }
   };
@@ -1175,7 +947,7 @@ const KroResourceTable = () => {
     return supportingFilters[field as keyof typeof supportingFilters].length > 0;
   };
 
-  const getFilteredSupportingResources = (): ExtendedKubernetesObject[] => {
+  const getFilteredSupportingResources = (): KroResource[] => {
     return supportingResources.filter(resource => {
       const typeMatch = supportingFilters.type.length === 0 || supportingFilters.type.some(filter => resource.kind?.toLowerCase().includes(filter.toLowerCase()));
       const nameMatch = supportingFilters.name.length === 0 || supportingFilters.name.some(filter => resource.metadata?.name?.toLowerCase().includes(filter.toLowerCase()));
@@ -1312,7 +1084,7 @@ const KroResourceTable = () => {
     return rows;
   };
 
-  const getArtifact = (resource: ExtendedKubernetesObject) => {
+  const getArtifact = (resource: KroResource) => {
     if (resource.kind === 'Composition' || resource.kind === 'CompositeResourceDefinition') {
       return 'N/A';
     }

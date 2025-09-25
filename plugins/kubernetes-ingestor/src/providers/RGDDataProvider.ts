@@ -67,7 +67,8 @@ export class RGDDataProvider {
         return [];
       }
 
-      const allRGDs: any[] = [];
+      const allFetchedObjects: any[] = [];
+      const rgdMap = new Map<string, any>();
 
       for (const clusterName of clusters) {
         try {
@@ -110,7 +111,7 @@ export class RGDDataProvider {
               }],
             };
 
-            allRGDs.push(enrichedRGD);
+            allFetchedObjects.push(enrichedRGD);
           }
         } catch (error) {
           this.logger.debug(
@@ -119,7 +120,25 @@ export class RGDDataProvider {
         }
       }
 
-      return allRGDs;
+      // Now process all RGDs together
+      allFetchedObjects.forEach(rgd => {
+        const rgdName = rgd.metadata.name;
+        if (!rgdMap.has(rgdName)) {
+          rgdMap.set(rgdName, {
+            ...rgd,
+            clusters: [rgd.clusterName],
+            clusterDetails: [...rgd.clusterDetails],
+          });
+        } else {
+          const existingRgd = rgdMap.get(rgdName);
+          if (!existingRgd.clusters.includes(rgd.clusterName)) {
+            existingRgd.clusters.push(rgd.clusterName);
+            existingRgd.clusterDetails.push(...rgd.clusterDetails);
+          }
+        }
+      });
+
+      return Array.from(rgdMap.values());
     } catch (error) {
       this.logger.error('Error fetching RGD objects:', error as Error);
       return [];

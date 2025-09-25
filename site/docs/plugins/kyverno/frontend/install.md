@@ -8,7 +8,8 @@ Before installing the plugin, ensure you have:
 
 1. A working Backstage instance
 2. Kyverno installed in your Kubernetes cluster(s)
-3. (Optional) The Kyverno Permissions backend plugin installed
+3. The Kyverno Policy Reports backend plugin (`@terasky/backstage-plugin-kyverno-policy-reports-backend`) installed
+
 
 ## Installation Steps
 

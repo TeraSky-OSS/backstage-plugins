@@ -1,6 +1,6 @@
-# Installing the Crossplane Permissions Backend Plugin
+# Installing the Crossplane Resources Backend Plugin
 
-This guide will help you install and set up the Crossplane Permissions backend plugin in your Backstage instance.
+This guide will help you install and set up the Crossplane Resources backend plugin in your Backstage instance.
 
 ## Prerequisites
 
@@ -9,15 +9,16 @@ Before installing the backend plugin, ensure you have:
 1. A working Backstage instance
 2. Node.js and npm/yarn installed
 3. Access to your Backstage backend configuration
+4. The Crossplane Common library (`@terasky/backstage-plugin-crossplane-common`) installed
 
 ## Installation Steps
 
-### 1. Add the Package
+### 1. Add Required Packages
 
-Install the backend plugin package using your package manager:
+Install the required package using your package manager:
 
 ```bash
-yarn --cwd packages/backend add @terasky/backstage-plugin-crossplane-permissions-backend
+yarn --cwd packages/backend add @terasky/backstage-plugin-crossplane-resources-backend
 ```
 
 ### 2. Add to Backend
@@ -29,7 +30,7 @@ Modify your backend entry point (typically `packages/backend/src/index.ts`):
 backend.add(import('@terasky/backstage-plugin-crossplane-permissions-backend'));
 ```
 
-### 3. Configure Permissions
+### 3. Configure the plugin
 
 Add the following to your `app-config.yaml`:
 

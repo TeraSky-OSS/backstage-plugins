@@ -52,8 +52,8 @@ export class DefaultKubernetesResourceFetcher implements KubernetesResourceFetch
 
     const response = await fetch(`${baseUrl}/proxy${path}`, {
       headers: {
+        Authorization: `Bearer ${token}`,
         'Backstage-Kubernetes-Cluster': clusterName,
-        'Authorization': `Bearer ${token}`,
         'X-Kubernetes-Ingestor': 'true', // Add custom header for log filtering
       },
     });
@@ -63,7 +63,7 @@ export class DefaultKubernetesResourceFetcher implements KubernetesResourceFetch
       if (response.status === 404) {
         return [];
       }
-      throw new Error(`Failed to fetch Kubernetes resources: ${response.statusText}`);
+      throw new Error(`Failed to fetch Kubernetes resources: with response ${JSON.stringify(response)} ${response.statusText} for request to ${path}`);
     }
 
     const data = await response.json();
@@ -84,14 +84,14 @@ export class DefaultKubernetesResourceFetcher implements KubernetesResourceFetch
 
     const response = await fetch(`${baseUrl}/proxy${path}`, {
       headers: {
+        Authorization: `Bearer ${token}`,
         'Backstage-Kubernetes-Cluster': clusterName,
-        'Authorization': `Bearer ${token}`,
         'X-Kubernetes-Ingestor': 'true', // Add custom header for log filtering
       },
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch Kubernetes resource: ${response.statusText}`);
+      throw new Error(`Failed to fetch Kubernetes resource: with response ${JSON.stringify(response)} ${response.statusText} for request to ${path}`);
     }
 
     return await response.json();
@@ -107,11 +107,11 @@ export class DefaultKubernetesResourceFetcher implements KubernetesResourceFetch
       onBehalfOf: credentials,
       targetPluginId: 'kubernetes',
     });
-    
+
     const response = await fetch(`${baseUrl}/proxy${request.path}`, {
       headers: {
+        Authorization: `Bearer ${token}`,
         'Backstage-Kubernetes-Cluster': clusterName,
-        'Authorization': `Bearer ${token}`,
       },
     });
 

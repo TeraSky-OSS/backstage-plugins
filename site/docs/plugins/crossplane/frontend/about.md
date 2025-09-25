@@ -52,16 +52,29 @@ The plugin provides several key components:
 
 ### Dependencies
 - Requires the Kubernetes Ingestor plugin for resource discovery
-- Optional integration with the Crossplane Permissions backend plugin
+- Integration with the Crossplane Resources backend plugin
 - Compatible with Backstage's latest permission framework
 
 ### Data Flow
 1. Resources are discovered via the Kubernetes Ingestor
-2. Annotations are used to associate resources with components
+2. Resource data is fetched through backend API endpoints
 3. Permission checks are performed (if enabled)
 4. UI components render based on available data and permissions
+
+### API Integration
+- RESTful API endpoints for resource data
+- Event streaming for real-time updates
+- Kubernetes API proxy support
 
 ### Performance Considerations
 - Efficient resource graph rendering
 - Optimized YAML handling
 - Responsive UI design for large resource sets
+- Caching and data optimization
+- Lazy loading for large resource sets
+
+### Version Support
+- Full support for Crossplane v1.x APIs
+- Complete support for Crossplane v2.x APIs
+- Backward compatibility maintained
+- Version-specific features and optimizations
