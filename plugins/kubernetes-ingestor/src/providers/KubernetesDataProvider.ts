@@ -2,7 +2,6 @@ import { Config } from '@backstage/config';
 import { LoggerService } from '@backstage/backend-plugin-api';
 import { DefaultKubernetesResourceFetcher } from '../services';
 import { XRDDataProvider } from './XRDDataProvider';
-import { RGDDataProvider } from './RGDDataProvider';
 
 
 export class KubernetesDataProvider {
@@ -116,31 +115,7 @@ export class KubernetesDataProvider {
         }
       }
 
-      // Add KRO-related objects if the feature is enabled
-      if (isKROEnabled) {
-        try {
-          const rgdDataProvider = new RGDDataProvider(
-            this.resourceFetcher,
-            this.config,
-            this.logger,
-          );
-          const rgdObjects = await rgdDataProvider.fetchRGDObjects();
-          for (const rgd of rgdObjects) {
-            if (rgd.generatedCRD) {
-              const crd = rgd.generatedCRD;
-              for (const version of crd.spec.versions || []) {
-                workloadTypes.push({
-                  group: crd.spec.group,
-                  apiVersion: version.name,
-                  plural: crd.spec.names.plural,
-                });
-              }
-            }
-          }
-        } catch (error) {
-          this.logger.error('Failed to fetch RGD objects:', error as Error);
-        }
-      }
+      // KRO workload types are collected per-cluster inside the cluster loop
 
       const onlyIngestAnnotatedResources = this.config.getOptionalBoolean('kubernetesIngestor.components.onlyIngestAnnotatedResources') ?? false;
       const excludedNamespaces = new Set(this.config.getOptionalStringArray('kubernetesIngestor.components.excludedNamespaces') || []);
@@ -163,17 +138,34 @@ export class KubernetesDataProvider {
             });
           }
 
-          // Only fetch KRO instances if enabled
+          // Only fetch KRO RGDs if enabled
           if (isKROEnabled && ingestAllRGDInstances) {
-            const rgdDataProvider = new RGDDataProvider(
-              this.resourceFetcher,
-              this.config,
-              this.logger,
-            );
-            const rgdObjects = await rgdDataProvider.fetchRGDObjects();
-            for (const rgd of rgdObjects) {
-              if (rgd.generatedCRD) {
-                const crd = rgd.generatedCRD;
+            try {
+              const rgds = await this.resourceFetcher.fetchResources({
+                clusterName,
+                resourcePath: 'kro.run/v1alpha1/resourcegraphdefinitions',
+              });
+              
+              for (const rgd of rgds as any[]) {
+                if (rgd.status?.state !== 'Active') {
+                  this.logger.debug(`Skipping inactive RGD ${rgd.metadata.name}`);
+                  continue;
+                }
+
+                const crds = await this.resourceFetcher.fetchResources({
+                  clusterName,
+                  resourcePath: 'apiextensions.k8s.io/v1/customresourcedefinitions',
+                  query: {
+                    labelSelector: `kro.run/resource-graph-definition-id=${rgd.metadata.uid}`,
+                  },
+                });
+
+                if (crds.length === 0) {
+                  this.logger.warn(`No CRD found for RGD ${rgd.metadata.name}`);
+                  continue;
+                }
+
+                const crd = crds[0] as any;
                 for (const version of crd.spec.versions || []) {
                   workloadTypes.push({
                     group: crd.spec.group,
@@ -182,6 +174,8 @@ export class KubernetesDataProvider {
                   });
                 }
               }
+            } catch (error) {
+              this.logger.debug(`Failed to fetch RGDs for cluster ${clusterName}: ${error}`);
             }
           }
 
@@ -203,40 +197,45 @@ export class KubernetesDataProvider {
             });
           }
 
-          const fetchedObjects = await Promise.all(
+          const fetchedObjects = await Promise.allSettled(
             workloadTypes.map(async (type) => {
-              const resources = await this.resourceFetcher.fetchResources({
-                clusterName,
-                resourcePath: `${type.group}/${type.apiVersion}/${type.plural}`,
-              });
-              return resources.map((resource: any) => ({
-                ...resource,
-                apiVersion: `${type.group}/${type.apiVersion}`,
-                kind: resource.kind || type.plural.charAt(0).toUpperCase() + type.plural.slice(1, -1),
-              }));
+              try {
+                const resources = await this.resourceFetcher.fetchResources({
+                  clusterName,
+                  resourcePath: `${type.group}/${type.apiVersion}/${type.plural}`,
+                });
+                return resources.map((resource: any) => ({
+                  ...resource,
+                  apiVersion: `${type.group}/${type.apiVersion}`,
+                  kind: resource.kind || type.plural.charAt(0).toUpperCase() + type.plural.slice(1, -1),
+                }));
+              } catch (error) {
+                this.logger.debug(
+                  `Failed to fetch ${type.group}/${type.apiVersion}/${type.plural} from cluster ${clusterName}: ${error}`,
+                );
+                return [];
+              }
             })
           );
           const prefix = this.getAnnotationPrefix();
-          const allFetchedObjects = fetchedObjects.flat();
-          const filteredObjects = allFetchedObjects
-            .filter((resource: any) => {
-              if (
-                resource.metadata.annotations?.[
-                  `${prefix}/exclude-from-catalog`
-                ]
-              ) {
+          const allFetchedObjects = fetchedObjects
+            .filter((result): result is PromiseFulfilledResult<any[]> => result.status === 'fulfilled')
+            .map(result => result.value)
+            .flat();
+          const validObjects = allFetchedObjects.filter((resource: any) => {
+              if (!resource || !resource.metadata) {
                 return false;
               }
-
-              if (onlyIngestAnnotatedResources) {
-                return resource.metadata.annotations?.[
-                  `${prefix}/add-to-catalog`
-                ];
+              if (resource.metadata.annotations?.[`${prefix}/exclude-from-catalog`]) {
+                return false;
               }
-
+              if (onlyIngestAnnotatedResources) {
+                return !!resource.metadata.annotations?.[`${prefix}/add-to-catalog`];
+              }
               return !excludedNamespaces.has(resource.metadata.namespace);
-            })
-            .map(async (resource: any) => {
+            });
+
+          const filteredObjects = validObjects.map(async (resource: any) => {
               // Skip Crossplane-related resources if disabled
               if (!isCrossplaneEnabled) {
                 // Check if it's a Crossplane resource
@@ -361,7 +360,9 @@ export class KubernetesDataProvider {
               };
             });
 
-          allObjects.push(...(await Promise.all(filteredObjects)));
+          const processedObjects = await Promise.all(filteredObjects);
+          const validProcessedObjects = processedObjects.filter(obj => obj && Object.keys(obj).length > 0);
+          allObjects.push(...validProcessedObjects);
         } catch (error) {
           this.logger.error(
             `Failed to fetch objects for cluster ${clusterName}: ${error}`,
@@ -369,7 +370,7 @@ export class KubernetesDataProvider {
         }
       }
 
-      return allObjects.filter(obj => Object.keys(obj).length > 0);
+      return allObjects;
     } catch (error) {
       this.logger.error('Error fetching Kubernetes objects:', error as Error);
       return [];
