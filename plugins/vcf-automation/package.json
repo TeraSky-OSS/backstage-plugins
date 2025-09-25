@@ -1,6 +1,6 @@
 {
   "name": "@terasky/backstage-plugin-vcf-automation",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "license": "Apache-2.0",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -35,17 +35,17 @@
     "postpack": "backstage-cli package postpack"
   },
   "dependencies": {
-    "@backstage/core-components": "^0.18.0",
+    "@backstage/core-components": "^0.18.1",
     "@backstage/core-plugin-api": "^1.11.0",
     "@backstage/frontend-plugin-api": "^0.12.0",
-    "@backstage/plugin-catalog-react": "^1.21.0",
+    "@backstage/plugin-catalog-react": "^1.21.1",
     "@backstage/plugin-permission-react": "^0.4.36",
     "@backstage/theme": "^0.6.8",
     "@material-ui/core": "^4.12.4",
     "@material-ui/icons": "^4.11.3",
     "@material-ui/lab": "4.0.0-alpha.61",
     "@monaco-editor/react": "^4.7.0",
-    "@terasky/backstage-plugin-vcf-automation-common": "^1.2.2",
+    "@terasky/backstage-plugin-vcf-automation-common": "^1.2.3",
     "js-yaml": "^4.1.0",
     "react-use": "^17.6.0"
   },
@@ -55,7 +55,7 @@
     "react-router-dom": "6.0.0-beta.0 || ^6.3.0"
   },
   "devDependencies": {
-    "@backstage/cli": "^0.34.2",
+    "@backstage/cli": "^0.34.3",
     "@backstage/core-app-api": "^1.19.0",
     "@backstage/dev-utils": "^1.1.14",
     "@backstage/test-utils": "^1.7.11",
