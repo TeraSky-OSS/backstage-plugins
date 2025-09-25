@@ -175,6 +175,79 @@ Before getting started, ensure you have:
 3. Access to VCF deployments
 4. Proper permissions setup
 
+## MCP Actions Integration
+
+The VCF Automation plugin provides MCP (Model Control Protocol) actions for interacting with VCF Automation resources. To enable these actions:
+
+1. First, ensure you have the MCP actions backend plugin installed and configured. See the [MCP Actions Backend Plugin documentation](https://github.com/backstage/backstage/blob/master/plugins/mcp-actions-backend/README.md) for setup instructions.
+
+2. Add the plugin to your actions configuration in `app-config.yaml`:
+
+```yaml
+backend:
+  actions:
+    pluginSources:
+      - 'catalog'
+      - 'vcf-automation'
+      # ... other action sources
+```
+
+### Available MCP Actions
+
+The plugin provides the following MCP actions:
+
+- `get_vcf_automation_instances`: Get configured VCF Automation instances
+  - Input: None
+  - Output: List of VCFA instances with their configurations
+
+- `get_vcf_automation_projects`: List projects in a VCF Automation instance
+  - Input: Optional instance name
+  - Output: List of projects with IDs and names
+
+- `get_vcf_automation_project_details`: Get detailed project information
+  - Input: Project ID and optional instance name
+  - Output: Full project details
+
+- `get_supervisor_namespaces_from_vcf_automation`: List supervisor namespaces
+  - Input: Optional instance name
+  - Output: List of supervisor namespaces
+
+- `get_supervisor_namespace_from_vcf_automation`: Get namespace details
+  - Input: Namespace ID and optional instance name
+  - Output: Full namespace details
+
+- `get_vcf_automation_deployments`: List all deployments
+  - Input: Optional instance name
+  - Output: List of deployments
+
+- `get_vcf_automation_deployment_details`: Get deployment details
+  - Input: Deployment ID and optional instance name
+  - Output: Deployment details, history, events, and resources
+
+- `vm_power_action_from_vcf_automation`: Execute VM power actions
+  - Input: Action type, VM details, and optional instance name
+  - Output: Operation status and details
+
+- `get_resource_details_from_vcf_automation`: Get resource details
+  - Input: Deployment ID, resource ID, and optional instance name
+  - Output: Full resource details
+
+- `get_supervisor_resources_from_vcf_automation`: List supervisor resources
+  - Input: Optional instance name
+  - Output: List of supervisor resources
+
+- `get_supervisor_resource_from_vcf_automation`: Get supervisor resource details
+  - Input: Resource ID and optional instance name
+  - Output: Full resource details
+
+- `get_vcf_automation_supervisor_resource_manifest`: Get resource manifest
+  - Input: Resource details and optional instance name
+  - Output: Resource manifest
+
+- `update_vcf_automation_supervisor_resource_manifest`: Update resource manifest
+  - Input: Resource details, new manifest, and optional instance name
+  - Output: Updated manifest and operation status
+
 ## Getting Started
 
 To get started with the VCF Automation plugin:
@@ -183,6 +256,7 @@ To get started with the VCF Automation plugin:
 2. Configure API integration
 3. Set up entity synchronization
 4. Configure permissions
-5. Add components to entity pages
+5. Configure MCP actions in your app-config.yaml
+6. Add components to entity pages
 
 For detailed installation and configuration instructions, refer to the frontend and backend documentation linked above.

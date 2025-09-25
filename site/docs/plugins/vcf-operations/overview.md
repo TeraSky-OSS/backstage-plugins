@@ -168,12 +168,66 @@ import { VCFOperationsExplorerComponent } from '@terasky/backstage-plugin-vcf-op
 5. **Scalable**: Multi-instance support for complex VCF environments
 6. **Integrated**: Seamless integration with Backstage catalog and permission systems
 
+## MCP Actions Integration
+
+The VCF Operations plugin provides MCP (Model Control Protocol) actions for interacting with VCF Operations resources. To enable these actions:
+
+1. First, ensure you have the MCP actions backend plugin installed and configured. See the [MCP Actions Backend Plugin documentation](https://github.com/backstage/backstage/blob/master/plugins/mcp-actions-backend/README.md) for setup instructions.
+
+2. Add the plugin to your actions configuration in `app-config.yaml`:
+
+```yaml
+backend:
+  actions:
+    pluginSources:
+      - 'catalog'
+      - 'vcf-operations'
+      # ... other action sources
+```
+
+### Available MCP Actions
+
+The plugin provides the following MCP actions:
+
+- `get_vcf_operations_instances`: Get configured VCF Operations instances
+  - Input: None
+  - Output: List of instances with their configurations
+
+- `get_vcf_operations_resource_metrics`: Get resource metrics
+  - Input: Resource ID, metric keys, time range, and optional instance name
+  - Output: Time-series metric data
+
+- `get_latest_vcf_operations_resource_metrics`: Get latest metrics
+  - Input: Resource IDs, metric keys, and optional instance name
+  - Output: Latest metric values
+
+- `get_vcf_operations_resource_details`: Get resource details
+  - Input: Resource ID and optional instance name
+  - Output: Full resource details
+
+- `get_available_metrics_from_vcf_operations`: Get available metrics
+  - Input: Resource ID and optional instance name
+  - Output: List of available metrics for the resource
+
+- `search_vcf_operations_resources`: Search resources
+  - Input: Name, adapter kind, resource kind, and optional instance name
+  - Output: List of matching resources
+
+- `find_vcf_operations_resource_by_name`: Find resource by name
+  - Input: Resource name, optional type and instance name
+  - Output: Resource details if found
+
+- `find_vcf_operations_resource_by_property`: Find resource by property
+  - Input: Property key, value, and optional instance name
+  - Output: Resource details if found
+
 ## Getting Started
 
 1. **Install the plugins** following the installation guides for each component
 2. **Configure VCF Operations instances** in your app-config.yaml
 3. **Set up permissions** to control access to metrics data
-4. **Add the component** to your entity pages or create dedicated routes
-5. **Start monitoring** your VCF infrastructure with real-time metrics
+4. **Configure MCP actions** in your app-config.yaml
+5. **Add the component** to your entity pages or create dedicated routes
+6. **Start monitoring** your VCF infrastructure with real-time metrics
 
 The VCF Operations plugins provide a powerful foundation for infrastructure observability within your Backstage portal, enabling teams to make informed decisions based on real-time performance data.
