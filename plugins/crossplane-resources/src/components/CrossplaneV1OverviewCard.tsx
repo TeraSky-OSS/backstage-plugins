@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, Typography, Box, Grid, Tooltip, makeStyles } from '@material-ui/core';
 import { useApi } from '@backstage/core-plugin-api';
 import { KubernetesObject } from '@backstage/plugin-kubernetes';
-import { kubernetesApiRef } from '@backstage/plugin-kubernetes-react';
+import { crossplaneApiRef } from '../api/CrossplaneApi';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { usePermission } from '@backstage/plugin-permission-react';
 import { showOverview } from '@terasky/backstage-plugin-crossplane-common';
@@ -24,6 +24,7 @@ interface ExtendedKubernetesObject extends KubernetesObject {
         resourceRefs?: Array<any>;
     };
 }
+
 const useStyles = makeStyles((theme) => ({
     button: {
       margin: theme.spacing(1),
@@ -38,7 +39,7 @@ const useStyles = makeStyles((theme) => ({
   
 const CrossplaneOverviewCard = () => {
     const { entity } = useEntity();
-    const kubernetesApi = useApi(kubernetesApiRef);
+    const crossplaneApi = useApi(crossplaneApiRef);
     const config = useApi(configApiRef);
     const enablePermissions = config.getOptionalBoolean('crossplane.enablePermissions') ?? false;
     const { allowed: canShowOverviewTemp } = usePermission({ permission: showOverview });
@@ -55,44 +56,37 @@ const CrossplaneOverviewCard = () => {
         const fetchResources = async () => {
             const annotations = entity.metadata.annotations || {};
             const claimName = annotations['terasky.backstage.io/claim-name'];
-            const plural = annotations['terasky.backstage.io/claim-plural'];
-            const group = annotations['terasky.backstage.io/claim-group'];
-            const version = annotations['terasky.backstage.io/claim-version'];
+            const claimGroup = annotations['terasky.backstage.io/claim-group'];
+            const claimVersion = annotations['terasky.backstage.io/claim-version'];
+            const claimPlural = annotations['terasky.backstage.io/claim-plural'];
             const labelSelector = annotations['backstage.io/kubernetes-label-selector'];
             const namespace = labelSelector.split(',').find(s => s.startsWith('crossplane.io/claim-namespace'))?.split('=')[1];
             const clusterOfClaim = annotations['backstage.io/managed-by-location'].split(": ")[1];
-            const xrGroup = annotations['terasky.backstage.io/composite-group'];
-            const xrVersion = annotations['terasky.backstage.io/composite-version'];
-            const xrPlural = annotations['terasky.backstage.io/composite-plural'];
-            const xrName = annotations['terasky.backstage.io/composite-name'];
-            if (!plural || !group || !version || !namespace || !clusterOfClaim) {
+            if (!claimPlural || !claimGroup || !claimVersion || !namespace || !clusterOfClaim) {
                 return;
             }
 
-            const resourceName = claimName;
-            const url = `/apis/${group}/${version}/namespaces/${namespace}/${plural}/${resourceName}`;
-
             try {
-                const response = await kubernetesApi.proxy({
+                const response = await crossplaneApi.getResourceGraph({
                     clusterName: clusterOfClaim,
-                    path: url,
-                    init: { method: 'GET' },
+                    namespace,
+                    xrdName: claimName,
+                    xrdId: claimName,
+                    claimId: claimName,
+                    claimName,
+                    claimGroup,
+                    claimVersion,
+                    claimPlural,
                 });
-                const claimResource: ExtendedKubernetesObject = await response.json();
-                setClaim(claimResource);
 
-                const compositeResourceUrl = claimResource.spec?.resourceRef?.apiVersion && claimResource.spec?.resourceRef?.kind && claimResource.spec?.resourceRef?.name
-                    ? `/apis/${xrGroup}/${xrVersion}/${xrPlural}/${xrName}`
-                    : null;
+                const claimResource = response.resources.find(r => r.kind === annotations['terasky.backstage.io/claim-kind']);
+                if (claimResource) {
+                    setClaim(claimResource);
+                }
 
-                if (compositeResourceUrl) {
-                    const compositeResponse = await kubernetesApi.proxy({
-                        clusterName: clusterOfClaim,
-                        path: compositeResourceUrl,
-                        init: { method: 'GET' },
-                    });
-                    const compositeResourceData = await compositeResponse.json();
-                    setManagedResourcesCount(compositeResourceData.spec?.resourceRefs?.length || 0);
+                const compositeResource = response.resources.find(r => r.kind === annotations['terasky.backstage.io/composite-kind']);
+                if (compositeResource) {
+                    setManagedResourcesCount(compositeResource.spec?.resourceRefs?.length || 0);
                 }
             } catch (error) {
                 throw error;
@@ -100,7 +94,7 @@ const CrossplaneOverviewCard = () => {
         };
 
         fetchResources();
-    }, [kubernetesApi, entity, canShowOverview]);
+    }, [crossplaneApi, entity, canShowOverview]);
 
     if (!canShowOverview) {
         return (

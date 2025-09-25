@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, Typography, Box, Grid, Tooltip, makeStyles } from '@material-ui/core';
 import { useApi } from '@backstage/core-plugin-api';
-import { kubernetesApiRef } from '@backstage/plugin-kubernetes-react';
+import { crossplaneApiRef } from '../api/CrossplaneApi';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { usePermission } from '@backstage/plugin-permission-react';
 import { showOverview } from '@terasky/backstage-plugin-crossplane-common';
@@ -24,7 +24,7 @@ const useStyles = makeStyles((theme) => ({
 
 const CrossplaneV2OverviewCard = () => {
     const { entity } = useEntity();
-    const kubernetesApi = useApi(kubernetesApiRef);
+    const crossplaneApi = useApi(crossplaneApiRef);
     const config = useApi(configApiRef);
     const enablePermissions = config.getOptionalBoolean('crossplane.enablePermissions') ?? false;
     const { allowed: canShowOverviewTemp } = usePermission({ permission: showOverview });
@@ -44,32 +44,33 @@ const CrossplaneV2OverviewCard = () => {
             const version = annotations['terasky.backstage.io/composite-version'];
             const name = annotations['terasky.backstage.io/composite-name'];
             const clusterOfComposite = annotations['backstage.io/managed-by-location'].split(": ")[1];
-            const scope = annotations['terasky.backstage.io/crossplane-scope'];
+            const scope = annotations['terasky.backstage.io/crossplane-scope'] as 'Namespaced' | 'Cluster';
             const namespace = entity.metadata.namespace || annotations['namespace'] || 'default';
-            let url = '';
-            if (scope === 'Namespaced') {
-                url = `/apis/${group}/${version}/namespaces/${namespace}/${plural}/${name}`;
-            } else {
-                url = `/apis/${group}/${version}/${plural}/${name}`;
-            }
             if (!plural || !group || !version || !name || !clusterOfComposite) {
                 return;
             }
             try {
-                const response = await kubernetesApi.proxy({
+                const response = await crossplaneApi.getV2ResourceGraph({
                     clusterName: clusterOfComposite,
-                    path: url,
-                    init: { method: 'GET' },
+                    namespace,
+                    name,
+                    group,
+                    version,
+                    plural,
+                    scope,
                 });
-                const compositeResource = await response.json();
-                setComposite(compositeResource);
-                setManagedResourcesCount(compositeResource.spec?.crossplane?.resourceRefs?.length || 0);
+
+                const compositeResource = response.resources[0]; // First resource is always the composite
+                if (compositeResource) {
+                    setComposite(compositeResource);
+                    setManagedResourcesCount(compositeResource.spec?.crossplane?.resourceRefs?.length || 0);
+                }
             } catch (error) {
                 // ignore
             }
         };
         fetchResources();
-    }, [kubernetesApi, entity, canShowOverview]);
+    }, [crossplaneApi, entity, canShowOverview]);
 
     if (!canShowOverview) {
         return (
@@ -168,4 +169,4 @@ const CrossplaneV2OverviewCard = () => {
     );
 };
 
-export default CrossplaneV2OverviewCard; 
+export default CrossplaneV2OverviewCard;

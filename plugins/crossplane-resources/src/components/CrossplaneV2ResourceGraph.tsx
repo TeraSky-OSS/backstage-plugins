@@ -20,7 +20,7 @@ import {
 } from '@material-ui/core';
 import { useApi, configApiRef } from '@backstage/core-plugin-api';
 import { KubernetesObject } from '@backstage/plugin-kubernetes';
-import { kubernetesApiRef } from '@backstage/plugin-kubernetes-react';
+import { crossplaneApiRef } from '../api/CrossplaneApi';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import * as yaml from 'js-yaml';
 import CloseIcon from '@material-ui/icons/Close';
@@ -34,7 +34,6 @@ import ReactFlow, { ReactFlowProvider, MiniMap, Controls, Background, Node, Edge
 import dagre from 'dagre';
 import { usePermission } from '@backstage/plugin-permission-react';
 import { showResourceGraph } from '@terasky/backstage-plugin-crossplane-common';
-import pluralize from 'pluralize';
 
 const useStyles = makeStyles((theme) => ({
     drawer: {
@@ -503,7 +502,7 @@ const CrossplaneV2ResourceGraph = () => {
     const { entity } = useEntity();
     const theme = useTheme();
     const classes = useStyles();
-    const kubernetesApi = useApi(kubernetesApiRef);
+    const crossplaneApi = useApi(crossplaneApiRef);
     const config = useApi(configApiRef);
     const enablePermissions = config.getOptionalBoolean('crossplane.enablePermissions') ?? false;
     const [resources, setResources] = useState<Array<KubernetesObject>>([]);
@@ -710,8 +709,6 @@ const CrossplaneV2ResourceGraph = () => {
             descendants.forEach(id => hiddenNodes.add(id));
         });
 
-        console.log('Hidden nodes:', Array.from(hiddenNodes));
-
         // Filter visible nodes
         const visibleNodes = nodes.filter(node => !hiddenNodes.has(node.id));
 
@@ -818,71 +815,31 @@ const CrossplaneV2ResourceGraph = () => {
             const version = annotations['terasky.backstage.io/composite-version'];
             const name = annotations['terasky.backstage.io/composite-name'];
             const clusterOfComposite = annotations['backstage.io/managed-by-location'].split(": ")[1];
-            const scope = annotations['terasky.backstage.io/crossplane-scope'];
+            const scope = annotations['terasky.backstage.io/crossplane-scope'] as 'Namespaced' | 'Cluster';
             const namespace = entity.metadata.namespace || annotations['namespace'] || 'default';
             if (!plural || !group || !version || !name || !clusterOfComposite) {
                 setLoading(false);
                 return;
             }
 
-            let url = '';
-            if (scope === 'Namespaced') {
-                url = `/apis/${group}/${version}/namespaces/${namespace}/${plural}/${name}`;
-            } else {
-                url = `/apis/${group}/${version}/${plural}/${name}`;
+            // Validate scope
+            if (scope !== 'Namespaced' && scope !== 'Cluster') {
+                throw new Error('Invalid scope value. Must be either "Namespaced" or "Cluster".');
             }
 
             try {
-                // Fetch the composite resource first
-                    const response = await kubernetesApi.proxy({
+                const response = await crossplaneApi.getV2ResourceGraph({
                     clusterName: clusterOfComposite,
-                        path: url,
-                        init: { method: 'GET' },
-                    });
-                const xrResource = await response.json();
+                    namespace,
+                    name,
+                    group,
+                    version,
+                    plural,
+                    scope,
+                });
 
-                // Get resourceRefs from the V2 structure
-                const resourceRefs = xrResource.spec?.crossplane?.resourceRefs || [];
-                
-                // Fetch all managed resources
-                const managedResources = await Promise.all(resourceRefs.map(async (ref: any) => {
-                    let apiGroup = '';
-                    let apiVersion = '';
-                    if (ref.apiVersion.includes('/')) {
-                        [apiGroup, apiVersion] = ref.apiVersion.split('/');
-                    } else {
-                        apiGroup = '';
-                        apiVersion = ref.apiVersion;
-                    }
-                    const kindPlural = pluralize(ref.kind.toLowerCase());
-                    let mrNamespace = ref.namespace;
-                    if (!mrNamespace && scope === 'Namespaced') {
-                        mrNamespace = xrResource.metadata?.namespace || namespace;
-                    }
-                    let resourceUrl = '';
-                    if (mrNamespace) {
-                        if (!apiGroup || apiGroup === 'v1') {
-                            resourceUrl = `/api/v1/namespaces/${mrNamespace}/${kindPlural}/${ref.name}`;
-                        } else {
-                            resourceUrl = `/apis/${apiGroup}/${apiVersion}/namespaces/${mrNamespace}/${kindPlural}/${ref.name}`;
-                        }
-                    } else {
-                        if (!apiGroup || apiGroup === 'v1') {
-                            resourceUrl = `/api/v1/${kindPlural}/${ref.name}`;
-                        } else {
-                            resourceUrl = `/apis/${apiGroup}/${apiVersion}/${kindPlural}/${ref.name}`;
-                        }
-                    }
-                    const resourceResponse = await kubernetesApi.proxy({
-                        clusterName: clusterOfComposite,
-                        path: resourceUrl,
-                        init: { method: 'GET' },
-                    });
-                    return await resourceResponse.json();
-                }));
-
-                setResources([xrResource, ...managedResources]);
-                generateGraphElements([xrResource, ...managedResources]);
+                setResources(response.resources);
+                generateGraphElements(response.resources);
             } catch (error) {
                 console.error('Failed to fetch resources:', error);
                 setResources([]);
@@ -894,7 +851,7 @@ const CrossplaneV2ResourceGraph = () => {
         };
 
         fetchResources();
-    }, [kubernetesApi, entity, canShowResourceGraph]);
+    }, [crossplaneApi, entity, canShowResourceGraph]);
 
     const handleGetEvents = async (resource: KubernetesObject) => {
         const namespace = resource.metadata?.namespace || 'default';
@@ -907,16 +864,14 @@ const CrossplaneV2ResourceGraph = () => {
         }
 
         setLoadingEvents(true);
-        const url = `/api/v1/namespaces/${namespace}/events?fieldSelector=involvedObject.name=${name}`;
-
         try {
-            const response = await kubernetesApi.proxy({
+            const response = await crossplaneApi.getEvents({
                 clusterName: clusterOfClaim,
-                path: url,
-                init: { method: 'GET' },
+                namespace,
+                resourceName: name,
+                resourceKind: resource.kind || '',
             });
-            const eventsResponse = await response.json();
-            setEvents(eventsResponse.items || []);
+            setEvents(response.events);
         } catch (error) {
             console.error('Failed to fetch events:', error);
             setEvents([]);

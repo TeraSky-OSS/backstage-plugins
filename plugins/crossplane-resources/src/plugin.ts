@@ -1,15 +1,26 @@
 import {
   createPlugin,
   createComponentExtension,
+  discoveryApiRef,
+  fetchApiRef,
+  createApiFactory,
 } from '@backstage/core-plugin-api';
 
 import { rootRouteRef } from './routes';
+import { CrossplaneApiClient, crossplaneApiRef } from './api/CrossplaneApi';
 
 export const crossplaneResourcesPlugin = createPlugin({
   id: 'crossplane-resources',
   routes: {
     root: rootRouteRef,
   },
+  apis: [
+    createApiFactory({
+      api: crossplaneApiRef,
+      deps: { discoveryApi: discoveryApiRef, fetchApi: fetchApiRef },
+      factory: ({ discoveryApi, fetchApi }) => new CrossplaneApiClient(discoveryApi, fetchApi),
+    }),
+  ],
 });
 
 // new components with v1 and v2 support
