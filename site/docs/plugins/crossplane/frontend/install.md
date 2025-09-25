@@ -8,7 +8,7 @@ Before installing the frontend plugin, ensure you have:
 
 1. A working Backstage instance
 2. The Kubernetes Ingestor plugin installed and configured
-3. (Optional) The Crossplane Permissions backend plugin installed
+3. The Crossplane Resources backend plugin (`@terasky/backstage-plugin-crossplane-resources-backend`) installed
 
 ## Installation Steps
 

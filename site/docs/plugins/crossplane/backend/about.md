@@ -1,30 +1,39 @@
-# Crossplane Permissions Backend Plugin
+# Crossplane Resources Backend Plugin
 
-[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-crossplane-permissions-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-crossplane-permissions-backend)
+[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-crossplane-resources-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-crossplane-resources-backend)
 
 ## Overview
 
-The Crossplane Permissions backend plugin provides comprehensive permission management and access control for Crossplane resources within your Backstage instance. It integrates seamlessly with Backstage's permission framework to enforce fine-grained access policies for different types of Crossplane resources.
+The Crossplane Resources backend plugin provides comprehensive functionality for managing Crossplane resources within your Backstage instance. It handles API integration, resource operations, permission management, and MCP actions support, with full compatibility for both Crossplane v1.x and v2.x APIs.
 
 ## Features
 
-### Permission Management
-- Fine-grained access control for Crossplane resources
+### Resource Management
+- Comprehensive resource data retrieval
 - Support for different resource types:
-  - Claims
-  - Composite Resources (XRs)
-  - Managed Resources
+  - Claims and Composite Resources (XRs)
+  - Managed Resources (MRs)
   - Additional Resources (XRD, Composition, Function)
+  - Full v1.x and v2.x API support
 
-### Access Control
+### API Integration
+- Direct Kubernetes API communication
+- Resource data retrieval and processing
+- Event monitoring and streaming
+- Resource graph generation
+- Support for both API versions
+
+### Permission Management
+- Fine-grained access control
 - Resource-level permissions
-- Action-based permissions (list, view YAML, show events)
-- Integration with Backstage's permission framework
+- Action-based permissions
+- Integration with Backstage's framework
 
-### API Endpoints
-- Permission check endpoints
-- Resource access validation
-- Policy enforcement endpoints
+### MCP Actions
+- Resource data retrieval actions
+- Event monitoring actions
+- Resource graph generation
+- Support for both API versions
 
 ## Technical Architecture
 
