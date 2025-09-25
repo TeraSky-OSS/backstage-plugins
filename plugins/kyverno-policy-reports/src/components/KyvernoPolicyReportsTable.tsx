@@ -1,4 +1,5 @@
 import { Fragment, useState, useEffect } from 'react';
+import { KubernetesObject } from '@backstage/plugin-kubernetes';
 import { Table, TableBody, TableCell, TableHead, TableRow, Paper, IconButton, Box, Collapse, Typography, LinearProgress, Chip, Drawer, Button, useTheme } from '@material-ui/core';
 import { configApiRef, useApi } from '@backstage/core-plugin-api';
 import { useEntity } from '@backstage/plugin-catalog-react';
@@ -81,7 +82,17 @@ const KyvernoPolicyReportsTable = () => {
         const fetchPolicyReports = async () => {
             setLoading(true);
             try {
-                const response = await kyvernoApi.getPolicyReports({ entity });
+                if (!entity.metadata.namespace) {
+                    throw new Error('Entity must have a namespace');
+                }
+                const response = await kyvernoApi.getPolicyReports({
+                    entity: {
+                        metadata: {
+                            name: entity.metadata.name,
+                            namespace: entity.metadata.namespace as string
+                        }
+                    }
+                });
                 setPolicyReports(response.items);
             } catch (error) {
                 console.error('Failed to fetch policy reports:', error);
