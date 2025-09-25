@@ -2,6 +2,7 @@ import {
   createBackendPlugin,
   coreServices,
 } from '@backstage/backend-plugin-api';
+import { actionsRegistryServiceRef } from '@backstage/backend-plugin-api/alpha';
 import { createRouter } from './service/router';
 import { educatesPermissions } from '@terasky/backstage-plugin-educates-common';
 import { 
@@ -9,6 +10,8 @@ import {
   educatesWorkshopPermissionResourceRef,
   rules 
 } from './rules';
+import { EducatesService } from './service/EducatesService';
+import { registerMcpActions } from './actions';
 
 /**
  * The Educates backend plugin provides API endpoints for managing Educates workshops.
@@ -25,6 +28,7 @@ export const educatesPlugin = createBackendPlugin({
         permissions: coreServices.permissions,
         permissionsRegistry: coreServices.permissionsRegistry,
         httpAuth: coreServices.httpAuth,
+        actionsRegistry: actionsRegistryServiceRef,
       },
       async init({
         httpRouter,
@@ -33,7 +37,14 @@ export const educatesPlugin = createBackendPlugin({
         permissions,
         permissionsRegistry,
         httpAuth,
+        actionsRegistry,
       }) {
+        // Create the service instance
+        const educatesService = new EducatesService(config, logger);
+
+        // Register MCP actions
+        registerMcpActions(actionsRegistry, educatesService);
+
         // Register permissions
         permissionsRegistry.addPermissions(educatesPermissions);
         
