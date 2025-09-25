@@ -1,18 +1,28 @@
 import {
   createPlugin,
   createComponentExtension,
+  discoveryApiRef,
+  fetchApiRef,
+  createApiFactory,
 } from '@backstage/core-plugin-api';
 
 import { rootRouteRef } from './routes';
+import { kroApiRef, KroApiClient } from './api/KroApi';
 
 export const kroResourcesPlugin = createPlugin({
   id: 'kro-resources',
   routes: {
     root: rootRouteRef,
   },
+  apis: [
+    createApiFactory({
+      api: kroApiRef,
+      deps: { discoveryApi: discoveryApiRef, fetchApi: fetchApiRef },
+      factory: ({ discoveryApi, fetchApi }) => new KroApiClient(discoveryApi, fetchApi),
+    }),
+  ],
 });
 
-// new components with v1 and v2 support
 export const KroResourceTable = kroResourcesPlugin.provide(
   createComponentExtension({
     name: 'KroResourceTable',

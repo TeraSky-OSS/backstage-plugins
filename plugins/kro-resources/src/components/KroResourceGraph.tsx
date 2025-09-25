@@ -20,7 +20,7 @@ import {
 } from '@material-ui/core';
 import { useApi, configApiRef } from '@backstage/core-plugin-api';
 import { KubernetesObject } from '@backstage/plugin-kubernetes';
-import { kubernetesApiRef } from '@backstage/plugin-kubernetes-react';
+import { kroApiRef } from '../api/KroApi';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import * as yaml from 'js-yaml';
 import CloseIcon from '@material-ui/icons/Close';
@@ -564,7 +564,7 @@ const KroResourceGraph = () => {
     const { entity } = useEntity();
     const theme = useTheme();
     const classes = useStyles();
-    const kubernetesApi = useApi(kubernetesApiRef);
+    const kroApi = useApi(kroApiRef);
     const config = useApi(configApiRef);
   const enablePermissions = config.getOptionalBoolean('kro.enablePermissions') ?? false;
     const [resources, setResources] = useState<Array<KubernetesObject>>([]);
@@ -883,108 +883,33 @@ const KroResourceGraph = () => {
             }
 
       try {
-        // Fetch the RGD
-        const rgdResponse = await kubernetesApi.proxy({
-          clusterName,
-          path: `/apis/kro.run/v1alpha1/resourcegraphdefinitions/${rgdName}`,
-          init: { method: 'GET' },
-        });
-        const rgd = await rgdResponse.json();
-
-        // First find the CRD name
-        const crdListResponse = await kubernetesApi.proxy({
-          clusterName,
-          path: `/apis/apiextensions.k8s.io/v1/customresourcedefinitions`,
-          init: { method: 'GET' },
-        });
-        const crdList = await crdListResponse.json();
-        const crdItem = crdList.items.find((item: any) => 
-          item.metadata?.labels?.['kro.run/resource-graph-definition-id'] === rgdId
-        );
-
-        if (!crdItem) {
-          throw new Error('CRD not found for RGD');
+        const crdName = annotations['terasky.backstage.io/kro-rgd-crd-name'];
+        if (!crdName) {
+          throw new Error('CRD name not found in entity annotations');
         }
 
-        // Then fetch the specific CRD to get complete details
-        const crdResponse = await kubernetesApi.proxy({
+        const { resources: kroResources, supportingResources } = await kroApi.getResources({
           clusterName,
-          path: `/apis/apiextensions.k8s.io/v1/customresourcedefinitions/${crdItem.metadata.name}`,
-                        init: { method: 'GET' },
-                    });
-        const crd = await crdResponse.json();
-
-        // Fetch the instance itself
-        const instanceResponse = await kubernetesApi.proxy({
-          clusterName,
-          path: `/apis/kro.run/v1alpha1/namespaces/${namespace}/applications/${entity.metadata.name}`,
-          init: { method: 'GET' },
+          namespace,
+          rgdName,
+          rgdId,
+          instanceId,
+          instanceName: entity.metadata.name,
+          crdName,
         });
-        const instance = await instanceResponse.json();
 
-        // Parse sub-resources from annotation (comma-separated string)
-        const subResources = (annotations['terasky.backstage.io/kro-sub-resources'] || '').split(',').filter(Boolean).map(r => {
-          const [apiVersion, kind] = r.split(':');
-          return { apiVersion, kind };
-        });
-                
-                // Fetch all managed resources
-        const managedResources = await Promise.all(subResources.map(async (resource: any) => {
-          const [group, version] = resource.apiVersion.split('/');
-          // Handle pluralization correctly
-          const pluralMap: Record<string, string> = {
-            'ingress': 'ingresses',
-            'proxy': 'proxies',
-            'index': 'indices',
-            'matrix': 'matrices',
-            'vertex': 'vertices',
-            // Add more special cases as needed
-          };
-          const pluralKind = pluralMap[resource.kind.toLowerCase()] || `${resource.kind.toLowerCase()}s`;
-          const path = group === 'v1' || group === 'core'
-            ? `/api/v1/namespaces/${namespace}/${pluralKind}`
-            : `/apis/${group}/${version}/namespaces/${namespace}/${pluralKind}`;
+        // Extract RGD, CRD, instance, and managed resources
+        const rgd = supportingResources.find(r => r.kind === 'ResourceGraphDefinition');
+        const crd = supportingResources.find(r => r.kind === 'CustomResourceDefinition');
+        const instance = kroResources.find(r => r.type === 'Instance')?.resource;
+        const managedResources = kroResources.filter(r => r.type === 'Resource').map(r => r.resource);
 
-          try {
-            // First get the list of resources
-            const response = await kubernetesApi.proxy({
-              clusterName,
-              path: path + '?' + new URLSearchParams({
-                labelSelector: [
-                  'kro.run/owned=true',
-                  `kro.run/instance-id=${instanceId}`,
-                  `kro.run/resource-graph-definition-id=${rgdId}`,
-                ].join(','),
-              }).toString(),
-              init: { method: 'GET' },
-            });
-            const resourceList = await response.json();
+        if (!rgd || !crd || !instance) {
+          throw new Error('Missing required resources');
+        }
 
-            // Then fetch each resource individually to get complete details
-            const resourcePromises = (resourceList.items || []).map(async (item: any) => {
-                    const resourceResponse = await kubernetesApi.proxy({
-                clusterName,
-                path: `${path}/${item.metadata.name}`,
-                        init: { method: 'GET' },
-                    });
-              const fullResource = await resourceResponse.json();
-              // Ensure apiVersion and kind are set correctly
-              return {
-                ...fullResource,
-                apiVersion: resourceList.apiVersion,
-                kind: resourceList.kind.replace('List', '')
-              };
-            });
-            
-            return Promise.all(resourcePromises);
-          } catch (error) {
-            console.error(`Failed to fetch ${resource.kind} resources:`, error);
-            return [];
-          }
-        }));
-
-        setResources([rgd, crd, instance, ...managedResources.flat()]);
-        generateGraphElements([rgd, crd, instance, ...managedResources.flat()]);
+        setResources([rgd, crd, instance, ...managedResources]);
+        generateGraphElements([rgd, crd, instance, ...managedResources]);
             } catch (error) {
                 console.error('Failed to fetch resources:', error);
                 setResources([]);
@@ -996,29 +921,27 @@ const KroResourceGraph = () => {
         };
 
         fetchResources();
-    }, [kubernetesApi, entity, canShowResourceGraph]);
+    }, [kroApi, entity, canShowResourceGraph]);
 
     const handleGetEvents = async (resource: KubernetesObject) => {
         const namespace = resource.metadata?.namespace || 'default';
         const name = resource.metadata?.name;
-    const clusterName = entity.metadata.annotations?.['backstage.io/managed-by-location'].split(": ")[1];
+        const clusterName = entity.metadata.annotations?.['backstage.io/managed-by-location']?.split(": ")[1];
 
-    if (!namespace || !name || !clusterName) {
-      console.warn('Missing required data for fetching events:', { namespace, name, clusterName });
+        if (!namespace || !name || !clusterName) {
+            console.warn('Missing required data for fetching events:', { namespace, name, clusterName });
             return;
         }
 
         setLoadingEvents(true);
-        const url = `/api/v1/namespaces/${namespace}/events?fieldSelector=involvedObject.name=${name}`;
-
         try {
-            const response = await kubernetesApi.proxy({
-        clusterName,
-                path: url,
-                init: { method: 'GET' },
+            const { events: resourceEvents } = await kroApi.getEvents({
+                clusterName,
+                namespace,
+                resourceName: name,
+                resourceKind: resource.kind || '',
             });
-            const eventsResponse = await response.json();
-            setEvents(eventsResponse.items || []);
+            setEvents(resourceEvents);
         } catch (error) {
             console.error('Failed to fetch events:', error);
             setEvents([]);

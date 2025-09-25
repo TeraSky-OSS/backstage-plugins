@@ -1,5 +1,7 @@
 import { createPermission } from '@backstage/plugin-permission-common';
 
+export * from './types';
+
 export const listInstancesPermission = createPermission({
   name: 'kro.instances.list',
   attributes: { action: 'read' },

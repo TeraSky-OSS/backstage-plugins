@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, Typography, Box, Grid, Tooltip, makeStyles } from '@material-ui/core';
 import { useApi } from '@backstage/core-plugin-api';
-import { kubernetesApiRef } from '@backstage/plugin-kubernetes-react';
+import { kroApiRef } from '../api/KroApi';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { usePermission } from '@backstage/plugin-permission-react';
 import { showOverview } from '@terasky/backstage-plugin-kro-common';
@@ -24,7 +24,7 @@ const useStyles = makeStyles((theme) => ({
 
 const KroOverviewCard = () => {
   const { entity } = useEntity();
-  const kubernetesApi = useApi(kubernetesApiRef);
+  const kroApi = useApi(kroApiRef);
   const config = useApi(configApiRef);
   const enablePermissions = config.getOptionalBoolean('kro.enablePermissions') ?? false;
   const { allowed: canShowOverviewTemp } = usePermission({ permission: showOverview });
@@ -49,29 +49,33 @@ const KroOverviewCard = () => {
       }
 
       try {
-        // Fetch the RGD
-        const response = await kubernetesApi.proxy({
-          clusterName,
-          path: `/apis/kro.run/v1alpha1/resourcegraphdefinitions/${rgdName}`,
-          init: { method: 'GET' },
-        });
-        const rgdResource = await response.json();
-        setRgd(rgdResource);
+        const crdName = annotations['terasky.backstage.io/kro-rgd-crd-name'];
+        if (!crdName) {
+          throw new Error('CRD name not found in entity annotations');
+        }
 
-        // Fetch the instance
-        const instanceResponse = await kubernetesApi.proxy({
+        const { resources, supportingResources } = await kroApi.getResources({
           clusterName,
-          path: `/apis/kro.run/v1alpha1/namespaces/${namespace}/applications/${entity.metadata.name}`,
-          init: { method: 'GET' },
+          namespace,
+          rgdName,
+          rgdId,
+          instanceId: annotations['terasky.backstage.io/kro-instance-uid'],
+          instanceName: entity.metadata.name,
+          crdName,
         });
-        const instanceResource = await instanceResponse.json();
+
+        // Find RGD and instance in the response
+        const rgdResource = supportingResources.find(r => r.kind === 'ResourceGraphDefinition');
+        const instanceResource = resources.find(r => r.type === 'Instance')?.resource;
+
+        setRgd(rgdResource);
         setInstance(instanceResource);
       } catch (error) {
         console.error('Failed to fetch RGD:', error);
       }
     };
     fetchResources();
-  }, [kubernetesApi, entity, canShowOverview]);
+  }, [kroApi, entity, canShowOverview]);
 
   if (!canShowOverview) {
     return (
