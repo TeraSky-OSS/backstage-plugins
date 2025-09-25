@@ -22,7 +22,7 @@
     "pluginId": "kyverno",
     "pluginPackages": [
       "@terasky/backstage-plugin-kyverno-common",
-      "@terasky/backstage-plugin-kyverno-permissions-backend"
+      "@terasky/backstage-plugin-kyverno-policy-reports-backend"
     ]
   },
   "sideEffects": false,

@@ -1,15 +1,26 @@
 import {
   createPlugin,
   createComponentExtension,
+  discoveryApiRef,
+  fetchApiRef,
+  createApiFactory,
 } from '@backstage/core-plugin-api';
 
 import { rootRouteRef } from './routes';
+import { kyvernoApiRef, KyvernoApiClient } from './api/KyvernoApi';
 
 export const kyvernoPolicyReportsPlugin = createPlugin({
   id: 'kyverno-policy-reports',
   routes: {
     root: rootRouteRef,
   },
+  apis: [
+    createApiFactory({
+      api: kyvernoApiRef,
+      deps: { discoveryApi: discoveryApiRef, fetchApi: fetchApiRef },
+      factory: ({ discoveryApi, fetchApi }) => new KyvernoApiClient(discoveryApi, fetchApi),
+    }),
+  ],
 });
 
 export const KyvernoPolicyReportsTable = kyvernoPolicyReportsPlugin.provide(
@@ -47,4 +58,3 @@ export const KyvernoCrossplanePolicyReportsTable = kyvernoPolicyReportsPlugin.pr
     },
   }),
 );
-// KyvernoCrossplanePolicyReportsTable
