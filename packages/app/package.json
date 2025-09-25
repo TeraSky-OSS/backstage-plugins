@@ -43,7 +43,7 @@
     "@material-ui/core": "^4.12.4",
     "@material-ui/icons": "^4.11.3",
     "@terasky/backstage-plugin-ai-rules": "^1.0.2",
-    "@terasky/backstage-plugin-crossplane-resources-frontend": "^2.2.2",
+    "@terasky/backstage-plugin-crossplane-resources-frontend": "^2.3.0",
     "@terasky/backstage-plugin-devpod": "^1.2.2",
     "@terasky/backstage-plugin-educates": "^1.2.2",
     "@terasky/backstage-plugin-entity-scaffolder-content": "^1.1.2",
