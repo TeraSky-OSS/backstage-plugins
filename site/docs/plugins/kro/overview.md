@@ -6,9 +6,24 @@ The KRO plugins for Backstage provide a comprehensive solution for managing and 
 
 The KRO plugin suite consists of several components:
 
-- **Frontend Plugin (`kro-resources`)**: Provides visualization and management capabilities for KRO resources
-- **Backend Plugin (`kro-permissions`)**: Handles permission management and access control
-- **Common Library (`kro-common`)**: Shared utilities and permission definitions
+- **Frontend Plugin (`@terasky/backstage-plugin-kro-resources-frontend`)**: 
+  - Provides visualization and management capabilities for KRO resources
+  - Displays resource graphs and relationships
+  - Shows YAML configurations and events
+  - Integrates with Backstage's permission framework
+
+- **Backend Plugin (`@terasky/backstage-plugin-kro-resources-backend`)**:
+  - Handles API integration with Kubernetes clusters
+  - Manages resource data retrieval and processing
+  - Provides endpoints for resource operations
+  - Implements permission management and access control
+  - Exposes MCP actions for programmatic access
+
+- **Common Library (`@terasky/backstage-plugin-kro-common`)**:
+  - Shared utilities and types
+  - Permission definitions
+  - Common interfaces for frontend and backend
+  - Resource type definitions
 
 ## Key Features
 

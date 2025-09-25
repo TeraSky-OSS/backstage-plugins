@@ -1,4 +1,4 @@
-# Installing the KRO Permissions Backend Plugin
+# Installing the KRO Resources Backend Plugin
 
 ## Prerequisites
 
@@ -8,36 +8,24 @@
 
 ## Installation Steps
 
-1. Install the plugin package:
+1. Install the required packages:
 
 ```bash
 # From your Backstage root directory
-yarn add --cwd packages/backend @terasky/backstage-plugin-kro-permissions-backend
+yarn --cwd packages/backend add @terasky/backstage-plugin-kro-resources-backend 
 ```
-
-2. Create a new file for the plugin:
-
-```ts
-// packages/backend/src/plugins/kro.ts
-import { createRouter } from '@terasky/backstage-plugin-kro-permissions-backend';
-import { Router } from 'express';
-import { PluginEnvironment } from '../types';
-
-export default async function createPlugin(
-  env: PluginEnvironment,
-): Promise<Router> {
-  return await createRouter({
-    logger: env.logger,
-    config: env.config,
-    discovery: env.discovery,
-    permissions: env.permissions,
-  });
-}
-```
-
-3. Add the plugin to your backend:
+2. Add the plugin to your backend:
 
 ```ts
 // In your backend initialization
-backend.add(import('@terasky/backstage-plugin-kro-permissions-backend'));
+backend.add(import('@terasky/backstage-plugin-kro-resources-backend'));
 ```
+
+## Troubleshooting
+
+Common issues and solutions:
+
+1. **Permission Errors**: Ensure the service account has necessary RBAC permissions
+2. **Connection Issues**: Verify Kubernetes cluster configuration
+3. **Missing Dependencies**: Check all required packages are installed
+4. **MCP Action Errors**: Verify MCP configuration in app-config.yaml

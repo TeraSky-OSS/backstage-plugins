@@ -1,4 +1,4 @@
-# Configuring the KRO Permissions Backend Plugin
+# Configuring the KRO Resources Backend Plugin
 
 ## Configuration Options
 

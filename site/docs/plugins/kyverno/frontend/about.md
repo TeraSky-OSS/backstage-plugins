@@ -1,10 +1,10 @@
 # Kyverno Policy Reports Frontend Plugin
 
-[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-kyverno-policy-reports-frontend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-kyverno-policy-reports-frontend)
+[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-kyverno-policy-reports/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-kyverno-policy-reports)
 
 ## Overview
 
-The Kyverno Policy Reports frontend plugin enhances your Backstage instance with comprehensive visualization capabilities for Kyverno policy reports. It provides detailed insights into policy compliance, violations, and overall security posture of your Kubernetes resources.
+The Kyverno Policy Reports frontend plugin (`@terasky/backstage-plugin-kyverno-policy-reports`) enhances your Backstage instance with comprehensive visualization capabilities for Kyverno policy reports. It provides detailed insights into policy compliance, violations, and overall security posture of your Kubernetes resources, with special support for Crossplane resources.
 
 ## Features
 

@@ -1,27 +1,44 @@
-# Kyverno Permissions Backend Plugin
+# Kyverno Policy Reports Backend Plugin
 
-[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-kyverno-permissions-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-kyverno-permissions-backend)
+[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-kyverno-policy-reports-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-kyverno-policy-reports-backend)
 
 ## Overview
 
-The Kyverno Permissions backend plugin provides integration with Backstage's permission framework to enable fine-grained access control for Kyverno policy reports. This plugin ensures secure and controlled access to policy information within your Backstage instance.
+The Kyverno Policy Reports backend plugin (`@terasky/backstage-plugin-kyverno-policy-reports-backend`) provides comprehensive functionality for managing Kyverno policy reports in your Backstage instance. This includes API integration with Kubernetes clusters, policy report retrieval and processing, permission management, and MCP actions support.
 
 ## Features
+
+### Kubernetes Integration
+- Direct communication with Kubernetes API server
+- Policy report retrieval and processing
+- Support for both namespaced and cluster-scoped policies
+- Real-time policy status monitoring
+
+### Policy Report Management
+- Comprehensive policy report retrieval
+- Policy YAML manifest access
+- Policy status tracking
+- Support for Crossplane resources
+- Event monitoring and aggregation
 
 ### Permission Management
 - Integration with Backstage's permission framework
 - Fine-grained access control for policy reports
 - Configurable permission policies
+- Role-based access control
 
-### Access Control
-- Policy report viewing permissions
-- YAML manifest access control
-- Overview data access management
+### MCP Actions Support
+- Policy report retrieval actions
+- Policy details access
+- Integration with Backstage's actions framework
+- Programmatic access to policy data
 
 ### API Integration
-- Secure endpoints for policy data
+- RESTful API endpoints
+- Secure data access
 - Permission validation middleware
-- Integration with frontend components
+- Frontend component integration
+- Kubernetes API proxy support
 
 ## Technical Details
 
