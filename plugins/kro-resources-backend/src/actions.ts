@@ -4,8 +4,8 @@ import { KubernetesService } from './service/KubernetesService';
 export function registerMcpActions(actionsRegistry: typeof actionsRegistryServiceRef.T, service: KubernetesService) {
   // Get Resources
   actionsRegistry.register({
-    name: 'get_resources',
-    title: 'Get Resources',
+    name: 'get_kro_resources',
+    title: 'Get KRO Resources',
     description: 'Get all resources for a KRO instance',
     schema: {
       input: z => z.object({
@@ -58,9 +58,9 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
 
   // Get Events
   actionsRegistry.register({
-    name: 'get_events',
-    title: 'Get Events',
-    description: 'Get events for a Kubernetes resource',
+    name: 'get_kro_resource_events',
+    title: 'Get KRO Resource Events',
+    description: 'Get events for a Kubernetes resource managed by KRO',
     schema: {
       input: z => z.object({
         clusterName: z.string().describe('The name of the Kubernetes cluster'),
@@ -106,8 +106,8 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
 
   // Get Resource Graph
   actionsRegistry.register({
-    name: 'get_resource_graph',
-    title: 'Get Resource Graph',
+    name: 'get_kro_resource_graph',
+    title: 'Get KRO Resource Graph',
     description: 'Get the resource graph for a KRO instance',
     schema: {
       input: z => z.object({

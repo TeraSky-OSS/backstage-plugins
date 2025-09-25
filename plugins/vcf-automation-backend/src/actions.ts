@@ -4,9 +4,9 @@ import { VcfAutomationService } from './services/VcfAutomationService';
 export function registerMcpActions(actionsRegistry: typeof actionsRegistryServiceRef.T, service: VcfAutomationService) {
   // Get VCFA Instances
   actionsRegistry.register({
-    name: 'get_vcfa_instances',
-    title: 'Get VCFA Instances',
-    description: 'Returns the configured VCFA instances within Backstage',
+    name: 'get_vcf_automation_instances',
+    title: 'Get VCF Automation Instances',
+    description: 'Returns the configured VCF Automation instances within Backstage',
     schema: {
       input: z => z.object({}),
       output: z => z.object({
@@ -39,9 +39,9 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
 
   // Get VCFA Projects
   actionsRegistry.register({
-    name: 'get_vcfa_projects',
-    title: 'Get VCFA Projects',
-    description: 'Lists the projects in a VCFA instance',
+    name: 'get_vcf_automation_projects',
+    title: 'Get VCF Automation Projects',
+    description: 'Lists the projects in a VCF Automation instance',
     schema: {
       input: z => z.object({
         instanceName: z.string().optional().describe('The name of the VCFA instance. If not provided, uses the default instance.'),
@@ -71,9 +71,9 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
 
   // Get VCFA Project Details
   actionsRegistry.register({
-    name: 'get_vcfa_project_details',
-    title: 'Get VCFA Project Details',
-    description: 'Returns detailed information about a specific VCFA project',
+    name: 'get_vcf_automation_project_details',
+    title: 'Get VCF Automation Project Details',
+    description: 'Returns detailed information about a specific VCF Automation project',
     schema: {
       input: z => z.object({
         projectId: z.string().describe('The ID of the project'),
@@ -98,9 +98,9 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
 
   // Get Supervisor Namespaces
   actionsRegistry.register({
-    name: 'get_supervisor_namespaces',
-    title: 'Get Supervisor Namespaces',
-    description: 'Lists all supervisor namespaces in a VCFA instance',
+    name: 'get_supervisor_namespaces_from_vcf_automation',
+    title: 'Get Supervisor Namespaces from VCF Automation',
+    description: 'Lists all supervisor namespaces in a VCF Automation instance',
     schema: {
       input: z => z.object({
         instanceName: z.string().optional().describe('The name of the VCFA instance. If not provided, uses the default instance.'),
@@ -124,9 +124,9 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
 
   // Get Supervisor Namespace Details
   actionsRegistry.register({
-    name: 'get_supervisor_namespace',
-    title: 'Get Supervisor Namespace Details',
-    description: 'Returns detailed information about a specific supervisor namespace',
+    name: 'get_supervisor_namespace_from_vcf_automation',
+    title: 'Get Supervisor Namespace Details from VCF Automation',
+    description: 'Returns detailed information about a specific supervisor namespace in VCF Automation',
     schema: {
       input: z => z.object({
         namespaceId: z.string().describe('The ID of the supervisor namespace'),
@@ -151,9 +151,9 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
 
   // Get Deployments
   actionsRegistry.register({
-    name: 'get_deployments',
-    title: 'Get Deployments',
-    description: 'Lists all deployments in a VCFA instance',
+    name: 'get_vcf_automation_deployments',
+    title: 'Get Deployments from VCF Automation',
+    description: 'Lists all deployments in a VCF Automation instance',
     schema: {
       input: z => z.object({
         instanceName: z.string().optional().describe('The name of the VCFA instance. If not provided, uses the default instance.'),
@@ -177,9 +177,9 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
 
   // Get Deployment Details
   actionsRegistry.register({
-    name: 'get_deployment_details',
-    title: 'Get Deployment Details',
-    description: 'Returns detailed information about a specific deployment',
+    name: 'get_vcf_automation_deployment_details',
+    title: 'Get Deployment Details from VCF Automation',
+    description: 'Returns detailed information about a specific deployment in VCF Automation',
     schema: {
       input: z => z.object({
         deploymentId: z.string().describe('The ID of the deployment'),
@@ -218,9 +218,9 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
 
   // VM Power Management (unified for both standalone and deployment-managed VMs)
   actionsRegistry.register({
-    name: 'vm_power_action',
-    title: 'VM Power Action',
-    description: 'Execute power actions (power on/off) on VMs, supporting both standalone and deployment-managed VMs',
+    name: 'vm_power_action_from_vcf_automation',
+    title: 'VM Power Action from VCF Automation',
+    description: 'Execute power actions (power on/off) on VMs, supporting both standalone and deployment-managed VMs in VCF Automation',
     schema: {
       input: z => z.object({
         // Common parameters
@@ -355,9 +355,9 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
 
   // Get Resource Details
   actionsRegistry.register({
-    name: 'get_resource_details',
-    title: 'Get Resource Details',
-    description: 'Get details of a specific resource in a deployment',
+    name: 'get_resource_details_from_vcf_automation',
+    title: 'Get Resource Details from VCF Automation',
+    description: 'Get details of a specific resource in a deployment in VCF Automation',
     schema: {
       input: z => z.object({
         deploymentId: z.string().describe('The ID of the deployment'),
@@ -383,9 +383,9 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
 
   // Get Supervisor Resources
   actionsRegistry.register({
-    name: 'get_supervisor_resources',
-    title: 'Get Supervisor Resources',
-    description: 'List all supervisor resources',
+    name: 'get_supervisor_resources_from_vcf_automation',
+    title: 'Get Supervisor Resources from VCF Automation',
+    description: 'List all supervisor resources in VCF Automation',
     schema: {
       input: z => z.object({
         instanceName: z.string().optional().describe('The name of the VCFA instance. If not provided, uses the default instance.'),
@@ -409,9 +409,9 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
 
   // Get Supervisor Resource
   actionsRegistry.register({
-    name: 'get_supervisor_resource',
-    title: 'Get Supervisor Resource',
-    description: 'Get details of a specific supervisor resource',
+    name: 'get_supervisor_resource_from_vcf_automation',
+    title: 'Get Supervisor Resource from VCF Automation',
+    description: 'Get details of a specific supervisor resource in VCF Automation',
     schema: {
       input: z => z.object({
         resourceId: z.string().describe('The ID of the supervisor resource'),
@@ -436,9 +436,9 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
 
   // Get Supervisor Resource Manifest
   actionsRegistry.register({
-    name: 'get_supervisor_resource_manifest',
-    title: 'Get Supervisor Resource Manifest',
-    description: 'Get manifest of a supervisor resource',
+    name: 'get_vcf_automation_supervisor_resource_manifest',
+    title: 'Get Supervisor Resource Manifest from VCF Automation',
+    description: 'Get manifest of a supervisor resource in VCF Automation',
     schema: {
       input: z => z.object({
         namespaceUrnId: z.string().describe('The URN ID of the namespace'),
@@ -474,9 +474,9 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
 
   // Update Supervisor Resource Manifest
   actionsRegistry.register({
-    name: 'update_supervisor_resource_manifest',
-    title: 'Update Supervisor Resource Manifest',
-    description: 'Update manifest of a supervisor resource',
+    name: 'update_vcf_automation_supervisor_resource_manifest',
+    title: 'Update Supervisor Resource Manifest from VCF Automation',
+    description: 'Update manifest of a supervisor resource in VCF Automation',
     schema: {
       input: z => z.object({
         namespaceUrnId: z.string().describe('The URN ID of the namespace'),
