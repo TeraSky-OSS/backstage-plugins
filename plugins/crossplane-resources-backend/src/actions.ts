@@ -1,7 +1,106 @@
 import { actionsRegistryServiceRef } from '@backstage/backend-plugin-api/alpha';
+import { CatalogService } from '@backstage/plugin-catalog-node';
+import { ConflictError, InputError } from '@backstage/errors';
 import { KubernetesService } from './service/KubernetesService';
 
-export function registerMcpActions(actionsRegistry: typeof actionsRegistryServiceRef.T, service: KubernetesService) {
+interface V2CrossplaneInfo {
+  clusterName: string;
+  name: string;
+  group: string;
+  version: string;
+  plural: string;
+  kind: string;
+  scope: 'Namespaced' | 'Cluster';
+  namespace: string;
+}
+
+interface V1CrossplaneInfo {
+  clusterName: string;
+  claimName: string;
+  namespace: string;
+}
+
+type CrossplaneInfo = V1CrossplaneInfo | V2CrossplaneInfo;
+
+async function getEntityAndCrossplaneInfo(catalog: CatalogService, name: string, kind: string = 'component', namespace: string = 'default', credentials?: any): Promise<{ entity: any; crossplaneInfo: CrossplaneInfo }> {
+  const filter: Record<string, string> = { 'metadata.name': name };
+  filter.kind = kind;
+  filter['metadata.namespace'] = namespace;
+
+  const { items } = await catalog.queryEntities(
+    { filter },
+    { credentials },
+  );
+
+  if (items.length === 0) {
+    throw new InputError(`No entity found with name "${name}"`);
+  }
+
+  if (items.length > 1) {
+    throw new ConflictError(
+      `Multiple entities found with name "${name}", please provide more specific filters.`,
+    );
+  }
+
+  const [entity] = items;
+  const annotations = entity.metadata.annotations || {};
+  const clusterLocation = annotations['backstage.io/managed-by-location'];
+  
+  if (!clusterLocation) {
+    throw new InputError('Entity is missing required annotation: backstage.io/managed-by-location');
+  }
+
+  const clusterName = clusterLocation.split(': ')[1];
+  const version = entity?.metadata?.annotations?.['terasky.backstage.io/crossplane-version'] || 'v1';
+  // Determine mode based on entity kind
+  const isV2 = version === 'v2';
+  const isV1 = version === 'v1';
+
+  if (!isV1 && !isV2) {
+    throw new InputError('Entity must be of type crossplane-xr or crossplane-claim');
+  }
+
+  if (isV2) {
+    // Extract V2 (composite) annotations
+    const crossplaneInfo = {
+      clusterName,
+      name: annotations['terasky.backstage.io/composite-name'],
+      group: annotations['terasky.backstage.io/composite-group'],
+      version: annotations['terasky.backstage.io/composite-version'],
+      plural: annotations['terasky.backstage.io/composite-plural'],
+      kind: annotations['terasky.backstage.io/composite-kind'],
+      scope: annotations['terasky.backstage.io/crossplane-scope'] as 'Namespaced' | 'Cluster',
+      namespace: entity.metadata.namespace || annotations['namespace'] || 'default',
+    };
+
+    // Validate required annotations
+    const missingAnnotations = Object.entries(crossplaneInfo)
+      .filter(([key, value]) => !value && key !== 'namespace')
+      .map(([key]) => `terasky.backstage.io/composite-${key}`);
+
+    if (missingAnnotations.length > 0) {
+      throw new InputError(`Entity is missing required annotations: ${missingAnnotations.join(', ')}`);
+    }
+
+    return { entity, crossplaneInfo };
+  } else {
+    // Extract V1 (claim) annotations
+    const claimName = annotations['terasky.backstage.io/claim-name'];
+    if (!claimName) {
+      throw new InputError('Entity is missing required annotation: terasky.backstage.io/claim-name');
+    }
+
+    const crossplaneInfo = {
+      clusterName,
+      claimName,
+      namespace: entity.metadata.namespace || annotations['namespace'] || 'default',
+    };
+
+    return { entity, crossplaneInfo };
+  }
+}
+
+export function registerMcpActions(actionsRegistry: typeof actionsRegistryServiceRef.T, service: KubernetesService, catalog: CatalogService) {
   // Get Crossplane Resources
   actionsRegistry.register({
     name: 'get_crossplane_resources',
@@ -9,13 +108,9 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
     description: 'Returns Crossplane resources and their dependencies',
     schema: {
       input: z => z.object({
-        clusterName: z.string().describe('The name of the cluster'),
-        namespace: z.string().optional().describe('The namespace of the resource'),
-        group: z.string().describe('The API group of the resource'),
-        version: z.string().describe('The API version of the resource'),
-        plural: z.string().describe('The plural name of the resource'),
-        name: z.string().describe('The name of the resource'),
-        kind: z.string().optional().describe('The kind of the resource'),
+        backstageEntityName: z.string().describe('The name of the Backstage entity'),
+        backstageEntityKind: z.string().describe('The kind of the Backstage entity. Defaults to component.').optional(),
+        backstageEntityNamespace: z.string().describe('The namespace of the Backstage entity. Defaults to default.').optional(),
       }),
       output: z => z.object({
         resources: z.array(z.object({
@@ -37,11 +132,49 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
         supportingResources: z.array(z.object({}).passthrough()).describe('Additional supporting resources'),
       }),
     },
-    action: async ({ input }) => {
+    action: async ({ input, credentials }) => {
       try {
-        const result = await service.getResources(input);
-        // Convert resources to plain objects with all properties
-        // Convert everything to plain objects using JSON serialization
+        const { items } = await catalog.queryEntities(
+          { filter: { 'metadata.name': input.backstageEntityName } },
+          { credentials },
+        );
+        if (!items.length) throw new Error('Entity not found');
+        const entity = items[0];
+        const annotations = entity.metadata.annotations || {};
+        const clusterName = annotations['backstage.io/managed-by-location'].split(': ')[1];
+        const version = annotations['terasky.backstage.io/crossplane-version'] || 'v1';
+        let result;
+        if (version === 'v2') {
+          const scope = annotations['terasky.backstage.io/crossplane-scope'] || 'Namespaced';
+          if (scope === 'Namespaced') {
+            result = await service.getResources({
+              clusterName,
+              namespace: entity.metadata.namespace || 'default',
+              group: annotations['terasky.backstage.io/composite-group'],
+              version: annotations['terasky.backstage.io/composite-version'],
+              plural: annotations['terasky.backstage.io/composite-plural'],
+              name: annotations['terasky.backstage.io/composite-name'],
+            });
+          } else {
+            result = await service.getResources({
+              clusterName,
+              name: annotations['terasky.backstage.io/composite-name'],
+              group: annotations['terasky.backstage.io/composite-group'],
+              version: annotations['terasky.backstage.io/composite-version'],
+              plural: annotations['terasky.backstage.io/composite-plural'],
+            });
+          }
+        } else {
+          result = await service.getResources({
+            clusterName,
+            namespace: entity.metadata.namespace || 'default',
+            name: annotations['terasky.backstage.io/claim-name'],
+            group: annotations['terasky.backstage.io/claim-group'],
+            version: annotations['terasky.backstage.io/claim-version'],
+            plural: annotations['terasky.backstage.io/claim-plural'],
+          });
+        }
+
         const plainResult = JSON.parse(JSON.stringify(result));
         return {
           output: plainResult,
@@ -59,10 +192,12 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
     description: 'Returns events for a specific Crossplane resource',
     schema: {
       input: z => z.object({
-        clusterName: z.string().describe('The name of the cluster'),
-        namespace: z.string().describe('The namespace of the resource'),
-        resourceName: z.string().describe('The name of the resource'),
-        resourceKind: z.string().describe('The kind of the resource'),
+        backstageEntityName: z.string().describe('The name of the Backstage entity'),
+        backstageEntityKind: z.string().describe('The kind of the Backstage entity. Defaults to component.').optional(),
+        backstageEntityNamespace: z.string().describe('The namespace of the Backstage entity. Defaults to default.').optional(),
+        kubernetesNamespace: z.string().describe('The namespace of the Kubernetes resource'),
+        kubernetesResourceName: z.string().describe('The name of the Kubernetes resource'),
+        kubernetesResourceKind: z.string().describe('The kind of the Kubernetes resource'),
       }),
       output: z => z.object({
         events: z.array(z.object({
@@ -85,9 +220,23 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
         })),
       }),
     },
-    action: async ({ input }) => {
+    action: async ({ input, credentials }) => {
       try {
-        const result = await service.getEvents(input);
+        const { crossplaneInfo } = await getEntityAndCrossplaneInfo(
+          catalog,
+          input.backstageEntityName,
+          input.backstageEntityKind,
+          input.backstageEntityNamespace,
+          credentials
+        );
+
+        const result = await service.getEvents({
+          clusterName: crossplaneInfo.clusterName,
+          namespace: input.kubernetesNamespace,
+          resourceName: input.kubernetesResourceName,
+          resourceKind: input.kubernetesResourceKind,
+        });
+        
         // Convert events to plain objects and ensure required fields are present
         const plainResult = JSON.parse(JSON.stringify(result));
         return {
@@ -106,24 +255,57 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
     description: 'Returns a graph of related Crossplane resources (V1 API)',
     schema: {
       input: z => z.object({
-        clusterName: z.string().describe('The name of the cluster'),
-        namespace: z.string().describe('The namespace of the resource'),
-        xrdName: z.string().describe('The name of the XRD'),
-        xrdId: z.string().describe('The ID of the XRD'),
-        claimId: z.string().describe('The ID of the claim'),
-        claimName: z.string().describe('The name of the claim'),
-        claimGroup: z.string().describe('The API group of the claim'),
-        claimVersion: z.string().describe('The API version of the claim'),
-        claimPlural: z.string().describe('The plural name of the claim'),
+        backstageEntityName: z.string().describe('The name of the Backstage entity'),
+        backstageEntityKind: z.string().describe('The kind of the Backstage entity. Defaults to component.').optional(),
+        backstageEntityNamespace: z.string().describe('The namespace of the Backstage entity. Defaults to default.').optional(),
       }),
       output: z => z.object({
         resources: z.array(z.object({}).passthrough()).describe('The resources in the graph'),
       }),
     },
-    action: async ({ input }) => {
+    action: async ({ input, credentials }) => {
       try {
-        const result = await service.getResourceGraph(input);
-        // Convert resources to plain objects
+        const { items } = await catalog.queryEntities(
+          { filter: { 'metadata.name': input.backstageEntityName } },
+          { credentials },
+        );
+        if (!items.length) throw new Error('Entity not found');
+        const entity = items[0];
+        const annotations = entity.metadata.annotations || {};
+        const clusterName = annotations['backstage.io/managed-by-location'].split(': ')[1];
+        const version = annotations['terasky.backstage.io/crossplane-version'] || 'v1';
+        const namespace = entity.metadata.namespace || 'default';
+
+        let result;
+        if (version === 'v2') {
+          result = await service.getV2ResourceGraph({
+            clusterName,
+            namespace,
+            name: annotations['terasky.backstage.io/composite-name'],
+            group: annotations['terasky.backstage.io/composite-group'],
+            version: annotations['terasky.backstage.io/composite-version'],
+            plural: annotations['terasky.backstage.io/composite-plural'],
+            scope: (annotations['terasky.backstage.io/crossplane-scope'] || 'Namespaced') as 'Namespaced' | 'Cluster',
+          });
+        } else {
+          const claimName = annotations['terasky.backstage.io/claim-name'];
+          const claimGroup = annotations['terasky.backstage.io/claim-group'];
+          const claimVersion = annotations['terasky.backstage.io/claim-version'];
+          const claimPlural = annotations['terasky.backstage.io/claim-plural'];
+
+          result = await service.getResourceGraph({
+            clusterName,
+            namespace,
+            xrdName: claimName,
+            xrdId: claimName,
+            claimId: claimName,
+            claimName,
+            claimGroup,
+            claimVersion,
+            claimPlural,
+          });
+        }
+
         const plainResult = JSON.parse(JSON.stringify(result));
         return {
           output: plainResult,
@@ -134,36 +316,4 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
     },
   });
 
-  // Get Crossplane Resource Graph (V2)
-  actionsRegistry.register({
-    name: 'get_crossplane_v2_resource_graph',
-    title: 'Get Crossplane V2 Resource Graph',
-    description: 'Returns a graph of related Crossplane resources (V2 API)',
-    schema: {
-      input: z => z.object({
-        clusterName: z.string().describe('The name of the cluster'),
-        namespace: z.string().describe('The namespace of the resource'),
-        name: z.string().describe('The name of the resource'),
-        group: z.string().describe('The API group of the resource'),
-        version: z.string().describe('The API version of the resource'),
-        plural: z.string().describe('The plural name of the resource'),
-        scope: z.enum(['Namespaced', 'Cluster']).describe('The scope of the resource'),
-      }),
-      output: z => z.object({
-        resources: z.array(z.object({}).passthrough()).describe('The resources in the graph'),
-      }),
-    },
-    action: async ({ input }) => {
-      try {
-        const result = await service.getV2ResourceGraph(input);
-        // Convert resources to plain objects
-        const plainResult = JSON.parse(JSON.stringify(result));
-        return {
-          output: plainResult,
-        };
-      } catch (error) {
-        throw new Error(`Failed to get Crossplane V2 resource graph: ${error}`);
-      }
-    },
-  });
 }

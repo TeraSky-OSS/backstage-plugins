@@ -7,7 +7,7 @@ import { createRouter } from './service/router';
 import { crossplanePermissions } from '@terasky/backstage-plugin-crossplane-common';
 import { KubernetesService } from './service/KubernetesService';
 import { registerMcpActions } from './actions';
-
+import { catalogServiceRef } from '@backstage/plugin-catalog-node';
 /**
  * crossplaneResourcesPlugin backend plugin
  *
@@ -25,6 +25,7 @@ export const crossplaneResourcesBackendPlugin = createBackendPlugin({
         discovery: coreServices.discovery,
         auth: coreServices.auth,
         actionsRegistry: actionsRegistryServiceRef,
+        catalogService: catalogServiceRef,
       },
       async init({
         httpRouter,
@@ -34,6 +35,7 @@ export const crossplaneResourcesBackendPlugin = createBackendPlugin({
         discovery,
         auth,
         actionsRegistry,
+        catalogService,
       }) {
         permissionsRegistry.addPermissions(Object.values(crossplanePermissions));
 
@@ -41,7 +43,7 @@ export const crossplaneResourcesBackendPlugin = createBackendPlugin({
         const kubernetesService = new KubernetesService(logger, discovery, auth);
         
         // Register MCP actions
-        registerMcpActions(actionsRegistry, kubernetesService);
+        registerMcpActions(actionsRegistry, kubernetesService, catalogService);
         
         httpRouter.use(
           await createRouter({
