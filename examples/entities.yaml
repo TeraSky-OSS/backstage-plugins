@@ -41,3 +41,18 @@ spec:
     message ExampleMessage {
       string example = 1;
     };
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: example-terraform-module
+  annotations:
+    'terasky.backstage.io/terraform-module-url': https://github.com/terraform-aws-modules/terraform-aws-ecr
+    'terasky.backstage.io/terraform-module-name': terraform-aws-ecr-from-catalog
+    'terasky.backstage.io/terraform-module-ref': v3.1.0
+    'terasky.backstage.io/terraform-module-description': AWS ECR Module - From Catalog
+spec:
+  type: terraform-module
+  lifecycle: experimental
+  owner: guests
+  system: examples
