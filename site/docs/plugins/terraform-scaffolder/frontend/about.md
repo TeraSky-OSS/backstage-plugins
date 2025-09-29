@@ -8,7 +8,8 @@ The frontend component of the Terraform Scaffolder plugin provides a rich user i
 
 The main form component that provides:
 
-- Module selection from configured sources
+- Module selection from multiple sources (Config, Catalog, Registry)
+- Version selection for modules with multiple versions
 - Dynamic form generation based on module variables
 - Type-safe input fields for all Terraform variable types
 - Validation of required fields
@@ -23,13 +24,31 @@ The schema component that:
 - Validates input against Terraform variable types
 - Handles complex types like maps and lists
 - Provides type definitions for template parameters
+- Supports version-specific schema validation
 
 ## Features
 
-### Module Selection
-- Browse available modules from configured sources
-- View module descriptions and documentation
-- Select specific module versions
+### Module Discovery
+- Multiple module source types:
+  - Configuration-based modules
+  - Catalog-based modules
+  - Registry-based modules
+- Rich module metadata display
+- Module search and filtering
+- Version management and selection
+
+### Version Management
+- Support for multiple module versions
+- Automatic version sorting and comparison
+- Latest version detection
+- Version-specific variable handling
+- Support for both tags and branches
+
+### Private Repository Support
+- Secure access to private GitHub repositories
+- Proxy configuration for raw content
+- Token-based authentication
+- Automatic URL rewriting
 
 ### Variable Configuration
 - Automatic form generation based on variables.tf
@@ -48,20 +67,23 @@ The schema component that:
 - Runtime type checking
 - Validation before template execution
 - Error messages for invalid inputs
+- Version-specific type validation
 
 ### Documentation
 - Inline variable descriptions
 - Module documentation display
+- Version-specific documentation
 - Usage examples
 
 ## API
 
-The plugin provides a client API for interacting with Terraform modules:
+The plugin provides an enhanced client API for interacting with Terraform modules:
 
 ```typescript
 interface TerraformScaffolderApi {
   getModuleReferences(): Promise<TerraformModuleReference[]>;
-  getModuleVariables(moduleRef: TerraformModuleReference): Promise<TerraformVariable[]>;
+  getModuleVersions(moduleRef: TerraformModuleReference): Promise<string[]>;
+  getModuleVariables(moduleRef: TerraformModuleReference, version?: string): Promise<TerraformVariable[]>;
 }
 ```
 
@@ -71,8 +93,9 @@ interface TerraformScaffolderApi {
 interface TerraformModuleReference {
   name: string;
   url: string;
-  ref?: string;
+  refs?: string[];
   description?: string;
+  isRegistryModule?: boolean;
 }
 
 interface TerraformVariable {
@@ -82,6 +105,7 @@ interface TerraformVariable {
   default?: any;
   required: boolean;
   sensitive: boolean;
+  originalDefinition?: string;
 }
 ```
 
@@ -93,5 +117,7 @@ The plugin integrates with Backstage's Software Templates system through:
 2. Form validation
 3. Template parameter processing
 4. Configuration API integration
+5. Proxy integration for private repositories
+6. Catalog integration for module discovery
 
 For installation and configuration details, see the [Installation](./install.md) and [Configuration](./configure.md) guides.

@@ -2,64 +2,98 @@
 
 This guide covers the configuration options available for the Terraform Scaffolder plugin.
 
-## Basic Configuration
+## Module Sources Configuration
 
-The plugin requires configuration in your `app-config.yaml`:
+The plugin supports three different ways to configure module sources:
+
+### 1. Configuration-based Modules
+
+Configure modules directly in your `app-config.yaml`:
 
 ```yaml
 terraformScaffolder:
+  # Enable proxy support for private GitHub repositories
+  useProxyForGitHub: true
+  
   moduleReferences:
-    - name: 'AWS VPC'
-      url: 'https://github.com/org/terraform-aws-vpc'
-      ref: 'main'
-      description: 'Creates a VPC with standard configurations'
+    - name: 'AWS ECR Module'
+      url: 'https://github.com/terraform-aws-modules/terraform-aws-ecr'
+      refs:
+        - 'v3.1.0'
+        - 'v3.0.0'
+      description: 'AWS ECR Module'
+    
+    # Registry module reference
+    - name: 'VPC Module'
+      url: 'terraform-aws-modules/vpc/aws'  # Registry path format
+      refs:
+        - 'v6.0.1'
+        - 'v6.0.0'
+      description: 'AWS VPC Module'
 ```
 
-### Configuration Options
-
-#### Module References
-
-Each module reference supports the following fields:
+#### Module Reference Options
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | name | string | Yes | Display name for the module |
-| url | string | Yes | Git URL for the module |
-| ref | string | No | Branch, tag, or commit (defaults to 'main') |
+| url | string | Yes | GitHub URL or registry path |
+| refs | string[] | No | List of versions (tags/branches) |
 | description | string | No | Module description for UI |
 
-## Advanced Configuration
+### 2. Catalog-based Modules
 
-### GitHub Integration
-
-For GitHub-hosted modules, the plugin automatically converts URLs to raw content format:
+Define modules in your Backstage catalog using annotations:
 
 ```yaml
-terraformScaffolder:
-  moduleReferences:
-    - name: 'AWS S3'
-      url: 'https://github.com/org/terraform-aws-s3.git'
-      ref: 'v1.0.0'
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: my-terraform-module
+  annotations:
+    terasky.backstage.io/terraform-module-url: 'https://github.com/org/module'
+    terasky.backstage.io/terraform-module-name: 'My Module'
+    terasky.backstage.io/terraform-module-ref: 'v1.0.0'
+    terasky.backstage.io/terraform-module-description: 'Description of the module'
+spec:
+  type: terraform-module
+  # ... other spec fields
 ```
 
-The plugin will:
-1. Convert GitHub URLs to raw content format
-2. Fetch variables.tf from the specified ref
-3. Parse variable definitions
+### 3. Registry-based Modules
 
-### Multiple Module Sources
-
-You can configure multiple module sources:
+Configure Terraform Registry integration:
 
 ```yaml
 terraformScaffolder:
-  moduleReferences:
-    - name: 'AWS Resources'
-      url: 'https://github.com/org/terraform-aws-modules'
-      ref: 'main'
-    - name: 'GCP Resources'
-      url: 'https://github.com/org/terraform-gcp-modules'
-      ref: 'v2.0.0'
+  registryReferences:
+    returnAllVersions: true  # Fetch all versions for each module
+    namespaces:
+      - terraform-aws-modules
+      - vmware
+```
+
+## Private Repository Access
+
+### GitHub Proxy Configuration
+
+For private GitHub repositories, configure both the plugin and proxy settings:
+
+1. Enable proxy in the plugin:
+```yaml
+terraformScaffolder:
+  useProxyForGitHub: true
+```
+
+2. Configure the proxy endpoint:
+```yaml
+proxy:
+  endpoints:
+    '/github-raw':
+      target: 'https://raw.githubusercontent.com'
+      changeOrigin: true
+      headers:
+        Authorization: 'Token ${GITHUB_TOKEN}'
 ```
 
 ## Template Configuration
@@ -108,17 +142,26 @@ These will be:
 
 ## Best Practices
 
-1. **Module Organization**
-   - Use consistent naming
-   - Provide clear descriptions
-   - Use semantic versioning for refs
+### Module Organization
+- Use consistent naming conventions
+- Provide clear descriptions
+- Use semantic versioning for refs
+- Group related modules together
 
-2. **Security**
-   - Use specific refs instead of 'main'
-   - Properly mark sensitive variables
-   - Use private repositories for sensitive modules
+### Security
+- Use specific refs instead of 'main'
+- Properly mark sensitive variables
+- Use private repositories for sensitive modules
+- Configure proxy settings for private repos
 
-3. **Maintenance**
-   - Regular updates of module refs
-   - Version tracking
-   - Documentation updates
+### Version Management
+- Use semantic versioning for module versions
+- Test modules before adding new versions
+- Keep version lists up to date
+- Document breaking changes between versions
+
+### Maintenance
+- Regular updates of module refs
+- Version tracking
+- Documentation updates
+- Monitor module usage
