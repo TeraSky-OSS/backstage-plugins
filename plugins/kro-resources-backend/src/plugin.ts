@@ -7,6 +7,7 @@ import { createRouter } from './service/router';
 import { kroPermissions } from '@terasky/backstage-plugin-kro-common';
 import { registerMcpActions } from './actions';
 import { KubernetesService } from './service/KubernetesService';
+import { catalogServiceRef } from '@backstage/plugin-catalog-node';
 
 /**
  * kroPermissionsPlugin backend plugin
@@ -25,6 +26,7 @@ export const kroResourcesBackendPlugin = createBackendPlugin({
         discovery: coreServices.discovery,
         auth: coreServices.auth,
         actionsRegistry: actionsRegistryServiceRef,
+        catalogService: catalogServiceRef,
       },
       async init({
         httpRouter,
@@ -34,6 +36,7 @@ export const kroResourcesBackendPlugin = createBackendPlugin({
         discovery,
         auth,
         actionsRegistry,
+        catalogService,
       }) {
         permissionsRegistry.addPermissions(Object.values(kroPermissions));
 
@@ -41,7 +44,7 @@ export const kroResourcesBackendPlugin = createBackendPlugin({
         const service = new KubernetesService(logger, discovery, auth);
 
         // Register MCP actions
-        registerMcpActions(actionsRegistry, service);
+        registerMcpActions(actionsRegistry, service, catalogService);
 
         httpRouter.use(
           await createRouter({

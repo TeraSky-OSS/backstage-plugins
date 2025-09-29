@@ -1,7 +1,60 @@
 import { actionsRegistryServiceRef } from '@backstage/backend-plugin-api/alpha';
+import { CatalogService } from '@backstage/plugin-catalog-node';
+import { ConflictError, InputError } from '@backstage/errors';
 import { KubernetesService } from './service/KubernetesService';
 
-export function registerMcpActions(actionsRegistry: typeof actionsRegistryServiceRef.T, service: KubernetesService) {
+async function getEntityAndKroInfo(catalog: CatalogService, name: string, kind: string = 'component', namespace: string = 'default', credentials?: any): Promise<{ entity: any; kroInfo: { clusterName: string; rgdName: string; rgdId: string; instanceId: string; instanceName: string; crdName: string; namespace: string } }> {
+  const filter: Record<string, string> = { 'metadata.name': name };
+  filter.kind = kind;
+  filter['metadata.namespace'] = namespace;
+
+  const { items } = await catalog.queryEntities(
+    { filter },
+    { credentials },
+  );
+
+  if (items.length === 0) {
+    throw new InputError(`No entity found with name "${name}"`);
+  }
+
+  if (items.length > 1) {
+    throw new ConflictError(
+      `Multiple entities found with name "${name}", please provide more specific filters.`,
+    );
+  }
+
+  const [entity] = items;
+  const annotations = entity.metadata.annotations || {};
+  const clusterLocation = annotations['backstage.io/managed-by-location'];
+  
+  if (!clusterLocation) {
+    throw new InputError('Entity is missing required annotation: backstage.io/managed-by-location');
+  }
+
+  const clusterName = clusterLocation.split(': ')[1];
+  const rgdName = annotations['terasky.backstage.io/kro-rgd-name'];
+  const rgdId = annotations['terasky.backstage.io/kro-rgd-id'];
+  const instanceId = annotations['terasky.backstage.io/kro-instance-uid'];
+  const crdName = annotations['terasky.backstage.io/kro-rgd-crd-name'];
+
+  if (!rgdName || !rgdId || !instanceId || !crdName) {
+    throw new InputError('Entity is missing required KRO annotations');
+  }
+
+  const kroInfo = {
+    clusterName,
+    rgdName,
+    rgdId,
+    instanceId,
+    instanceName: entity.metadata.name,
+    crdName,
+    namespace: entity.metadata.namespace || annotations['namespace'] || 'default',
+  };
+
+  return { entity, kroInfo };
+}
+
+export function registerMcpActions(actionsRegistry: typeof actionsRegistryServiceRef.T, service: KubernetesService, catalog: CatalogService) {
   // Get Resources
   actionsRegistry.register({
     name: 'get_kro_resources',
@@ -9,13 +62,9 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
     description: 'Get all resources for a KRO instance',
     schema: {
       input: z => z.object({
-        clusterName: z.string().describe('The name of the Kubernetes cluster'),
-        namespace: z.string().describe('The namespace containing the resources'),
-        rgdName: z.string().describe('The name of the ResourceGraphDefinition'),
-        rgdId: z.string().describe('The ID of the ResourceGraphDefinition'),
-        instanceId: z.string().describe('The ID of the instance'),
-        instanceName: z.string().describe('The name of the instance'),
-        crdName: z.string().describe('The name of the CRD'),
+        backstageEntityName: z.string().describe('The name of the Backstage entity'),
+        backstageEntityKind: z.string().describe('The kind of the Backstage entity. Defaults to component.').optional(),
+        backstageEntityNamespace: z.string().describe('The namespace of the Backstage entity. Defaults to default.').optional(),
       }),
       output: z => z.object({
         resources: z.array(z.object({
@@ -37,15 +86,23 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
         supportingResources: z.array(z.object({}).passthrough()).transform(resources => resources as { [k: string]: unknown }[]),
       }),
     },
-    action: async ({ input }) => {
+    action: async ({ input, credentials }) => {
+      const { kroInfo } = await getEntityAndKroInfo(
+        catalog,
+        input.backstageEntityName,
+        input.backstageEntityKind,
+        input.backstageEntityNamespace,
+        credentials
+      );
+
       const result = await service.getResources(
-        input.clusterName,
-        input.namespace,
-        input.rgdName,
-        input.rgdId,
-        input.instanceId,
-        input.instanceName,
-        input.crdName,
+        kroInfo.clusterName,
+        kroInfo.namespace,
+        kroInfo.rgdName,
+        kroInfo.rgdId,
+        kroInfo.instanceId,
+        kroInfo.instanceName,
+        kroInfo.crdName,
       );
       return {
         output: {
@@ -63,10 +120,12 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
     description: 'Get events for a Kubernetes resource managed by KRO',
     schema: {
       input: z => z.object({
-        clusterName: z.string().describe('The name of the Kubernetes cluster'),
-        namespace: z.string().describe('The namespace containing the resource'),
-        resourceName: z.string().describe('The name of the resource'),
-        resourceKind: z.string().describe('The kind of the resource'),
+        backstageEntityName: z.string().describe('The name of the Backstage entity'),
+        backstageEntityKind: z.string().describe('The kind of the Backstage entity. Defaults to component.').optional(),
+        backstageEntityNamespace: z.string().describe('The namespace of the Backstage entity. Defaults to default.').optional(),
+        kubernetesNamespace: z.string().describe('The namespace of the Kubernetes resource'),
+        kubernetesResourceName: z.string().describe('The name of the resource'),
+        kubernetesResourceKind: z.string().describe('The kind of the resource'),
       }),
       output: z => z.object({
         events: z.array(z.object({
@@ -89,12 +148,20 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
         })),
       }),
     },
-    action: async ({ input }) => {
+    action: async ({ input, credentials }) => {
+      const { kroInfo } = await getEntityAndKroInfo(
+        catalog,
+        input.backstageEntityName,
+        input.backstageEntityKind,
+        input.backstageEntityNamespace,
+        credentials
+      );
+
       const events = await service.getEvents(
-        input.clusterName,
-        input.namespace,
-        input.resourceName,
-        input.resourceKind,
+        kroInfo.clusterName,
+        input.kubernetesNamespace,
+        input.kubernetesResourceName,
+        input.kubernetesResourceKind,
       );
       return {
         output: {
@@ -111,25 +178,30 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
     description: 'Get the resource graph for a KRO instance',
     schema: {
       input: z => z.object({
-        clusterName: z.string().describe('The name of the Kubernetes cluster'),
-        namespace: z.string().describe('The namespace containing the resources'),
-        rgdName: z.string().describe('The name of the ResourceGraphDefinition'),
-        rgdId: z.string().describe('The ID of the ResourceGraphDefinition'),
-        instanceId: z.string().describe('The ID of the instance'),
-        instanceName: z.string().describe('The name of the instance'),
+        backstageEntityName: z.string().describe('The name of the Backstage entity'),
+        backstageEntityKind: z.string().describe('The kind of the Backstage entity. Defaults to component.').optional(),
+        backstageEntityNamespace: z.string().describe('The namespace of the Backstage entity. Defaults to default.').optional(),
       }),
       output: z => z.object({
         resources: z.array(z.object({}).passthrough()).transform(resources => resources as { [k: string]: unknown }[]),
       }),
     },
-    action: async ({ input }) => {
+    action: async ({ input, credentials }) => {
+      const { kroInfo } = await getEntityAndKroInfo(
+        catalog,
+        input.backstageEntityName,
+        input.backstageEntityKind,
+        input.backstageEntityNamespace,
+        credentials
+      );
+
       const resources = await service.getResourceGraph(
-        input.clusterName,
-        input.namespace,
-        input.rgdName,
-        input.rgdId,
-        input.instanceId,
-        input.instanceName,
+        kroInfo.clusterName,
+        kroInfo.namespace,
+        kroInfo.rgdName,
+        kroInfo.rgdId,
+        kroInfo.instanceId,
+        kroInfo.instanceName,
       );
       return {
         output: {
