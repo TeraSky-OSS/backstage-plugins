@@ -180,24 +180,7 @@ const routes = (
         <ReportIssue />
       </TechDocsAddons>
     </Route>
-    <Route path="/create" element={
-      <ScaffolderPage
-        groups={[
-          {
-            title: 'Crossplane Claims',
-            filter: (template) => template.metadata?.labels?.source === 'crossplane',
-          },
-          {
-            title: 'General CRDs',
-            filter: (template) => template.metadata?.labels?.source === 'kubernetes',
-          },
-
-        ]}
-        templateFilter={template =>
-          template.metadata?.labels?.target !== 'component'
-        } 
-      />
-      }>
+    <Route path="/create" element={<ScaffolderPage/>}>
       <ScaffolderFieldExtensions>
         <GitOpsManifestUpdaterExtension />
         <TerraformModuleExtension />

@@ -22,6 +22,7 @@ import {
   terraformScaffolderApiRef,
   TerraformScaffolderClient,
 } from '@terasky/backstage-plugin-terraform-scaffolder';
+import { catalogApiRef } from '@backstage/plugin-catalog-react';
 
 export const apis: AnyApiFactory[] = [
   createApiFactory({
@@ -44,7 +45,7 @@ export const apis: AnyApiFactory[] = [
   }),
   createApiFactory({
     api: terraformScaffolderApiRef,
-    deps: { configApi: configApiRef },
-    factory: ({ configApi }) => new TerraformScaffolderClient({ configApi }),
+    deps: { configApi: configApiRef, catalogApi: catalogApiRef, identityApi: identityApiRef  },
+    factory: ({ configApi, catalogApi, identityApi }) => new TerraformScaffolderClient({ configApi, catalogApi, identityApi }),
   }),
 ];
