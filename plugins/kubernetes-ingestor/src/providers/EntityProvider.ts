@@ -491,6 +491,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
         metadata: {
           name: `${resourceKind?.toLowerCase()}-${xrd.spec.group}--${version.name}`,
           title: `${resourceKind?.toLowerCase()}-${xrd.spec.group}--${version.name}`,
+          tags: ['crossplane'],
           annotations: {
             'backstage.io/managed-by-location': `cluster origin: ${xrd.clusterName}`,
             'backstage.io/managed-by-origin-location': `cluster origin: ${xrd.clusterName}`,
@@ -1508,6 +1509,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
         metadata: {
           name: `${crd.spec.names.kind.toLowerCase()}-${crd.spec.group}--${version.name}`,
           title: `${crd.spec.names.kind.toLowerCase()}-${crd.spec.group}--${version.name}`,
+          tags: ['crd'],
           annotations: {
             'backstage.io/managed-by-location': `cluster origin: ${crd.clusterName}`,
             'backstage.io/managed-by-origin-location': `cluster origin: ${crd.clusterName}`,

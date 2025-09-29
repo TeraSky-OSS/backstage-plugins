@@ -378,6 +378,7 @@ export class RGDTemplateEntityProvider implements EntityProvider {
             'backstage.io/managed-by-location': `cluster origin: ${rgd.clusterName}`,
             'backstage.io/managed-by-origin-location': `cluster origin: ${rgd.clusterName}`,
           },
+          tags: ['kro'],
         },
         spec: {
           type: "openapi",
