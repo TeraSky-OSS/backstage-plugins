@@ -196,6 +196,7 @@ export const TerraformModuleForm = ({
   const [modules, setModules] = React.useState<TerraformModuleReference[]>([]);
   const [schema, setSchema] = React.useState<ExtendedRJSFSchema | null>(null);
   const [selectedModule, setSelectedModule] = React.useState<TerraformModuleReference | null>(null);
+  const [selectedVersion, setSelectedVersion] = React.useState<string>('');
 
   React.useEffect(() => {
     const fetchModules = async () => {
@@ -214,7 +215,7 @@ export const TerraformModuleForm = ({
 
   React.useEffect(() => {
     const fetchVariables = async () => {
-      if (!formData?.module) {
+      if (!formData?.module || !selectedVersion) {
         setSchema(null);
         return;
       }
@@ -224,7 +225,7 @@ export const TerraformModuleForm = ({
 
       try {
         setLoading(true);
-        const vars = await api.getModuleVariables(moduleRef);
+        const vars = await api.getModuleVariables(moduleRef, selectedVersion);
         setSchema(generateSchema(vars));
         setSelectedModule(moduleRef);
         setError(undefined);
@@ -235,19 +236,56 @@ export const TerraformModuleForm = ({
       }
     };
     fetchVariables();
-  }, [api, formData?.module, modules]);
+  }, [api, formData?.module, modules, selectedVersion]);
 
-  const handleModuleChange = React.useCallback((event: React.ChangeEvent<{ value: unknown }>) => {
+  const handleModuleChange = React.useCallback(async (event: React.ChangeEvent<{ value: unknown }>) => {
     const moduleName = event.target.value as string;
     const moduleRef = modules.find(m => m.name === moduleName);
-    onChange({
-      module: moduleName,
-      moduleUrl: moduleRef?.url || '',
-      moduleRef: moduleRef?.ref || 'main',
-      variables: {},
-      variableDefinitions: '',
-    });
-  }, [onChange, modules]);
+    
+    if (moduleRef) {
+      setLoading(true);
+      try {
+        // If it's a registry module, fetch all versions
+        let versions = moduleRef.refs || [];
+        if (moduleRef.isRegistryModule) {
+          versions = await api.getModuleVersions(moduleRef);
+        }
+        
+        // Set the latest version as default
+        const latestVersion = versions.length > 0 ? versions[0] : 'main';
+        setSelectedVersion(latestVersion);
+        
+        // Update the module reference with the fetched versions
+        moduleRef.refs = versions;
+        
+        onChange({
+          module: moduleName,
+          moduleUrl: moduleRef.url || '',
+          moduleRef: latestVersion,
+          variables: {},
+          variableDefinitions: '',
+        });
+      } catch (err) {
+        setError('Failed to fetch module versions');
+      } finally {
+        setLoading(false);
+      }
+    }
+  }, [onChange, modules, api]);
+
+  const handleVersionChange = React.useCallback((event: React.ChangeEvent<{ value: unknown }>) => {
+    const version = event.target.value as string;
+    setSelectedVersion(version);
+    
+    if (selectedModule) {
+      onChange({
+        ...formData,
+        moduleRef: version,
+        variables: {},
+        variableDefinitions: '',
+      });
+    }
+  }, [onChange, selectedModule, formData]);
 
   const handleChange = React.useCallback((data: { formData?: Record<string, unknown> }) => {
     if (data.formData && selectedModule) {
@@ -258,7 +296,7 @@ export const TerraformModuleForm = ({
         ...formData,
         module: selectedModule.name,
         moduleUrl: selectedModule.url,
-        moduleRef: selectedModule.ref || 'main',
+        moduleRef: selectedVersion,
         variables: data.formData,
         variableDefinitions: variableDefinitions || '',
       });
@@ -272,6 +310,9 @@ export const TerraformModuleForm = ({
   if (error) {
     return <Alert severity="error">{error}</Alert>;
   }
+
+  const selectedModuleRef = modules.find(m => m.name === formData?.module);
+  const availableVersions = selectedModuleRef?.refs || [];
 
   return (
     <div className={classes.root}>
@@ -291,7 +332,25 @@ export const TerraformModuleForm = ({
         </Select>
       </FormControl>
 
-      {schema && formData?.module && (
+      {formData?.module && availableVersions.length > 0 && (
+        <FormControl className={classes.formControl}>
+          <InputLabel id="version-select-label">Version</InputLabel>
+          <Select
+            labelId="version-select-label"
+            id="version-select"
+            value={selectedVersion}
+            onChange={handleVersionChange}
+          >
+            {availableVersions.map(version => (
+              <MenuItem key={version} value={version}>
+                {version}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      )}
+
+      {schema && formData?.module && selectedVersion && (
         <Form
           schema={schema}
           formData={formData.variables}

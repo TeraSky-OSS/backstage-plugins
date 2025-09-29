@@ -1,44 +1,271 @@
-import { ConfigApi } from '@backstage/core-plugin-api';
+import { ConfigApi, IdentityApi } from '@backstage/core-plugin-api';
 import { TerraformScaffolderApi } from './TerraformScaffolderApi';
 import { TerraformModuleReference, TerraformVariable } from '../types';
+import { CatalogApi } from '@backstage/catalog-client';
 
 export class TerraformScaffolderClient implements TerraformScaffolderApi {
   private readonly configApi: ConfigApi;
-
-  constructor(options: { configApi: ConfigApi }) {
+  private readonly catalogApi: CatalogApi;
+  private readonly identityApi: IdentityApi;
+  
+  constructor(options: { configApi: ConfigApi; catalogApi: CatalogApi; identityApi: IdentityApi }) {
     this.configApi = options.configApi;
+    this.catalogApi = options.catalogApi;
+    this.identityApi = options.identityApi
   }
 
-  async getModuleReferences(): Promise<TerraformModuleReference[]> {
+  private async getModulesFromCatalog(): Promise<TerraformModuleReference[]> {
     try {
-      if (!this.configApi.has('terraformScaffolder.moduleReferences')) {
-        console.warn('No terraformScaffolder.moduleReferences config found');
-        return [];
-      }
+      const entities = await this.catalogApi.getEntities({
+        filter: {
+          kind: 'resource',
+          'spec.type': 'terraform-module',
+        },
+      });
 
-      const moduleRefs = this.configApi.getConfigArray('terraformScaffolder.moduleReferences');
-      return moduleRefs.map(moduleRef => ({
-        name: moduleRef.getString('name'),
-        url: moduleRef.getString('url'),
-        ref: moduleRef.getOptionalString('ref'),
-        description: moduleRef.getOptionalString('description'),
-      }));
+      return entities.items
+        .filter(entity => {
+          const annotations = entity.metadata.annotations || {};
+          return annotations['terasky.backstage.io/terraform-module-url'] && 
+                 annotations['terasky.backstage.io/terraform-module-name'];
+        })
+        .map(entity => {
+          const annotations = entity.metadata.annotations || {};
+          const ref = annotations['terasky.backstage.io/terraform-module-ref'];
+          return {
+            name: annotations['terasky.backstage.io/terraform-module-name'],
+            url: annotations['terasky.backstage.io/terraform-module-url'],
+            refs: ref ? [ref] : [],
+            description: annotations['terasky.backstage.io/terraform-module-description'] || entity.metadata.description,
+          };
+        });
     } catch (error) {
-      console.error('Error reading terraform module references:', error);
+      console.error('Error fetching terraform modules from catalog:', error);
       return [];
     }
   }
 
-  async getModuleVariables(moduleRef: TerraformModuleReference): Promise<TerraformVariable[]> {
+  public async getModuleVersions(moduleRef: TerraformModuleReference): Promise<string[]> {
+    // Only proceed if this is a registry module
+    if (!moduleRef.isRegistryModule) {
+      return moduleRef.refs || [];
+    }
+
+    // Parse the module name from the URL
+    // Example: terraform-aws-modules/eventbridge/aws
+    const urlParts = moduleRef.url.split('/');
+    const provider = urlParts[urlParts.length - 1];
+    const name = urlParts[urlParts.length - 2];
+    const namespace = urlParts[urlParts.length - 3];
+    const backendUrl = this.configApi.getString('backend.baseUrl');
+    const token = await this.identityApi.getCredentials();
+
+    // For registry modules, we need to fetch the versions
     try {
-      // For GitHub URLs, convert to raw content URL
-      const rawUrl = moduleRef.url
-        .replace('github.com', 'raw.githubusercontent.com')
-        .replace(/\.git$/, '');
       
-      const response = await fetch(`${rawUrl}/${moduleRef.ref || 'main'}/variables.tf`);
+      const response = await fetch(
+        `${backendUrl}/api/proxy/terraform-registry/v1/modules/${namespace}/${name}/${provider}/versions`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token.token || ''}`,
+          }
+        }
+      );
+
       if (!response.ok) {
-        throw new Error(`Failed to fetch variables.tf from ${moduleRef.url}`);
+        console.error(`Failed to fetch versions for module ${namespace}/${name}/${provider}:`, response.statusText);
+        return [];
+      }
+
+      const data = await response.json();
+      return data.modules[0].versions
+        .map((version: any) => `v${version.version}`)
+        .sort((a: string, b: string) => {
+          // Remove 'v' prefix and compare versions
+          const versionA = a.slice(1).split('.').map(Number);
+          const versionB = b.slice(1).split('.').map(Number);
+          
+          // Compare major version
+          if (versionA[0] !== versionB[0]) return versionB[0] - versionA[0];
+          // Compare minor version
+          if (versionA[1] !== versionB[1]) return versionB[1] - versionA[1];
+          // Compare patch version
+          return versionB[2] - versionA[2];
+        });
+    } catch (error) {
+      console.error(`Error fetching versions for module ${namespace}/${name}:`, error);
+      return [];
+    }
+  }
+
+  private async getModulesFromRegistry(): Promise<TerraformModuleReference[]> {
+    try {
+      if (!this.configApi.has('terraformScaffolder.registryReferences.namespaces')) {
+        return [];
+      }
+      const backendUrl = this.configApi.getString('backend.baseUrl');
+      const namespaces = this.configApi.getStringArray('terraformScaffolder.registryReferences.namespaces');
+      const modules: TerraformModuleReference[] = [];
+      const token = await this.identityApi.getCredentials(); 
+                
+      for (const namespace of namespaces) {
+        let hasMore = true;
+        let offset = 0;
+
+        while (hasMore) {
+          const response = await fetch(
+            `${backendUrl}/api/proxy/terraform-registry/v1/modules/${namespace}?include=latest-version${offset ? `&offset=${offset}` : ''}`,{
+              method: 'GET',
+              headers: {
+                  Authorization: `Bearer ${token.token}`,
+              }
+          });
+
+          if (!response.ok) {
+            console.error(`Failed to fetch modules for namespace ${namespace}:`, response.statusText);
+            break;
+          }
+
+          const data = await response.json();
+          
+          for (const module of data.modules) {
+            // Only store the latest version initially
+            const versions = [`v${module.version}`].sort((a: string, b: string) => {
+              // Remove 'v' prefix and compare versions
+              const versionA = a.slice(1).split('.').map(Number);
+              const versionB = b.slice(1).split('.').map(Number);
+              
+              // Compare major version
+              if (versionA[0] !== versionB[0]) return versionB[0] - versionA[0];
+              // Compare minor version
+              if (versionA[1] !== versionB[1]) return versionB[1] - versionA[1];
+              // Compare patch version
+              return versionB[2] - versionA[2];
+            });
+            
+            modules.push({
+              name: `${module.name} (${module.namespace})`,
+              url: `https://github.com/${module.namespace}/terraform-${module.provider}-${module.name}`,
+              refs: versions,
+              description: module.description,
+              isRegistryModule: false,
+            });
+          }
+
+          if (data.meta.next_offset) {
+            offset = data.meta.next_offset;
+          } else {
+            hasMore = false;
+          }
+        }
+      }
+
+      return modules;
+    } catch (error) {
+      console.error('Error fetching terraform modules from registry:', error);
+      return [];
+    }
+  }
+
+  private async getModulesFromConfig(): Promise<TerraformModuleReference[]> {
+    try {
+      if (!this.configApi.has('terraformScaffolder.moduleReferences')) {
+        return [];
+      }
+
+      const moduleRefs = this.configApi.getConfigArray('terraformScaffolder.moduleReferences');
+      return moduleRefs.map(moduleRef => {
+        const url = moduleRef.getString('url');
+        const ref = moduleRef.getOptionalString('ref');
+        const refs = moduleRef.getOptionalStringArray('refs');
+        
+        // Handle both old ref and new refs format
+        const versions = refs || (ref ? [ref] : []);
+        
+        // Check if this is a GitHub URL
+        const isGitHub = url.startsWith('http://github.com/') || url.startsWith('https://github.com/');
+        
+        if (isGitHub) {
+          return {
+            name: moduleRef.getString('name'),
+            url: url,
+            refs: versions,
+            description: moduleRef.getOptionalString('description'),
+            isRegistryModule: false
+          };
+        } else {
+          // Assume it's a registry module if it's not a GitHub URL
+          // Parse registry path into components
+          const [org, module, provider] = url.split('/');
+          return {
+            name: moduleRef.getString('name'),
+            url: `https://github.com/${org}/terraform-${provider}-${module}`,
+            refs: versions,
+            description: moduleRef.getOptionalString('description'),
+            isRegistryModule: false
+          };
+        }
+      });
+    } catch (error) {
+      console.error('Error reading terraform module references from config:', error);
+      return [];
+    }
+  }
+
+  async getModuleReferences(): Promise<TerraformModuleReference[]> {
+    try {
+      const [configModules, catalogModules, registryModules] = await Promise.all([
+        this.getModulesFromConfig(),
+        this.getModulesFromCatalog(),
+        this.getModulesFromRegistry(),
+      ]);
+
+      return [...configModules, ...catalogModules, ...registryModules]
+        .sort((a, b) => a.name.localeCompare(b.name));
+    } catch (error) {
+      console.error('Error fetching terraform module references:', error);
+      return [];
+    }
+  }
+
+  async getModuleVariables(moduleRef: TerraformModuleReference, selectedVersion?: string): Promise<TerraformVariable[]> {
+    try {
+      const backendUrl = this.configApi.getString('backend.baseUrl');
+      const useProxyForGitHub = this.configApi.getBoolean('terraformScaffolder.useProxyForGitHub') || false;
+      const version = selectedVersion || 
+                     (moduleRef.refs && moduleRef.refs.length > 0 ? moduleRef.refs[0] : 'main');
+      let rawUrl;
+      // For GitHub URLs
+      if (!useProxyForGitHub) {
+        rawUrl = moduleRef.url
+          .replace('github.com', 'raw.githubusercontent.com')
+          .replace(/\.git$/, '');
+      } else {
+        rawUrl = moduleRef.url
+          .replace('https://github.com', `${backendUrl}/api/proxy/github-raw`)
+          .replace(/\.git$/, '');
+      }
+      
+      // For GitHub, we need to use refs/tags/ for version tags
+      const versionPath = version.startsWith('v') ? `refs/tags/${version}` : version;
+      let response
+      const token = await this.identityApi.getCredentials(); 
+      if (!useProxyForGitHub) {
+        response = await fetch(`${rawUrl}/${versionPath}/variables.tf`);
+      } else {
+        response = await fetch(`${rawUrl}/${versionPath}/variables.tf`,
+          {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${token.token || ''}`,
+            }
+          }
+        );
+      }
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch variables.tf from ${moduleRef.url} at version ${version}`);
       }
 
       const content = await response.text();

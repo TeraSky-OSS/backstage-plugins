@@ -1,10 +1,11 @@
-import { ApiBlueprint, configApiRef, createFrontendPlugin } from '@backstage/frontend-plugin-api';
+import { ApiBlueprint, configApiRef, createFrontendPlugin, identityApiRef } from '@backstage/frontend-plugin-api';
 import { FormFieldBlueprint } from '@backstage/plugin-scaffolder-react/alpha';
 import { TerraformModuleForm } from './components/TerraformModuleForm';
 import { TerraformModuleSchema } from './components/TerraformModuleSchema';
 import { JsonObject } from '@backstage/types';
 import { TerraformScaffolderClient } from './api/TerraformScaffolderClient';
 import { terraformScaffolderApiRef } from './api/TerraformScaffolderApi';
+import { catalogApiRef } from '@backstage/plugin-catalog-react';
 
 interface FieldValidation {
   addError: (message: string) => void;
@@ -36,8 +37,10 @@ export const terraformModuleApi = ApiBlueprint.make({
       api: terraformScaffolderApiRef,
       deps: {
         configApi: configApiRef,
+        catalogApi: catalogApiRef,
+        identityApi: identityApiRef,
       },
-      factory: ({ configApi }) => new TerraformScaffolderClient({ configApi }),
+      factory: ({ configApi, catalogApi, identityApi }) => new TerraformScaffolderClient({ configApi, catalogApi, identityApi }),
     }),
     disabled: false,
   })

@@ -1,8 +1,9 @@
 export interface TerraformModuleReference {
   name: string;
   url: string;
-  ref?: string;
+  refs?: string[];
   description?: string;
+  isRegistryModule?: boolean; // Flag to identify registry modules
 }
 
 export interface TerraformVariable {

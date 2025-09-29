@@ -3,7 +3,8 @@ import { TerraformModuleReference, TerraformVariable } from '../types';
 
 export interface TerraformScaffolderApi {
   getModuleReferences(): Promise<TerraformModuleReference[]>;
-  getModuleVariables(moduleRef: TerraformModuleReference): Promise<TerraformVariable[]>;
+  getModuleVariables(moduleRef: TerraformModuleReference, selectedVersion?: string): Promise<TerraformVariable[]>;
+  getModuleVersions(moduleRef: TerraformModuleReference): Promise<string[]>;
 }
 
 export const terraformScaffolderApiRef = createApiRef<TerraformScaffolderApi>({
