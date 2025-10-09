@@ -1,10 +1,14 @@
 import {
+  ApiBlueprint,
   createFrontendPlugin,
+  discoveryApiRef,
+  fetchApiRef,
 } from '@backstage/frontend-plugin-api';
 import { EntityCardBlueprint, EntityContentBlueprint } from '@backstage/plugin-catalog-react/alpha';
 import { isCrossplaneAvailable } from './components/isCrossplaneAvailable';
+import { CrossplaneApiClient, crossplaneApiRef } from './api/CrossplaneApi';
 /** @alpha */
-export const crossplaneResourcesPlugin = createFrontendPlugin({
+export default createFrontendPlugin({
   pluginId: 'crossplane-resources',
   extensions: [
     // Main tabs
@@ -35,6 +39,17 @@ export const crossplaneResourcesPlugin = createFrontendPlugin({
         loader: () => import('./components/CrossplaneResourceGraphSelector').then(m => <m.default />),
       },
       disabled: false,
+    }),
+    ApiBlueprint.make({
+      name: 'crossplaneApi',
+      params: defineParams => defineParams({
+        api: crossplaneApiRef,
+        deps: {
+          discoveryApi: discoveryApiRef,
+          fetchApi: fetchApiRef,
+        },
+        factory: ({ discoveryApi, fetchApi }) => new CrossplaneApiClient(discoveryApi, fetchApi),
+      }),
     }),
   ],
 });
