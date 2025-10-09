@@ -246,6 +246,7 @@ export const TerraformModuleForm = ({
       setLoading(true);
       try {
         // If it's a registry module, fetch all versions
+        console.log('moduleRef', JSON.stringify(moduleRef, null, 2));
         let versions = moduleRef.refs || [];
         if (moduleRef.isRegistryModule) {
           versions = await api.getModuleVersions(moduleRef);

@@ -47,13 +47,14 @@ export class TerraformScaffolderClient implements TerraformScaffolderApi {
 
   public async getModuleVersions(moduleRef: TerraformModuleReference): Promise<string[]> {
     // Only proceed if this is a registry module
+    console.log('moduleRef', JSON.stringify(moduleRef, null, 2));
     if (!moduleRef.isRegistryModule) {
       return moduleRef.refs || [];
     }
 
     // Parse the module name from the URL
     // Example: terraform-aws-modules/eventbridge/aws
-    const urlParts = moduleRef.url.split('/');
+    const urlParts = moduleRef.moduleURL?.split('/') || [];
     const provider = urlParts[urlParts.length - 1];
     const name = urlParts[urlParts.length - 2];
     const namespace = urlParts[urlParts.length - 3];
@@ -149,7 +150,8 @@ export class TerraformScaffolderClient implements TerraformScaffolderApi {
               url: `https://github.com/${module.namespace}/terraform-${module.provider}-${module.name}`,
               refs: versions,
               description: module.description,
-              isRegistryModule: false,
+              moduleURL: `${module.namespace}/${module.name}/${module.provider}`,
+              isRegistryModule: true,
             });
           }
 
