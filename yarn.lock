@@ -14741,7 +14741,7 @@ __metadata:
     "@backstage/plugin-catalog-common": "npm:^1.1.5"
     "@backstage/plugin-catalog-graph": "npm:^0.5.1"
     "@backstage/plugin-catalog-import": "npm:^0.13.5"
-    "@backstage/plugin-catalog-react": "npm:^1.21.0"
+    "@backstage/plugin-catalog-react": "npm:^1.21.1"
     "@backstage/plugin-kubernetes": "npm:^0.12.11"
     "@backstage/plugin-org": "npm:^0.6.44"
     "@backstage/plugin-permission-react": "npm:^0.4.36"
