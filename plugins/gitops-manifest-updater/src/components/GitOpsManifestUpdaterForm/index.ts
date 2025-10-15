@@ -1,2 +1,2 @@
 export { GitOpsManifestUpdaterForm } from './GitOpsManifestUpdaterForm';
-export { GitOpsManifestUpdaterSchema } from './GitOpsManifestUpdaterSchema';
+export { GitOpsManifestUpdaterSchema, GitOpsManifestUpdaterFieldSchema } from './GitOpsManifestUpdaterSchema';

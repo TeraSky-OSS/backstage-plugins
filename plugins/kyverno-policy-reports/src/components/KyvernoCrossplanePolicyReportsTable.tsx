@@ -144,7 +144,7 @@ const KyvernoCrossplanePolicyReportsTable = () => {
               let compositeUrl;
               if (compositeScope === 'Namespaced') {
                 const ns = labelSelector?.split(',').find((s: string) => s.startsWith('crossplane.io/claim-namespace') || s.startsWith('crossplane.io/composite-namespace'))?.split('=')[1]
-                  || entity.metadata.namespace
+                  || annotations['terasky.backstage.io/composite-namespace']
                   || 'default';
                 compositeUrl = `/apis/${compositeGroup}/${compositeVersion}/namespaces/${ns}/${compositePlural}/${compositeName}`;
               } else {

@@ -522,7 +522,7 @@ const CrossplaneV2ResourceTable = () => {
           const compositeName = annotations['terasky.backstage.io/composite-name'];
           const clusterOfComposite = annotations['backstage.io/managed-by-location']?.split(": ")[1];
           const scope = annotations['terasky.backstage.io/crossplane-scope'];
-          const namespace = entity.metadata.namespace || annotations['namespace'] || 'default';
+          const namespace = annotations['terasky.backstage.io/composite-namespace'] || 'default';
           if (compositePlural && compositeGroup && compositeVersion && compositeName && clusterOfComposite) {
             try {
               const response = await crossplaneApi.getResources({

@@ -2517,6 +2517,7 @@ export class KubernetesEntityProvider implements EntityProvider {
       [`${prefix}/crossplane-scope`]: scope,
       [`${prefix}/composite-kind`]: kind,
       [`${prefix}/composite-name`]: xr.metadata.name,
+      [`${prefix}/composite-namespace`]: xr.metadata.namespace || 'default',
       [`${prefix}/composite-group`]: group,
       [`${prefix}/composite-version`]: version,
       [`${prefix}/composite-plural`]: plural,

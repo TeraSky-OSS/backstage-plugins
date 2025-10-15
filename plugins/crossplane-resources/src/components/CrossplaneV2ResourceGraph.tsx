@@ -816,7 +816,7 @@ const CrossplaneV2ResourceGraph = () => {
             const name = annotations['terasky.backstage.io/composite-name'];
             const clusterOfComposite = annotations['backstage.io/managed-by-location'].split(": ")[1];
             const scope = annotations['terasky.backstage.io/crossplane-scope'] as 'Namespaced' | 'Cluster';
-            const namespace = entity.metadata.namespace || annotations['namespace'] || 'default';
+            const namespace = annotations['terasky.backstage.io/composite-namespace'] || 'default';
             if (!plural || !group || !version || !name || !clusterOfComposite) {
                 setLoading(false);
                 return;

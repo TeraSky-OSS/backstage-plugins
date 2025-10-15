@@ -1,6 +1,6 @@
 import { createFormField } from '@backstage/plugin-scaffolder-react/alpha';
 import { GitOpsManifestUpdaterForm } from './GitOpsManifestUpdaterForm/GitOpsManifestUpdaterForm';
-import { GitOpsManifestUpdaterSchema } from './GitOpsManifestUpdaterForm/GitOpsManifestUpdaterSchema';
+import { GitOpsManifestUpdaterFieldSchema } from './GitOpsManifestUpdaterForm/GitOpsManifestUpdaterSchema';
 import { JsonObject } from '@backstage/types';
 
 interface FieldValidation {
@@ -11,7 +11,7 @@ interface FieldValidation {
 export const gitopsManifestUpdaterField = createFormField({
   name: 'GitOpsManifestUpdater',
   component: GitOpsManifestUpdaterForm,
-  schema: GitOpsManifestUpdaterSchema,
+  schema: GitOpsManifestUpdaterFieldSchema,
   validation: (formData: JsonObject | undefined, validation: FieldValidation) => {
     if (!formData) {
       validation.addError('Spec is required');
