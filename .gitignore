@@ -56,3 +56,4 @@ e2e-test-report/
 
 # Jetbrains IDEs
 .idea/
+get-plugin-stats.sh
