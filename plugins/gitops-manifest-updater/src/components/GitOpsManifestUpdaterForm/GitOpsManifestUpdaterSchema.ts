@@ -1,11 +1,7 @@
-import { CustomFieldExtensionSchema } from '@backstage/plugin-scaffolder-react';
+import { makeFieldSchema } from '@backstage/plugin-scaffolder-react';
 
-export const GitOpsManifestUpdaterSchema: CustomFieldExtensionSchema = {
-  uiOptions: {
-    type: 'object',
-    properties: {},
-  },
-  returnValue: {
-    type: 'object',
-  },
-}; 
+/** @alpha */
+export const GitOpsManifestUpdaterSchema = makeFieldSchema({
+  output: z => z.object({}),
+  uiOptions: z => z.object({}),
+}); 
