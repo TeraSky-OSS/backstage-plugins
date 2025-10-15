@@ -1,5 +1,5 @@
 import { coreServices, createBackendModule } from "@backstage/backend-plugin-api";
-import { scaffolderActionsExtensionPoint  } from '@backstage/plugin-scaffolder-node/alpha';
+import { scaffolderActionsExtensionPoint  } from '@backstage/plugin-scaffolder-node';
 import { createCrossplaneClaimAction } from "./actions/claim-templating";
 import { createCatalogInfoCleanerAction } from "./actions/catalog-info-cleaner";
 import { createCrdTemplateAction } from "./actions/crd-templating";
