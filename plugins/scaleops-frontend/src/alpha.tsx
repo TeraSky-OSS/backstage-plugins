@@ -34,3 +34,4 @@ export const scaleopsPlugin = createFrontendPlugin({
   extensions: [scaleopsCard, scaleopsContent],
 });
 
+export default scaleopsPlugin;

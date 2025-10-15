@@ -8,7 +8,7 @@ import { EntityCardBlueprint, EntityContentBlueprint } from '@backstage/plugin-c
 import { isCrossplaneAvailable } from './components/isCrossplaneAvailable';
 import { CrossplaneApiClient, crossplaneApiRef } from './api/CrossplaneApi';
 /** @alpha */
-export default createFrontendPlugin({
+export const crossplaneResourcesPlugin = createFrontendPlugin({
   pluginId: 'crossplane-resources',
   extensions: [
     // Main tabs
@@ -53,3 +53,5 @@ export default createFrontendPlugin({
     }),
   ],
 });
+
+export default crossplaneResourcesPlugin;

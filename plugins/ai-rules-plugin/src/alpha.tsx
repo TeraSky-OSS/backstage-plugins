@@ -13,6 +13,7 @@ export const aiRulesPlugin = createFrontendPlugin({
   pluginId: 'ai-rules',
   extensions: [
     EntityContentBlueprint.make({
+      name: 'aiRules',
       params: {
         path: '/ai-rules',
         filter: isAIRulesAvailable,
@@ -22,6 +23,7 @@ export const aiRulesPlugin = createFrontendPlugin({
       disabled: true,
     }),
     EntityContentBlueprint.make({
+      name: 'aiInstructions',
       params: {
         path: '/ai-instructions',
         filter: isAIRulesAvailable,
@@ -31,6 +33,7 @@ export const aiRulesPlugin = createFrontendPlugin({
       disabled: false,
     }),
     EntityContentBlueprint.make({
+      name: 'mcpServers',
       params: {
         path: '/mcp-servers',
         filter: isAIRulesAvailable,
@@ -53,3 +56,4 @@ export const aiRulesPlugin = createFrontendPlugin({
     }),
   ],
 });
+export default aiRulesPlugin;

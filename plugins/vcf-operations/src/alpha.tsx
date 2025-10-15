@@ -42,3 +42,5 @@ export const vcfOperationsPlugin = createFrontendPlugin({
   pluginId: 'vcf-operations',
   extensions: [vcfOperationsApi, vcfOperationsContent],
 });
+
+export default vcfOperationsPlugin;

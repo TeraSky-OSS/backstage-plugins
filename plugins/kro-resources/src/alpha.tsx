@@ -56,3 +56,5 @@ export const kroResourcesPlugin = createFrontendPlugin({
     }),
   ],
 });
+
+export default kroResourcesPlugin;

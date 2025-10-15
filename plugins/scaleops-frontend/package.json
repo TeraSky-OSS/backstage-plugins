@@ -1,6 +1,6 @@
 {
   "name": "@terasky/backstage-plugin-scaleops-frontend",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "main": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -51,7 +51,7 @@
   "devDependencies": {
     "@backstage/cli": "^0.34.4",
     "@backstage/core-app-api": "^1.19.1",
-    "@backstage/dev-utils": "^1.1.15",
+    "@backstage/dev-utils": "^1.1.16",
     "@backstage/test-utils": "^1.7.12",
     "@testing-library/jest-dom": "^6.0.0",
     "@testing-library/react": "^14.0.0",

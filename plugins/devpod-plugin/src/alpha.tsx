@@ -18,3 +18,5 @@ export const devpodPlugin = createFrontendPlugin({
     }),
   ],
 });
+
+export default devpodPlugin;

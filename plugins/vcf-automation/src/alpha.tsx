@@ -208,3 +208,5 @@ export const vcfAutomationPlugin = createFrontendPlugin({
     vcfCCIResourceContent,
   ],
 });
+
+export default vcfAutomationPlugin;

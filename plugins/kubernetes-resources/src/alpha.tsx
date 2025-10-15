@@ -34,3 +34,4 @@ export const kubernetesResourcesPlugin = createFrontendPlugin({
   extensions: [kubernetesResourcesGraphCard, kubernetesResourcesContent],
 });
 
+export default kubernetesResourcesPlugin;

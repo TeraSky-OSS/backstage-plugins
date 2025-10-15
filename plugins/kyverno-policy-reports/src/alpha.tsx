@@ -66,3 +66,4 @@ export const kyvernoPolicyReportsPlugin = createFrontendPlugin({
   ],
 });
 
+export default kyvernoPolicyReportsPlugin;

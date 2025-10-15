@@ -50,3 +50,5 @@ export const educatesPlugin = createFrontendPlugin({
   pluginId: 'educates',
   extensions: [educatesApi, educatesPage, educatesNavItem]
 });
+
+export default educatesPlugin;
