@@ -2109,6 +2109,26 @@ export class KubernetesEntityProvider implements EntityProvider {
     } else if (systemReferencesNamespaceModel === 'default') {
       systemReferencesNamespaceValue = 'default';
     }
+    const nameModel = this.config.getOptionalString('kubernetesIngestor.mappings.nameModel')?.toLowerCase() || 'name';
+    let nameValue = '';
+    if (nameModel === 'name-kind') {
+      nameValue = `${resource.metadata.name}-${resource.kind.toLowerCase()}`;
+    } else if (nameModel === 'name-cluster') {
+      nameValue = `${resource.metadata.name}-${resource.clusterName}`;
+    } else if (nameModel === 'name-namespace') {
+      nameValue = `${resource.metadata.name}-${namespace}`;
+    } else {
+      nameValue = resource.metadata.name;
+    }
+    const titleModel = this.config.getOptionalString('kubernetesIngestor.mappings.titleModel')?.toLowerCase() || 'name';
+    let titleValue = '';
+    if (titleModel === 'name-cluster') {
+      titleValue = `${resource.metadata.name}-${resource.clusterName}`;
+    } else if (titleModel === 'name-namespace') {
+      titleValue = `${resource.metadata.name}-${namespace}`;
+    } else {
+      titleValue = resource.metadata.name;
+    }
     const prefix = this.getAnnotationPrefix();
 
     const customAnnotations = this.extractCustomAnnotations(annotations, resource.clusterName);
@@ -2173,8 +2193,8 @@ export class KubernetesEntityProvider implements EntityProvider {
       apiVersion: 'backstage.io/v1alpha1',
       kind: 'Component',
       metadata: {
-        name: annotations[`${prefix}/name`] || resource.metadata.name,
-        title: annotations[`${prefix}/title`] || resource.metadata.name,
+        name: annotations[`${prefix}/name`] || nameValue,
+        title: annotations[`${prefix}/title`] || titleValue,
         description: `${resource.kind} ${resource.metadata.name} from ${resource.clusterName}`,
         namespace: annotations[`${prefix}/backstage-namespace`] || systemNamespaceValue,
         links: this.parseBackstageLinks(resource.metadata.annotations || {}),
@@ -2295,13 +2315,33 @@ export class KubernetesEntityProvider implements EntityProvider {
     } else if (systemReferencesNamespaceModel === 'default') {
       systemReferencesNamespaceValue = 'default';
     }
+    const nameModel = this.config.getOptionalString('kubernetesIngestor.mappings.nameModel')?.toLowerCase() || 'name';
+    let nameValue = '';
+    if (nameModel === 'name-kind') {
+      nameValue = `${claim.metadata.name}-${crKind.toLowerCase()}`;
+    } else if (nameModel === 'name-cluster') {
+      nameValue = `${claim.metadata.name}-${clusterName}`;
+    } else if (nameModel === 'name-namespace') {
+      nameValue = `${claim.metadata.name}-${claim.metadata.namespace}`;
+    } else {
+      nameValue = claim.metadata.name;
+    }
+    const titleModel = this.config.getOptionalString('kubernetesIngestor.mappings.titleModel')?.toLowerCase() || 'name';
+    let titleValue = '';
+    if (titleModel === 'name-cluster') {
+      titleValue = `${claim.metadata.name}-${clusterName}`;
+    } else if (titleModel === 'name-namespace') {
+      titleValue = `${claim.metadata.name}-${claim.metadata.namespace}`;
+    } else {
+      titleValue = claim.metadata.name;
+    }
 
     const entity: Entity = {
       apiVersion: 'backstage.io/v1alpha1',
       kind: 'Component',
       metadata: {
-        name: annotations[`${prefix}/name`] || claim.metadata.name,
-        title: annotations[`${prefix}/title`] || claim.metadata.name,
+        name: annotations[`${prefix}/name`] || nameValue,
+        title: annotations[`${prefix}/title`] || titleValue,
         tags: [`cluster:${claim.clusterName}`, `kind:${crKind.toLowerCase()}`],
         namespace: annotations[`${prefix}/backstage-namespace`] || systemNamespaceValue,
         links: this.parseBackstageLinks(claim.metadata.annotations || {}),
@@ -2396,13 +2436,33 @@ export class KubernetesEntityProvider implements EntityProvider {
     } else if (systemReferencesNamespaceModel === 'default') {
       systemReferencesNamespaceValue = 'default';
     }
+    const nameModel = this.config.getOptionalString('kubernetesIngestor.mappings.nameModel')?.toLowerCase() || 'name';
+    let nameValue = '';
+    if (nameModel === 'name-kind') {
+      nameValue = `${instance.metadata.name}-${instance.kind?.toLowerCase()}`;
+    } else if (nameModel === 'name-cluster') {
+      nameValue = `${instance.metadata.name}-${clusterName}`;
+    } else if (nameModel === 'name-namespace') {
+      nameValue = `${instance.metadata.name}-${instance.metadata.namespace}`;
+    } else {
+      nameValue = instance.metadata.name;
+    }
+    const titleModel = this.config.getOptionalString('kubernetesIngestor.mappings.titleModel')?.toLowerCase() || 'name';
+    let titleValue = '';
+    if (titleModel === 'name-cluster') {
+      titleValue = `${instance.metadata.name}-${clusterName}`;
+    } else if (titleModel === 'name-namespace') {
+      titleValue = `${instance.metadata.name}-${instance.metadata.namespace}`;
+    } else {
+      titleValue = instance.metadata.name;
+    }
 
     const entity: Entity = {
       apiVersion: 'backstage.io/v1alpha1',
       kind: 'Component',
       metadata: {
-        name: annotations[`${prefix}/name`] || instance.metadata.name,
-        title: annotations[`${prefix}/title`] || instance.metadata.name,
+        name: annotations[`${prefix}/name`] || nameValue,
+        title: annotations[`${prefix}/title`] || titleValue,
         tags: [`cluster:${instance.clusterName}`, `kind:${instance.kind?.toLowerCase()}`],
         namespace: annotations[`${prefix}/backstage-namespace`] || systemNamespaceValue,
         links: this.parseBackstageLinks(instance.metadata.annotations || {}),
@@ -2505,13 +2565,33 @@ export class KubernetesEntityProvider implements EntityProvider {
     } else if (systemReferencesNamespaceModel === 'default') {
       systemReferencesNamespaceValue = 'default';
     }
+    const nameModel = this.config.getOptionalString('kubernetesIngestor.mappings.nameModel')?.toLowerCase() || 'name';
+    let nameValue = '';
+    if (nameModel === 'name-kind') {
+      nameValue = `${xr.metadata.name}-${kind.toLowerCase()}`;
+    } else if (nameModel === 'name-cluster') {
+      nameValue = `${xr.metadata.name}-${clusterName}`;
+    } else if (nameModel === 'name-namespace') {
+      nameValue = `${xr.metadata.name}-${xr.metadata.namespace || 'default'}`;
+    } else {
+      nameValue = xr.metadata.name;
+    }
+    const titleModel = this.config.getOptionalString('kubernetesIngestor.mappings.titleModel')?.toLowerCase() || 'name';
+    let titleValue = '';
+    if (titleModel === 'name-cluster') {
+      titleValue = `${xr.metadata.name}-${clusterName}`;
+    } else if (titleModel === 'name-namespace') {
+      titleValue = `${xr.metadata.name}-${xr.metadata.namespace || 'default'}`;
+    } else {
+      titleValue = xr.metadata.name;
+    }
 
     const entity: Entity = {
       apiVersion: 'backstage.io/v1alpha1',
       kind: 'Component',
       metadata: {
-        name: annotations[`${prefix}/name`] || xr.metadata.name,
-        title: annotations[`${prefix}/title`] || xr.metadata.name,
+        name: annotations[`${prefix}/name`] || nameValue,
+        title: annotations[`${prefix}/title`] || titleValue,
         tags: [`cluster:${xr.clusterName}`, `kind:${kind.toLowerCase()}`],
         namespace: annotations[`${prefix}/backstage-namespace`] || systemNamespaceValue,
         links: this.parseBackstageLinks(xr.metadata.annotations || {}),
