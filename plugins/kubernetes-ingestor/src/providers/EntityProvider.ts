@@ -2621,14 +2621,24 @@ export class KubernetesEntityProvider implements EntityProvider {
 
   private extractCustomAnnotations(annotations: Record<string, string>, clusterName: string): Record<string, string> {
     const prefix = this.getAnnotationPrefix();
-    const customAnnotations: Record<string, string> = {};
-    for (const [key, value] of Object.entries(annotations)) {
-      if (!key.startsWith(prefix)) {
-        customAnnotations[key] = value;
-      }
+    const customAnnotationsKey = `${prefix}/component-annotations`;
+    const defaultAnnotations: Record<string, string> = {
+      'backstage.io/managed-by-location': `cluster origin: ${clusterName}`,
+      'backstage.io/managed-by-origin-location': `cluster origin: ${clusterName}`,
+    };
+
+    if (!annotations[customAnnotationsKey]) {
+      return defaultAnnotations;
     }
-    customAnnotations['backstage.io/managed-by-location'] = `cluster origin: ${clusterName}`;
-    customAnnotations['backstage.io/managed-by-origin-location'] = `cluster origin: ${clusterName}`;
+
+    const customAnnotations = annotations[customAnnotationsKey].split(',').reduce((acc, pair) => {
+      const [key, value] = pair.split('=').map(s => s.trim());
+      if (key && value) {
+        acc[key] = value;
+      }
+      return acc;
+    }, defaultAnnotations);
+
     return customAnnotations;
   }
 
