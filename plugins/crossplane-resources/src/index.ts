@@ -7,3 +7,4 @@ export {
   useResourceGraphAvailable,
   useResourcesListAvailable,
 } from './components/isCrossplaneAvailable'
+export { crossplaneApiRef, CrossplaneApiClient } from './api/CrossplaneApi'
