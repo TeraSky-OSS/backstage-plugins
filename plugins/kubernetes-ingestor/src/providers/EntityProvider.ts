@@ -2105,7 +2105,7 @@ export class KubernetesEntityProvider implements EntityProvider {
     const systemReferencesNamespaceModel = this.config.getOptionalString('kubernetesIngestor.mappings.referencesNamespaceModel')?.toLowerCase() || 'default';
     let systemReferencesNamespaceValue = '';
     if (systemReferencesNamespaceModel === 'same') {
-      systemReferencesNamespaceValue = resource.metadata.name;
+      systemReferencesNamespaceValue = systemNamespaceValue;
     } else if (systemReferencesNamespaceModel === 'default') {
       systemReferencesNamespaceValue = 'default';
     }
@@ -2311,7 +2311,7 @@ export class KubernetesEntityProvider implements EntityProvider {
     const systemReferencesNamespaceModel = this.config.getOptionalString('kubernetesIngestor.mappings.referencesNamespaceModel')?.toLowerCase() || 'default';
     let systemReferencesNamespaceValue = '';
     if (systemReferencesNamespaceModel === 'same') {
-      systemReferencesNamespaceValue = claim.metadata.name;
+      systemReferencesNamespaceValue = systemNamespaceValue;
     } else if (systemReferencesNamespaceModel === 'default') {
       systemReferencesNamespaceValue = 'default';
     }
@@ -2432,7 +2432,7 @@ export class KubernetesEntityProvider implements EntityProvider {
     const systemReferencesNamespaceModel = this.config.getOptionalString('kubernetesIngestor.mappings.referencesNamespaceModel')?.toLowerCase() || 'default';
     let systemReferencesNamespaceValue = '';
     if (systemReferencesNamespaceModel === 'same') {
-      systemReferencesNamespaceValue = instance.metadata.name;
+      systemReferencesNamespaceValue = systemNamespaceValue;
     } else if (systemReferencesNamespaceModel === 'default') {
       systemReferencesNamespaceValue = 'default';
     }
@@ -2561,7 +2561,7 @@ export class KubernetesEntityProvider implements EntityProvider {
     const systemReferencesNamespaceModel = this.config.getOptionalString('kubernetesIngestor.mappings.referencesNamespaceModel')?.toLowerCase() || 'default';
     let systemReferencesNamespaceValue = '';
     if (systemReferencesNamespaceModel === 'same') {
-      systemReferencesNamespaceValue = xr.metadata.name;
+      systemReferencesNamespaceValue = systemNamespaceValue;
     } else if (systemReferencesNamespaceModel === 'default') {
       systemReferencesNamespaceValue = 'default';
     }
