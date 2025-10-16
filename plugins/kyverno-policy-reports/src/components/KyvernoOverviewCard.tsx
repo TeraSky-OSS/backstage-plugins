@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, Typography, Box, CircularProgress, Tooltip, Table, TableBody, TableCell, TableRow, TableHead } from '@material-ui/core';
 import { configApiRef, useApi } from '@backstage/core-plugin-api';
-import { kubernetesApiRef } from '@backstage/plugin-kubernetes-react';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import ErrorIcon from '@material-ui/icons/Error';
@@ -10,7 +9,8 @@ import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import SkipNextIcon from '@material-ui/icons/SkipNext';
 import CancelIcon from '@material-ui/icons/Cancel';
 import { usePermission } from '@backstage/plugin-permission-react';
-import { viewOverviewPermission } from '@terasky/backstage-plugin-kyverno-common';
+import { viewOverviewPermission, PolicyReport } from '@terasky/backstage-plugin-kyverno-common';
+import { kyvernoApiRef } from '../api/KyvernoApi';
 
 const useStyles = makeStyles((theme: any) => ({
   card: {
@@ -55,33 +55,11 @@ const useStyles = makeStyles((theme: any) => ({
   },
 }));
 
-interface PolicyReport {
-  results?: Array<{
-    source: string;
-    policy: string;
-    result: string;
-    message?: string;
-    rule?: string;
-  }>;
-  summary?: {
-    pass: number;
-    fail: number;
-    warn: number;
-    error: number;
-    skip: number;
-  };
-  scope?: {
-    kind: string;
-    name: string;
-    namespace?: string;
-  };
-}
-
 const KyvernoOverviewCard = () => {
   const classes = useStyles();
   const theme = useTheme();
   const { entity } = useEntity();
-  const kubernetesApi = useApi(kubernetesApiRef);
+  const kyvernoApi = useApi(kyvernoApiRef);
   const config = useApi(configApiRef);
   const enablePermissions = config.getOptionalBoolean('kyverno.enablePermissions') ?? false;
   const canViewOverviewTemp = usePermission({ permission: viewOverviewPermission }).allowed;
@@ -108,36 +86,20 @@ const KyvernoOverviewCard = () => {
     const fetchOverviewData = async () => {
       setLoading(true);
       try {
-        const response = await kubernetesApi.getWorkloadsByEntity({ entity, auth: {} });
-        const resources = response.items.flatMap(item =>
-          item.resources.flatMap(resourceGroup =>
-            resourceGroup.resources.map(resource => ({
-              resource,
-              clusterName: item.cluster.name,
-            }))
-          )
-        );
+        if (!entity.metadata.namespace) {
+          throw new Error('Entity must have a namespace');
+        }
 
-        const policyReports = await Promise.all(resources.map(async ({ resource, clusterName }) => {
-          const { uid, namespace } = resource.metadata || {};
-          if (!uid || !namespace) return null;
+        const response = await kyvernoApi.getPolicyReports({
+          entity: {
+            metadata: {
+              name: entity.metadata.name,
+              namespace: entity.metadata.namespace as string,
+            },
+          },
+        });
 
-          const url = `/apis/wgpolicyk8s.io/v1alpha2/namespaces/${namespace}/policyreports/${uid}`;
-          try {
-            const response = await kubernetesApi.proxy({
-              clusterName,
-              path: url,
-              init: { method: 'GET' },
-            });
-            const report = await response.json();
-            return report;
-          } catch (error) {
-            console.error(`Failed to fetch policy report for ${uid}:`, error);
-            return null;
-          }
-        }));
-
-        const filteredReports = policyReports.filter(report => report !== null) as PolicyReport[];
+        const filteredReports = response.items;
         setPolicyReports(filteredReports);
 
         const totalChecks = filteredReports.reduce((acc, report) => acc + (report?.results?.length || 0), 0);
@@ -148,7 +110,7 @@ const KyvernoOverviewCard = () => {
         const totalWarn = filteredReports.reduce((acc, report) => acc + (report?.summary?.warn || 0), 0);
 
         setOverviewData({
-          totalResources: resources.length,
+          totalResources: filteredReports.length,
           totalChecks,
           totalPass,
           totalFail,
@@ -164,14 +126,14 @@ const KyvernoOverviewCard = () => {
     };
 
     fetchOverviewData();
-  }, [kubernetesApi, entity]);
+  }, [kyvernoApi, entity, canViewOverview]);
 
   const renderTooltipContent = (type: 'pass' | 'fail' | 'warn' | 'error' | 'skip') => {
     const relevantResults = policyReports.flatMap(report => report.results?.filter(result => result.result === type).map(result => ({
       ...result,
       kind: report.scope?.kind,
       name: report.scope?.name,
-      namespace: report.scope?.namespace,
+      namespace: report.metadata?.namespace,
     })) || []);
     if (relevantResults.length === 0) return <></>;
 

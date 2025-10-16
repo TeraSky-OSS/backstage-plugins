@@ -56,3 +56,17 @@ export interface GetPolicyRequest {
 export interface GetPolicyResponse {
   policy: KubernetesObject;
 }
+
+export interface GetCrossplanePolicyReportsRequest {
+  entity: {
+    metadata: {
+      name: string;
+      namespace?: string;
+      annotations?: Record<string, string>;
+    };
+  };
+}
+
+export interface GetCrossplanePolicyReportsResponse {
+  items: PolicyReport[];
+}

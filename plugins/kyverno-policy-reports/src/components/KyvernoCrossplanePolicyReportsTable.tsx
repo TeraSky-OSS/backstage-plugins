@@ -2,7 +2,6 @@ import { Fragment, useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableRow, Paper, IconButton, Box, Collapse, Typography, LinearProgress, Chip, Drawer, Button, useTheme } from '@material-ui/core';
 import { configApiRef, useApi } from '@backstage/core-plugin-api';
 import { KubernetesObject } from '@backstage/plugin-kubernetes';
-import { kubernetesApiRef } from '@backstage/plugin-kubernetes-react';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { ExpandMore, ExpandLess, Close as CloseIcon } from '@material-ui/icons';
 import { makeStyles } from '@material-ui/core/styles';
@@ -18,39 +17,11 @@ import { saveAs } from 'file-saver';
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { dark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
-import { showKyvernoReportsPermission, viewPolicyYAMLPermission } from '@terasky/backstage-plugin-kyverno-common';
+import { showKyvernoReportsPermission, viewPolicyYAMLPermission, PolicyReport } from '@terasky/backstage-plugin-kyverno-common';
 import { usePermission } from '@backstage/plugin-permission-react';
+import { kyvernoApiRef } from '../api/KyvernoApi';
 
 
-interface PolicyReport {
-    metadata: {
-        uid: string;
-        namespace?: string;
-    };
-    scope: {
-        kind: string;
-        name: string;
-    };
-    summary: {
-        error: number;
-        fail: number;
-        pass: number;
-        skip: number;
-        warn: number;
-    };
-    results?: Array<{
-        category: string;
-        message: string;
-        policy: string;
-        result: string;
-        rule: string;
-        severity: string;
-        timestamp: {
-            seconds: number;
-        };
-    }>;
-    clusterName: string;
-}
 
 const useStyles = makeStyles((theme: any) => ({
   error: {
@@ -86,10 +57,7 @@ const removeManagedFields = (resource: KubernetesObject) => {
 
 const KyvernoCrossplanePolicyReportsTable = () => {
     const { entity } = useEntity();
-    const kubernetesApi = useApi(kubernetesApiRef);
-    const [resources, setResources] = useState<Array<{
-        metadata: any; resource: KubernetesObject 
-}>>([]);
+    const kyvernoApi = useApi(kyvernoApiRef);
     const [policyReports, setPolicyReports] = useState<PolicyReport[]>([]);
     const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(true);
@@ -111,101 +79,28 @@ const KyvernoCrossplanePolicyReportsTable = () => {
             setLoading(false);
             return;
         }
-        const fetchResources = async () => {
-          setLoading(true);
-          try {
-            const annotations = entity.metadata.annotations || {};
-            const crossplaneVersion = annotations['terasky.backstage.io/crossplane-version'];
-            const labelSelector = annotations['backstage.io/kubernetes-label-selector'];
-            const cluster = annotations['backstage.io/managed-by-location']?.split(': ')[1];
-            const resourcesToFetch: any[] = [];
 
-            if (crossplaneVersion === 'v1') {
-              // Fetch claim
-              const claimPlural = annotations['terasky.backstage.io/claim-plural'];
-              const claimGroup = annotations['terasky.backstage.io/claim-group'];
-              const claimVersion = annotations['terasky.backstage.io/claim-version'];
-              const claimName = annotations['terasky.backstage.io/claim-name'];
-              const namespace = labelSelector?.split(',').find((s: string) => s.startsWith('crossplane.io/claim-namespace'))?.split('=')[1];
-              if (claimPlural && claimGroup && claimVersion && claimName && namespace && cluster) {
-                const claimUrl = `/apis/${claimGroup}/${claimVersion}/namespaces/${namespace}/${claimPlural}/${claimName}`;
-                const claimResponse = await kubernetesApi.proxy({ clusterName: cluster, path: claimUrl, init: { method: 'GET' } });
-                resourcesToFetch.push(await claimResponse.json());
-              }
-            }
-
-            // Fetch composite (for both v1 and v2)
-            const compositePlural = annotations['terasky.backstage.io/composite-plural'];
-            const compositeGroup = annotations['terasky.backstage.io/composite-group'];
-            const compositeVersion = annotations['terasky.backstage.io/composite-version'];
-            const compositeName = annotations['terasky.backstage.io/composite-name'];
-            const compositeScope = annotations['terasky.backstage.io/crossplane-scope'];
-            if (compositePlural && compositeGroup && compositeVersion && compositeName && cluster) {
-              let compositeUrl;
-              if (compositeScope === 'Namespaced') {
-                const ns = labelSelector?.split(',').find((s: string) => s.startsWith('crossplane.io/claim-namespace') || s.startsWith('crossplane.io/composite-namespace'))?.split('=')[1]
-                  || annotations['terasky.backstage.io/composite-namespace']
-                  || 'default';
-                compositeUrl = `/apis/${compositeGroup}/${compositeVersion}/namespaces/${ns}/${compositePlural}/${compositeName}`;
-              } else {
-                compositeUrl = `/apis/${compositeGroup}/${compositeVersion}/${compositePlural}/${compositeName}`;
-              }
-              const compositeResponse = await kubernetesApi.proxy({ clusterName: cluster, path: compositeUrl, init: { method: 'GET' } });
-              resourcesToFetch.push(await compositeResponse.json());
-            }
-
-            setResources(resourcesToFetch);
-            setLoading(false);
-          } catch (error) {
-            console.error('Failed to fetch resources:', error);
-            setLoading(false);
-          }
-        };
-
-        fetchResources();
-    }, [kubernetesApi, entity, canSeeReports]);
-
-    useEffect(() => {
-        if (!canSeeReports) {
-            return;
-        }
         const fetchPolicyReports = async () => {
             setLoading(true);
-            const annotations = entity.metadata.annotations || {};
-            const clusterName = annotations['backstage.io/managed-by-location']?.split(': ')[1];
-            const reports = await Promise.all(resources.map(async (resource) => {
-                if (!resource || !resource.metadata) return null;
-                const { uid, namespace } = resource.metadata;
-                if (!uid) return null;
-                // For v2, composites can be namespaced or cluster-scoped
-                let url;
-                if (namespace) {
-                  url = `/apis/wgpolicyk8s.io/v1alpha2/namespaces/${namespace}/policyreports/${uid}`;
-                } else {
-                  url = `/apis/wgpolicyk8s.io/v1alpha2/clusterpolicyreports/${uid}`;
-                }
-                try {
-                    const response = await kubernetesApi.proxy({
-                        clusterName,
-                        path: url,
-                        init: { method: 'GET' },
-                    });
-                    const report = await response.json();
-                    return { ...report, clusterName };
-                } catch (error) {
-                    console.error(`Failed to fetch policy report for ${uid}:`, error);
-                    return null;
-                }
-            }));
-
-            setPolicyReports(reports.filter(report => report !== null) as PolicyReport[]);
+            try {
+                const response = await kyvernoApi.getCrossplanePolicyReports({
+                    entity: {
+                        metadata: {
+                            name: entity.metadata.name,
+                            namespace: entity.metadata.namespace,
+                            annotations: entity.metadata.annotations,
+                        },
+                    },
+                });
+                setPolicyReports(response.items);
+            } catch (error) {
+                console.error('Failed to fetch policy reports:', error);
+            }
             setLoading(false);
         };
 
-        if (resources.length > 0) {
-            fetchPolicyReports();
-        }
-    }, [resources, kubernetesApi, canSeeReports]);
+        fetchPolicyReports();
+    }, [kyvernoApi, entity, canSeeReports]);
 
     const handleRowClick = (uid: string) => {
         setExpandedRows(prev => {
@@ -223,25 +118,8 @@ const KyvernoCrossplanePolicyReportsTable = () => {
         setDrawerOpen(true);
         setSelectedPolicy(policyName);
         try {
-            const clusterPolicyUrl = `/apis/kyverno.io/v1/clusterpolicies/${policyName}`;
-            const policyUrl = `/apis/kyverno.io/v1/namespaces/${namespace}/policies/${policyName}`;
-
-            let response = await kubernetesApi.proxy({
-                clusterName,
-                path: clusterPolicyUrl,
-                init: { method: 'GET' },
-            });
-
-            if (response.status === 404) {
-                response = await kubernetesApi.proxy({
-                    clusterName,
-                    path: policyUrl,
-                    init: { method: 'GET' },
-                });
-            }
-
-            const policy = await response.json();
-            setPolicyYaml(YAML.dump(removeManagedFields(policy)));
+            const response = await kyvernoApi.getPolicy({ clusterName, namespace, policyName });
+            setPolicyYaml(YAML.dump(removeManagedFields(response.policy)));
         } catch (error) {
             console.error(`Failed to fetch policy ${policyName}:`, error);
             setPolicyYaml(null);

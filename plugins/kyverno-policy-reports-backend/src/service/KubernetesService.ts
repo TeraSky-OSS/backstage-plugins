@@ -1,5 +1,5 @@
 import { LoggerService, DiscoveryService, AuthService } from '@backstage/backend-plugin-api';
-import { PolicyReport, GetPolicyReportsRequest } from '@terasky/backstage-plugin-kyverno-common';
+import { PolicyReport, GetPolicyReportsRequest, GetCrossplanePolicyReportsRequest } from '@terasky/backstage-plugin-kyverno-common';
 import fetch from 'node-fetch';
 
 export class KubernetesService {
@@ -113,6 +113,96 @@ export class KubernetesService {
       throw new Error(`Policy ${policyName} not found`);
     } catch (error) {
       this.logger.error(`Failed to fetch policy ${policyName}: ${error}`);
+      throw error;
+    }
+  }
+
+  async getCrossplanePolicyReports(request: GetCrossplanePolicyReportsRequest): Promise<PolicyReport[]> {
+    const { entity } = request;
+    const reports: PolicyReport[] = [];
+
+    try {
+      const annotations = entity.metadata.annotations || {};
+      const crossplaneVersion = annotations['terasky.backstage.io/crossplane-version'];
+      const labelSelector = annotations['backstage.io/kubernetes-label-selector'];
+      const cluster = annotations['backstage.io/managed-by-location']?.split(': ')[1];
+
+      if (!cluster) {
+        throw new Error('Missing cluster annotation: backstage.io/managed-by-location');
+      }
+
+      const resourcesToFetch: any[] = [];
+
+      // Fetch claim (v1 only)
+      if (crossplaneVersion === 'v1') {
+        const claimPlural = annotations['terasky.backstage.io/claim-plural'];
+        const claimGroup = annotations['terasky.backstage.io/claim-group'];
+        const claimVersion = annotations['terasky.backstage.io/claim-version'];
+        const claimName = annotations['terasky.backstage.io/claim-name'];
+        const namespace = labelSelector?.split(',').find(s => s.startsWith('crossplane.io/claim-namespace'))?.split('=')[1];
+
+        if (claimPlural && claimGroup && claimVersion && claimName && namespace) {
+          try {
+            const claimUrl = `/apis/${claimGroup}/${claimVersion}/namespaces/${namespace}/${claimPlural}/${claimName}`;
+            const claim = await this.proxyKubernetesRequest(cluster, claimUrl);
+            resourcesToFetch.push(claim);
+          } catch (error) {
+            this.logger.warn(`Failed to fetch claim ${claimName}: ${error}`);
+          }
+        }
+      }
+
+      // Fetch composite (for both v1 and v2)
+      const compositePlural = annotations['terasky.backstage.io/composite-plural'];
+      const compositeGroup = annotations['terasky.backstage.io/composite-group'];
+      const compositeVersion = annotations['terasky.backstage.io/composite-version'];
+      const compositeName = annotations['terasky.backstage.io/composite-name'];
+      const compositeScope = annotations['terasky.backstage.io/crossplane-scope'];
+
+      if (compositePlural && compositeGroup && compositeVersion && compositeName) {
+        try {
+          let compositeUrl;
+          if (compositeScope === 'Namespaced') {
+            const ns = labelSelector?.split(',').find(s => 
+              s.startsWith('crossplane.io/claim-namespace') || 
+              s.startsWith('crossplane.io/composite-namespace')
+            )?.split('=')[1] || annotations['terasky.backstage.io/composite-namespace'] || 'default';
+            compositeUrl = `/apis/${compositeGroup}/${compositeVersion}/namespaces/${ns}/${compositePlural}/${compositeName}`;
+          } else {
+            compositeUrl = `/apis/${compositeGroup}/${compositeVersion}/${compositePlural}/${compositeName}`;
+          }
+          const composite = await this.proxyKubernetesRequest(cluster, compositeUrl);
+          resourcesToFetch.push(composite);
+        } catch (error) {
+          this.logger.warn(`Failed to fetch composite ${compositeName}: ${error}`);
+        }
+      }
+
+      // Fetch policy reports for each resource
+      for (const resource of resourcesToFetch) {
+        if (!resource || !resource.metadata) continue;
+        
+        const { uid, namespace } = resource.metadata;
+        if (!uid) continue;
+
+        try {
+          let reportUrl;
+          if (namespace) {
+            reportUrl = `/apis/wgpolicyk8s.io/v1alpha2/namespaces/${namespace}/policyreports/${uid}`;
+          } else {
+            reportUrl = `/apis/wgpolicyk8s.io/v1alpha2/clusterpolicyreports/${uid}`;
+          }
+
+          const report = await this.proxyKubernetesRequest(cluster, reportUrl);
+          reports.push({ ...report, clusterName: cluster });
+        } catch (error) {
+          this.logger.error(`Failed to fetch policy report for ${uid}: ${error}`);
+        }
+      }
+
+      return reports;
+    } catch (error) {
+      this.logger.error(`Failed to fetch Crossplane policy reports: ${error}`);
       throw error;
     }
   }

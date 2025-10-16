@@ -61,5 +61,21 @@ export async function createRouter(
     res.json({ policy });
   });
 
+  router.post('/crossplane-reports', async (req, res) => {
+    const credentials = await auth.getOwnServiceCredentials();
+    const authorized = await permissions.authorize(
+      [{ permission: showKyvernoReportsPermission }],
+      { credentials }
+    );
+
+    if (authorized[0].result !== 'ALLOW') {
+      res.status(403).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const reports = await kubernetesService.getCrossplanePolicyReports(req.body);
+    res.json({ items: reports });
+  });
+
   return router;
 }

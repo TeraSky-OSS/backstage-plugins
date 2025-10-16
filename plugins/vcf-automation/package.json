@@ -45,7 +45,7 @@
     "@material-ui/icons": "^4.11.3",
     "@material-ui/lab": "4.0.0-alpha.61",
     "@monaco-editor/react": "^4.7.0",
-    "@terasky/backstage-plugin-vcf-automation-common": "^1.2.5",
+    "@terasky/backstage-plugin-vcf-automation-common": "^1.2.4",
     "js-yaml": "^4.1.0",
     "react-use": "^17.6.0"
   },

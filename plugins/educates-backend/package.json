@@ -40,7 +40,7 @@
     "@backstage/errors": "^1.2.7",
     "@backstage/plugin-permission-common": "^0.9.2",
     "@backstage/plugin-permission-node": "^0.10.5",
-    "@terasky/backstage-plugin-educates-common": "^1.2.1",
+    "@terasky/backstage-plugin-educates-common": "^1.2.0",
     "@types/express": "^4.17.22",
     "express": "^4.17.1",
     "express-promise-router": "^4.1.0",

@@ -4,11 +4,14 @@ import {
   GetPolicyReportsResponse,
   GetPolicyRequest,
   GetPolicyResponse,
+  GetCrossplanePolicyReportsRequest,
+  GetCrossplanePolicyReportsResponse,
 } from '@terasky/backstage-plugin-kyverno-common';
 
 export interface KyvernoApi {
   getPolicyReports(request: GetPolicyReportsRequest): Promise<GetPolicyReportsResponse>;
   getPolicy(request: GetPolicyRequest): Promise<GetPolicyResponse>;
+  getCrossplanePolicyReports(request: GetCrossplanePolicyReportsRequest): Promise<GetCrossplanePolicyReportsResponse>;
 }
 
 export const kyvernoApiRef = createApiRef<KyvernoApi>({
@@ -50,5 +53,15 @@ export class KyvernoApiClient implements KyvernoApi {
     });
 
     return this.fetch(`/policy?${params.toString()}`);
+  }
+
+  async getCrossplanePolicyReports(request: GetCrossplanePolicyReportsRequest): Promise<GetCrossplanePolicyReportsResponse> {
+    return this.fetch('/crossplane-reports', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
   }
 }
