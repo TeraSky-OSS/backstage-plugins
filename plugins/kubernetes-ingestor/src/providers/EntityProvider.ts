@@ -2195,7 +2195,7 @@ export class KubernetesEntityProvider implements EntityProvider {
       metadata: {
         name: annotations[`${prefix}/name`] || nameValue,
         title: annotations[`${prefix}/title`] || titleValue,
-        description: `${resource.kind} ${resource.metadata.name} from ${resource.clusterName}`,
+        description: annotations[`${prefix}/description`] || `${resource.kind} ${resource.metadata.name} from ${resource.clusterName}`,
         namespace: annotations[`${prefix}/backstage-namespace`] || systemNamespaceValue,
         links: this.parseBackstageLinks(resource.metadata.annotations || {}),
         annotations: {
@@ -2342,6 +2342,7 @@ export class KubernetesEntityProvider implements EntityProvider {
       metadata: {
         name: annotations[`${prefix}/name`] || nameValue,
         title: annotations[`${prefix}/title`] || titleValue,
+        description: annotations[`${prefix}/description`] || `${crKind} ${claim.metadata.name} from ${claim.clusterName}`,
         tags: [`cluster:${claim.clusterName}`, `kind:${crKind.toLowerCase()}`],
         namespace: annotations[`${prefix}/backstage-namespace`] || systemNamespaceValue,
         links: this.parseBackstageLinks(claim.metadata.annotations || {}),
@@ -2463,6 +2464,7 @@ export class KubernetesEntityProvider implements EntityProvider {
       metadata: {
         name: annotations[`${prefix}/name`] || nameValue,
         title: annotations[`${prefix}/title`] || titleValue,
+        description: annotations[`${prefix}/description`] || `${instance.kind} ${instance.metadata.name} from ${instance.clusterName}`,
         tags: [`cluster:${instance.clusterName}`, `kind:${instance.kind?.toLowerCase()}`],
         namespace: annotations[`${prefix}/backstage-namespace`] || systemNamespaceValue,
         links: this.parseBackstageLinks(instance.metadata.annotations || {}),
@@ -2593,6 +2595,7 @@ export class KubernetesEntityProvider implements EntityProvider {
       metadata: {
         name: annotations[`${prefix}/name`] || nameValue,
         title: annotations[`${prefix}/title`] || titleValue,
+        description: annotations[`${prefix}/description`] || `${kind} ${xr.metadata.name} from ${xr.clusterName}`,
         tags: [`cluster:${xr.clusterName}`, `kind:${kind.toLowerCase()}`],
         namespace: annotations[`${prefix}/backstage-namespace`] || systemNamespaceValue,
         links: this.parseBackstageLinks(xr.metadata.annotations || {}),
@@ -2633,13 +2636,17 @@ export class KubernetesEntityProvider implements EntityProvider {
     }
 
     const customAnnotations = annotations[customAnnotationsKey].split(',').reduce((acc, pair) => {
-      const [key, value] = pair.split('=').map(s => s.trim());
-      if (key && value) {
-        acc[key] = value;
+      const separatorIndex = pair.indexOf('=');
+      if (separatorIndex !== -1) {
+        const key = pair.substring(0, separatorIndex).trim();
+        const value = pair.substring(separatorIndex + 1).trim();
+        if (key && value) {
+          acc[key] = value;
+        }
       }
       return acc;
     }, defaultAnnotations);
-
+    
     return customAnnotations;
   }
 
