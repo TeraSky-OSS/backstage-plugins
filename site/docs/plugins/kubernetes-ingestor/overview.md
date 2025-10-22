@@ -67,7 +67,6 @@ The plugin supports a rich set of annotations for customizing entity creation:
 General Annotations:
   terasky.backstage.io/add-to-catalog: true/false
   terasky.backstage.io/exclude-from-catalog: true/false
-  terasky.backstage.io/system: string
   terasky.backstage.io/backstage-namespace: string
   terasky.backstage.io/owner: string
 
@@ -76,6 +75,7 @@ Namespace Annotations:
   terasky.backstage.io/domain: string
 
 Workload Resource Annotations:
+  terasky.backstage.io/system: string
   terasky.backstage.io/source-code-repo-url: string
   terasky.backstage.io/source-branch: string
   terasky.backstage.io/techdocs-path: string
@@ -90,13 +90,7 @@ Workload Resource Annotations:
   terasky.backstage.io/links: string
   terasky.backstage.io/title: string
   terasky.backstage.io/name: string
-
-KRO Resource Annotations:
-  terasky.backstage.io/kro-rgd-name: string
-  terasky.backstage.io/kro-rgd-id: string
-  terasky.backstage.io/kro-rgd-crd-name: string
-  terasky.backstage.io/kro-instance-uid: string
-  terasky.backstage.io/kro-sub-resources: string
+  terasky.backstage.io/description: string
 ```
 
 ## Getting Started
