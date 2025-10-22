@@ -26,6 +26,12 @@ for dir in plugins/*/; do
             type="Frontend"
         elif [[ $folder == *"-common"* ]]; then
             type="Shared Module"
+        elif [[ $folder == "entity-scaffolder-content" ]]; then
+            type="Frontend"
+        elif [[ $folder == "terraform-scaffolder" ]]; then
+            type="Scaffolder Field Extension"
+        elif [[ $folder == "gitops-manifest-updater" ]]; then
+            type="Scaffolder Field Extension"
         elif [[ $folder == *"scaffolder"* && $folder == *"field"* ]]; then
             type="Scaffolder Field Extension"
         elif [[ $folder == *"scaffolder"* ]]; then
