@@ -1,6 +1,6 @@
 {
   "name": "@terasky/backstage-plugin-vcf-operations",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "license": "Apache-2.0",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -44,7 +44,7 @@
     "@material-ui/core": "^4.12.4",
     "@material-ui/icons": "^4.11.3",
     "@material-ui/lab": "4.0.0-alpha.61",
-    "@terasky/backstage-plugin-vcf-operations-common": "^0.1.4",
+    "@terasky/backstage-plugin-vcf-operations-common": "^0.1.5",
     "react-use": "^17.6.0",
     "recharts": "^2.8.0"
   },

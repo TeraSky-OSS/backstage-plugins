@@ -1,6 +1,6 @@
 {
   "name": "@terasky/backstage-plugin-educates",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "main": "src/index.ts",
   "types": "src/index.ts",
   "configSchema": "config.d.ts",
@@ -42,7 +42,7 @@
     "@backstage/theme": "^0.7.0",
     "@material-ui/core": "^4.12.4",
     "@material-ui/icons": "^4.9.1",
-    "@terasky/backstage-plugin-educates-common": "^1.2.0",
+    "@terasky/backstage-plugin-educates-common": "^1.2.1",
     "react-use": "^17.2.4"
   },
   "peerDependencies": {
