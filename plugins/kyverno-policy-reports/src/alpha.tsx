@@ -1,7 +1,8 @@
-import { createFrontendPlugin } from '@backstage/frontend-plugin-api';
+import { ApiBlueprint, createFrontendPlugin, discoveryApiRef, fetchApiRef } from '@backstage/frontend-plugin-api';
 import { EntityCardBlueprint, EntityContentBlueprint } from '@backstage/plugin-catalog-react/alpha';
 import { Entity } from '@backstage/catalog-model';
 import { isKubernetesAvailable } from '@backstage/plugin-kubernetes';
+import { KyvernoApiClient, kyvernoApiRef } from './api/KyvernoApi';
 
 const isNonCrossplaneButKyvernoAvailable = (entity: Entity) => {
   return Boolean(entity.spec?.type !== 'crossplane-claim' && entity.spec?.type !== 'crossplane-xr' && isKubernetesAvailable(entity))
@@ -56,6 +57,19 @@ export const kyvernoCrossplanePolicyReportsContent = EntityContentBlueprint.make
 });
 
 /** @alpha */
+export const kyvernoApi = ApiBlueprint.make({
+  name: 'kyvernoApi',
+  params: defineParams => defineParams({
+    api: kyvernoApiRef,
+    deps: {
+      discoveryApi: discoveryApiRef,
+      fetchApi: fetchApiRef,
+    },
+    factory: ({ discoveryApi, fetchApi }) => new KyvernoApiClient(discoveryApi, fetchApi),
+  }),
+});
+
+/** @alpha */
 export const kyvernoPolicyReportsPlugin = createFrontendPlugin({
   pluginId: 'kyverno-policy-reports',
   extensions: [
@@ -63,6 +77,7 @@ export const kyvernoPolicyReportsPlugin = createFrontendPlugin({
     kyvernoCrossplaneOverviewCard,
     kyvernoPolicyReportsContent,
     kyvernoCrossplanePolicyReportsContent,
+    kyvernoApi,
   ],
 });
 
