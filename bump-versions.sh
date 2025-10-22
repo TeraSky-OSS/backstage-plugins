@@ -149,6 +149,15 @@ for plugin_dir in plugins/*/; do
   
   plugin_name=$(get_package_name "$package_json")
   current_version=$(get_version "$package_json")
+  
+  # Check if package.json has any git changes
+  if git diff --quiet HEAD "$package_json" 2>/dev/null; then
+    log_info "Plugin: $plugin_name - No changes detected, skipping version bump"
+    # Store the current version (unchanged)
+    PLUGIN_VERSIONS["$plugin_name"]="$current_version"
+    continue
+  fi
+  
   change_type=$(check_dependency_changes "$package_json")
   
   bump_type=""
@@ -160,7 +169,7 @@ for plugin_dir in plugins/*/; do
     log_info "Plugin: $plugin_name - Only devDependencies changed, bumping patch version"
   else
     bump_type="patch"
-    log_info "Plugin: $plugin_name - No dependency changes detected, bumping patch version"
+    log_info "Plugin: $plugin_name - Other changes detected, bumping patch version"
   fi
   
   new_version=$(bump_version "$current_version" "$bump_type")
