@@ -108,7 +108,7 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
           metadata: z.object({
             name: z.string().describe('The name of the entity'),
             namespace: z.string().optional().describe('The namespace of the entity'),
-            annotations: z.record(z.string()).describe('All of the Entity annotations containing Crossplane resource information from the backstage entity'),
+            annotations: z.record(z.string()).describe('All of the Entity annotations from the backstage entity must be sent!'),
           }),
         }).describe('The entity to get Crossplane policy reports for'),
       }),
