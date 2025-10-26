@@ -27,7 +27,7 @@ Modify your backend entry point (typically `packages/backend/src/index.ts`):
 
 ```typescript
 // In your backend initialization
-backend.add(import('@terasky/backstage-plugin-crossplane-permissions-backend'));
+backend.add(import('@terasky/backstage-plugin-crossplane-resources-backend'));
 ```
 
 ### 3. Configure the plugin
