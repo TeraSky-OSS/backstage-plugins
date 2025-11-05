@@ -14396,7 +14396,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-ai-rules@npm:^1.1.1, @terasky/backstage-plugin-ai-rules@workspace:plugins/ai-rules-plugin":
+"@terasky/backstage-plugin-ai-rules@npm:^1.1.2, @terasky/backstage-plugin-ai-rules@workspace:plugins/ai-rules-plugin":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-ai-rules@workspace:plugins/ai-rules-plugin"
   dependencies:
@@ -14423,7 +14423,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-crossplane-common@npm:^1.2.3, @terasky/backstage-plugin-crossplane-common@workspace:plugins/crossplane-common":
+"@terasky/backstage-plugin-crossplane-common@npm:^1.2.4, @terasky/backstage-plugin-crossplane-common@workspace:plugins/crossplane-common":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-crossplane-common@workspace:plugins/crossplane-common"
   dependencies:
@@ -14446,7 +14446,7 @@ __metadata:
     "@backstage/plugin-auth-backend-module-guest-provider": "npm:^0.2.13"
     "@backstage/plugin-catalog-node": "npm:^1.19.1"
     "@backstage/plugin-permission-node": "npm:^0.10.5"
-    "@terasky/backstage-plugin-crossplane-common": "npm:^1.2.3"
+    "@terasky/backstage-plugin-crossplane-common": "npm:^1.2.4"
     "@types/express": "npm:^4.17.22"
     "@types/supertest": "npm:^2.0.12"
     express: "npm:^4.17.1"
@@ -14459,7 +14459,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-crossplane-resources-frontend@npm:^2.5.0, @terasky/backstage-plugin-crossplane-resources-frontend@workspace:plugins/crossplane-resources":
+"@terasky/backstage-plugin-crossplane-resources-frontend@npm:^2.5.1, @terasky/backstage-plugin-crossplane-resources-frontend@workspace:plugins/crossplane-resources":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-crossplane-resources-frontend@workspace:plugins/crossplane-resources"
   dependencies:
@@ -14480,7 +14480,7 @@ __metadata:
     "@material-ui/core": "npm:^4.12.4"
     "@material-ui/icons": "npm:^4.11.3"
     "@material-ui/lab": "npm:^4.0.0-alpha.61"
-    "@terasky/backstage-plugin-crossplane-common": "npm:^1.2.3"
+    "@terasky/backstage-plugin-crossplane-common": "npm:^1.2.4"
     "@testing-library/jest-dom": "npm:^6.0.0"
     "@testing-library/react": "npm:^14.0.0"
     "@testing-library/user-event": "npm:^14.0.0"
@@ -14507,7 +14507,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-devpod@npm:^1.3.1, @terasky/backstage-plugin-devpod@workspace:plugins/devpod-plugin":
+"@terasky/backstage-plugin-devpod@npm:^1.3.2, @terasky/backstage-plugin-devpod@workspace:plugins/devpod-plugin":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-devpod@workspace:plugins/devpod-plugin"
   dependencies:
@@ -14578,7 +14578,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-educates@npm:^1.3.2, @terasky/backstage-plugin-educates@workspace:plugins/educates":
+"@terasky/backstage-plugin-educates@npm:^1.3.3, @terasky/backstage-plugin-educates@workspace:plugins/educates":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-educates@workspace:plugins/educates"
   dependencies:
@@ -14605,7 +14605,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-entity-scaffolder-content@npm:^1.2.2, @terasky/backstage-plugin-entity-scaffolder-content@workspace:plugins/entity-scaffolder-content":
+"@terasky/backstage-plugin-entity-scaffolder-content@npm:^1.2.3, @terasky/backstage-plugin-entity-scaffolder-content@workspace:plugins/entity-scaffolder-content":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-entity-scaffolder-content@workspace:plugins/entity-scaffolder-content"
   dependencies:
@@ -14639,7 +14639,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-gitops-manifest-updater@npm:^1.5.2, @terasky/backstage-plugin-gitops-manifest-updater@workspace:plugins/gitops-manifest-updater":
+"@terasky/backstage-plugin-gitops-manifest-updater@npm:^1.5.3, @terasky/backstage-plugin-gitops-manifest-updater@workspace:plugins/gitops-manifest-updater":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-gitops-manifest-updater@workspace:plugins/gitops-manifest-updater"
   dependencies:
@@ -14680,7 +14680,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-kro-common@npm:^0.2.3, @terasky/backstage-plugin-kro-common@workspace:plugins/kro-common":
+"@terasky/backstage-plugin-kro-common@npm:^0.2.4, @terasky/backstage-plugin-kro-common@workspace:plugins/kro-common":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kro-common@workspace:plugins/kro-common"
   dependencies:
@@ -14703,7 +14703,7 @@ __metadata:
     "@backstage/plugin-auth-backend-module-guest-provider": "npm:^0.2.13"
     "@backstage/plugin-catalog-node": "npm:^1.19.1"
     "@backstage/plugin-permission-node": "npm:^0.10.5"
-    "@terasky/backstage-plugin-kro-common": "npm:^0.2.3"
+    "@terasky/backstage-plugin-kro-common": "npm:^0.2.4"
     "@types/express": "npm:^4.17.22"
     "@types/supertest": "npm:^2.0.12"
     express: "npm:^4.17.1"
@@ -14716,7 +14716,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-kro-resources-frontend@npm:^0.3.2, @terasky/backstage-plugin-kro-resources-frontend@workspace:plugins/kro-resources":
+"@terasky/backstage-plugin-kro-resources-frontend@npm:^0.3.3, @terasky/backstage-plugin-kro-resources-frontend@workspace:plugins/kro-resources":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kro-resources-frontend@workspace:plugins/kro-resources"
   dependencies:
@@ -14737,7 +14737,7 @@ __metadata:
     "@material-ui/core": "npm:^4.12.4"
     "@material-ui/icons": "npm:^4.11.3"
     "@material-ui/lab": "npm:^4.0.0-alpha.61"
-    "@terasky/backstage-plugin-kro-common": "npm:^0.2.3"
+    "@terasky/backstage-plugin-kro-common": "npm:^0.2.4"
     "@testing-library/jest-dom": "npm:^6.0.0"
     "@testing-library/react": "npm:^14.0.0"
     "@testing-library/user-event": "npm:^14.0.0"
@@ -14809,7 +14809,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-kubernetes-resources-frontend@npm:^0.5.2, @terasky/backstage-plugin-kubernetes-resources-frontend@workspace:plugins/kubernetes-resources":
+"@terasky/backstage-plugin-kubernetes-resources-frontend@npm:^0.5.3, @terasky/backstage-plugin-kubernetes-resources-frontend@workspace:plugins/kubernetes-resources":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kubernetes-resources-frontend@workspace:plugins/kubernetes-resources"
   dependencies:
@@ -14918,7 +14918,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-kyverno-policy-reports@npm:^1.6.1, @terasky/backstage-plugin-kyverno-policy-reports@workspace:plugins/kyverno-policy-reports":
+"@terasky/backstage-plugin-kyverno-policy-reports@npm:^1.6.2, @terasky/backstage-plugin-kyverno-policy-reports@workspace:plugins/kyverno-policy-reports":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kyverno-policy-reports@workspace:plugins/kyverno-policy-reports"
   dependencies:
@@ -14977,7 +14977,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-scaleops-frontend@npm:^1.5.1, @terasky/backstage-plugin-scaleops-frontend@workspace:plugins/scaleops-frontend":
+"@terasky/backstage-plugin-scaleops-frontend@npm:^1.5.2, @terasky/backstage-plugin-scaleops-frontend@workspace:plugins/scaleops-frontend":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-scaleops-frontend@workspace:plugins/scaleops-frontend"
   dependencies:
@@ -15006,7 +15006,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-terraform-scaffolder@npm:^0.4.3, @terasky/backstage-plugin-terraform-scaffolder@workspace:plugins/terraform-scaffolder":
+"@terasky/backstage-plugin-terraform-scaffolder@npm:^0.4.4, @terasky/backstage-plugin-terraform-scaffolder@workspace:plugins/terraform-scaffolder":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-terraform-scaffolder@workspace:plugins/terraform-scaffolder"
   dependencies:
@@ -15090,7 +15090,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-vcf-automation@npm:^1.5.2, @terasky/backstage-plugin-vcf-automation@workspace:plugins/vcf-automation":
+"@terasky/backstage-plugin-vcf-automation@npm:^1.5.3, @terasky/backstage-plugin-vcf-automation@workspace:plugins/vcf-automation":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-vcf-automation@workspace:plugins/vcf-automation"
   dependencies:
@@ -15154,7 +15154,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-vcf-operations@npm:^0.3.2, @terasky/backstage-plugin-vcf-operations@workspace:plugins/vcf-operations":
+"@terasky/backstage-plugin-vcf-operations@npm:^0.3.3, @terasky/backstage-plugin-vcf-operations@workspace:plugins/vcf-operations":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-vcf-operations@workspace:plugins/vcf-operations"
   dependencies:
@@ -15187,7 +15187,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/plugin-rbac-mcp-backend@npm:^0.1.0, @terasky/plugin-rbac-mcp-backend@workspace:plugins/rbac-mcp-backend":
+"@terasky/plugin-rbac-mcp-backend@npm:^0.1.1, @terasky/plugin-rbac-mcp-backend@workspace:plugins/rbac-mcp-backend":
   version: 0.0.0-use.local
   resolution: "@terasky/plugin-rbac-mcp-backend@workspace:plugins/rbac-mcp-backend"
   dependencies:
@@ -15207,7 +15207,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/plugin-scaffolder-mcp-backend@npm:^0.1.0, @terasky/plugin-scaffolder-mcp-backend@workspace:plugins/scaffolder-mcp-backend":
+"@terasky/plugin-scaffolder-mcp-backend@npm:^0.1.1, @terasky/plugin-scaffolder-mcp-backend@workspace:plugins/scaffolder-mcp-backend":
   version: 0.0.0-use.local
   resolution: "@terasky/plugin-scaffolder-mcp-backend@workspace:plugins/scaffolder-mcp-backend"
   dependencies:
@@ -17556,19 +17556,19 @@ __metadata:
     "@material-ui/core": "npm:^4.12.4"
     "@material-ui/icons": "npm:^4.11.3"
     "@playwright/test": "npm:^1.32.3"
-    "@terasky/backstage-plugin-ai-rules": "npm:^1.1.1"
-    "@terasky/backstage-plugin-crossplane-resources-frontend": "npm:^2.5.0"
-    "@terasky/backstage-plugin-devpod": "npm:^1.3.1"
-    "@terasky/backstage-plugin-educates": "npm:^1.3.2"
-    "@terasky/backstage-plugin-entity-scaffolder-content": "npm:^1.2.2"
-    "@terasky/backstage-plugin-gitops-manifest-updater": "npm:^1.5.2"
-    "@terasky/backstage-plugin-kro-resources-frontend": "npm:^0.3.2"
-    "@terasky/backstage-plugin-kubernetes-resources-frontend": "npm:^0.5.2"
-    "@terasky/backstage-plugin-kyverno-policy-reports": "npm:^1.6.1"
-    "@terasky/backstage-plugin-scaleops-frontend": "npm:^1.5.1"
-    "@terasky/backstage-plugin-terraform-scaffolder": "npm:^0.4.3"
-    "@terasky/backstage-plugin-vcf-automation": "npm:^1.5.2"
-    "@terasky/backstage-plugin-vcf-operations": "npm:^0.3.2"
+    "@terasky/backstage-plugin-ai-rules": "npm:^1.1.2"
+    "@terasky/backstage-plugin-crossplane-resources-frontend": "npm:^2.5.1"
+    "@terasky/backstage-plugin-devpod": "npm:^1.3.2"
+    "@terasky/backstage-plugin-educates": "npm:^1.3.3"
+    "@terasky/backstage-plugin-entity-scaffolder-content": "npm:^1.2.3"
+    "@terasky/backstage-plugin-gitops-manifest-updater": "npm:^1.5.3"
+    "@terasky/backstage-plugin-kro-resources-frontend": "npm:^0.3.3"
+    "@terasky/backstage-plugin-kubernetes-resources-frontend": "npm:^0.5.3"
+    "@terasky/backstage-plugin-kyverno-policy-reports": "npm:^1.6.2"
+    "@terasky/backstage-plugin-scaleops-frontend": "npm:^1.5.2"
+    "@terasky/backstage-plugin-terraform-scaffolder": "npm:^0.4.4"
+    "@terasky/backstage-plugin-vcf-automation": "npm:^1.5.3"
+    "@terasky/backstage-plugin-vcf-operations": "npm:^0.3.3"
     "@testing-library/dom": "npm:^9.0.0"
     "@testing-library/jest-dom": "npm:^6.0.0"
     "@testing-library/react": "npm:^14.0.0"
@@ -18254,8 +18254,8 @@ __metadata:
     "@terasky/backstage-plugin-vcf-automation-backend": "npm:^1.6.2"
     "@terasky/backstage-plugin-vcf-automation-ingestor": "npm:^1.5.1"
     "@terasky/backstage-plugin-vcf-operations-backend": "npm:^0.3.2"
-    "@terasky/plugin-rbac-mcp-backend": "npm:^0.1.0"
-    "@terasky/plugin-scaffolder-mcp-backend": "npm:^0.1.0"
+    "@terasky/plugin-rbac-mcp-backend": "npm:^0.1.1"
+    "@terasky/plugin-scaffolder-mcp-backend": "npm:^0.1.1"
     app: "link:../app"
     better-sqlite3: "npm:^9.0.0"
     node-gyp: "npm:^10.3.1"
