@@ -1,13 +1,11 @@
 {
   "name": "@terasky/backstage-plugin-scaleops-frontend",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "main": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
   "publishConfig": {
-    "access": "public",
-    "main": "dist/index.esm.js",
-    "types": "dist/index.d.ts"
+    "access": "public"
   },
   "repository": {
     "type": "git",

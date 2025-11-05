@@ -1,6 +1,6 @@
 {
   "name": "@terasky/backstage-plugin-educates",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "main": "src/index.ts",
   "types": "src/index.ts",
   "configSchema": "config.d.ts",
@@ -21,9 +21,7 @@
     ]
   },
   "publishConfig": {
-    "access": "public",
-    "main": "dist/index.esm.js",
-    "types": "dist/index.d.ts"
+    "access": "public"
   },
   "sideEffects": false,
   "scripts": {

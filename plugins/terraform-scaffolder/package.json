@@ -1,7 +1,7 @@
 {
   "name": "@terasky/backstage-plugin-terraform-scaffolder",
   "description": "The Terraform Scaffolder plugin for Backstage",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "main": "src/index.ts",
   "types": "src/index.ts",
   "configSchema": "config.d.ts",
@@ -13,9 +13,7 @@
   },
   "homepage": "https://terasky.com",
   "publishConfig": {
-    "access": "public",
-    "main": "dist/index.esm.js",
-    "types": "dist/index.d.ts"
+    "access": "public"
   },
   "backstage": {
     "role": "frontend-plugin",
