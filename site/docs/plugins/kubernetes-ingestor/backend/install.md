@@ -119,6 +119,7 @@ kubernetesIngestor:
       taskRunner:
         frequency: 10
         timeout: 600
+  argoIntegration: false
 ```
 
 ### 5. Configure Git Integration

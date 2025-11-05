@@ -98,6 +98,8 @@ kubernetesIngestor:
       value: "true"
     crds:
       - certificates.cert-manager.io
+  # Whether to auto add the argo cd plugins annotation to the ingested components if the ingested resources have the ArgoCD tracking annotation added to them. defaults to false
+  argoIntegration: true
 ```
 
 ## Mapping Models

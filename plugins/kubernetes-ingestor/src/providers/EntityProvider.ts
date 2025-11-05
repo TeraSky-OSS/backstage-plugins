@@ -2133,6 +2133,9 @@ export class KubernetesEntityProvider implements EntityProvider {
 
     const customAnnotations = this.extractCustomAnnotations(annotations, resource.clusterName);
 
+    // Add ArgoCD app name if present
+    const argoAnnotations = this.extractArgoAppName(annotations);
+
     // Add the Kubernetes label selector annotation if present
     if (!annotations[`${prefix}/kubernetes-label-selector`]) {
       if (resource.kind === 'Deployment' || resource.kind === 'StatefulSet' || resource.kind === 'DaemonSet' || resource.kind === 'CronJob') {
@@ -2207,6 +2210,7 @@ export class KubernetesEntityProvider implements EntityProvider {
           'terasky.backstage.io/kubernetes-resource-api-version': resource.apiVersion,
           'terasky.backstage.io/kubernetes-resource-namespace': resource.metadata.namespace || '',
           ...customAnnotations,
+          ...argoAnnotations,
           ...(systemNameModel === 'cluster-namespace' || systemNamespaceModel === 'cluster' ? {
             'backstage.io/kubernetes-cluster': resource.clusterName,
           } : {})
@@ -2284,6 +2288,9 @@ export class KubernetesEntityProvider implements EntityProvider {
     const resourceAnnotations = claim.metadata.annotations || {};
     const customAnnotations = this.extractCustomAnnotations(resourceAnnotations, clusterName);
 
+    // Add ArgoCD app name if present
+    const argoAnnotations = this.extractArgoAppName(resourceAnnotations);
+
     const systemNamespaceModel = this.config.getOptionalString('kubernetesIngestor.mappings.namespaceModel')?.toLowerCase() || 'default';
     let systemNamespaceValue = '';
     if (systemNamespaceModel === 'cluster') {
@@ -2355,6 +2362,7 @@ export class KubernetesEntityProvider implements EntityProvider {
             'backstage.io/kubernetes-cluster': clusterName,
           } : {}),
           ...customAnnotations,
+          ...argoAnnotations,
           ...crossplaneAnnotations,
         },
       },
@@ -2405,6 +2413,9 @@ export class KubernetesEntityProvider implements EntityProvider {
 
     const resourceAnnotations = instance.metadata.annotations || {};
     const customAnnotations = this.extractCustomAnnotations(resourceAnnotations, clusterName);
+
+    // Add ArgoCD app name if present
+    const argoAnnotations = this.extractArgoAppName(resourceAnnotations);
 
     const systemNamespaceModel = this.config.getOptionalString('kubernetesIngestor.mappings.namespaceModel')?.toLowerCase() || 'default';
     let systemNamespaceValue = '';
@@ -2476,6 +2487,7 @@ export class KubernetesEntityProvider implements EntityProvider {
             'backstage.io/kubernetes-cluster': clusterName,
           } : {}),
           ...customAnnotations,
+          ...argoAnnotations,
           ...kroAnnotations,
         },
       },
@@ -2536,6 +2548,9 @@ export class KubernetesEntityProvider implements EntityProvider {
 
     const resourceAnnotations = xr.metadata.annotations || {};
     const customAnnotations = this.extractCustomAnnotations(resourceAnnotations, clusterName);
+
+    // Add ArgoCD app name if present
+    const argoAnnotations = this.extractArgoAppName(resourceAnnotations);
 
     const systemNamespaceModel = this.config.getOptionalString('kubernetesIngestor.mappings.namespaceModel')?.toLowerCase() || 'default';
     let systemNamespaceValue = '';
@@ -2605,6 +2620,7 @@ export class KubernetesEntityProvider implements EntityProvider {
           ),
           'backstage.io/kubernetes-cluster': clusterName,
           ...customAnnotations,
+          ...argoAnnotations,
           ...crossplaneAnnotations,
         },
       },
@@ -2652,6 +2668,29 @@ export class KubernetesEntityProvider implements EntityProvider {
 
   private getAnnotationPrefix(): string {
     return this.config.getOptionalString('kubernetesIngestor.annotationPrefix') || 'terasky.backstage.io';
+  }
+
+  private extractArgoAppName(annotations: Record<string, string>): Record<string, string> {
+    const argoIntegrationEnabled = this.config.getOptionalBoolean('kubernetesIngestor.argoIntegration') ?? true;
+    
+    if (!argoIntegrationEnabled) {
+      return {};
+    }
+
+    const trackingId = annotations['argocd.argoproj.io/tracking-id'];
+    if (!trackingId) {
+      return {};
+    }
+
+    // Extract the first segment before the first ':'
+    const appName = trackingId.split(':')[0];
+    if (!appName) {
+      return {};
+    }
+
+    return {
+      'argocd/app-name': appName,
+    };
   }
 
   private findCommonLabels(resource: any): string | null {
