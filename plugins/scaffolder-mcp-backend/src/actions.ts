@@ -334,5 +334,395 @@ export function registerMcpActions(
       };
     },
   });
+
+  // List all available scaffolder actions
+  actionsRegistry.register({
+    name: 'list_software_template_actions',
+    title: 'List Software Template Actions',
+    description:
+      'Lists all available scaffolder actions that can be used in software templates. Returns the ID and description of each action. Use this to discover what actions are available for building templates.',
+    schema: {
+      input: z =>
+        z.object({
+          filter: z
+            .string()
+            .optional()
+            .describe(
+              'Optional filter string to match against action IDs and descriptions. Only actions containing this string (case-insensitive) will be returned.'
+            ),
+        }),
+      output: z =>
+        z.object({
+          actions: z.array(
+            z.object({
+              id: z.string().describe('The unique identifier of the action'),
+              description: z
+                .string()
+                .optional()
+                .describe('Description of what this action does'),
+            })
+          ),
+          count: z.number().describe('Total number of actions returned'),
+        }),
+    },
+    action: async ({ input, credentials }) => {
+      // Get the scaffolder base URL
+      const scaffolderUrl = await discovery.getBaseUrl('scaffolder');
+      
+      // Get the service token for making backend API calls
+      const serviceCredentials = await auth.getOwnServiceCredentials();
+      const { token } = await auth.getPluginRequestToken({
+        onBehalfOf: credentials || serviceCredentials,
+        targetPluginId: 'scaffolder',
+      });
+
+      // Fetch all actions via HTTP API
+      const response = await fetch(`${scaffolderUrl}/v2/actions`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(
+          `Failed to fetch actions: ${response.status} ${response.statusText} - ${errorText}`
+        );
+      }
+
+      const data = await response.json();
+      let filteredActions = data.map((action: any) => ({
+        id: action.id,
+        description: action.description,
+      }));
+
+      // Apply filter if provided
+      if (input.filter) {
+        const filterLower = input.filter.toLowerCase();
+        filteredActions = filteredActions.filter(
+          (action: { id: string; description?: string }) =>
+            action.id.toLowerCase().includes(filterLower) ||
+            (action.description?.toLowerCase().includes(filterLower) ?? false)
+        );
+      }
+
+      return {
+        output: {
+          actions: filteredActions,
+          count: filteredActions.length,
+        },
+      };
+    },
+  });
+
+  // Get details for a specific scaffolder action
+  actionsRegistry.register({
+    name: 'get_software_template_action_details',
+    title: 'Get Software Template Action Details',
+    description:
+      'Retrieves detailed information about a specific scaffolder action, including its schema and examples. Use this to understand how to use an action in a template.',
+    schema: {
+      input: z =>
+        z.object({
+          actionId: z
+            .string()
+            .describe(
+              'The unique identifier of the action (e.g., "fetch:plain", "catalog:register"). Use list_software_template_actions to find available action IDs.'
+            ),
+        }),
+      output: z =>
+        z.object({
+          id: z.string().describe('The unique identifier of the action'),
+          description: z
+            .string()
+            .optional()
+            .describe('Description of what this action does'),
+          schema: z
+            .object({
+              input: z.any().optional().describe('JSON Schema for the action input parameters'),
+              output: z.any().optional().describe('JSON Schema for the action output'),
+            })
+            .describe('The input and output schemas for this action'),
+          examples: z
+            .array(z.any())
+            .optional()
+            .describe('Example usages of this action, if available'),
+        }),
+    },
+    action: async ({ input, credentials }) => {
+      // Get the scaffolder base URL
+      const scaffolderUrl = await discovery.getBaseUrl('scaffolder');
+      
+      // Get the service token for making backend API calls
+      const serviceCredentials = await auth.getOwnServiceCredentials();
+      const { token } = await auth.getPluginRequestToken({
+        onBehalfOf: credentials || serviceCredentials,
+        targetPluginId: 'scaffolder',
+      });
+
+      // Fetch all actions via HTTP API
+      const response = await fetch(`${scaffolderUrl}/v2/actions`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(
+          `Failed to fetch actions: ${response.status} ${response.statusText} - ${errorText}`
+        );
+      }
+
+      const data = await response.json();
+      const action = data.find((a: any) => a.id === input.actionId);
+
+      if (!action) {
+        throw new InputError(
+          `No action found with ID "${input.actionId}". Use list_software_template_actions to see available actions.`
+        );
+      }
+
+      return {
+        output: {
+          id: action.id,
+          description: action.description,
+          schema: action.schema || {},
+          examples: action.examples || [],
+        },
+      };
+    },
+  });
+
+  // List all available template extensions (filters)
+  actionsRegistry.register({
+    name: 'list_software_template_extensions',
+    title: 'List Software Template Extensions',
+    description:
+      'Lists all available template extensions (filters and functions) that can be used in software templates. Returns the name, type, and description of each extension. Use this to discover what custom filters and functions are available for use in Nunjucks templates.',
+    schema: {
+      input: z =>
+        z.object({
+          filter: z
+            .string()
+            .optional()
+            .describe(
+              'Optional filter string to match against extension names and descriptions. Only extensions containing this string (case-insensitive) will be returned.'
+            ),
+        }),
+      output: z =>
+        z.object({
+          extensions: z.array(
+            z.object({
+              name: z.string().describe('The name of the extension/filter'),
+              type: z
+                .enum(['filter', 'function', 'value'])
+                .describe('The type of the extension (filter function or value)'),
+              description: z
+                .string()
+                .optional()
+                .describe('Description of what this extension does'),
+            })
+          ),
+          count: z.number().describe('Total number of extensions returned'),
+        }),
+    },
+    action: async ({ input, credentials }) => {
+      // Get the scaffolder base URL
+      const scaffolderUrl = await discovery.getBaseUrl('scaffolder');
+      
+      // Get the service token for making backend API calls
+      const serviceCredentials = await auth.getOwnServiceCredentials();
+      const { token } = await auth.getPluginRequestToken({
+        onBehalfOf: credentials || serviceCredentials,
+        targetPluginId: 'scaffolder',
+      });
+
+      // Fetch all template extensions via HTTP API
+      const response = await fetch(`${scaffolderUrl}/v2/templating-extensions`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(
+          `Failed to fetch template extensions: ${response.status} ${response.statusText} - ${errorText}`
+        );
+      }
+
+      const data = await response.json();
+      
+      // Transform the response structure into a flat list
+      const extensions: Array<{ name: string; type: 'filter' | 'function' | 'value'; description?: string }> = [];
+      
+      // Add filters
+      if (data.filters) {
+        Object.entries(data.filters).forEach(([name, filterData]: [string, any]) => {
+          extensions.push({
+            name,
+            type: 'filter',
+            description: filterData.description,
+          });
+        });
+      }
+      
+      // Add global functions
+      if (data.globals?.functions) {
+        Object.entries(data.globals.functions).forEach(([name, funcData]: [string, any]) => {
+          extensions.push({
+            name,
+            type: 'function',
+            description: funcData.description,
+          });
+        });
+      }
+      
+      // Add global values
+      if (data.globals?.values) {
+        Object.entries(data.globals.values).forEach(([name, valueData]: [string, any]) => {
+          extensions.push({
+            name,
+            type: 'value',
+            description: valueData.description,
+          });
+        });
+      }
+
+      // Apply filter if provided
+      let filteredExtensions = extensions;
+      if (input.filter) {
+        const filterLower = input.filter.toLowerCase();
+        filteredExtensions = extensions.filter(
+          (extension) =>
+            extension.name.toLowerCase().includes(filterLower) ||
+            extension.type.toLowerCase().includes(filterLower) ||
+            (extension.description?.toLowerCase().includes(filterLower) ?? false)
+        );
+      }
+
+      return {
+        output: {
+          extensions: filteredExtensions,
+          count: filteredExtensions.length,
+        },
+      };
+    },
+  });
+
+  // Get details for a specific template extension
+  actionsRegistry.register({
+    name: 'get_software_template_extension_details',
+    title: 'Get Software Template Extension Details',
+    description:
+      'Retrieves detailed information about a specific template extension (filter or function), including its type, description, and usage examples. Use this to understand how to use an extension in a template.',
+    schema: {
+      input: z =>
+        z.object({
+          extensionName: z
+            .string()
+            .describe(
+              'The name of the extension (e.g., "parseRepoUrl", "parseEntityRef"). Use list_software_template_extensions to find available extension names.'
+            ),
+        }),
+      output: z =>
+        z.object({
+          name: z.string().describe('The name of the extension/filter'),
+          type: z
+            .enum(['filter', 'function', 'value'])
+            .describe('The type of the extension (filter function or value)'),
+          description: z
+            .string()
+            .optional()
+            .describe('Description of what this extension does'),
+          schema: z
+            .any()
+            .optional()
+            .describe('Schema information for the extension, if available'),
+          value: z
+            .any()
+            .optional()
+            .describe('The value, if this is a global value type'),
+          examples: z
+            .array(z.any())
+            .optional()
+            .describe('Example usages of this extension, if available'),
+        }),
+    },
+    action: async ({ input, credentials }) => {
+      // Get the scaffolder base URL
+      const scaffolderUrl = await discovery.getBaseUrl('scaffolder');
+      
+      // Get the service token for making backend API calls
+      const serviceCredentials = await auth.getOwnServiceCredentials();
+      const { token } = await auth.getPluginRequestToken({
+        onBehalfOf: credentials || serviceCredentials,
+        targetPluginId: 'scaffolder',
+      });
+
+      // Fetch all template extensions via HTTP API
+      const response = await fetch(`${scaffolderUrl}/v2/templating-extensions`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(
+          `Failed to fetch template extensions: ${response.status} ${response.statusText} - ${errorText}`
+        );
+      }
+
+      const data = await response.json();
+      
+      // Search for the extension in filters
+      if (data.filters && data.filters[input.extensionName]) {
+        const filterData = data.filters[input.extensionName];
+        return {
+          output: {
+            name: input.extensionName,
+            type: 'filter' as const,
+            description: filterData.description,
+            schema: filterData.schema,
+            examples: filterData.examples || [],
+          },
+        };
+      }
+      
+      // Search for the extension in global functions
+      if (data.globals?.functions && data.globals.functions[input.extensionName]) {
+        const funcData = data.globals.functions[input.extensionName];
+        return {
+          output: {
+            name: input.extensionName,
+            type: 'function' as const,
+            description: funcData.description,
+            schema: funcData.schema,
+            examples: funcData.examples || [],
+          },
+        };
+      }
+      
+      // Search for the extension in global values
+      if (data.globals?.values && data.globals.values[input.extensionName]) {
+        const valueData = data.globals.values[input.extensionName];
+        return {
+          output: {
+            name: input.extensionName,
+            type: 'value' as const,
+            description: valueData.description,
+            value: valueData.value,
+            examples: [],
+          },
+        };
+      }
+
+      throw new InputError(
+        `No template extension found with name "${input.extensionName}". Use list_software_template_extensions to see available extensions.`
+      );
+    },
+  });
 }
 
