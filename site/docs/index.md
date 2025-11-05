@@ -30,6 +30,8 @@ Welcome to our comprehensive collection of Backstage plugins! We've created thes
 
 ### AI
 1. [AI Coding Rules](./plugins/ai-rules-plugin/overview.md) [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-ai-rules/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-ai-rules) - Comprehensive visualization and management of AI coding rules from Cursor, GitHub Copilot, and Cline.
+2. [Scaffolder MCP Backend](./plugins/scaffolder-mcp/overview.md) [![npm latest version](https://img.shields.io/npm/v/@terasky/plugin-scaffolder-mcp-backend/latest.svg)](https://www.npmjs.com/package/@terasky/plugin-scaffolder-mcp-backend) - MCP actions for AI agents to discover, inspect, and execute software templates programmatically.
+3. [RBAC MCP Backend](./plugins/rbac-mcp/overview.md) [![npm latest version](https://img.shields.io/npm/v/@terasky/plugin-rbac-mcp-backend/latest.svg)](https://www.npmjs.com/package/@terasky/plugin-rbac-mcp-backend) - MCP actions for AI agents to manage roles, permissions, and access policies programmatically.
 
 ### General Utilities
 1. [Scaffolder Actions](./plugins/scaffolder-actions/overview.md) [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils) - Powerful actions for automation:  
