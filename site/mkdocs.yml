@@ -123,6 +123,18 @@ nav:
               - About: plugins/ai-rules-plugin/frontend/about.md
               - Install: plugins/ai-rules-plugin/frontend/install.md
               - Configure: plugins/ai-rules-plugin/frontend/configure.md
+      - RBAC MCP:
+          - Overview: plugins/rbac-mcp/overview.md
+          - Backend:
+              - About: plugins/rbac-mcp/backend/about.md
+              - Install: plugins/rbac-mcp/backend/install.md
+              - Configure: plugins/rbac-mcp/backend/configure.md
+      - Scaffolder MCP:
+          - Overview: plugins/scaffolder-mcp/overview.md
+          - Backend:
+              - About: plugins/scaffolder-mcp/backend/about.md
+              - Install: plugins/scaffolder-mcp/backend/install.md
+              - Configure: plugins/scaffolder-mcp/backend/configure.md
   - General Utilities:
       - Scaffolder Actions:
           - Overview: plugins/scaffolder-actions/overview.md
