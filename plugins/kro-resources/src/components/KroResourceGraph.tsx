@@ -869,13 +869,13 @@ const KroResourceGraph = () => {
             return;
         }
 
-        const fetchResources = async () => {
-            const annotations = entity.metadata.annotations || {};
+      const fetchResources = async () => {
+      const annotations = entity.metadata.annotations || {};
       const rgdName = annotations['terasky.backstage.io/kro-rgd-name'];
       const rgdId = annotations['terasky.backstage.io/kro-rgd-id'];
       const instanceId = annotations['terasky.backstage.io/kro-instance-uid'];
       const clusterName = annotations['backstage.io/managed-by-location'].split(": ")[1];
-            const namespace = entity.metadata.namespace || annotations['namespace'] || 'default';
+      const namespace = annotations['terasky.backstage.io/kro-instance-namespace'] || 'default';
 
       if (!rgdName || !rgdId || !instanceId || !clusterName) {
                 setLoading(false);
@@ -894,7 +894,7 @@ const KroResourceGraph = () => {
           rgdName,
           rgdId,
           instanceId,
-          instanceName: entity.metadata.name,
+          instanceName: annotations['terasky.backstage.io/kro-instance-name'] || entity.metadata.name,
           crdName,
         });
 
