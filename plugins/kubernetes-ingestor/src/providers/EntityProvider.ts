@@ -2402,6 +2402,8 @@ export class KubernetesEntityProvider implements EntityProvider {
       [`${prefix}/kro-rgd-id`]: rgdId,
       [`${prefix}/kro-rgd-crd-name`]: instance.kroData.crd?.metadata?.name,
       [`${prefix}/kro-instance-uid`]: instance.metadata?.uid,
+      [`${prefix}/kro-instance-namespace`]: instance.metadata?.namespace,
+      [`${prefix}/kro-instance-name`]: instance.metadata?.name,
       [`${prefix}/kro-sub-resources`]: instance.kroData.rgd.spec.resources.map((r: any) => {
         if (!r.template) return null;
         const apiVersion = r.template.apiVersion.toLowerCase();
