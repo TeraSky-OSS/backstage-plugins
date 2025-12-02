@@ -2,7 +2,7 @@
 
 Welcome to the scaffolder-mcp-backend plugin!
 
-[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-scaffolder-mcp-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-scaffolder-mcp-backend)
+[![npm latest version](https://img.shields.io/npm/v/@terasky/plugin-scaffolder-mcp-backend/latest.svg)](https://www.npmjs.com/package/@terasky/plugin-scaffolder-mcp-backend)
 
 ## Description
 

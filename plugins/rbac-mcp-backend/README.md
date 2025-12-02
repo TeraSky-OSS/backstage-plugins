@@ -2,7 +2,7 @@
 
 Welcome to the rbac-mcp-backend plugin!
 
-[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-rbac-mcp-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-rbac-mcp-backend)
+[![npm latest version](https://img.shields.io/npm/v/@terasky/plugin-rbac-mcp-backend/latest.svg)](https://www.npmjs.com/package/@terasky/plugin-rbac-mcp-backend)
 
 ## Description
 
