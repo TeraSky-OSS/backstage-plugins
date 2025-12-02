@@ -42,7 +42,7 @@ const KroOverviewCard = () => {
       const rgdName = annotations['terasky.backstage.io/kro-rgd-name'];
       const rgdId = annotations['terasky.backstage.io/kro-rgd-id'];
       const clusterName = annotations['backstage.io/managed-by-location'].split(": ")[1];
-      const namespace = entity.metadata.namespace || annotations['namespace'] || 'default';
+      const namespace = annotations['terasky.backstage.io/kro-instance-namespace'] || 'default';
 
       if (!rgdName || !rgdId || !clusterName) {
         return;
@@ -60,7 +60,7 @@ const KroOverviewCard = () => {
           rgdName,
           rgdId,
           instanceId: annotations['terasky.backstage.io/kro-instance-uid'],
-          instanceName: entity.metadata.name,
+          instanceName: annotations['terasky.backstage.io/kro-instance-name'] || entity.metadata.name,
           crdName,
         });
 
@@ -134,7 +134,7 @@ const KroOverviewCard = () => {
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray' }}>Instance Name</Typography>
-                <Typography variant="body2">{entity.metadata?.name}</Typography>
+                <Typography variant="body2">{entity.metadata?.annotations['terasky.backstage.io/kro-instance-name']}</Typography>
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray' }}>Instance State</Typography>
@@ -149,7 +149,7 @@ const KroOverviewCard = () => {
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray' }}>Namespace</Typography>
-                <Typography variant="body2">{entity.metadata?.namespace}</Typography>
+                <Typography variant="body2">{entity.metadata?.annotations['terasky.backstage.io/kro-instance-namespace']}</Typography>
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray' }}>Cluster</Typography>

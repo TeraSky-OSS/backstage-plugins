@@ -397,7 +397,7 @@ const KroResourceTable = () => {
         rgdName,
         rgdId,
         instanceId,
-        instanceName: entity.metadata.name,
+        instanceName: annotations['terasky.backstage.io/kro-instance-name'] || entity.metadata.name,
         crdName,
       });
 
@@ -458,7 +458,7 @@ const KroResourceTable = () => {
         const rgdId = annotations['terasky.backstage.io/kro-rgd-id'];
         const instanceId = annotations['terasky.backstage.io/kro-instance-uid'];
         const clusterName = annotations['backstage.io/managed-by-location']?.split(": ")[1];
-        const namespace = entity.metadata.namespace || annotations['namespace'] || 'default';
+        const namespace = annotations['terasky.backstage.io/kro-instance-namespace'] || 'default';
 
         if (!rgdName || !rgdId || !instanceId || !clusterName) {
           setLoading(false);
@@ -477,7 +477,7 @@ const KroResourceTable = () => {
           rgdName,
           rgdId,
           instanceId,
-          instanceName: entity.metadata.name,
+          instanceName: annotations['terasky.backstage.io/kro-instance-name'] || entity.metadata.name,
           crdName,
         });
 
@@ -980,11 +980,13 @@ const KroResourceTable = () => {
     const rows: JSX.Element[] = [];
     resources.forEach((row, index) => {
       const resourceId = row.resource.metadata?.uid || `${row.kind}-${row.name}-${index}`;
-      const hasNestedResources = row.resource.spec?.crossplane?.resourceRefs && row.resource.spec.crossplane.resourceRefs.length > 0;
-      const isExpanded = expandedRows.has(resourceId);
+      const mergedExpandedRows = getMergedExpandedRows();
+      const isExpanded = mergedExpandedRows.has(resourceId);
 
-      // Check if this resource has any nested resources (regardless of filters, since we handle filtering in getFilteredResources)
-      const hasNestedResourcesToShow = hasNestedResources && nestedResources[resourceId] && nestedResources[resourceId].length > 0;
+      // Check if this resource has any nested resources
+      // For KRO Instance resources, show expand icon only if they have loaded nested resources
+      // After initial load, all Instance resources that have nested resources will have them in nestedResources
+      const hasNestedResourcesToShow = nestedResources[resourceId] && nestedResources[resourceId].length > 0;
 
       rows.push(
         <TableRow key={resourceId} className={`${classes.clickableRow} ${row.level > 0 ? classes.nestedRow : ''}`}>

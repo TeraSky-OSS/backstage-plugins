@@ -8,11 +8,12 @@ The Kubernetes Ingestor plugin is a powerful backend plugin for Backstage that a
 - **Custom Resource Support**: Add custom GVKs for ingestion
 - **Crossplane Integration**: Auto-ingest Crossplane claims and XRDs
 - **KRO Integration**: Auto-ingest KRO RGDs and instances
-- **Template Generation**: Create templates for Crossplane XRDs and KRO RGDs
+- **Template Generation**: Create templates for Crossplane XRDs and KRO RGDs with enhanced repository picker support
 - **API Entity Creation**: Generate API entities for XRDs and RGDs
 - **Relationship Mapping**: Track dependencies between resources and APIs
 - **Flexible Configuration**: Customize ingestion behavior and mapping
 - **Annotation Support**: Rich annotation system for entity customization
+- **Enhanced Repository Selection**: Dropdown pickers for repository and organization selection in scaffolder templates
 
 ## Plugin Components
 

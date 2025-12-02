@@ -679,30 +679,6 @@ const KroResourceGraph = () => {
           });
         }
       });
-
-      // Add edges from Instance to managed resources
-      resourceList.forEach(resource => {
-        if (resource !== rgdNode && resource !== instanceNode) {
-          const resourceId = resource.metadata?.uid || `${resource.kind}-${Math.random()}`;
-          nodeHasChildren.set(instanceId, true);
-          const targetReady = nodeReadyStatus.get(resourceId) ?? true;
-          const isErrorEdge = !targetReady;
-
-          edges.push({
-            id: `${instanceId}-${resourceId}`,
-            source: instanceId,
-            target: resourceId,
-                type: 'smoothstep',
-                style: {
-              stroke: isErrorEdge ? '#f44336' : '#999',
-                    strokeWidth: 1,
-              zIndex: isErrorEdge ? 10 : 1
-                },
-                animated: false,
-            zIndex: isErrorEdge ? 10 : 1
-          });
-        }
-      });
     }
 
     const allEdgesWithDuplicates = edges;
@@ -774,8 +750,11 @@ const KroResourceGraph = () => {
             allEdges
                 .filter(edge => edge.source === nodeId)
                 .forEach(edge => {
-                    descendants.add(edge.target);
-                    getAllDescendants(edge.target, descendants);
+                    // Only process if not already visited to prevent infinite recursion
+                    if (!descendants.has(edge.target)) {
+                        descendants.add(edge.target);
+                        getAllDescendants(edge.target, descendants);
+                    }
                 });
             return descendants;
         };
@@ -869,13 +848,13 @@ const KroResourceGraph = () => {
             return;
         }
 
-        const fetchResources = async () => {
-            const annotations = entity.metadata.annotations || {};
+      const fetchResources = async () => {
+      const annotations = entity.metadata.annotations || {};
       const rgdName = annotations['terasky.backstage.io/kro-rgd-name'];
       const rgdId = annotations['terasky.backstage.io/kro-rgd-id'];
       const instanceId = annotations['terasky.backstage.io/kro-instance-uid'];
       const clusterName = annotations['backstage.io/managed-by-location'].split(": ")[1];
-            const namespace = entity.metadata.namespace || annotations['namespace'] || 'default';
+      const namespace = annotations['terasky.backstage.io/kro-instance-namespace'] || 'default';
 
       if (!rgdName || !rgdId || !instanceId || !clusterName) {
                 setLoading(false);
@@ -894,7 +873,7 @@ const KroResourceGraph = () => {
           rgdName,
           rgdId,
           instanceId,
-          instanceName: entity.metadata.name,
+          instanceName: annotations['terasky.backstage.io/kro-instance-name'] || entity.metadata.name,
           crdName,
         });
 

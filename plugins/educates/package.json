@@ -1,6 +1,6 @@
 {
   "name": "@terasky/backstage-plugin-educates",
-  "version": "1.3.3",
+  "version": "1.4.0",
   "main": "src/index.ts",
   "types": "src/index.ts",
   "configSchema": "config.d.ts",
@@ -34,22 +34,22 @@
     "postpack": "backstage-cli package postpack"
   },
   "dependencies": {
-    "@backstage/core-components": "^0.18.2",
-    "@backstage/core-plugin-api": "^1.11.1",
-    "@backstage/frontend-plugin-api": "^0.12.1",
+    "@backstage/core-components": "^0.18.3",
+    "@backstage/core-plugin-api": "^1.12.0",
+    "@backstage/frontend-plugin-api": "^0.13.1",
     "@backstage/theme": "^0.7.0",
     "@material-ui/core": "^4.12.4",
     "@material-ui/icons": "^4.9.1",
-    "@terasky/backstage-plugin-educates-common": "^1.2.1",
+    "@terasky/backstage-plugin-educates-common": "^1.3.0",
     "react-use": "^17.2.4"
   },
   "peerDependencies": {
     "react": "^16.13.1 || ^17.0.0 || ^18.0.0"
   },
   "devDependencies": {
-    "@backstage/cli": "^0.34.4",
-    "@backstage/dev-utils": "^1.1.16",
-    "@backstage/test-utils": "^1.7.12",
+    "@backstage/cli": "^0.34.5",
+    "@backstage/dev-utils": "^1.1.17",
+    "@backstage/test-utils": "^1.7.13",
     "@testing-library/jest-dom": "^5.10.1",
     "@testing-library/react": "^12.1.3",
     "@testing-library/user-event": "^14.0.0",
