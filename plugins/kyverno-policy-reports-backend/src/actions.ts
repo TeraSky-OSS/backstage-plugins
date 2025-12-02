@@ -101,7 +101,7 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
   actionsRegistry.register({
     name: 'get_kyverno_crossplane_policy_reports',
     title: 'Get Kyverno Crossplane Policy Reports',
-    description: 'Returns policy reports for Crossplane resources (claims and composites) associated with an entity',
+    description: 'Returns policy reports for Crossplane resources (claims and composites) associated with an entity. the annotations MUST be all the annotations of the entity! these can be retrieved via the tool get-catalog-entity',
     schema: {
       input: z => z.object({
         entity: z.object({
