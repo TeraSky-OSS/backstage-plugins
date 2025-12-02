@@ -11,6 +11,7 @@ import {
   CrossplaneResourceGraphResponse,
 } from '@terasky/backstage-plugin-crossplane-common';
 import fetch from 'node-fetch';
+import pluralize from 'pluralize';
 
 export class KubernetesService {
   constructor(
@@ -127,7 +128,7 @@ export class KubernetesService {
         if (compositeRef) {
           const { name, apiVersion, kind } = compositeRef;
           const [group, version] = apiVersion.split('/');
-          const pluralKind = kind.toLowerCase() + 's';
+          const pluralKind = pluralize(kind.toLowerCase());
 
           try {
             const composite = await this.proxyKubernetesRequest(
@@ -169,7 +170,7 @@ export class KubernetesService {
                 }
                 this.logger.info('Parsed API version:', { group, version });
 
-                const pluralKind = kind.toLowerCase() + 's';
+                const pluralKind = pluralize(kind.toLowerCase());
                 const targetNamespace = refNamespace || namespace;
 
                 try {
@@ -286,7 +287,7 @@ export class KubernetesService {
       if (compositeRef) {
         const { name, apiVersion, kind } = compositeRef;
         const [group, version] = apiVersion.split('/');
-        const pluralKind = kind.toLowerCase() + 's';
+        const pluralKind = pluralize(kind.toLowerCase());
 
         // Composite resources are cluster-scoped, so we don't include namespace in the path
         this.logger.info(`Fetching composite resource: /apis/${group}/${version}/${pluralKind}/${name}`);
@@ -315,7 +316,7 @@ export class KubernetesService {
             }
             this.logger.info('Parsed API version:', { group, version });
 
-            const pluralKind = kind.toLowerCase() + 's';
+            const pluralKind = pluralize(kind.toLowerCase());
 
             try {
               // Try namespaced first, if it fails try cluster-scoped
@@ -410,7 +411,7 @@ export class KubernetesService {
           }
           this.logger.info('Parsed API version:', { group, version });
 
-          const pluralKind = kind.toLowerCase() + 's';
+          const pluralKind = pluralize(kind.toLowerCase());
 
           try {
             // Try namespaced first, if it fails try cluster-scoped
@@ -468,7 +469,7 @@ export class KubernetesService {
                 }
                 this.logger.info('Parsed API version:', { group, version });
 
-                const pluralKind = kind.toLowerCase() + 's';
+                const pluralKind = pluralize(kind.toLowerCase());
 
                 try {
                   // Try namespaced first, if it fails try cluster-scoped
