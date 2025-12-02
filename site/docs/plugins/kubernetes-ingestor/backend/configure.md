@@ -69,6 +69,8 @@ kubernetesIngestor:
           targetBranch: main
         # Whether the user should be able to select the repo they want to push the manifest to or not
         allowRepoSelection: true
+        # Whether to request user OAuth credentials when selecting a repository URL (defaults to false)
+        requestUserCredentialsForRepoUrl: false
       # Whether to enable the creation of software templates for all XRDs
       enabled: true
       taskRunner:
@@ -88,16 +90,43 @@ kubernetesIngestor:
       # What to publish to. currently supports github, gitlab, bitbucket, bitbucketCloud and YAML (provides a link to download the file)
       target: github
       git:
-        # Follows the backstage standard format which is github.com?owner=<REPO OWNER>&repo=<REPO NAME>
+        # Follows the backstage static format which is github.com?owner=<REPO OWNER>&repo=<REPO NAME>
         repoUrl:
         targetBranch: main
       # Whether the user should be able to select the repo they want to push the manifest to or not
       allowRepoSelection: true
+      # Whether to request user OAuth credentials when selecting a repository URL (defaults to false)
+      requestUserCredentialsForRepoUrl: false
     crdLabelSelector:
       key: terasky.backstage.io/generate-form
       value: "true"
     crds:
       - certificates.cert-manager.io
+  kro:
+    # Whether to completely disable KRO related code for both RGDs and instances. defaults to disabled if not provided
+    enabled: false
+    rgds:
+      # Settings related to the final steps of a software template
+      publishPhase:
+        # Base URLs of Git servers you want to allow publishing to
+        allowedTargets: ['github.com', 'gitlab.com']
+        # What to publish to. currently supports github, gitlab, bitbucket, bitbucketCloud and YAML (provides a link to download the file)
+        target: github
+        git:
+          # Follows the backstage standard format which is github.com?owner=<REPO OWNER>&repo=<REPO NAME>
+          repoUrl:
+          targetBranch: main
+        # Whether the user should be able to select the repo they want to push the manifest to or not
+        allowRepoSelection: true
+        # Whether to request user OAuth credentials when selecting a repository URL (defaults to false)
+        requestUserCredentialsForRepoUrl: false
+      # Whether to enable the creation of software templates for all RGDs
+      enabled: true
+      taskRunner:
+        # How often to query the clusters for data
+        frequency: 10
+        # Max time to process the data per cycle
+        timeout: 600
   # Whether to auto add the argo cd plugins annotation to the ingested components if the ingested resources have the ArgoCD tracking annotation added to them. defaults to false
   argoIntegration: true
 ```
@@ -175,6 +204,8 @@ xrds:
   # Template generation settings
   publishPhase:
     target: github
+    allowRepoSelection: true
+    requestUserCredentialsForRepoUrl: false
     git:
       repoUrl: github.com?owner=org&repo=templates
       targetBranch: main
@@ -183,6 +214,49 @@ xrds:
   convertDefaultValuesToPlaceholders: true
   ingestAllXRDs: true
 ```
+
+#### Repository Selection Options
+
+When `allowRepoSelection` is enabled, you can configure the repository selection user experience:
+
+- **`requestUserCredentialsForRepoUrl`** (default: `false`): When set to `true`, enables an enhanced repository picker that allows users to select repositories and organizations from dropdown lists instead of manually typing the repository name. This adds the `requestUserCredentials` option to the RepoUrlPicker with `secretsKey: USER_OAUTH_TOKEN`, which enables the dropdown pickers for a better user experience.
+
+This is useful when you want to:
+- Provide a more user-friendly repository selection experience
+- Allow users to browse and select from their accessible repositories
+- Reduce errors from manual repository name entry
+- Enable organization/owner selection from dropdown lists
+
+## KRO Integration
+
+### RGD Configuration
+```yaml
+kro:
+  enabled: true
+  rgds:
+    # Template generation settings
+    publishPhase:
+      target: github
+      allowRepoSelection: true
+      requestUserCredentialsForRepoUrl: false
+      git:
+        repoUrl: github.com?owner=org&repo=templates
+        targetBranch: main
+    
+    # Processing settings
+    enabled: true
+    taskRunner:
+      frequency: 10
+      timeout: 600
+```
+
+### Repository Selection Options
+
+Similar to XRD configuration, when `allowRepoSelection` is enabled for KRO RGDs:
+
+- **`requestUserCredentialsForRepoUrl`** (default: `false`): When set to `true`, enables an enhanced repository picker that allows users to select repositories and organizations from dropdown lists instead of manually typing the repository name.
+
+This provides the same improved user experience as described in the XRD configuration section, ensuring consistent repository selection behavior across both Crossplane and KRO resource templates.
 
 ## Best Practices
 
