@@ -679,30 +679,6 @@ const KroResourceGraph = () => {
           });
         }
       });
-
-      // Add edges from Instance to managed resources
-      resourceList.forEach(resource => {
-        if (resource !== rgdNode && resource !== instanceNode) {
-          const resourceId = resource.metadata?.uid || `${resource.kind}-${Math.random()}`;
-          nodeHasChildren.set(instanceId, true);
-          const targetReady = nodeReadyStatus.get(resourceId) ?? true;
-          const isErrorEdge = !targetReady;
-
-          edges.push({
-            id: `${instanceId}-${resourceId}`,
-            source: instanceId,
-            target: resourceId,
-                type: 'smoothstep',
-                style: {
-              stroke: isErrorEdge ? '#f44336' : '#999',
-                    strokeWidth: 1,
-              zIndex: isErrorEdge ? 10 : 1
-                },
-                animated: false,
-            zIndex: isErrorEdge ? 10 : 1
-          });
-        }
-      });
     }
 
     const allEdgesWithDuplicates = edges;
@@ -774,8 +750,11 @@ const KroResourceGraph = () => {
             allEdges
                 .filter(edge => edge.source === nodeId)
                 .forEach(edge => {
-                    descendants.add(edge.target);
-                    getAllDescendants(edge.target, descendants);
+                    // Only process if not already visited to prevent infinite recursion
+                    if (!descendants.has(edge.target)) {
+                        descendants.add(edge.target);
+                        getAllDescendants(edge.target, descendants);
+                    }
                 });
             return descendants;
         };
