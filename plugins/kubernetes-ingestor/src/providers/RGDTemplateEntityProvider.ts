@@ -511,6 +511,15 @@ export class RGDTemplateEntityProvider implements EntityProvider {
       }
     }
 
+    const requestUserCredentials = this.config.getOptionalBoolean('kubernetesIngestor.kro.rgds.publishPhase.requestUserCredentialsForRepoUrl') ?? false;
+    const repoUrlUiOptions: any = {
+      allowedHosts: allowedHosts,
+    };
+    if (requestUserCredentials) {
+      repoUrlUiOptions.requestUserCredentials = {
+        secretsKey: 'USER_OAUTH_TOKEN',
+      };
+    }
     const publishParameters = this.config.getOptionalBoolean('kubernetesIngestor.kro.rgds.publishPhase.allowRepoSelection')
       ? {
         title: 'Creation Settings',
@@ -536,9 +545,7 @@ export class RGDTemplateEntityProvider implements EntityProvider {
                     content: { type: 'string' },
                     description: 'Name of repository',
                     'ui:field': 'RepoUrlPicker',
-                    'ui:options': {
-                      allowedHosts: allowedHosts,
-                    },
+                    'ui:options': repoUrlUiOptions,
                   },
                   targetBranch: {
                     type: 'string',
