@@ -134,7 +134,7 @@ const KroOverviewCard = () => {
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray' }}>Instance Name</Typography>
-                <Typography variant="body2">{entity.metadata?.annotations['terasky.backstage.io/kro-instance-name']}</Typography>
+                <Typography variant="body2">{entity.metadata?.annotations?.['terasky.backstage.io/kro-instance-name']}</Typography>
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray' }}>Instance State</Typography>
@@ -149,11 +149,11 @@ const KroOverviewCard = () => {
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray' }}>Namespace</Typography>
-                <Typography variant="body2">{entity.metadata?.annotations['terasky.backstage.io/kro-instance-namespace']}</Typography>
+                <Typography variant="body2">{entity.metadata?.annotations?.['terasky.backstage.io/kro-instance-namespace']}</Typography>
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray' }}>Cluster</Typography>
-                <Typography variant="body2">{entity.metadata?.annotations?.['backstage.io/managed-by-location'].split(": ")[1] || "Unknown"}</Typography>
+                <Typography variant="body2">{entity.metadata?.annotations?.['backstage.io/managed-by-location']?.split(": ")[1] || "Unknown"}</Typography>
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray' }}>RGD API Version</Typography>
