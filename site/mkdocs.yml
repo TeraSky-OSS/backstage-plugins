@@ -129,6 +129,12 @@ nav:
               - About: plugins/rbac-mcp/backend/about.md
               - Install: plugins/rbac-mcp/backend/install.md
               - Configure: plugins/rbac-mcp/backend/configure.md
+      - Catalog MCP:
+          - Overview: plugins/catalog-mcp/overview.md
+          - Backend:
+              - About: plugins/catalog-mcp/backend/about.md
+              - Install: plugins/catalog-mcp/backend/install.md
+              - Configure: plugins/catalog-mcp/backend/configure.md
       - Scaffolder MCP:
           - Overview: plugins/scaffolder-mcp/overview.md
           - Backend:

@@ -1,28 +1,17 @@
-# catalog-mcp
+# Catalog MCP Backend
 
-This plugin backend was templated using the Backstage CLI. You should replace this text with a description of your plugin backend.
+Welcome to the catalog-mcp-backend plugin!
 
-## Installation
+[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-catalog-mcp-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-catalog-mcp-backend)
 
-This plugin is installed via the `@internal/backstage-plugin-catalog-mcp-backend` package. To install it to your backend package, run the following command:
+## Description
 
-```bash
-# From your root directory
-yarn --cwd packages/backend add @internal/backstage-plugin-catalog-mcp-backend
-```
+The `catalog-mcp-backend` plugin for Backstage provides Model Context Protocol (MCP) actions for querying the Backstage Catalog. This plugin enables AI agents and automation tools to discover and query catalog entities programmatically through flexible and powerful query interfaces.
 
-Then add the plugin to your backend in `packages/backend/src/index.ts`:
+For detailed docs go to https://terasky-oss.github.io/backstage-plugins/plugins/catalog-mcp/overview
 
-```ts
-const backend = createBackend();
-// ...
-backend.add(import('@internal/backstage-plugin-catalog-mcp-backend'));
-```
+## Contributing
+Contributions are welcome! Please open an issue or submit a pull request on GitHub.
 
-## Development
-
-This plugin backend can be started in a standalone mode from directly in this
-package with `yarn start`. It is a limited setup that is most convenient when
-developing the plugin backend itself.
-
-If you want to run the entire project, including the frontend, run `yarn start` from the root directory.
+## License
+This project is licensed under the Apache-2.0 License.
