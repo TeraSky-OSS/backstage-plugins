@@ -1,6 +1,6 @@
 # Welcome to TeraSky's Backstage Plugin Collection! 🚀
 
-Welcome to our comprehensive collection of Backstage plugins! We've created these plugins to enhance your Backstage experience and make your development workflow more efficient and enjoyable. All our plugins are thoroughly tested and compatible with Backstage version 1.44.1.
+Welcome to our comprehensive collection of Backstage plugins! We've created these plugins to enhance your Backstage experience and make your development workflow more efficient and enjoyable. All our plugins are thoroughly tested and compatible with Backstage version 1.45.3.
 
 ## 🔧 Our Plugin Categories
 
