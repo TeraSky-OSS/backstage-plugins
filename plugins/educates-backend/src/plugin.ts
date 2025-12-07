@@ -28,6 +28,7 @@ export const educatesPlugin = createBackendPlugin({
         permissions: coreServices.permissions,
         permissionsRegistry: coreServices.permissionsRegistry,
         httpAuth: coreServices.httpAuth,
+        auth: coreServices.auth,
         actionsRegistry: actionsRegistryServiceRef,
       },
       async init({
@@ -37,13 +38,14 @@ export const educatesPlugin = createBackendPlugin({
         permissions,
         permissionsRegistry,
         httpAuth,
+        auth,
         actionsRegistry,
       }) {
         // Create the service instance
         const educatesService = new EducatesService(config, logger);
 
         // Register MCP actions
-        registerMcpActions(actionsRegistry, educatesService);
+        registerMcpActions(actionsRegistry, educatesService, permissions, auth);
 
         // Register permissions
         permissionsRegistry.addPermissions(educatesPermissions);

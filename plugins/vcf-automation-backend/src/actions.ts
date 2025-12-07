@@ -1,4 +1,5 @@
 import { actionsRegistryServiceRef } from '@backstage/backend-plugin-api/alpha';
+import { InputError } from '@backstage/errors';
 import { VcfAutomationService } from './services/VcfAutomationService';
 
 export function registerMcpActions(actionsRegistry: typeof actionsRegistryServiceRef.T, service: VcfAutomationService) {
@@ -19,7 +20,7 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
         })),
       }),
     },
-    action: async () => {
+    action: async ({ credentials: _credentials }) => {
       // We can access the instances directly from the service's private field
       // since we're in the same package
       const instances = (service as any).instances;
@@ -53,19 +54,26 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
         })),
       }),
     },
-    action: async ({ input }) => {
-      const result = await service.getProjects(input.instanceName);
-      if ('error' in result) {
-        throw new Error(result.error);
+    action: async ({ input, credentials: _credentials }) => {
+      try {
+        const result = await service.getProjects(input.instanceName);
+        if ('error' in result) {
+          throw new InputError(result.error);
+        }
+        return {
+          output: {
+            projects: result.content.map((project: any) => ({
+              id: project.id,
+              name: project.name,
+            })),
+          },
+        };
+      } catch (error) {
+        if (error instanceof InputError) {
+          throw error;
+        }
+        throw new InputError(`Failed to get VCF Automation projects: ${error instanceof Error ? error.message : String(error)}`);
       }
-      return {
-        output: {
-          projects: result.content.map((project: any) => ({
-            id: project.id,
-            name: project.name,
-          })),
-        },
-      };
     },
   });
 
@@ -83,16 +91,23 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
         project: z.object({}).passthrough().describe('The full project details'),
       }),
     },
-    action: async ({ input }) => {
-      const result = await service.getProjectDetails(input.projectId, input.instanceName);
-      if ('error' in result) {
-        throw new Error(result.error);
+    action: async ({ input, credentials: _credentials }) => {
+      try {
+        const result = await service.getProjectDetails(input.projectId, input.instanceName);
+        if ('error' in result) {
+          throw new InputError(result.error);
+        }
+        return {
+          output: {
+            project: result,
+          },
+        };
+      } catch (error) {
+        if (error instanceof InputError) {
+          throw error;
+        }
+        throw new InputError(`Failed to get VCF Automation project details: ${error instanceof Error ? error.message : String(error)}`);
       }
-      return {
-        output: {
-          project: result,
-        },
-      };
     },
   });
 
@@ -109,16 +124,23 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
         namespaces: z.array(z.object({}).passthrough()).describe('List of supervisor namespaces'),
       }),
     },
-    action: async ({ input }) => {
-      const result = await service.getSupervisorNamespaces(input.instanceName);
-      if ('error' in result) {
-        throw new Error(result.error);
+    action: async ({ input, credentials: _credentials }) => {
+      try {
+        const result = await service.getSupervisorNamespaces(input.instanceName);
+        if ('error' in result) {
+          throw new InputError(result.error);
+        }
+        return {
+          output: {
+            namespaces: result.items || [],
+          },
+        };
+      } catch (error) {
+        if (error instanceof InputError) {
+          throw error;
+        }
+        throw new InputError(`Failed to get supervisor namespaces: ${error instanceof Error ? error.message : String(error)}`);
       }
-      return {
-        output: {
-          namespaces: result.items || [],
-        },
-      };
     },
   });
 
@@ -136,16 +158,23 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
         namespace: z.object({}).passthrough().describe('The full namespace details'),
       }),
     },
-    action: async ({ input }) => {
-      const result = await service.getSupervisorNamespace(input.namespaceId, input.instanceName);
-      if ('error' in result) {
-        throw new Error(result.error);
+    action: async ({ input, credentials: _credentials }) => {
+      try {
+        const result = await service.getSupervisorNamespace(input.namespaceId, input.instanceName);
+        if ('error' in result) {
+          throw new InputError(result.error);
+        }
+        return {
+          output: {
+            namespace: result,
+          },
+        };
+      } catch (error) {
+        if (error instanceof InputError) {
+          throw error;
+        }
+        throw new InputError(`Failed to get supervisor namespace: ${error instanceof Error ? error.message : String(error)}`);
       }
-      return {
-        output: {
-          namespace: result,
-        },
-      };
     },
   });
 
@@ -162,16 +191,23 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
         deployments: z.array(z.object({}).passthrough()).describe('List of deployments'),
       }),
     },
-    action: async ({ input }) => {
-      const result = await service.getDeployments(input.instanceName);
-      if ('error' in result) {
-        throw new Error(result.error);
+    action: async ({ input, credentials: _credentials }) => {
+      try {
+        const result = await service.getDeployments(input.instanceName);
+        if ('error' in result) {
+          throw new InputError(result.error);
+        }
+        return {
+          output: {
+            deployments: result.content || [],
+          },
+        };
+      } catch (error) {
+        if (error instanceof InputError) {
+          throw error;
+        }
+        throw new InputError(`Failed to get VCF Automation deployments: ${error instanceof Error ? error.message : String(error)}`);
       }
-      return {
-        output: {
-          deployments: result.content || [],
-        },
-      };
     },
   });
 
@@ -192,27 +228,34 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
         resources: z.array(z.object({}).passthrough()).describe('The deployment resources'),
       }),
     },
-    action: async ({ input }) => {
-      const [details, history, events, resources] = await Promise.all([
-        service.getDeploymentDetails(input.deploymentId, input.instanceName),
-        service.getDeploymentHistory(input.deploymentId, input.instanceName),
-        service.getDeploymentEvents(input.deploymentId, input.instanceName),
-        service.getDeploymentResources(input.deploymentId, input.instanceName),
-      ]);
+    action: async ({ input, credentials: _credentials }) => {
+      try {
+        const [details, history, events, resources] = await Promise.all([
+          service.getDeploymentDetails(input.deploymentId, input.instanceName),
+          service.getDeploymentHistory(input.deploymentId, input.instanceName),
+          service.getDeploymentEvents(input.deploymentId, input.instanceName),
+          service.getDeploymentResources(input.deploymentId, input.instanceName),
+        ]);
 
-      if ('error' in details) throw new Error(details.error);
-      if ('error' in history) throw new Error(history.error);
-      if ('error' in events) throw new Error(events.error);
-      if ('error' in resources) throw new Error(resources.error);
+        if ('error' in details) throw new InputError(details.error);
+        if ('error' in history) throw new InputError(history.error);
+        if ('error' in events) throw new InputError(events.error);
+        if ('error' in resources) throw new InputError(resources.error);
 
-      return {
-        output: {
-          deployment: details,
-          history: history.content || [],
-          events: events.content || [],
-          resources: resources.content || [],
-        },
-      };
+        return {
+          output: {
+            deployment: details,
+            history: history.content || [],
+            events: events.content || [],
+            resources: resources.content || [],
+          },
+        };
+      } catch (error) {
+        if (error instanceof InputError) {
+          throw error;
+        }
+        throw new InputError(`Failed to get VCF Automation deployment details: ${error instanceof Error ? error.message : String(error)}`);
+      }
     },
   });
 
@@ -241,7 +284,7 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
         details: z.object({}).passthrough().optional().describe('Additional details about the operation'),
       }),
     },
-    action: async ({ input }) => {
+    action: async ({ input, credentials: _credentials }) => {
       try {
         // Validate input
         const hasDeploymentVm = input.resourceId !== undefined;
@@ -250,7 +293,7 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
                                input.vmName !== undefined;
         
         if (hasDeploymentVm === hasStandaloneVm) {
-          throw new Error('Must provide either resourceId for deployment VMs OR (namespaceUrnId, namespaceName, vmName) for standalone VMs');
+          throw new InputError('Must provide either resourceId for deployment VMs OR (namespaceUrnId, namespaceName, vmName) for standalone VMs');
         }
 
         // Handle deployment-managed VMs
@@ -343,6 +386,9 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
           };
         }
       } catch (error) {
+        if (error instanceof InputError) {
+          throw error;
+        }
         return {
           output: {
             success: false,
@@ -368,16 +414,23 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
         resource: z.object({}).passthrough().describe('The full resource details'),
       }),
     },
-    action: async ({ input }) => {
-      const result = await service.getResourceDetails(input.deploymentId, input.resourceId, input.instanceName);
-      if ('error' in result) {
-        throw new Error(result.error);
+    action: async ({ input, credentials: _credentials }) => {
+      try {
+        const result = await service.getResourceDetails(input.deploymentId, input.resourceId, input.instanceName);
+        if ('error' in result) {
+          throw new InputError(result.error);
+        }
+        return {
+          output: {
+            resource: result,
+          },
+        };
+      } catch (error) {
+        if (error instanceof InputError) {
+          throw error;
+        }
+        throw new InputError(`Failed to get resource details: ${error instanceof Error ? error.message : String(error)}`);
       }
-      return {
-        output: {
-          resource: result,
-        },
-      };
     },
   });
 
@@ -394,16 +447,23 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
         resources: z.array(z.object({}).passthrough()).describe('List of supervisor resources'),
       }),
     },
-    action: async ({ input }) => {
-      const result = await service.getSupervisorResources(input.instanceName);
-      if ('error' in result) {
-        throw new Error(result.error);
+    action: async ({ input, credentials: _credentials }) => {
+      try {
+        const result = await service.getSupervisorResources(input.instanceName);
+        if ('error' in result) {
+          throw new InputError(result.error);
+        }
+        return {
+          output: {
+            resources: result.content || [],
+          },
+        };
+      } catch (error) {
+        if (error instanceof InputError) {
+          throw error;
+        }
+        throw new InputError(`Failed to get supervisor resources: ${error instanceof Error ? error.message : String(error)}`);
       }
-      return {
-        output: {
-          resources: result.content || [],
-        },
-      };
     },
   });
 
@@ -421,16 +481,23 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
         resource: z.object({}).passthrough().describe('The full supervisor resource details'),
       }),
     },
-    action: async ({ input }) => {
-      const result = await service.getSupervisorResource(input.resourceId, input.instanceName);
-      if ('error' in result) {
-        throw new Error(result.error);
+    action: async ({ input, credentials: _credentials }) => {
+      try {
+        const result = await service.getSupervisorResource(input.resourceId, input.instanceName);
+        if ('error' in result) {
+          throw new InputError(result.error);
+        }
+        return {
+          output: {
+            resource: result,
+          },
+        };
+      } catch (error) {
+        if (error instanceof InputError) {
+          throw error;
+        }
+        throw new InputError(`Failed to get supervisor resource: ${error instanceof Error ? error.message : String(error)}`);
       }
-      return {
-        output: {
-          resource: result,
-        },
-      };
     },
   });
 
@@ -452,23 +519,30 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
         manifest: z.object({}).passthrough().describe('The full resource manifest'),
       }),
     },
-    action: async ({ input }) => {
-      const result = await service.getSupervisorResourceManifest(
-        input.namespaceUrnId,
-        input.namespaceName,
-        input.resourceName,
-        input.apiVersion,
-        input.kind,
-        input.instanceName,
-      );
-      if ('error' in result) {
-        throw new Error(result.error);
+    action: async ({ input, credentials: _credentials }) => {
+      try {
+        const result = await service.getSupervisorResourceManifest(
+          input.namespaceUrnId,
+          input.namespaceName,
+          input.resourceName,
+          input.apiVersion,
+          input.kind,
+          input.instanceName,
+        );
+        if ('error' in result) {
+          throw new InputError(result.error);
+        }
+        return {
+          output: {
+            manifest: result,
+          },
+        };
+      } catch (error) {
+        if (error instanceof InputError) {
+          throw error;
+        }
+        throw new InputError(`Failed to get supervisor resource manifest: ${error instanceof Error ? error.message : String(error)}`);
       }
-      return {
-        output: {
-          manifest: result,
-        },
-      };
     },
   });
 
@@ -492,25 +566,32 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
         manifest: z.object({}).passthrough().describe('The updated resource manifest'),
       }),
     },
-    action: async ({ input }) => {
-      const result = await service.updateSupervisorResourceManifest(
-        input.namespaceUrnId,
-        input.namespaceName,
-        input.resourceName,
-        input.apiVersion,
-        input.kind,
-        input.manifest,
-        input.instanceName,
-      );
-      if ('error' in result) {
-        throw new Error(result.error);
+    action: async ({ input, credentials: _credentials }) => {
+      try {
+        const result = await service.updateSupervisorResourceManifest(
+          input.namespaceUrnId,
+          input.namespaceName,
+          input.resourceName,
+          input.apiVersion,
+          input.kind,
+          input.manifest,
+          input.instanceName,
+        );
+        if ('error' in result) {
+          throw new InputError(result.error);
+        }
+        return {
+          output: {
+            success: true,
+            manifest: result,
+          },
+        };
+      } catch (error) {
+        if (error instanceof InputError) {
+          throw error;
+        }
+        throw new InputError(`Failed to update supervisor resource manifest: ${error instanceof Error ? error.message : String(error)}`);
       }
-      return {
-        output: {
-          success: true,
-          manifest: result,
-        },
-      };
     },
   });
 }

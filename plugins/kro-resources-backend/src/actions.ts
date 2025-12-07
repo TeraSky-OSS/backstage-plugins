@@ -1,6 +1,17 @@
 import { actionsRegistryServiceRef } from '@backstage/backend-plugin-api/alpha';
 import { CatalogService } from '@backstage/plugin-catalog-node';
+import { PermissionsService, AuthService } from '@backstage/backend-plugin-api';
+import { AuthorizeResult } from '@backstage/plugin-permission-common';
 import { ConflictError, InputError } from '@backstage/errors';
+import {
+  listInstancesPermission,
+  listRGDsPermission,
+  listResourcesPermission,
+  showEventsInstancesPermission,
+  showEventsRGDsPermission,
+  showEventsResourcesPermission,
+  showResourceGraph,
+} from '@terasky/backstage-plugin-kro-common';
 import { KubernetesService } from './service/KubernetesService';
 
 async function getEntityAndKroInfo(catalog: CatalogService, name: string, kind: string = 'component', namespace: string = 'default', credentials?: any): Promise<{ entity: any; kroInfo: { clusterName: string; rgdName: string; rgdId: string; instanceId: string; instanceName: string; crdName: string; namespace: string } }> {
@@ -54,7 +65,13 @@ async function getEntityAndKroInfo(catalog: CatalogService, name: string, kind: 
   return { entity, kroInfo };
 }
 
-export function registerMcpActions(actionsRegistry: typeof actionsRegistryServiceRef.T, service: KubernetesService, catalog: CatalogService) {
+export function registerMcpActions(
+  actionsRegistry: typeof actionsRegistryServiceRef.T,
+  service: KubernetesService,
+  catalog: CatalogService,
+  permissions: PermissionsService,
+  auth: AuthService
+) {
   // Get Resources
   actionsRegistry.register({
     name: 'get_kro_resources',
@@ -87,29 +104,49 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
       }),
     },
     action: async ({ input, credentials }) => {
-      const { kroInfo } = await getEntityAndKroInfo(
-        catalog,
-        input.backstageEntityName,
-        input.backstageEntityKind,
-        input.backstageEntityNamespace,
-        credentials
-      );
+      try {
+        const serviceCredentials = await auth.getOwnServiceCredentials();
+        const [canListInstances, canListRGDs, canListResources] = await Promise.all([
+          permissions.authorize([{ permission: listInstancesPermission }], { credentials: credentials || serviceCredentials }),
+          permissions.authorize([{ permission: listRGDsPermission }], { credentials: credentials || serviceCredentials }),
+          permissions.authorize([{ permission: listResourcesPermission }], { credentials: credentials || serviceCredentials }),
+        ]);
 
-      const result = await service.getResources(
-        kroInfo.clusterName,
-        kroInfo.namespace,
-        kroInfo.rgdName,
-        kroInfo.rgdId,
-        kroInfo.instanceId,
-        kroInfo.instanceName,
-        kroInfo.crdName,
-      );
-      return {
-        output: {
-          resources: result.resources as unknown as { [k: string]: unknown }[],
-          supportingResources: result.supportingResources as unknown as { [k: string]: unknown }[],
-        },
-      };
+        if (canListInstances[0].result !== AuthorizeResult.ALLOW && 
+            canListRGDs[0].result !== AuthorizeResult.ALLOW && 
+            canListResources[0].result !== AuthorizeResult.ALLOW) {
+          throw new InputError('Access denied. You do not have permission to list KRO resources.');
+        }
+
+        const { kroInfo } = await getEntityAndKroInfo(
+          catalog,
+          input.backstageEntityName,
+          input.backstageEntityKind,
+          input.backstageEntityNamespace,
+          credentials
+        );
+
+        const result = await service.getResources(
+          kroInfo.clusterName,
+          kroInfo.namespace,
+          kroInfo.rgdName,
+          kroInfo.rgdId,
+          kroInfo.instanceId,
+          kroInfo.instanceName,
+          kroInfo.crdName,
+        );
+        return {
+          output: {
+            resources: result.resources as unknown as { [k: string]: unknown }[],
+            supportingResources: result.supportingResources as unknown as { [k: string]: unknown }[],
+          },
+        };
+      } catch (error) {
+        if (error instanceof InputError || error instanceof ConflictError) {
+          throw error;
+        }
+        throw new InputError(`Failed to get KRO resources: ${error instanceof Error ? error.message : String(error)}`);
+      }
     },
   });
 
@@ -149,25 +186,56 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
       }),
     },
     action: async ({ input, credentials }) => {
-      const { kroInfo } = await getEntityAndKroInfo(
-        catalog,
-        input.backstageEntityName,
-        input.backstageEntityKind,
-        input.backstageEntityNamespace,
-        credentials
-      );
+      try {
+        const serviceCredentials = await auth.getOwnServiceCredentials();
+        
+        // Determine which permission to check based on resource kind
+        let permission;
+        switch (input.kubernetesResourceKind) {
+          case 'ResourceGraphDefinition':
+            permission = showEventsRGDsPermission;
+            break;
+          case 'Application':
+            permission = showEventsInstancesPermission;
+            break;
+          default:
+            permission = showEventsResourcesPermission;
+        }
 
-      const events = await service.getEvents(
-        kroInfo.clusterName,
-        input.kubernetesNamespace,
-        input.kubernetesResourceName,
-        input.kubernetesResourceKind,
-      );
-      return {
-        output: {
-          events,
-        },
-      };
+        const decision = await permissions.authorize(
+          [{ permission }],
+          { credentials: credentials || serviceCredentials }
+        );
+
+        if (decision[0].result !== AuthorizeResult.ALLOW) {
+          throw new InputError('Access denied. You do not have permission to view events for this resource type.');
+        }
+
+        const { kroInfo } = await getEntityAndKroInfo(
+          catalog,
+          input.backstageEntityName,
+          input.backstageEntityKind,
+          input.backstageEntityNamespace,
+          credentials
+        );
+
+        const events = await service.getEvents(
+          kroInfo.clusterName,
+          input.kubernetesNamespace,
+          input.kubernetesResourceName,
+          input.kubernetesResourceKind,
+        );
+        return {
+          output: {
+            events,
+          },
+        };
+      } catch (error) {
+        if (error instanceof InputError || error instanceof ConflictError) {
+          throw error;
+        }
+        throw new InputError(`Failed to get KRO resource events: ${error instanceof Error ? error.message : String(error)}`);
+      }
     },
   });
 
@@ -187,27 +255,44 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
       }),
     },
     action: async ({ input, credentials }) => {
-      const { kroInfo } = await getEntityAndKroInfo(
-        catalog,
-        input.backstageEntityName,
-        input.backstageEntityKind,
-        input.backstageEntityNamespace,
-        credentials
-      );
+      try {
+        const serviceCredentials = await auth.getOwnServiceCredentials();
+        const decision = await permissions.authorize(
+          [{ permission: showResourceGraph }],
+          { credentials: credentials || serviceCredentials }
+        );
 
-      const resources = await service.getResourceGraph(
-        kroInfo.clusterName,
-        kroInfo.namespace,
-        kroInfo.rgdName,
-        kroInfo.rgdId,
-        kroInfo.instanceId,
-        kroInfo.instanceName,
-      );
-      return {
-        output: {
-          resources: resources as unknown as { [k: string]: unknown }[],
-        },
-      };
+        if (decision[0].result !== AuthorizeResult.ALLOW) {
+          throw new InputError('Access denied. You do not have permission to view the KRO resource graph.');
+        }
+
+        const { kroInfo } = await getEntityAndKroInfo(
+          catalog,
+          input.backstageEntityName,
+          input.backstageEntityKind,
+          input.backstageEntityNamespace,
+          credentials
+        );
+
+        const resources = await service.getResourceGraph(
+          kroInfo.clusterName,
+          kroInfo.namespace,
+          kroInfo.rgdName,
+          kroInfo.rgdId,
+          kroInfo.instanceId,
+          kroInfo.instanceName,
+        );
+        return {
+          output: {
+            resources: resources as unknown as { [k: string]: unknown }[],
+          },
+        };
+      } catch (error) {
+        if (error instanceof InputError || error instanceof ConflictError) {
+          throw error;
+        }
+        throw new InputError(`Failed to get KRO resource graph: ${error instanceof Error ? error.message : String(error)}`);
+      }
     },
   });
 }

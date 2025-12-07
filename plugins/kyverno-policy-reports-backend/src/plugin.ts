@@ -41,7 +41,7 @@ export const kyvernoPolicyReportsPlugin = createBackendPlugin({
         const kubernetesService = new KubernetesService(logger, discovery, auth);
         
         // Register MCP actions
-        registerMcpActions(actionsRegistry, kubernetesService);
+        registerMcpActions(actionsRegistry, kubernetesService, permissions, auth);
         
         httpRouter.use(
           await createRouter({

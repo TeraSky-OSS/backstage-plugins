@@ -1,7 +1,16 @@
 import { actionsRegistryServiceRef } from '@backstage/backend-plugin-api/alpha';
+import { PermissionsService, AuthService } from '@backstage/backend-plugin-api';
+import { AuthorizeResult } from '@backstage/plugin-permission-common';
+import { InputError } from '@backstage/errors';
+import { showKyvernoReportsPermission, viewPolicyYAMLPermission } from '@terasky/backstage-plugin-kyverno-common';
 import { KubernetesService } from './service/KubernetesService';
 
-export function registerMcpActions(actionsRegistry: typeof actionsRegistryServiceRef.T, service: KubernetesService) {
+export function registerMcpActions(
+  actionsRegistry: typeof actionsRegistryServiceRef.T,
+  service: KubernetesService,
+  permissions: PermissionsService,
+  auth: AuthService
+) {
   // Get Policy Reports
   actionsRegistry.register({
     name: 'get_kyverno_policy_reports',
@@ -48,8 +57,18 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
         })).describe('List of policy reports'),
       }),
     },
-    action: async ({ input }) => {
+    action: async ({ input, credentials }) => {
       try {
+        const serviceCredentials = await auth.getOwnServiceCredentials();
+        const decision = await permissions.authorize(
+          [{ permission: showKyvernoReportsPermission }],
+          { credentials: credentials || serviceCredentials }
+        );
+
+        if (decision[0].result !== AuthorizeResult.ALLOW) {
+          throw new InputError('Access denied. You do not have permission to view Kyverno policy reports.');
+        }
+
         const reports = await service.getPolicyReports({
           entity: input.entity,
         });
@@ -59,7 +78,10 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
           },
         };
       } catch (error) {
-        throw new Error(`Failed to get policy reports: ${error}`);
+        if (error instanceof InputError) {
+          throw error;
+        }
+        throw new InputError(`Failed to get policy reports: ${error instanceof Error ? error.message : String(error)}`);
       }
     },
   });
@@ -79,8 +101,18 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
         policy: z.object({}).passthrough().describe('The policy details'),
       }),
     },
-    action: async ({ input }) => {
+    action: async ({ input, credentials }) => {
       try {
+        const serviceCredentials = await auth.getOwnServiceCredentials();
+        const decision = await permissions.authorize(
+          [{ permission: viewPolicyYAMLPermission }],
+          { credentials: credentials || serviceCredentials }
+        );
+
+        if (decision[0].result !== AuthorizeResult.ALLOW) {
+          throw new InputError('Access denied. You do not have permission to view Kyverno policy YAML.');
+        }
+
         const policy = await service.getPolicy(
           input.clusterName,
           input.namespace,
@@ -92,7 +124,10 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
           },
         };
       } catch (error) {
-        throw new Error(`Failed to get policy details: ${error}`);
+        if (error instanceof InputError) {
+          throw error;
+        }
+        throw new InputError(`Failed to get policy details: ${error instanceof Error ? error.message : String(error)}`);
       }
     },
   });
@@ -144,8 +179,18 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
         })).describe('List of policy reports for Crossplane resources'),
       }),
     },
-    action: async ({ input }) => {
+    action: async ({ input, credentials }) => {
       try {
+        const serviceCredentials = await auth.getOwnServiceCredentials();
+        const decision = await permissions.authorize(
+          [{ permission: showKyvernoReportsPermission }],
+          { credentials: credentials || serviceCredentials }
+        );
+
+        if (decision[0].result !== AuthorizeResult.ALLOW) {
+          throw new InputError('Access denied. You do not have permission to view Kyverno policy reports.');
+        }
+
         const reports = await service.getCrossplanePolicyReports({
           entity: input.entity,
         });
@@ -155,7 +200,10 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
           },
         };
       } catch (error) {
-        throw new Error(`Failed to get Crossplane policy reports: ${error}`);
+        if (error instanceof InputError) {
+          throw error;
+        }
+        throw new InputError(`Failed to get Crossplane policy reports: ${error instanceof Error ? error.message : String(error)}`);
       }
     },
   });

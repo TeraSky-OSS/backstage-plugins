@@ -23,6 +23,7 @@ export const vcfOperationsPlugin = createBackendPlugin({
         config: coreServices.rootConfig,
         permissionsRegistry: coreServices.permissionsRegistry,
         httpAuth: coreServices.httpAuth,
+        auth: coreServices.auth,
         actionsRegistry: actionsRegistryServiceRef,
       },
       async init({
@@ -32,6 +33,7 @@ export const vcfOperationsPlugin = createBackendPlugin({
         config,
         permissionsRegistry,
         httpAuth,
+        auth,
         actionsRegistry,
       }) {
         permissionsRegistry.addPermissions(Object.values(vcfOperationsPermissions));
@@ -40,7 +42,7 @@ export const vcfOperationsPlugin = createBackendPlugin({
         const service = new VcfOperationsService(config, logger);
         
         // Register MCP actions
-        registerMcpActions(actionsRegistry, service);
+        registerMcpActions(actionsRegistry, service, permissions, auth);
         
         httpRouter.use(
           await createRouter({

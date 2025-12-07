@@ -1,7 +1,19 @@
 import { actionsRegistryServiceRef } from '@backstage/backend-plugin-api/alpha';
+import { PermissionsService, AuthService } from '@backstage/backend-plugin-api';
+import { AuthorizeResult } from '@backstage/plugin-permission-common';
+import { InputError } from '@backstage/errors';
+import { 
+  portalViewPermission,
+  workshopStartPermission 
+} from '@terasky/backstage-plugin-educates-common';
 import { EducatesService } from './service/EducatesService';
 
-export function registerMcpActions(actionsRegistry: typeof actionsRegistryServiceRef.T, service: EducatesService) {
+export function registerMcpActions(
+  actionsRegistry: typeof actionsRegistryServiceRef.T,
+  service: EducatesService,
+  permissions: PermissionsService,
+  auth: AuthService
+) {
   // Get Training Portals
   actionsRegistry.register({
     name: 'get_educates_training_portals',
@@ -16,8 +28,10 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
         })),
       }),
     },
-    action: async () => {
+    action: async ({ credentials: _credentials }) => {
       try {
+        // Note: No specific permission check required for listing portal names
+        // Permission checks are enforced when accessing specific portals
         const portals = await service.getTrainingPortals();
         return {
           output: {
@@ -25,7 +39,7 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
           },
         };
       } catch (error) {
-        throw new Error(`Failed to get training portals: ${error}`);
+        throw new InputError(`Failed to get training portals: ${error instanceof Error ? error.message : String(error)}`);
       }
     },
   });
@@ -57,8 +71,18 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
         })),
       }),
     },
-    action: async ({ input }) => {
+    action: async ({ input, credentials }) => {
       try {
+        const serviceCredentials = await auth.getOwnServiceCredentials();
+        const decision = await permissions.authorize(
+          [{ permission: portalViewPermission, resourceRef: input.portalName }],
+          { credentials: credentials || serviceCredentials }
+        );
+
+        if (decision[0].result !== AuthorizeResult.ALLOW) {
+          throw new InputError('Access denied. You do not have permission to view this training portal.');
+        }
+
         const catalog = await service.getWorkshops(input.portalName);
         return {
           output: {
@@ -66,7 +90,10 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
           },
         };
       } catch (error) {
-        throw new Error(`Failed to get workshops: ${error}`);
+        if (error instanceof InputError) {
+          throw error;
+        }
+        throw new InputError(`Failed to get workshops: ${error instanceof Error ? error.message : String(error)}`);
       }
     },
   });
@@ -97,8 +124,38 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
         }),
       }),
     },
-    action: async ({ input }) => {
+    action: async ({ input, credentials }) => {
       try {
+        const serviceCredentials = await auth.getOwnServiceCredentials();
+        
+        // First check portal view permission
+        const portalDecision = await permissions.authorize(
+          [{ permission: portalViewPermission, resourceRef: input.portalName }],
+          { credentials: credentials || serviceCredentials }
+        );
+
+        if (portalDecision[0].result !== AuthorizeResult.ALLOW) {
+          throw new InputError('Access denied. You do not have permission to view this training portal.');
+        }
+
+        // Get workshops catalog to find the workshop name for permission checking
+        const catalog = await service.getWorkshops(input.portalName);
+        const workshop = catalog.workshops?.find((w: any) => w.environment.name === input.workshopEnvName);
+        
+        if (!workshop) {
+          throw new InputError(`Workshop not found with environment name: ${input.workshopEnvName}`);
+        }
+
+        // Check permission to start this specific workshop
+        const workshopDecision = await permissions.authorize(
+          [{ permission: workshopStartPermission, resourceRef: `${input.portalName}:${workshop.name}` }],
+          { credentials: credentials || serviceCredentials }
+        );
+
+        if (workshopDecision[0].result !== AuthorizeResult.ALLOW) {
+          throw new InputError('Access denied. You do not have permission to start this workshop.');
+        }
+
         const session = await service.requestWorkshopSession(
           input.portalName,
           input.workshopEnvName,
@@ -107,7 +164,10 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
           output: session,
         };
       } catch (error) {
-        throw new Error(`Failed to request workshop session: ${error}`);
+        if (error instanceof InputError) {
+          throw error;
+        }
+        throw new InputError(`Failed to request workshop session: ${error instanceof Error ? error.message : String(error)}`);
       }
     },
   });

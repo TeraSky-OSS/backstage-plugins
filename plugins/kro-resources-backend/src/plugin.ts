@@ -44,7 +44,7 @@ export const kroResourcesBackendPlugin = createBackendPlugin({
         const service = new KubernetesService(logger, discovery, auth);
 
         // Register MCP actions
-        registerMcpActions(actionsRegistry, service, catalogService);
+        registerMcpActions(actionsRegistry, service, catalogService, permissions, auth);
 
         httpRouter.use(
           await createRouter({

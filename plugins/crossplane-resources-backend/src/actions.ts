@@ -1,6 +1,16 @@
 import { actionsRegistryServiceRef } from '@backstage/backend-plugin-api/alpha';
 import { CatalogService } from '@backstage/plugin-catalog-node';
+import { PermissionsService, AuthService } from '@backstage/backend-plugin-api';
+import { AuthorizeResult } from '@backstage/plugin-permission-common';
 import { ConflictError, InputError } from '@backstage/errors';
+import {
+  listClaimsPermission,
+  listCompositeResourcesPermission,
+  listManagedResourcesPermission,
+  showEventsClaimsPermission,
+  showEventsCompositeResourcesPermission,
+  showEventsManagedResourcesPermission,
+} from '@terasky/backstage-plugin-crossplane-common';
 import { KubernetesService } from './service/KubernetesService';
 
 interface V2CrossplaneInfo {
@@ -100,7 +110,13 @@ async function getEntityAndCrossplaneInfo(catalog: CatalogService, name: string,
   }
 }
 
-export function registerMcpActions(actionsRegistry: typeof actionsRegistryServiceRef.T, service: KubernetesService, catalog: CatalogService) {
+export function registerMcpActions(
+  actionsRegistry: typeof actionsRegistryServiceRef.T,
+  service: KubernetesService,
+  catalog: CatalogService,
+  permissions: PermissionsService,
+  auth: AuthService
+) {
   // Get Crossplane Resources
   actionsRegistry.register({
     name: 'get_crossplane_resources',
@@ -134,11 +150,25 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
     },
     action: async ({ input, credentials }) => {
       try {
+        const serviceCredentials = await auth.getOwnServiceCredentials();
+        const authorized = await permissions.authorize(
+          [
+            { permission: listClaimsPermission },
+            { permission: listCompositeResourcesPermission },
+            { permission: listManagedResourcesPermission },
+          ],
+          { credentials: credentials || serviceCredentials }
+        );
+
+        if (authorized.every(a => a.result !== AuthorizeResult.ALLOW)) {
+          throw new InputError('Access denied. You do not have permission to list Crossplane resources.');
+        }
+
         const { items } = await catalog.queryEntities(
           { filter: { 'metadata.name': input.backstageEntityName } },
           { credentials },
         );
-        if (!items.length) throw new Error('Entity not found');
+        if (!items.length) throw new InputError('Entity not found');
         const entity = items[0];
         const annotations = entity.metadata.annotations || {};
         const clusterName = annotations['backstage.io/managed-by-location'].split(': ')[1];
@@ -180,7 +210,10 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
           output: plainResult,
         };
       } catch (error) {
-        throw new Error(`Failed to get Crossplane resources: ${error}`);
+        if (error instanceof InputError || error instanceof ConflictError) {
+          throw error;
+        }
+        throw new InputError(`Failed to get Crossplane resources: ${error instanceof Error ? error.message : String(error)}`);
       }
     },
   });
@@ -222,6 +255,20 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
     },
     action: async ({ input, credentials }) => {
       try {
+        const serviceCredentials = await auth.getOwnServiceCredentials();
+        const authorized = await permissions.authorize(
+          [
+            { permission: showEventsClaimsPermission },
+            { permission: showEventsCompositeResourcesPermission },
+            { permission: showEventsManagedResourcesPermission },
+          ],
+          { credentials: credentials || serviceCredentials }
+        );
+
+        if (authorized.every(a => a.result !== AuthorizeResult.ALLOW)) {
+          throw new InputError('Access denied. You do not have permission to view Crossplane events.');
+        }
+
         const { crossplaneInfo } = await getEntityAndCrossplaneInfo(
           catalog,
           input.backstageEntityName,
@@ -243,7 +290,10 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
           output: plainResult,
         };
       } catch (error) {
-        throw new Error(`Failed to get Crossplane events: ${error}`);
+        if (error instanceof InputError || error instanceof ConflictError) {
+          throw error;
+        }
+        throw new InputError(`Failed to get Crossplane events: ${error instanceof Error ? error.message : String(error)}`);
       }
     },
   });
@@ -265,11 +315,24 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
     },
     action: async ({ input, credentials }) => {
       try {
+        const serviceCredentials = await auth.getOwnServiceCredentials();
+        const authorized = await permissions.authorize(
+          [
+            { permission: listCompositeResourcesPermission },
+            { permission: listManagedResourcesPermission },
+          ],
+          { credentials: credentials || serviceCredentials }
+        );
+
+        if (authorized.every(a => a.result !== AuthorizeResult.ALLOW)) {
+          throw new InputError('Access denied. You do not have permission to view Crossplane resource graph.');
+        }
+
         const { items } = await catalog.queryEntities(
           { filter: { 'metadata.name': input.backstageEntityName } },
           { credentials },
         );
-        if (!items.length) throw new Error('Entity not found');
+        if (!items.length) throw new InputError('Entity not found');
         const entity = items[0];
         const annotations = entity.metadata.annotations || {};
         const clusterName = annotations['backstage.io/managed-by-location'].split(': ')[1];
@@ -311,7 +374,10 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
           output: plainResult,
         };
       } catch (error) {
-        throw new Error(`Failed to get Crossplane resource graph: ${error}`);
+        if (error instanceof InputError || error instanceof ConflictError) {
+          throw error;
+        }
+        throw new InputError(`Failed to get Crossplane resource graph: ${error instanceof Error ? error.message : String(error)}`);
       }
     },
   });

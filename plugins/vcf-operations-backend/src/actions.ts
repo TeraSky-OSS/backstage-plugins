@@ -1,7 +1,16 @@
 import { actionsRegistryServiceRef } from '@backstage/backend-plugin-api/alpha';
+import { PermissionsService, AuthService } from '@backstage/backend-plugin-api';
+import { AuthorizeResult } from '@backstage/plugin-permission-common';
+import { InputError } from '@backstage/errors';
+import { viewMetricsPermission } from '@terasky/backstage-plugin-vcf-operations-common';
 import { VcfOperationsService } from './services/VcfOperationsService';
 
-export function registerMcpActions(actionsRegistry: typeof actionsRegistryServiceRef.T, service: VcfOperationsService) {
+export function registerMcpActions(
+  actionsRegistry: typeof actionsRegistryServiceRef.T,
+  service: VcfOperationsService,
+  permissions: PermissionsService,
+  auth: AuthService
+) {
   // Get VCF Operations Instances
   actionsRegistry.register({
     name: 'get_vcf_operations_instances',
@@ -16,13 +25,30 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
         })),
       }),
     },
-    action: async () => {
-      const instances = service.getInstances();
-      return {
-        output: {
-          instances,
-        },
-      };
+    action: async ({ credentials }) => {
+      try {
+        const serviceCredentials = await auth.getOwnServiceCredentials();
+        const decision = await permissions.authorize(
+          [{ permission: viewMetricsPermission }],
+          { credentials: credentials || serviceCredentials }
+        );
+
+        if (decision[0].result !== AuthorizeResult.ALLOW) {
+          throw new InputError('Access denied. You do not have permission to view VCF Operations metrics.');
+        }
+
+        const instances = service.getInstances();
+        return {
+          output: {
+            instances,
+          },
+        };
+      } catch (error) {
+        if (error instanceof InputError) {
+          throw error;
+        }
+        throw new InputError(`Failed to get VCF Operations instances: ${error instanceof Error ? error.message : String(error)}`);
+      }
     },
   });
 
@@ -53,18 +79,35 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
         })),
       }),
     },
-    action: async ({ input }) => {
-      const result = await service.getResourceMetrics(
-        input.resourceId,
-        input.statKeys,
-        input.begin,
-        input.end,
-        input.rollUpType,
-        input.instanceName,
-      );
-      return {
-        output: result,
-      };
+    action: async ({ input, credentials }) => {
+      try {
+        const serviceCredentials = await auth.getOwnServiceCredentials();
+        const decision = await permissions.authorize(
+          [{ permission: viewMetricsPermission }],
+          { credentials: credentials || serviceCredentials }
+        );
+
+        if (decision[0].result !== AuthorizeResult.ALLOW) {
+          throw new InputError('Access denied. You do not have permission to view VCF Operations metrics.');
+        }
+
+        const result = await service.getResourceMetrics(
+          input.resourceId,
+          input.statKeys,
+          input.begin,
+          input.end,
+          input.rollUpType,
+          input.instanceName,
+        );
+        return {
+          output: result,
+        };
+      } catch (error) {
+        if (error instanceof InputError) {
+          throw error;
+        }
+        throw new InputError(`Failed to get resource metrics: ${error instanceof Error ? error.message : String(error)}`);
+      }
     },
   });
 
@@ -92,15 +135,32 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
         })),
       }),
     },
-    action: async ({ input }) => {
-      const result = await service.getLatestResourceMetrics(
-        input.resourceIds,
-        input.statKeys,
-        input.instanceName,
-      );
-      return {
-        output: result,
-      };
+    action: async ({ input, credentials }) => {
+      try {
+        const serviceCredentials = await auth.getOwnServiceCredentials();
+        const decision = await permissions.authorize(
+          [{ permission: viewMetricsPermission }],
+          { credentials: credentials || serviceCredentials }
+        );
+
+        if (decision[0].result !== AuthorizeResult.ALLOW) {
+          throw new InputError('Access denied. You do not have permission to view VCF Operations metrics.');
+        }
+
+        const result = await service.getLatestResourceMetrics(
+          input.resourceIds,
+          input.statKeys,
+          input.instanceName,
+        );
+        return {
+          output: result,
+        };
+      } catch (error) {
+        if (error instanceof InputError) {
+          throw error;
+        }
+        throw new InputError(`Failed to get latest resource metrics: ${error instanceof Error ? error.message : String(error)}`);
+      }
     },
   });
 
@@ -118,13 +178,30 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
         resource: z.object({}).passthrough().describe('The full resource details'),
       }),
     },
-    action: async ({ input }) => {
-      const result = await service.getResourceDetails(input.resourceId, input.instanceName);
-      return {
-        output: {
-          resource: result,
-        },
-      };
+    action: async ({ input, credentials }) => {
+      try {
+        const serviceCredentials = await auth.getOwnServiceCredentials();
+        const decision = await permissions.authorize(
+          [{ permission: viewMetricsPermission }],
+          { credentials: credentials || serviceCredentials }
+        );
+
+        if (decision[0].result !== AuthorizeResult.ALLOW) {
+          throw new InputError('Access denied. You do not have permission to view VCF Operations metrics.');
+        }
+
+        const result = await service.getResourceDetails(input.resourceId, input.instanceName);
+        return {
+          output: {
+            resource: result,
+          },
+        };
+      } catch (error) {
+        if (error instanceof InputError) {
+          throw error;
+        }
+        throw new InputError(`Failed to get resource details: ${error instanceof Error ? error.message : String(error)}`);
+      }
     },
   });
 
@@ -142,13 +219,30 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
         metrics: z.array(z.object({}).passthrough()).describe('List of available metrics'),
       }),
     },
-    action: async ({ input }) => {
-      const result = await service.getAvailableMetrics(input.resourceId, input.instanceName);
-      return {
-        output: {
-          metrics: result['stat-key'] || [],
-        },
-      };
+    action: async ({ input, credentials }) => {
+      try {
+        const serviceCredentials = await auth.getOwnServiceCredentials();
+        const decision = await permissions.authorize(
+          [{ permission: viewMetricsPermission }],
+          { credentials: credentials || serviceCredentials }
+        );
+
+        if (decision[0].result !== AuthorizeResult.ALLOW) {
+          throw new InputError('Access denied. You do not have permission to view VCF Operations metrics.');
+        }
+
+        const result = await service.getAvailableMetrics(input.resourceId, input.instanceName);
+        return {
+          output: {
+            metrics: result['stat-key'] || [],
+          },
+        };
+      } catch (error) {
+        if (error instanceof InputError) {
+          throw error;
+        }
+        throw new InputError(`Failed to get available metrics: ${error instanceof Error ? error.message : String(error)}`);
+      }
     },
   });
 
@@ -168,18 +262,35 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
         resources: z.array(z.object({}).passthrough()).describe('List of matching resources'),
       }),
     },
-    action: async ({ input }) => {
-      const result = await service.searchResources(
-        input.name,
-        input.adapterKind,
-        input.resourceKind,
-        input.instanceName,
-      );
-      return {
-        output: {
-          resources: result.resourceList || [],
-        },
-      };
+    action: async ({ input, credentials }) => {
+      try {
+        const serviceCredentials = await auth.getOwnServiceCredentials();
+        const decision = await permissions.authorize(
+          [{ permission: viewMetricsPermission }],
+          { credentials: credentials || serviceCredentials }
+        );
+
+        if (decision[0].result !== AuthorizeResult.ALLOW) {
+          throw new InputError('Access denied. You do not have permission to view VCF Operations metrics.');
+        }
+
+        const result = await service.searchResources(
+          input.name,
+          input.adapterKind,
+          input.resourceKind,
+          input.instanceName,
+        );
+        return {
+          output: {
+            resources: result.resourceList || [],
+          },
+        };
+      } catch (error) {
+        if (error instanceof InputError) {
+          throw error;
+        }
+        throw new InputError(`Failed to search resources: ${error instanceof Error ? error.message : String(error)}`);
+      }
     },
   });
 
@@ -198,17 +309,34 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
         resource: z.object({}).passthrough().nullable().describe('The found resource or null if not found'),
       }),
     },
-    action: async ({ input }) => {
-      const result = await service.findResourceByName(
-        input.resourceName,
-        input.instanceName,
-        input.resourceType,
-      );
-      return {
-        output: {
-          resource: result ? { ...result } : null,
-        },
-      };
+    action: async ({ input, credentials }) => {
+      try {
+        const serviceCredentials = await auth.getOwnServiceCredentials();
+        const decision = await permissions.authorize(
+          [{ permission: viewMetricsPermission }],
+          { credentials: credentials || serviceCredentials }
+        );
+
+        if (decision[0].result !== AuthorizeResult.ALLOW) {
+          throw new InputError('Access denied. You do not have permission to view VCF Operations metrics.');
+        }
+
+        const result = await service.findResourceByName(
+          input.resourceName,
+          input.instanceName,
+          input.resourceType,
+        );
+        return {
+          output: {
+            resource: result ? { ...result } : null,
+          },
+        };
+      } catch (error) {
+        if (error instanceof InputError) {
+          throw error;
+        }
+        throw new InputError(`Failed to find resource by name: ${error instanceof Error ? error.message : String(error)}`);
+      }
     },
   });
 
@@ -227,17 +355,34 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
         resource: z.object({}).passthrough().nullable().describe('The found resource or null if not found'),
       }),
     },
-    action: async ({ input }) => {
-      const result = await service.findResourceByProperty(
-        input.propertyKey,
-        input.propertyValue,
-        input.instanceName,
-      );
-      return {
-        output: {
-          resource: result ? { ...result } : null,
-        },
-      };
+    action: async ({ input, credentials }) => {
+      try {
+        const serviceCredentials = await auth.getOwnServiceCredentials();
+        const decision = await permissions.authorize(
+          [{ permission: viewMetricsPermission }],
+          { credentials: credentials || serviceCredentials }
+        );
+
+        if (decision[0].result !== AuthorizeResult.ALLOW) {
+          throw new InputError('Access denied. You do not have permission to view VCF Operations metrics.');
+        }
+
+        const result = await service.findResourceByProperty(
+          input.propertyKey,
+          input.propertyValue,
+          input.instanceName,
+        );
+        return {
+          output: {
+            resource: result ? { ...result } : null,
+          },
+        };
+      } catch (error) {
+        if (error instanceof InputError) {
+          throw error;
+        }
+        throw new InputError(`Failed to find resource by property: ${error instanceof Error ? error.message : String(error)}`);
+      }
     },
   });
 }

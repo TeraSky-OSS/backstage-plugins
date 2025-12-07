@@ -43,7 +43,7 @@ export const crossplaneResourcesBackendPlugin = createBackendPlugin({
         const kubernetesService = new KubernetesService(logger, discovery, auth);
         
         // Register MCP actions
-        registerMcpActions(actionsRegistry, kubernetesService, catalogService);
+        registerMcpActions(actionsRegistry, kubernetesService, catalogService, permissions, auth);
         
         httpRouter.use(
           await createRouter({
