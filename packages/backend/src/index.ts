@@ -78,5 +78,5 @@ backend.add(import('@backstage/plugin-mcp-actions-backend'));
 
 backend.add(import('@terasky/plugin-scaffolder-mcp-backend'));
 backend.add(import('@terasky/plugin-rbac-mcp-backend'));
-backend.add(import('@internal/backstage-plugin-catalog-mcp-backend'));
+backend.add(import('@terasky/backstage-plugin-catalog-mcp-backend'));
 backend.start();

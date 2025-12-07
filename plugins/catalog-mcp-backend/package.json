@@ -1,8 +1,7 @@
 {
-  "name": "@internal/backstage-plugin-catalog-mcp-backend",
+  "name": "@terasky/backstage-plugin-catalog-mcp-backend",
   "version": "0.1.0",
   "license": "Apache-2.0",
-  "private": true,
   "main": "src/index.ts",
   "types": "src/index.ts",
   "publishConfig": {
@@ -10,9 +9,18 @@
     "main": "dist/index.cjs.js",
     "types": "dist/index.d.ts"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TeraSky-OSS/backstage-plugins.git",
+    "directory": "plugins/catalog-mcp-backend"
+  },
+  "homepage": "https://terasky.com",
   "backstage": {
     "role": "backend-plugin",
-    "pluginId": "catalog-mcp"
+    "pluginId": "catalog-mcp",
+    "pluginPackages": [
+      "@terasky/backstage-plugin-catalog-mcp-backend"
+    ]
   },
   "scripts": {
     "start": "backstage-cli package start",
