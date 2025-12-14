@@ -14434,7 +14434,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-catalog-mcp-backend@workspace:^, @terasky/backstage-plugin-catalog-mcp-backend@workspace:plugins/catalog-mcp-backend":
+"@terasky/backstage-plugin-catalog-mcp-backend@npm:^0.1.0, @terasky/backstage-plugin-catalog-mcp-backend@workspace:plugins/catalog-mcp-backend":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-catalog-mcp-backend@workspace:plugins/catalog-mcp-backend"
   dependencies:
@@ -14795,7 +14795,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-kubernetes-ingestor@npm:^2.8.1, @terasky/backstage-plugin-kubernetes-ingestor@workspace:plugins/kubernetes-ingestor":
+"@terasky/backstage-plugin-kubernetes-ingestor@npm:^2.9.1, @terasky/backstage-plugin-kubernetes-ingestor@workspace:plugins/kubernetes-ingestor":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kubernetes-ingestor@workspace:plugins/kubernetes-ingestor"
   dependencies:
@@ -14992,7 +14992,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils@npm:^1.10.0, @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils@workspace:plugins/scaffolder-backend-module-terasky-utils":
+"@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils@npm:^1.11.1, @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils@workspace:plugins/scaffolder-backend-module-terasky-utils":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils@workspace:plugins/scaffolder-backend-module-terasky-utils"
   dependencies:
@@ -18287,14 +18287,14 @@ __metadata:
     "@backstage/plugin-techdocs-backend": "npm:^2.1.2"
     "@roadiehq/scaffolder-backend-module-utils": "npm:^3.5.0"
     "@terasky/backstage-plugin-ai-rules-backend": "npm:^1.3.0"
-    "@terasky/backstage-plugin-catalog-mcp-backend": "workspace:^"
+    "@terasky/backstage-plugin-catalog-mcp-backend": "npm:^0.1.0"
     "@terasky/backstage-plugin-crossplane-resources-backend": "npm:^1.5.2"
     "@terasky/backstage-plugin-educates-backend": "npm:^1.3.0"
     "@terasky/backstage-plugin-kro-resources-backend": "npm:^0.5.1"
-    "@terasky/backstage-plugin-kubernetes-ingestor": "npm:^2.8.1"
+    "@terasky/backstage-plugin-kubernetes-ingestor": "npm:^2.9.1"
     "@terasky/backstage-plugin-kubernetes-resources-permissions-backend": "npm:^0.4.1"
     "@terasky/backstage-plugin-kyverno-policy-reports-backend": "npm:^1.4.1"
-    "@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils": "npm:^1.10.0"
+    "@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils": "npm:^1.11.1"
     "@terasky/backstage-plugin-vcf-automation-backend": "npm:^1.7.0"
     "@terasky/backstage-plugin-vcf-automation-ingestor": "npm:^1.6.0"
     "@terasky/backstage-plugin-vcf-operations-backend": "npm:^0.4.0"
