@@ -51,6 +51,7 @@ export function createCrossplaneClaimAction({config}: {config: any}) {
       },
       output: {
         manifest: z => z.string().describe('The templated Kubernetes resource manifest'),
+        manifestEncoded: z => z.string().describe('The templated Kubernetes resource manifest, base64-encoded for use in data URLs'),
         filePaths: z => z.array(z.string()).describe('The file paths of the written manifests'),
       },
     },
@@ -147,7 +148,12 @@ export function createCrossplaneClaimAction({config}: {config: any}) {
           spec: filteredParameters,
         };
 
-        manifestYaml = yaml.dump(manifest);
+        manifestYaml = yaml.dump(manifest, {
+          indent: 2,
+          lineWidth: -1,  // Don't wrap lines
+          noRefs: true,
+          sortKeys: false,
+        });
         fs.outputFileSync(destFilepath, manifestYaml);
         ctx.logger.info(`Manifest written to ${destFilepath}`);
         filePaths.push(destFilepath);
@@ -155,6 +161,7 @@ export function createCrossplaneClaimAction({config}: {config: any}) {
 
       // Output the manifest and file paths (last manifestYaml is output)
       ctx.output('manifest', manifestYaml);
+      ctx.output('manifestEncoded', Buffer.from(manifestYaml, 'utf-8').toString('base64'));
       ctx.output('filePaths', filePaths);
     },
   });
