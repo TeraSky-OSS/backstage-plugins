@@ -28,6 +28,8 @@ kubernetesIngestor:
   components:
     # Whether to enable creation of backstage components for Kubernetes workloads
     enabled: true
+    # Whether to ingest Kubernetes workloads as Resource entities instead of Component entities (default: false)
+    ingestAsResources: false
     taskRunner:
       # How often to query the clusters for data
       frequency: 10
@@ -56,7 +58,11 @@ kubernetesIngestor:
     claims:
       # Whether to create components for all claim resources (v1) and XRs (v2) in your cluster
       ingestAllClaims: true
+      # Whether to ingest claims and XRs as Resource entities instead of Component entities (default: false)
+      ingestAsResources: false
     xrds:
+      # Whether to ingest XRDs as API entities only without generating templates (default: false)
+      ingestOnlyAsAPI: false
       # Settings related to the final steps of a software template
       publishPhase:
         # Base URLs of Git servers you want to allow publishing to
@@ -83,6 +89,8 @@ kubernetesIngestor:
       # Will convert default values from the XRD into placeholders in the UI instead of always adding them to the generated manifest.
       convertDefaultValuesToPlaceholders: true
   genericCRDTemplates:
+    # Whether to ingest CRDs as API entities only without generating templates (default: false)
+    ingestOnlyAsAPI: false
     # Settings related to the final steps of a software template
     publishPhase:
       # Base URLs of Git servers you want to allow publishing to
@@ -105,7 +113,12 @@ kubernetesIngestor:
   kro:
     # Whether to completely disable KRO related code for both RGDs and instances. defaults to disabled if not provided
     enabled: false
+    # Whether to ingest KRO instances as Resource entities instead of Component entities (default: false)
+    instances:
+      ingestAsResources: false
     rgds:
+      # Whether to ingest RGDs as API entities only without generating templates (default: false)
+      ingestOnlyAsAPI: false
       # Settings related to the final steps of a software template
       publishPhase:
         # Base URLs of Git servers you want to allow publishing to
@@ -130,6 +143,138 @@ kubernetesIngestor:
   # Whether to auto add the argo cd plugins annotation to the ingested components if the ingested resources have the ArgoCD tracking annotation added to them. defaults to false
   argoIntegration: true
 ```
+
+## Advanced Features
+
+### Ingest Only as API
+
+The plugin supports ingesting Custom Resource Definitions (CRDs) as API entities only, without generating the corresponding Backstage templates. This is useful when you want to document your APIs but don't need users to create instances through Backstage.
+
+#### XRDs (Crossplane Composite Resource Definitions)
+
+```yaml
+kubernetesIngestor:
+  crossplane:
+    xrds:
+      enabled: true
+      ingestOnlyAsAPI: false  # Default: false
+```
+
+When `ingestOnlyAsAPI` is set to `true`:
+- API entities will be created for each XRD
+- Software templates will NOT be generated
+- Users can view the API documentation but cannot create new claims through Backstage
+
+#### KRO RGDs (ResourceGraphDefinitions)
+
+```yaml
+kubernetesIngestor:
+  kro:
+    enabled: true
+    rgds:
+      enabled: true
+      ingestOnlyAsAPI: false  # Default: false
+```
+
+When `ingestOnlyAsAPI` is set to `true`:
+- API entities will be created for each RGD
+- Software templates will NOT be generated
+- Users can view the API documentation but cannot create new instances through Backstage
+
+#### Generic CRDs
+
+```yaml
+kubernetesIngestor:
+  genericCRDTemplates:
+    ingestOnlyAsAPI: false  # Default: false
+    crds:
+      - certificates.cert-manager.io
+```
+
+When `ingestOnlyAsAPI` is set to `true`:
+- API entities will be created for each configured CRD
+- Software templates will NOT be generated
+- Users can view the API documentation but cannot create new resources through Backstage
+
+**Use Cases for API-Only Ingestion:**
+1. **Documentation Only**: You want to document your APIs in Backstage but don't want users to create instances through the platform
+2. **External Creation**: Resources are created through other systems (CI/CD pipelines, GitOps, etc.) and you only want API visibility
+3. **Read-Only View**: You want teams to browse available APIs without the ability to create new instances
+
+### Ingest as Resources
+
+The plugin supports ingesting Kubernetes objects as Backstage Resource entities instead of Component entities. In Backstage's data model, Resources represent infrastructure resources (databases, queues, storage) while Components represent software components (services, applications).
+
+#### Components (Regular Kubernetes Resources)
+
+```yaml
+kubernetesIngestor:
+  components:
+    enabled: true
+    ingestAsResources: false  # Default: false
+```
+
+When `ingestAsResources` is set to `true`:
+- Regular Kubernetes workloads (Deployments, StatefulSets, etc.) will be ingested as Resource entities
+- The entity kind will be `Resource` instead of `Component`
+- Resource entities do not support `providesApis` and `consumesApis` relations (Component-specific)
+
+#### Crossplane Claims and Composite Resources (XRs)
+
+```yaml
+kubernetesIngestor:
+  crossplane:
+    claims:
+      ingestAsResources: false  # Default: false
+```
+
+When `ingestAsResources` is set to `true`:
+- **Both** Crossplane claims and composite resources (XRs) will be ingested as Resource entities
+- The entity kind will be `Resource` instead of `Component`
+- Resource entities do not support `consumesApis` relations (Component-specific)
+- All Crossplane-specific annotations will still be present
+- This applies to both v1 claims/XRs and v2 claims/composites
+
+**Note:** XRs use the same configuration as claims because they are tightly coupled - claims create XRs, so they should be treated consistently.
+
+#### KRO Instances
+
+```yaml
+kubernetesIngestor:
+  kro:
+    instances:
+      ingestAsResources: false  # Default: false
+```
+
+When `ingestAsResources` is set to `true`:
+- KRO instances will be ingested as Resource entities
+- The entity kind will be `Resource` instead of `Component`
+- Resource entities do not support `consumesApis` relations (Component-specific)
+- All KRO-specific annotations will still be present
+
+**Use Cases for Resource Ingestion:**
+1. **Infrastructure Resources**: When Kubernetes objects represent infrastructure resources (databases, message queues, storage) rather than applications
+2. **Clear Separation**: To distinguish between applications (Components) and the infrastructure they depend on (Resources)
+3. **Catalog Organization**: To organize your catalog with proper entity types that match Backstage's data model
+
+### Combining Options
+
+You can use both `ingestOnlyAsAPI` and `ingestAsResources` together. For example:
+
+```yaml
+kubernetesIngestor:
+  crossplane:
+    claims:
+      ingestAsResources: true  # Existing claims are Resources
+    xrds:
+      enabled: true
+      ingestOnlyAsAPI: true  # Only document APIs, no templates
+```
+
+This configuration:
+- Documents the APIs without template generation
+- Represents existing claim/XR instances as infrastructure resources
+- Provides API documentation without the ability to create new instances through Backstage
 
 ## Mapping Models
 

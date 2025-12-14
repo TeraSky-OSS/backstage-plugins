@@ -35,6 +35,8 @@ The Kubernetes Ingestor backend plugin is a catalog entity provider that automat
 - System organization
 - Metadata handling
 - Annotation processing
+- Flexible entity types (Component or Resource)
+- API-only ingestion mode
 
 ## Components
 
@@ -51,6 +53,7 @@ Generates software templates for:
 - Custom resources  
 - Resource creation  
 - Configuration management  
+- YAML download links (base64-encoded for browser compatibility)  
 
 ### API Manager
 Handles API-related tasks:  
@@ -155,5 +158,13 @@ kubernetesIngestor:
           targetBranch: main
         allowRepoSelection: true
 ```
+
+### Download Link Encoding
+
+Generated templates include "Download YAML Manifest" links that use **base64 encoding** (e.g., `data:application/yaml;base64,...`). This encoding format:
+- Ensures reliable downloads across all browsers
+- Follows W3C standards for data URIs
+- Preserves YAML formatting and newlines
+- Provides smaller file sizes compared to URL encoding
 
 For installation and configuration details, refer to the [Installation Guide](./install.md) and [Configuration Guide](./configure.md).

@@ -91,6 +91,7 @@ kubernetesIngestor:
   # Component ingestion settings
   components:
     enabled: true
+    ingestAsResources: false  # Set to true to create as Resource entities
     taskRunner:
       frequency: 10
       timeout: 600
@@ -107,8 +108,10 @@ kubernetesIngestor:
     enabled: true
     claims:
       ingestAllClaims: true
+      ingestAsResources: false  # Set to true for claims and XRs as Resources
     xrds:
       enabled: true
+      ingestOnlyAsAPI: false  # Set to true to skip template generation
       publishPhase:
         allowedTargets: ['github.com', 'gitlab.com']
         target: github
@@ -119,6 +122,20 @@ kubernetesIngestor:
       taskRunner:
         frequency: 10
         timeout: 600
+  
+  # KRO integration (optional)
+  kro:
+    enabled: false
+    instances:
+      ingestAsResources: false  # Set to true for instances as Resources
+    rgds:
+      enabled: true
+      ingestOnlyAsAPI: false  # Set to true to skip template generation
+  
+  # Generic CRD templates (optional)
+  genericCRDTemplates:
+    ingestOnlyAsAPI: false  # Set to true to skip template generation
+  
   argoIntegration: false
 ```
 

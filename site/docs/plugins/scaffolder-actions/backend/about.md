@@ -113,6 +113,14 @@ Manages file operations for:
 
 ## Action Schemas
 
+### Output Encoding
+
+The `terasky:claim-template` action outputs both raw YAML and base64-encoded YAML:
+- **`manifest`**: The raw YAML string suitable for file operations
+- **`manifestEncoded`**: Base64-encoded YAML for use in data URLs (e.g., download links)
+
+The base64 encoding ensures reliable file downloads across all browsers, as it's the W3C standard for data URIs and provides better compatibility than URL encoding.
+
 ### Generic CRD Action Schema
 ```typescript
 schema: {
@@ -139,9 +147,9 @@ schema: {
 schema: {
   input: {
     parameters: z => z.record(z.any()).describe('Pass through of input parameters'),
-    nameParam: z => z.string().describe('Template parameter to map to the name of the claim').defaultName'),
-    namespaceParam: z => z.string().describe('Template parameter to map to the namespace of the claim').ult('xrNamespace'),
-    excludeParams: z => z.array(z.string()).describe('Template parameters to exclude from the claim').ult(['xrName', 'xrNamespace', 'clusters', 'targetBranch', 'repoUrl', '_editData']),
+    nameParam: z => z.string().describe('Template parameter to map to the name of the claim').default('xrName'),
+    namespaceParam: z => z.string().describe('Template parameter to map to the namespace of the claim').default('xrNamespace'),
+    excludeParams: z => z.array(z.string()).describe('Template parameters to exclude from the claim').default(['xrName', 'xrNamespace', 'clusters', 'targetBranch', 'repoUrl', '_editData']),
     apiVersion: z => z.string().describe('API Version of the claim'),
     kind: z => z.string().describe('Kind of the claim'),
     clusters: z => z.array(z.string()).min(1).describe('The target clusters to apply the resource to'),
@@ -150,6 +158,7 @@ schema: {
   },
   output: {
     manifest: z => z.string().describe('The templated Kubernetes resource manifest'),
+    manifestEncoded: z => z.string().describe('The templated Kubernetes resource manifest, base64-encoded for use in data URLs'),
     filePaths: z => z.array(z.string()).describe('The file paths of the written manifests'),
   },
 }
