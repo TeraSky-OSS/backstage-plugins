@@ -156,7 +156,7 @@ export class KROEntityProvider implements EntityProvider {
           links: [
             {
               title: 'Download YAML Manifest',
-              url: 'data:application/yaml;charset=utf-8,${{ steps.generateManifest.output.manifest }}'
+              url: 'data:application/yaml;base64,${{ steps.generateManifest.output.manifestEncoded }}'
             },
             {
               title: 'Open Pull Request',

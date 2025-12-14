@@ -120,15 +120,31 @@ export class XRDTemplateEntityProvider implements EntityProvider {
 
       if (this.config.getOptionalBoolean('kubernetesIngestor.crossplane.xrds.enabled')) {
         const xrdData = await templateDataProvider.fetchXRDObjects();
-        const xrdEntities = xrdData.flatMap((xrd: any) => this.translateXRDVersionsToTemplates(xrd));
+        const xrdIngestOnlyAsAPI = this.config.getOptionalBoolean('kubernetesIngestor.crossplane.xrds.ingestOnlyAsAPI') ?? false;
+        
+        // Only generate templates if not ingestOnlyAsAPI
+        if (!xrdIngestOnlyAsAPI) {
+          const xrdEntities = xrdData.flatMap((xrd: any) => this.translateXRDVersionsToTemplates(xrd));
+          allEntities = allEntities.concat(xrdEntities);
+        }
+        
+        // Always generate API entities
         const APIEntities = xrdData.flatMap((xrd: any) => this.translateXRDVersionsToAPI(xrd));
-        allEntities = allEntities.concat(xrdEntities, APIEntities);
+        allEntities = allEntities.concat(APIEntities);
       }
 
       // Add CRD template generation
-      const crdEntities = crdData.flatMap(crd => this.translateCRDToTemplate(crd));
+      const crdIngestOnlyAsAPI = this.config.getOptionalBoolean('kubernetesIngestor.genericCRDTemplates.ingestOnlyAsAPI') ?? false;
+      
+      // Only generate templates if not ingestOnlyAsAPI
+      if (!crdIngestOnlyAsAPI) {
+        const crdEntities = crdData.flatMap(crd => this.translateCRDToTemplate(crd));
+        allEntities = allEntities.concat(crdEntities);
+      }
+      
+      // Always generate API entities
       const CRDAPIEntities = crdData.flatMap(crd => this.translateCRDVersionsToAPI(crd));
-      allEntities = allEntities.concat(crdEntities, CRDAPIEntities);
+      allEntities = allEntities.concat(CRDAPIEntities);
 
       await this.connection.applyMutation({
         type: 'full',
@@ -201,7 +217,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
               links: [
                 {
                   title: 'Download YAML Manifest',
-                  url: 'data:application/yaml;charset=utf-8,${{ steps.generateManifest.output.manifest }}'
+                  url: 'data:application/yaml;base64,${{ steps.generateManifest.output.manifestEncoded }}'
                 },
                 {
                   title: 'Open Pull Request',
@@ -250,7 +266,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
             links: [
               {
                 title: 'Download YAML Manifest',
-                url: 'data:application/yaml;charset=utf-8,${{ steps.generateManifest.output.manifest }}'
+                url: 'data:application/yaml;base64,${{ steps.generateManifest.output.manifestEncoded }}'
               },
               {
                 title: 'Open Pull Request',
@@ -1201,7 +1217,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
           links: [
             {
               title: 'Download YAML Manifest',
-              url: 'data:application/yaml;charset=utf-8,${{ steps.generateManifest.output.manifest }}'
+              url: 'data:application/yaml;base64,${{ steps.generateManifest.output.manifestEncoded }}'
             },
             {
               title: 'Open Pull Request',
@@ -2199,9 +2215,13 @@ export class KubernetesEntityProvider implements EntityProvider {
       },
     };
 
+    // Check if we should ingest as Resource instead of Component
+    const ingestAsResources = this.config.getOptionalBoolean('kubernetesIngestor.components.ingestAsResources') ?? false;
+    const entityKind = ingestAsResources ? 'Resource' : 'Component';
+
     const componentEntity: Entity = {
       apiVersion: 'backstage.io/v1alpha1',
-      kind: 'Component',
+      kind: entityKind,
       metadata: {
         name: annotations[`${prefix}/name`] || nameValue,
         title: annotations[`${prefix}/title`] || titleValue,
@@ -2230,8 +2250,10 @@ export class KubernetesEntityProvider implements EntityProvider {
         owner: annotations[`${prefix}/owner`] ? `${systemReferencesNamespaceValue}/${annotations[`${prefix}/owner`]}` : `${systemReferencesNamespaceValue}/kubernetes-auto-ingested`,
         system: annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`,
         dependsOn: annotations[`${prefix}/dependsOn`]?.split(','),
-        providesApis: annotations[`${prefix}/providesApis`]?.split(','),
-        consumesApis: annotations[`${prefix}/consumesApis`]?.split(','),
+        ...(entityKind === 'Component' ? {
+          providesApis: annotations[`${prefix}/providesApis`]?.split(','),
+          consumesApis: annotations[`${prefix}/consumesApis`]?.split(','),
+        } : {}),
         ...(annotations[`${prefix}/subcomponent-of`] && {
           subcomponentOf: annotations[`${prefix}/subcomponent-of`],
         }),
@@ -2350,9 +2372,13 @@ export class KubernetesEntityProvider implements EntityProvider {
       titleValue = claim.metadata.name;
     }
 
+    // Check if we should ingest as Resource instead of Component
+    const ingestAsResources = this.config.getOptionalBoolean('kubernetesIngestor.crossplane.claims.ingestAsResources') ?? false;
+    const entityKind = ingestAsResources ? 'Resource' : 'Component';
+
     const entity: Entity = {
       apiVersion: 'backstage.io/v1alpha1',
-      kind: 'Component',
+      kind: entityKind,
       metadata: {
         name: annotations[`${prefix}/name`] || nameValue,
         title: annotations[`${prefix}/title`] || titleValue,
@@ -2378,7 +2404,10 @@ export class KubernetesEntityProvider implements EntityProvider {
         lifecycle: annotations[`${prefix}/lifecycle`] || 'production',
         owner: annotations[`${prefix}/owner`] ? `${systemReferencesNamespaceValue}/${annotations[`${prefix}/owner`]}` : `${systemReferencesNamespaceValue}/kubernetes-auto-ingested`,
         system: annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`,
-        consumesApis: [`${systemReferencesNamespaceValue}/${claim.kind}-${claim.apiVersion.split('/').join('--')}`],
+        dependsOn: annotations[`${prefix}/dependsOn`]?.split(','),
+        ...(entityKind === 'Component' ? {
+          consumesApis: [`${systemReferencesNamespaceValue}/${claim.kind}-${claim.apiVersion.split('/').join('--')}`],
+        } : {}),
         ...(annotations[`${prefix}/subcomponent-of`] && {
           subcomponentOf: annotations[`${prefix}/subcomponent-of`],
         }),
@@ -2478,9 +2507,13 @@ export class KubernetesEntityProvider implements EntityProvider {
       titleValue = instance.metadata.name;
     }
 
+    // Check if we should ingest as Resource instead of Component
+    const ingestAsResources = this.config.getOptionalBoolean('kubernetesIngestor.kro.instances.ingestAsResources') ?? false;
+    const entityKind = ingestAsResources ? 'Resource' : 'Component';
+
     const entity: Entity = {
       apiVersion: 'backstage.io/v1alpha1',
-      kind: 'Component',
+      kind: entityKind,
       metadata: {
         name: annotations[`${prefix}/name`] || nameValue,
         title: annotations[`${prefix}/title`] || titleValue,
@@ -2505,7 +2538,10 @@ export class KubernetesEntityProvider implements EntityProvider {
         lifecycle: annotations[`${prefix}/lifecycle`] || 'production',
         owner: annotations[`${prefix}/owner`] ? `${systemReferencesNamespaceValue}/${annotations[`${prefix}/owner`]}` : `${systemReferencesNamespaceValue}/kubernetes-auto-ingested`,
         system: annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`,
-        consumesApis: [`${systemReferencesNamespaceValue}/${instance.kind}-${instance.apiVersion.split('/').join('--')}`],
+        dependsOn: annotations[`${prefix}/dependsOn`]?.split(','),
+        ...(entityKind === 'Component' ? {
+          consumesApis: [`${systemReferencesNamespaceValue}/${instance.kind}-${instance.apiVersion.split('/').join('--')}`],
+        } : {}),
         ...(annotations[`${prefix}/subcomponent-of`] && {
           subcomponentOf: annotations[`${prefix}/subcomponent-of`],
         }),
@@ -2613,9 +2649,13 @@ export class KubernetesEntityProvider implements EntityProvider {
       titleValue = xr.metadata.name;
     }
 
+    // Check if we should ingest as Resource instead of Component (uses same config as claims)
+    const ingestAsResources = this.config.getOptionalBoolean('kubernetesIngestor.crossplane.claims.ingestAsResources') ?? false;
+    const entityKind = ingestAsResources ? 'Resource' : 'Component';
+
     const entity: Entity = {
       apiVersion: 'backstage.io/v1alpha1',
-      kind: 'Component',
+      kind: entityKind,
       metadata: {
         name: annotations[`${prefix}/name`] || nameValue,
         title: annotations[`${prefix}/title`] || titleValue,
@@ -2638,7 +2678,10 @@ export class KubernetesEntityProvider implements EntityProvider {
         lifecycle: annotations[`${prefix}/lifecycle`] || 'production',
         owner: annotations[`${prefix}/owner`] || 'kubernetes-auto-ingested',
         system: annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`,
-        consumesApis: [`${systemReferencesNamespaceValue}/${xr.kind}-${xr.apiVersion.split('/').join('--')}`],
+        dependsOn: annotations[`${prefix}/dependsOn`]?.split(','),
+        ...(entityKind === 'Component' ? {
+          consumesApis: [`${systemReferencesNamespaceValue}/${xr.kind}-${xr.apiVersion.split('/').join('--')}`],
+        } : {}),
         ...(annotations[`${prefix}/subcomponent-of`] && {
           subcomponentOf: annotations[`${prefix}/subcomponent-of`],
         }),

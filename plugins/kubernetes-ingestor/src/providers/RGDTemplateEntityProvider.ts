@@ -99,9 +99,17 @@ export class RGDTemplateEntityProvider implements EntityProvider {
 
       if (this.config.getOptionalBoolean('kubernetesIngestor.kro.rgds.enabled')) {
         const rgdData = await rgdDataProvider.fetchRGDObjects();
-        const rgdEntities = rgdData.flatMap((rgd: any) => this.translateRGDToTemplate(rgd));
+        const rgdIngestOnlyAsAPI = this.config.getOptionalBoolean('kubernetesIngestor.kro.rgds.ingestOnlyAsAPI') ?? false;
+        
+        // Only generate templates if not ingestOnlyAsAPI
+        if (!rgdIngestOnlyAsAPI) {
+          const rgdEntities = rgdData.flatMap((rgd: any) => this.translateRGDToTemplate(rgd));
+          allEntities = allEntities.concat(rgdEntities);
+        }
+        
+        // Always generate API entities
         const APIEntities = rgdData.flatMap((rgd: any) => this.translateRGDToAPI(rgd));
-        allEntities = allEntities.concat(rgdEntities, APIEntities);
+        allEntities = allEntities.concat(APIEntities);
       }
 
       await this.connection.applyMutation({
@@ -158,7 +166,7 @@ export class RGDTemplateEntityProvider implements EntityProvider {
           links: [
             {
               title: 'Download YAML Manifest',
-              url: 'data:application/yaml;charset=utf-8,${{ steps.generateManifest.output.manifest }}'
+              url: 'data:application/yaml;base64,${{ steps.generateManifest.output.manifestEncoded }}'
             },
             {
               title: 'Open Pull Request',
