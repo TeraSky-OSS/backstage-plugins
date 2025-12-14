@@ -26,6 +26,7 @@ import {
   isOrphan,
   hasRelationWarnings,
   EntityRelationWarning,
+  isResourceType,
 } from '@backstage/plugin-catalog';
 import { Entity } from '@backstage/catalog-model';
 import { EmptyState } from '@backstage/core-components';
@@ -840,6 +841,15 @@ const resourcePage = (
   <EntitySwitch>
     <EntitySwitch.Case if={hasVcfAutomationResourceType}>
       {vcfAutomationGenericResourcePage}
+    </EntitySwitch.Case>
+    <EntitySwitch.Case if={isResourceType('crossplane-claim')}>
+      <CrossplaneEntityPage />
+    </EntitySwitch.Case>
+    <EntitySwitch.Case if={isResourceType('crossplane-xr')}>
+      <CrossplaneEntityPage />
+    </EntitySwitch.Case>
+    <EntitySwitch.Case if={isResourceType('kro-instance')}>
+      <KroEntityPage />
     </EntitySwitch.Case>
     <EntitySwitch.Case>
       {defaultEntityPage}
