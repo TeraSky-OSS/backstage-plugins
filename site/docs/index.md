@@ -50,11 +50,12 @@ Welcome to our comprehensive collection of Backstage plugins! We've created thes
 ## 💡 Getting Started
 
 Each plugin includes comprehensive documentation with:
-- Detailed installation instructions
-- Configuration examples
-- Best practices
-- Troubleshooting guides
-
+  
+- Detailed installation instructions  
+- Configuration examples  
+- Best practices  
+- Troubleshooting guides  
+  
 ## 🔍 Need Help?
 
 - Check each plugin's documentation for specific guides  
