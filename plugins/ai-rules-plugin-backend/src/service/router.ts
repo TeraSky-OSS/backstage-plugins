@@ -89,5 +89,5 @@ export async function createRouter(
   const middleware = MiddlewareFactory.create({ logger, config });
 
   router.use(middleware.error());
-  return router as unknown as express.Router;
+  return router;
 } 
