@@ -115,12 +115,29 @@ export function createCrossplaneClaimAction({config}: {config: any}) {
         const namespaceOrDefault = (input.parameters as any)[input.namespaceParam] && (input.parameters as any)[input.namespaceParam] !== ''
           ? (input.parameters as any)[input.namespaceParam]
           : 'cluster-scoped';
-        const filePath = path.join(
-          cluster,
-          namespaceOrDefault,
-          input.kind,
-          `${(input.parameters as any)[input.nameParam]}.yaml`
-        );
+        
+        // Determine the file path based on manifestLayout
+        let filePath = '';
+        if (sourceInfo.gitLayout === 'namespace-scoped') {
+          filePath = path.join(
+            namespaceOrDefault,
+            input.kind,
+            `${(input.parameters as any)[input.nameParam]}.yaml`
+          );
+        } else if (sourceInfo.gitLayout === 'custom') {
+          filePath = path.join(
+            sourceInfo.basePath,
+            `${(input.parameters as any)[input.nameParam]}.yaml`
+          );
+        } else {
+          // cluster-scoped
+          filePath = path.join(
+            cluster,
+            namespaceOrDefault,
+            input.kind,
+            `${(input.parameters as any)[input.nameParam]}.yaml`
+          );
+        }
         const destFilepath = resolveSafeChildPath(ctx.workspacePath, filePath);
 
         // Generate the correct sourceFileUrl for this cluster

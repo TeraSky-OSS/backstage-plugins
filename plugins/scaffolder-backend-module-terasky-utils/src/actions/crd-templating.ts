@@ -94,37 +94,10 @@ export function createCrdTemplateAction({config}: {config: any}) {
             ? `${(input.parameters as any)[input.namespaceParam || 'namespace']}`
             : `${input.clusters[0]}/cluster-scoped/${input.kind}`
       }
-      let sourceFileUrl = '';
-      if ((input.parameters as any).pushToGit && sourceInfo.gitRepo) {
-        const scmType = config.getOptionalString('kubernetesIngestor.genericCRDTemplates.publishPhase.target') || 'github';
-        const filePath = `${sourceInfo.basePath}/${(input.parameters as any)[input.nameParam]}.yaml`;
-        sourceFileUrl = generateSourceFileUrl(sourceInfo.gitRepo, sourceInfo.gitBranch, filePath, scmType);
-      }
-      // Template the Kubernetes resource manifest
-      const manifest = {
-        apiVersion: input.apiVersion,
-        kind: input.kind,
-        metadata: {
-          name: (input.parameters as any)[input.nameParam],
-          ...(input.namespaceParam && {
-            namespace: (input.parameters as any)[input.namespaceParam],
-          }),
-          annotations: {
-            'terasky.backstage.io/source-info': JSON.stringify(sourceInfo),
-            'terasky.backstage.io/add-to-catalog': "true",
-            'terasky.backstage.io/owner': (input.parameters as any)[input.ownerParam],
-            'terasky.backstage.io/system': (input.parameters as any)[input.namespaceParam || 'namespace'],
-            ...(sourceFileUrl && { 'terasky.backstage.io/source-file-url': sourceFileUrl }),
-          },
-        },
-        spec: filteredParameters,
-      };
-
-      // Convert manifest to YAML
-      const manifestYaml = yaml.dump(manifest);
 
       // Handle cluster-specific paths or default path
       const filePaths: string[] = [];
+      let manifestYaml = '';
       input.clusters.forEach((cluster: string) => {
         const namespaceOrDefault = (input.parameters as any)[input.namespaceParam] && (input.parameters as any)[input.namespaceParam] !== 'xrNamespace' && (input.parameters as any)[input.namespaceParam] !== ''
           ? (input.parameters as any)[input.namespaceParam]
@@ -136,12 +109,66 @@ export function createCrdTemplateAction({config}: {config: any}) {
           `${(input.parameters as any)[input.nameParam]}.yaml`
         );
         const destFilepath = resolveSafeChildPath(ctx.workspacePath, filePath);
+
+        // Determine the final file path for the source URL annotation based on manifestLayout
+        let finalFilePath = '';
+        if (sourceInfo.gitLayout === 'namespace-scoped') {
+          finalFilePath = path.join(
+            namespaceOrDefault,
+            input.kind,
+            `${(input.parameters as any)[input.nameParam]}.yaml`
+          );
+        } else if (sourceInfo.gitLayout === 'custom') {
+          finalFilePath = path.join(
+            sourceInfo.basePath,
+            `${(input.parameters as any)[input.nameParam]}.yaml`
+          );
+        } else {
+          // cluster-scoped - use the actual cluster name for this iteration
+          finalFilePath = path.join(
+            cluster,
+            namespaceOrDefault,
+            input.kind,
+            `${(input.parameters as any)[input.nameParam]}.yaml`
+          );
+        }
+
+        // Generate the correct sourceFileUrl for this cluster
+        let sourceFileUrl = '';
+        if ((input.parameters as any).pushToGit && sourceInfo.gitRepo) {
+          const scmType = config.getOptionalString('kubernetesIngestor.genericCRDTemplates.publishPhase.target') || 'github';
+          sourceFileUrl = generateSourceFileUrl(sourceInfo.gitRepo, sourceInfo.gitBranch, finalFilePath, scmType);
+        }
+
+        // Template the Kubernetes resource manifest with the correct annotation for this cluster
+        const manifest = {
+          apiVersion: input.apiVersion,
+          kind: input.kind,
+          metadata: {
+            name: (input.parameters as any)[input.nameParam],
+            ...(input.namespaceParam && {
+              namespace: (input.parameters as any)[input.namespaceParam],
+            }),
+            annotations: {
+              'terasky.backstage.io/source-info': JSON.stringify(sourceInfo),
+              'terasky.backstage.io/add-to-catalog': "true",
+              'terasky.backstage.io/owner': (input.parameters as any)[input.ownerParam],
+              'terasky.backstage.io/system': (input.parameters as any)[input.namespaceParam || 'namespace'],
+              ...(sourceFileUrl && { 'terasky.backstage.io/source-file-url': sourceFileUrl }),
+            },
+          },
+          spec: filteredParameters,
+        };
+
+        // Convert manifest to YAML
+        manifestYaml = yaml.dump(manifest);
+
         fs.outputFileSync(destFilepath, manifestYaml);
         ctx.logger.info(`Manifest written to ${destFilepath}`);
         filePaths.push(destFilepath);
       });
 
-      // Output the manifest and file paths
+      // Output the manifest and file paths (last manifestYaml is output)
       ctx.output('manifest', manifestYaml);
       ctx.output('filePaths', filePaths);
     },

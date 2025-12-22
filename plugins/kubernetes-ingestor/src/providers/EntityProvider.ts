@@ -1029,26 +1029,6 @@ export class XRDTemplateEntityProvider implements EntityProvider {
         '    kind: {KIND}\n' +
         '    clusters: ${{ parameters.clusters if parameters.manifestLayout === \'cluster-scoped\' and parameters.pushToGit else [\'temp\'] }}\n' +
         '    removeEmptyParams: true\n';
-      if (isNamespaced) {
-        baseStepsYaml +=
-          '- id: moveNamespacedManifest\n' +
-          '  name: Move and Rename Manifest\n' +
-          '  if: ${{ parameters.manifestLayout === \'namespace-scoped\' }}\n' +
-          '  action: fs:rename\n' +
-          '  input:\n' +
-          '    files:\n' +
-          '      - from: ${{ steps.generateManifest.output.filePaths[0] }}\n' +
-          '        to: "./${{ parameters.xrNamespace }}/${{ steps.generateManifest.input.kind }}/${{ steps.generateManifest.output.filePaths[0].split(\'/\').pop() }}"\n';
-      }
-      baseStepsYaml +=
-        '- id: moveCustomManifest\n' +
-        '  name: Move and Rename Manifest\n' +
-        '  if: ${{ parameters.manifestLayout === \'custom\' }}\n' +
-        '  action: fs:rename\n' +
-        '  input:\n' +
-        '    files:\n' +
-        '      - from: ${{ steps.generateManifest.output.filePaths[0] }}\n' +
-        '        to: "./${{ parameters.basePath }}/${{ parameters.xrName }}.yaml"'; // <-- removed trailing newline
     } else {
       // v1 or v2 LegacyCluster: keep current logic
       baseStepsYaml =
@@ -1064,23 +1044,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
         '    apiVersion: {API_VERSION}\n' +
         '    kind: {KIND}\n' +
         '    clusters: ${{ parameters.clusters if parameters.manifestLayout === \'cluster-scoped\' and parameters.pushToGit else [\'temp\'] }}\n' +
-        '    removeEmptyParams: true\n' +
-        '- id: moveNamespacedManifest\n' +
-        '  name: Move and Rename Manifest\n' +
-        '  if: ${{ parameters.manifestLayout === \'namespace-scoped\' }}\n' +
-        '  action: fs:rename\n' +
-        '  input:\n' +
-        '    files:\n' +
-        '      - from: ${{ steps.generateManifest.output.filePaths[0] }}\n' +
-        '        to: "./${{ parameters.xrNamespace }}/${{ steps.generateManifest.input.kind }}/${{ steps.generateManifest.output.filePaths[0].split(\'/\').pop() }}"\n' +
-        '- id: moveCustomManifest\n' +
-        '  name: Move and Rename Manifest\n' +
-        '  if: ${{ parameters.manifestLayout === \'custom\' }}\n' +
-        '  action: fs:rename\n' +
-        '  input:\n' +
-        '    files:\n' +
-        '      - from: ${{ steps.generateManifest.output.filePaths[0] }}\n' +
-        '        to: "./${{ parameters.basePath }}/${{ parameters.xrName }}.yaml"'; // <-- removed trailing newline
+        '    removeEmptyParams: true\n'
     }
     const publishPhaseTarget = this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.target')?.toLowerCase();
     let action = '';
@@ -1832,26 +1796,6 @@ export class XRDTemplateEntityProvider implements EntityProvider {
       `    kind: ${crd.spec.names.kind}\n` +
       '    clusters: ${{ parameters.clusters if parameters.manifestLayout === \'cluster-scoped\' and parameters.pushToGit else [\'temp\'] }}\n' +
       '    removeEmptyParams: true\n';
-    if (crd.spec.scope === 'Namespaced') {
-      baseStepsYaml +=
-        '- id: moveNamespacedManifest\n' +
-        '  name: Move and Rename Manifest\n' +
-        '  if: ${{ parameters.manifestLayout === \'namespace-scoped\' }}\n' +
-        '  action: fs:rename\n' +
-        '  input:\n' +
-        '    files:\n' +
-        '      - from: ${{ steps.generateManifest.output.filePaths[0] }}\n' +
-        '        to: "./${{ parameters.namespace }}/${{ steps.generateManifest.input.kind }}/${{ steps.generateManifest.output.filePaths[0].split(\'/\').pop() }}"\n';
-    }
-    baseStepsYaml +=
-      '- id: moveCustomManifest\n' +
-      '  name: Move and Rename Manifest\n' +
-      '  if: ${{ parameters.manifestLayout === \'custom\' }}\n' +
-      '  action: fs:rename\n' +
-      '  input:\n' +
-      '    files:\n' +
-      '      - from: ${{ steps.generateManifest.output.filePaths[0] }}\n' +
-      '        to: "./${{ parameters.basePath }}/${{ parameters.name }}.yaml"\n'; // <-- removed trailing newline
 
     const publishPhaseTarget = this.config.getOptionalString('kubernetesIngestor.genericCRDTemplates.publishPhase.target')?.toLowerCase();
     let action = '';

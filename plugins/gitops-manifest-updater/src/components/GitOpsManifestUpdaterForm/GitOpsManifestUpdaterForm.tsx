@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, ChangeEvent } from 'react';
+import { useState, useCallback, useEffect, useRef, ChangeEvent } from 'react';
 import { useApi, fetchApiRef, githubAuthApiRef, gitlabAuthApiRef, bitbucketAuthApiRef } from '@backstage/core-plugin-api';
 import {
   Progress,
@@ -11,7 +11,12 @@ import {
   Checkbox,
   Select,
   MenuItem,
+  Button,
+  Paper,
+  IconButton,
 } from '@material-ui/core';
+import DeleteIcon from '@material-ui/icons/Delete';
+import AddIcon from '@material-ui/icons/Add';
 import { JsonObject } from '@backstage/types';
 import { catalogApiRef } from '@backstage/plugin-catalog-react';
 import { parse as parseYaml } from 'yaml';
@@ -56,45 +61,228 @@ const crossplaneFields = [
 ];
 
 const KeyValueEditor = ({ value, onChange }: { value: Record<string, string>, onChange: (kv: Record<string, string>) => void }) => {
-  const [entries, setEntries] = useState(Object.entries(value || {}));
+  const [entries, setEntries] = useState<Array<[string, string]>>([]);
+  const entryIdsRef = useRef<string[]>([]);
+  const idCounterRef = useRef(0);
+  const initializedRef = useRef(false);
+
+  // Initialize entries from value prop only once
+  useEffect(() => {
+    if (!initializedRef.current) {
+      const initialEntries = Object.entries(value || {});
+      setEntries(initialEntries);
+      entryIdsRef.current = initialEntries.map(() => `kv-${idCounterRef.current++}`);
+      initializedRef.current = true;
+    }
+  }, [value]);
 
   const handleChange = (idx: number, key: string, val: string) => {
     const newEntries = [...entries];
     newEntries[idx] = [key, val];
     setEntries(newEntries);
-    onChange(Object.fromEntries(newEntries.filter(([k]) => k)));
+    
+    // Filter out entries with empty keys and send to parent
+    const filledEntries = newEntries.filter(([k]) => k !== '');
+    onChange(Object.fromEntries(filledEntries));
   };
 
   const handleAdd = () => {
-    setEntries([...entries, ['', '']]);
+    const newEntries = [...entries, ['', ''] as [string, string]];
+    setEntries(newEntries);
+    entryIdsRef.current.push(`kv-${idCounterRef.current++}`);
   };
 
   const handleRemove = (idx: number) => {
     const newEntries = entries.filter((_, i) => i !== idx);
     setEntries(newEntries);
-    onChange(Object.fromEntries(newEntries.filter(([k]) => k)));
+    entryIdsRef.current = entryIdsRef.current.filter((_, i) => i !== idx);
+    
+    // Filter out entries with empty keys and send to parent
+    const filledEntries = newEntries.filter(([k]) => k !== '');
+    onChange(Object.fromEntries(filledEntries));
   };
 
   return (
     <div>
-      {entries.map(([k, v], idx) => (
-        <div key={idx} style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
-          <TextField
-            label="Key"
-            value={k}
-            onChange={e => handleChange(idx, e.target.value, v)}
-            size="small"
-          />
-          <TextField
-            label="Value"
-            value={v}
-            onChange={e => handleChange(idx, k, e.target.value)}
-            size="small"
-          />
-          <button onClick={() => handleRemove(idx)} type="button">Remove</button>
-        </div>
-      ))}
+      {entries.map(([k, v], idx) => {
+        const entryId = entryIdsRef.current[idx] || `kv-fallback-${idx}`;
+        return (
+          <div key={entryId} style={{ display: 'flex', gap: 8, marginBottom: 4, alignItems: 'center' }}>
+            <TextField
+              label="Key"
+              value={k}
+              onChange={e => handleChange(idx, e.target.value, v)}
+              size="small"
+              style={{ minWidth: '250px', flexGrow: 1 }}
+            />
+            <TextField
+              label="Value"
+              value={v}
+              onChange={e => handleChange(idx, k, e.target.value)}
+              size="small"
+              style={{ minWidth: '350px', flexGrow: 2 }}
+            />
+            <button onClick={() => handleRemove(idx)} type="button">Remove</button>
+          </div>
+        );
+      })}
       <button onClick={handleAdd} type="button">Add</button>
+    </div>
+  );
+};
+
+const ArrayEditor = ({
+  items,
+  value,
+  onChange,
+  basePath,
+}: {
+  items: SchemaProperty;
+  value: any[];
+  onChange: (path: string, value: any) => void;
+  basePath: string;
+}) => {
+  const arrayValue = value || [];
+  
+  // Use refs to maintain stable IDs across renders without causing re-renders
+  const itemIdsRef = useRef<string[]>([]);
+  const idCounterRef = useRef(0);
+  const lastArrayLengthRef = useRef(0);
+  const lastBasePathRef = useRef(basePath);
+  
+  // Initialize or update IDs when array length changes or basePath changes
+  if (lastBasePathRef.current !== basePath || itemIdsRef.current.length !== arrayValue.length) {
+    // BasePath changed or initial load - regenerate all IDs
+    if (lastBasePathRef.current !== basePath) {
+      itemIdsRef.current = arrayValue.map(() => `${basePath}-${idCounterRef.current++}`);
+      lastBasePathRef.current = basePath;
+    } else if (arrayValue.length > itemIdsRef.current.length) {
+      // Items were added
+      const numToAdd = arrayValue.length - itemIdsRef.current.length;
+      for (let i = 0; i < numToAdd; i++) {
+        itemIdsRef.current.push(`${basePath}-${idCounterRef.current++}`);
+      }
+    } else if (arrayValue.length < itemIdsRef.current.length) {
+      // Items were removed - we'll handle this in handleRemove
+    }
+    lastArrayLengthRef.current = arrayValue.length;
+  }
+
+  const handleAdd = () => {
+    let newItem: any;
+    if (items.type === 'object' && items.properties) {
+      newItem = {};
+    } else if (items.type === 'string') {
+      newItem = '';
+    } else if (items.type === 'number' || items.type === 'integer') {
+      newItem = 0;
+    } else if (items.type === 'boolean') {
+      newItem = false;
+    } else {
+      newItem = '';
+    }
+    const newArray = [...arrayValue, newItem];
+    // Add a new ID for this item
+    itemIdsRef.current.push(`${basePath}-${idCounterRef.current++}`);
+    onChange(basePath, newArray);
+  };
+
+  const handleRemove = (idx: number) => {
+    const newArray = arrayValue.filter((_, i) => i !== idx);
+    // Remove the ID at this index
+    itemIdsRef.current = itemIdsRef.current.filter((_, i) => i !== idx);
+    // If array becomes empty, remove it entirely by passing undefined
+    onChange(basePath, newArray.length === 0 ? undefined : newArray);
+  };
+
+  const handleItemChange = (idx: number, fieldPath: string, itemValue: any) => {
+    const newArray = [...arrayValue];
+    if (items.type === 'object' && items.properties) {
+      // For object items, handle nested field changes
+      // Extract the property path relative to the array item
+      // fieldPath format: "basePath.idx.propertyName" or "basePath.idx.nested.propertyName"
+      const fullPathParts = fieldPath.split('.');
+      const basePathParts = basePath.split('.');
+      // Skip basePath parts and the idx part to get just the property path
+      const propertyPathParts = fullPathParts.slice(basePathParts.length + 1);
+      
+      if (propertyPathParts.length === 0) {
+        newArray[idx] = itemValue;
+      } else {
+        newArray[idx] = newArray[idx] || {};
+        let current = newArray[idx];
+        for (let i = 0; i < propertyPathParts.length - 1; i++) {
+          if (!current[propertyPathParts[i]]) {
+            current[propertyPathParts[i]] = {};
+          }
+          current = current[propertyPathParts[i]];
+        }
+        current[propertyPathParts[propertyPathParts.length - 1]] = itemValue;
+      }
+    } else {
+      // For primitive items
+      newArray[idx] = itemValue;
+    }
+    onChange(basePath, newArray);
+  };
+
+  return (
+    <div style={{ marginTop: 8 }}>
+      {arrayValue.map((item, idx) => {
+        const itemKey = itemIdsRef.current[idx] || `${basePath}-fallback-${idx}`;
+        return (
+          <Paper key={itemKey} style={{ padding: 16, marginBottom: 8 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div style={{ flexGrow: 1 }}>
+                {items.type === 'object' && items.properties ? (
+                  <div>
+                    <Typography variant="subtitle2" style={{ marginBottom: 8 }}>
+                      Item {idx + 1}
+                    </Typography>
+                    {Object.entries(items.properties).map(([key, prop]) => {
+                      const itemPath = `${basePath}.${idx}.${key}`;
+                      const itemValue = item?.[key];
+                      return (
+                        <RenderField
+                          key={`${itemKey}-${key}`}
+                          prop={prop}
+                          value={itemValue}
+                          label={prop.title || key}
+                          fullPath={itemPath}
+                          onChange={handleItemChange.bind(null, idx)}
+                        />
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <RenderField
+                    prop={items}
+                    value={item}
+                    label={`Item ${idx + 1}`}
+                    fullPath={`${basePath}.${idx}`}
+                    onChange={(_, val) => handleItemChange(idx, `${idx}`, val)}
+                  />
+                )}
+              </div>
+              <IconButton
+                onClick={() => handleRemove(idx)}
+                size="small"
+                style={{ marginLeft: 8 }}
+              >
+                <DeleteIcon />
+              </IconButton>
+            </div>
+          </Paper>
+        );
+      })}
+      <Button
+        onClick={handleAdd}
+        startIcon={<AddIcon />}
+        variant="outlined"
+        size="small"
+      >
+        Add Item
+      </Button>
     </div>
   );
 };
@@ -163,6 +351,28 @@ const RenderField = ({
         <KeyValueEditor
           value={value || {}}
           onChange={kv => onChange(fullPath, kv)}
+        />
+      </div>
+    );
+  }
+
+  // Render array fields
+  if (prop.type === 'array' && prop.items) {
+    return (
+      <div style={{ marginTop: 8, marginBottom: 4 }}>
+        <Typography variant="body1" style={{ minWidth: '150px', marginBottom: 8 }}>
+          {label}:
+        </Typography>
+        {prop.description && (
+          <Typography variant="body2" color="textSecondary" style={{ marginBottom: 8 }}>
+            {prop.description}
+          </Typography>
+        )}
+        <ArrayEditor
+          items={prop.items}
+          value={value || []}
+          onChange={onChange}
+          basePath={fullPath}
         />
       </div>
     );
@@ -452,6 +662,10 @@ export const GitOpsManifestUpdaterForm = ({
   const [error, setError] = useState<Error>();
   const [manualSourceUrl, setManualSourceUrl] = useState<string>('');
   const [showCrossplaneSettings, setShowCrossplaneSettings] = useState(false);
+  const [showMetadataSettings, setShowMetadataSettings] = useState(false);
+  const [manifestMetadata, setManifestMetadata] = useState<JsonObject | null>(null);
+  const [metadataLabels, setMetadataLabels] = useState<Record<string, string>>({});
+  const [metadataAnnotations, setMetadataAnnotations] = useState<Record<string, string>>({});
 
   const fetchApi = useApi(fetchApiRef);
   const catalogApi = useApi(catalogApiRef);
@@ -646,6 +860,16 @@ export const GitOpsManifestUpdaterForm = ({
 
         setSchema(specSchema);
         setFormData(yamlContent.spec as JsonObject);
+        
+        // Extract metadata for editing
+        setManifestMetadata({
+          apiVersion: yamlContent.apiVersion,
+          kind: yamlContent.kind,
+          name: yamlContent.metadata?.name,
+        });
+        setMetadataLabels(yamlContent.metadata?.labels || {});
+        setMetadataAnnotations(yamlContent.metadata?.annotations || {});
+        
         setError(undefined);
 
       } catch (err) {
@@ -662,22 +886,90 @@ export const GitOpsManifestUpdaterForm = ({
     if (!formData) return;
 
     const pathParts = path.split('.');
-    const newFormData = { ...formData };
-    let current = newFormData;
-
-    // Navigate to the nested object
-    for (let i = 0; i < pathParts.length - 1; i++) {
-      if (!current[pathParts[i]]) {
-        current[pathParts[i]] = {};
+    
+    // Helper function to set nested value with proper immutability
+    const setNestedValue = (obj: any, parts: string[], val: any): any => {
+      if (parts.length === 1) {
+        // Base case: set or delete the value
+        if (Array.isArray(obj)) {
+          const newArray = [...obj];
+          if (val === undefined) {
+            // Remove item from array
+            newArray.splice(Number(parts[0]), 1);
+          } else {
+            newArray[Number(parts[0])] = val;
+          }
+          return newArray;
+        } else {
+          const newObj = { ...obj };
+          if (val === undefined) {
+            // Remove property from object
+            delete newObj[parts[0]];
+          } else {
+            newObj[parts[0]] = val;
+          }
+          return newObj;
+        }
       }
-      current = current[pathParts[i]] as JsonObject;
-    }
-
-    // Set the value
-    current[pathParts[pathParts.length - 1]] = value;
+      
+      // Recursive case: clone current level and recurse
+      const [currentPart, ...remainingParts] = parts;
+      const currentValue = obj?.[currentPart];
+      
+      if (Array.isArray(obj)) {
+        const newArray = [...obj];
+        const updatedValue = setNestedValue(currentValue || {}, remainingParts, val);
+        if (updatedValue === undefined || (typeof updatedValue === 'object' && Object.keys(updatedValue).length === 0)) {
+          // If the nested update results in undefined or empty object, don't set it
+          newArray[Number(currentPart)] = undefined;
+        } else {
+          newArray[Number(currentPart)] = updatedValue;
+        }
+        return newArray;
+      } else {
+        const updatedValue = setNestedValue(currentValue || {}, remainingParts, val);
+        const newObj = { ...obj };
+        if (updatedValue === undefined || (typeof updatedValue === 'object' && Object.keys(updatedValue).length === 0 && !Array.isArray(updatedValue))) {
+          // If the nested update results in undefined or empty object, remove the key
+          delete newObj[currentPart];
+        } else {
+          newObj[currentPart] = updatedValue;
+        }
+        return newObj;
+      }
+    };
+    
+    const newFormData = setNestedValue(formData, pathParts, value);
     setFormData(newFormData);
-    onChange(newFormData);
+    updateOutput(newFormData);
   };
+
+  // Update the output to include both spec and metadata
+  const updateOutput = useCallback((specData: JsonObject) => {
+    const output: JsonObject = {
+      spec: specData,
+    };
+    
+    // Include metadata if it's being edited
+    if (showMetadataSettings && (Object.keys(metadataLabels).length > 0 || Object.keys(metadataAnnotations).length > 0)) {
+      output.metadata = {};
+      if (Object.keys(metadataLabels).length > 0) {
+        output.metadata.labels = metadataLabels;
+      }
+      if (Object.keys(metadataAnnotations).length > 0) {
+        output.metadata.annotations = metadataAnnotations;
+      }
+    }
+    
+    onChange(output);
+  }, [showMetadataSettings, metadataLabels, metadataAnnotations, onChange]);
+
+  // Update output when metadata changes
+  useEffect(() => {
+    if (formData) {
+      updateOutput(formData);
+    }
+  }, [metadataLabels, metadataAnnotations, showMetadataSettings, formData, updateOutput]);
 
   // Determine if crossplane toggle should be shown
   let hasCrossplane = false;
@@ -721,6 +1013,71 @@ export const GitOpsManifestUpdaterForm = ({
             onToggleCheckbox={setShowCrossplaneSettings}
             isTopLevel={true}
           />
+        </FormControl>
+      )}
+      
+      {manifestMetadata && (
+        <FormControl margin="normal" fullWidth>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8, marginTop: 16 }}>
+            <Checkbox
+              checked={!!showMetadataSettings}
+              onChange={e => setShowMetadataSettings(e.target.checked)}
+              color="primary"
+            />
+            <Typography variant="body1">Edit Metadata (Labels & Annotations)</Typography>
+          </div>
+          
+          {showMetadataSettings && (
+            <div style={{ marginLeft: 16, marginTop: 8 }}>
+              <Typography variant="h6" style={{ marginBottom: 16 }}>Metadata</Typography>
+              
+              {/* Read-only fields */}
+              <div style={{ marginBottom: 16 }}>
+                <TextField
+                  label="API Version"
+                  value={manifestMetadata.apiVersion || ''}
+                  fullWidth
+                  margin="dense"
+                  disabled
+                  InputProps={{ readOnly: true }}
+                />
+                <TextField
+                  label="Kind"
+                  value={manifestMetadata.kind || ''}
+                  fullWidth
+                  margin="dense"
+                  disabled
+                  InputProps={{ readOnly: true }}
+                />
+                <TextField
+                  label="Name"
+                  value={manifestMetadata.name || ''}
+                  fullWidth
+                  margin="dense"
+                  disabled
+                  InputProps={{ readOnly: true }}
+                />
+              </div>
+              
+              {/* Labels */}
+              <div style={{ marginTop: 16, marginBottom: 16 }}>
+                <Typography variant="subtitle1" style={{ marginBottom: 8 }}>Labels</Typography>
+                <KeyValueEditor
+                  value={metadataLabels}
+                  onChange={setMetadataLabels}
+                />
+              </div>
+              
+              {/* Annotations */}
+              <div style={{ marginTop: 16 }}>
+                <Typography variant="subtitle1" style={{ marginBottom: 8 }}>Annotations</Typography>
+                <KeyValueEditor
+                  value={metadataAnnotations}
+                  onChange={setMetadataAnnotations}
+                />
+              </div>
+            </div>
+          )}
         </FormControl>
       )}
     </>
