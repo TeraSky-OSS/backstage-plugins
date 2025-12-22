@@ -57,10 +57,10 @@ Each plugin includes comprehensive documentation with:
 
 ## 🔍 Need Help?
 
-- Check each plugin's documentation for specific guides
-- Look for examples in the installation guides
-- Review the troubleshooting sections
-- Contact our support team for assistance
+- Check each plugin's documentation for specific guides  
+- Look for examples in the installation guides  
+- Review the troubleshooting sections  
+- Contact our support team for assistance  
 
 ## 📦 Latest Releases
 
