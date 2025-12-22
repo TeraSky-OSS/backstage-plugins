@@ -52,7 +52,6 @@ backend.add(import('@backstage/plugin-kubernetes-backend'));
 backend.add(import('@backstage-community/plugin-rbac-backend'));
 backend.add(import('@terasky/backstage-plugin-kubernetes-ingestor'));
 backend.add(import('@roadiehq/scaffolder-backend-module-utils/new-backend'));
-backend.add(import('@backstage-community/scaffolder-backend-module-regex'));
 backend.add(import('@backstage/plugin-scaffolder-backend-module-github'));
 backend.add(import('@backstage/plugin-scaffolder-backend-module-gitlab'));
 backend.add(import('@backstage/plugin-scaffolder-backend-module-bitbucket'));
