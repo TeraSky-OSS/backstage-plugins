@@ -10,7 +10,7 @@ LABEL org.opencontainers.image.source="https://github.com/TeraSky-OSS/backstage-
 LABEL org.opencontainers.image.licenses=Apache-2.0
 LABEL org.opencontainers.image.description="Demo App for TeraSky OSS Backstage Plugins"
 
-ENV NODE_VERSION=20
+ENV NODE_VERSION=22
 ENV PYTHON_VERSION=3.12
 
 RUN apk add nodejs-$NODE_VERSION yarn
