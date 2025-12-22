@@ -103,6 +103,30 @@ const componentPage = (
 );
 ```
 
+### 5. Register API
+In the packages/app/src/apis.ts file 
+```typescript
+import {
+  CrossplaneApiClient,
+  crossplaneApiRef,
+} from '@terasky/backstage-plugin-crossplane-resources-frontend';
+import { 
+  createApiFactory, 
+  discoveryApiRef, 
+  fetchApiRef 
+} from '@backstage/core-plugin-api';
+
+export const apis: AnyApiFactory[] = [
+  // ... existing factories ...
+  createApiFactory({
+    api: crossplaneApiRef,
+    deps: { discoveryApi: discoveryApiRef, fetchApi: fetchApiRef },
+    factory: ({ discoveryApi, fetchApi }) =>
+      new CrossplaneApiClient(discoveryApi, fetchApi),
+  }),
+];
+```
+
 ## New Frontend System Support (Alpha)
 
 The plugin now supports the new frontend system available in the `/alpha` export. To use this:

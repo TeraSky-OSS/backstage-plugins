@@ -166,25 +166,55 @@ spec:
         url: ${{ steps['validate-url'].output.result }}
         targetPath: ${{ steps['get-filepath'].output.result }}
 
-    - id: serialize-patch
-      name: Evaluate Changes
-      action: roadiehq:utils:serialize:yaml
-      input:
-        data:
-          spec: ${{ parameters.gitOpsManifestUpdater }}
-
-    - id: merge-patch
-      name: Merge Changes
-      action: roadiehq:utils:merge
-      input:
-        path: ${{ steps['get-filepath'].output.result }}
-        content: ${{ steps['serialize-patch'].output.serialized }}
-
-    - id: read-file
-      name: Read File
+    - id: read-original
+      name: Read Original File
       action: roadiehq:utils:fs:parse
       input:
         path: ${{ steps['get-filepath'].output.result }}
+        parser: yaml
+
+    - id: rebuild-manifest
+      name: Rebuild Manifest
+      action: roadiehq:utils:jsonata
+      input:
+        data:
+          original: ${{ steps['read-original'].output.content }}
+          updates: ${{ parameters.gitOpsManifestUpdater }}
+        expression: |
+          (
+            $newSpec := updates.spec ? updates.spec : updates;
+            $updatedMetadata := original.metadata;
+            
+            /* Merge labels if provided */
+            $updatedMetadata := updates.metadata.labels ? 
+              $merge([$updatedMetadata, {"labels": updates.metadata.labels}]) : 
+              $updatedMetadata;
+            
+            /* Merge annotations if provided */
+            $updatedMetadata := updates.metadata.annotations ? 
+              $merge([$updatedMetadata, {"annotations": updates.metadata.annotations}]) : 
+              $updatedMetadata;
+            
+            {
+              "apiVersion": original.apiVersion,
+              "kind": original.kind,
+              "metadata": $updatedMetadata,
+              "spec": $newSpec
+            }
+          )
+
+    - id: write-updated
+      name: Write Updated File
+      action: roadiehq:utils:serialize:yaml
+      input:
+        data: ${{ steps['rebuild-manifest'].output.result }}
+
+    - id: save-file
+      name: Save File
+      action: roadiehq:utils:fs:write
+      input:
+        path: ${{ steps['get-filepath'].output.result }}
+        content: ${{ steps['write-updated'].output.serialized }}
 
     - id: parse-url
       name: Parse URL for PR
@@ -221,7 +251,7 @@ spec:
       - title: Pull Request
         url: ${{ steps['create-pull-request'].output.remoteUrl }}
       - title: Download YAML Manifest
-        url: data:application/yaml;charset=utf-8,${{ steps['read-file'].output.content }}
+        url: data:application/yaml;charset=utf-8,${{ steps['write-updated'].output.serialized }}
 ```
 
 ## New Frontend System Support (Alpha)
