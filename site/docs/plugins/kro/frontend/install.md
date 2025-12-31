@@ -12,7 +12,7 @@
 
 ```bash
 # From your Backstage root directory
-yarn add --cwd packages/app @terasky/backstage-plugin-kro-resources-frontend
+yarn --cwd packages/app add @terasky/backstage-plugin-kro-resources-frontend
 ```
 
 ### 2. Import Components
