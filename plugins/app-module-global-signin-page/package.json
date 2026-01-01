@@ -1,0 +1,64 @@
+{
+  "name": "@terasky/backstage-plugin-app-module-global-signin-page",
+  "version": "0.1.0",
+  "description": "Configuration-driven sign-in page module for Backstage supporting all core authentication providers",
+  "license": "Apache-2.0",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "configSchema": "config.d.ts",
+  "publishConfig": {
+    "access": "public",
+    "main": "dist/index.cjs.js",
+    "module": "dist/index.esm.js",
+    "types": "dist/index.d.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TeraSky-OSS/backstage-plugins.git",
+    "directory": "plugins/app-module-global-signin-page"
+  },
+  "homepage": "https://terasky.com",
+  "backstage": {
+    "role": "frontend-plugin-module",
+    "pluginId": "app",
+    "pluginPackage": "@backstage/plugin-app"
+  },
+  "sideEffects": false,
+  "scripts": {
+    "build": "backstage-cli package build && cp config.d.ts dist/",
+    "lint": "backstage-cli package lint",
+    "test": "backstage-cli package test",
+    "clean": "backstage-cli package clean",
+    "prepack": "backstage-cli package prepack",
+    "postpack": "backstage-cli package postpack"
+  },
+  "dependencies": {
+    "@backstage/core-components": "^0.18.4",
+    "@backstage/core-plugin-api": "^1.12.1",
+    "@backstage/frontend-plugin-api": "^0.13.2"
+  },
+  "devDependencies": {
+    "@backstage/cli": "^0.35.1",
+    "@testing-library/jest-dom": "^6.0.0",
+    "typescript": "^5.8.3"
+  },
+  "files": [
+    "dist",
+    "config.d.ts"
+  ],
+  "keywords": [
+    "backstage",
+    "authentication",
+    "signin",
+    "sign-in",
+    "login",
+    "auth",
+    "providers",
+    "github",
+    "gitlab",
+    "microsoft",
+    "google",
+    "okta",
+    "oauth"
+  ]
+}

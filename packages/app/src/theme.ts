@@ -4,9 +4,14 @@ import {
     genPageTheme,
     palettes,
     shapes,
+    UnifiedThemeProvider,
   } from '@backstage/theme';
-  
-  export const teraskyLightTheme = createUnifiedTheme({
+import { ThemeBlueprint } from '@backstage/frontend-plugin-api';
+import LightIcon from '@material-ui/icons/WbSunny';
+import Brightness2Icon from '@material-ui/icons/Brightness2';
+import React from 'react';
+
+const teraskyLightTheme = createUnifiedTheme({
     ...createBaseThemeOptions({
       palette: {
         ...palettes.light,
@@ -146,7 +151,7 @@ import {
       },
     },
     defaultPageTheme: 'home',
-    fontFamily: 'Comic Sans MS',
+    fontFamily: 'Roboto, sans-serif',
     /* below drives the header colors */
     pageTheme: {
       home: genPageTheme({ colors: ['#f07a58', '#2c2c3e'], shape: shapes.wave }),
@@ -171,9 +176,9 @@ import {
       app: genPageTheme({ colors: ['#f07a58', '#2c2c3e'], shape: shapes.wave }),
       apis: genPageTheme({ colors: ['#f07a58', '#2c2c3e'], shape: shapes.wave }),
     },
-  });
+});
 
-  export const teraskyDarkTheme = createUnifiedTheme({
+const teraskyDarkTheme = createUnifiedTheme({
     ...createBaseThemeOptions({
       palette: {
         ...palettes.dark,
@@ -338,4 +343,35 @@ import {
       app: genPageTheme({ colors: ['#f07a58', '#2c2c3e'], shape: shapes.wave }),
       apis: genPageTheme({ colors: ['#f07a58', '#2c2c3e'], shape: shapes.wave }),
     },
-  });
+});
+
+
+export const teraskyThemeDark = ThemeBlueprint.make({
+  name: 'terasky-dark-theme',
+  params: { 
+    theme: {
+      id: 'terasky-dark',
+      title: 'TeraSky Dark',
+      variant: 'dark',
+      icon: React.createElement(Brightness2Icon),
+      Provider: ({ children }) => {
+        return UnifiedThemeProvider({ theme: teraskyDarkTheme, children });
+      },
+    } 
+  },
+});
+
+export const teraskyThemeLight = ThemeBlueprint.make({
+  name: 'terasky-light-theme',
+  params: {
+    theme: {
+      id: 'terasky-light',
+      title: 'TeraSky Light',
+      variant: 'light',
+      icon: React.createElement(LightIcon),
+      Provider: ({ children }) => {
+        return UnifiedThemeProvider({ theme: teraskyLightTheme, children });
+      },
+    },
+  },
+});

@@ -153,6 +153,12 @@ nav:
               - About: plugins/entity-scaffolder/frontend/about.md
               - Install: plugins/entity-scaffolder/frontend/install.md
               - Configure: plugins/entity-scaffolder/frontend/configure.md
+      - Global Sign-In Page:
+          - Overview: plugins/signin-page/overview.md
+          - Frontend:
+              - About: plugins/signin-page/frontend/about.md
+              - Install: plugins/signin-page/frontend/install.md
+              - Configure: plugins/signin-page/frontend/configure.md
 
 theme:
   icon:
