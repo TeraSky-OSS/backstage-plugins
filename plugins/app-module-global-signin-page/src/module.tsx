@@ -96,7 +96,6 @@ const ConfigurableSignInPage = (props: any) => {
     
     // Check if guest provider is enabled
     const enableGuestProvider = config.getOptionalBoolean('signinPage.enableGuestProvider') ?? false;
-    console.log('Guest provider enabled:', enableGuestProvider);
     if (enableGuestProvider) {
       providersList.push('guest');
     }
@@ -104,7 +103,6 @@ const ConfigurableSignInPage = (props: any) => {
     // Check each provider and add if enabled
     for (const [providerKey, defaults] of Object.entries(providerDefaults)) {
       const enabled = config.getOptionalBoolean(`signinPage.providers.${providerKey}.enabled`) ?? false;
-      console.log(`Provider ${providerKey} enabled:`, enabled);
       
       if (enabled) {
         const title = config.getOptionalString(`signinPage.providers.${providerKey}.title`) ?? defaults.title;
@@ -119,7 +117,6 @@ const ConfigurableSignInPage = (props: any) => {
       }
     }
     
-    console.log('Final providers list:', providersList);
     return providersList;
   }, [config]);
   
