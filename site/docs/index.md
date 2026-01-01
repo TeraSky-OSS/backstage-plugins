@@ -40,6 +40,7 @@ Welcome to our comprehensive collection of Backstage plugins! We've created thes
     * CRD template creation  
     * Catalog info cleaning  
 2. [Entity Scaffolder Plugin](./plugins/entity-scaffolder/frontend/about.md) [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-entity-scaffolder-content/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-entity-scaffolder-content) - Embbed scaffolder templates in component pages.
+3. [Global Sign-In Page](./plugins/signin-page/overview.md) [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-app-module-global-signin-page/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-app-module-global-signin-page) - Configuration-driven sign-in page supporting all core authentication providers through YAML config.
 
 
 
