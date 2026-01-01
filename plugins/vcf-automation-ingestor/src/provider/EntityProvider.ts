@@ -854,7 +854,7 @@ export class VcfAutomationEntityProvider implements EntityProvider {
         const baseEntity = {
           metadata: {
             name: resource.id.toLowerCase(),
-            title: resource.name,
+            title: (detailedResources.find(dr => dr.id === resource.id) || resource).properties?.resourceName || resource.name,
             annotations: {
               [ANNOTATION_LOCATION]: locationRef,
               [ANNOTATION_ORIGIN_LOCATION]: locationRef,
@@ -906,6 +906,36 @@ export class VcfAutomationEntityProvider implements EntityProvider {
             },
           ];
           
+          // Fetch full resource details to get the __moref property
+          let morefId: string | undefined;
+          try {
+            this.logger.debug(`Fetching full resource details for VM ${resource.name} (${resource.id})`);
+            const fullResourceResponse = await fetch(
+              `${instance.baseUrl}/deployment/api/resources/${resource.id}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${instance.token}`,
+                },
+              },
+            );
+            
+            if (fullResourceResponse.ok) {
+              const fullResource = await fullResourceResponse.json();
+              morefId = fullResource.properties?.moref;
+              
+            } else {
+              this.logger.warn(`Failed to fetch full resource details for VM ${resource.id}: ${fullResourceResponse.status}`);
+            }
+          } catch (error) {
+            this.logger.error(`Error fetching full resource details for VM ${resource.id}:`, error instanceof Error ? error : new Error(String(error)));
+          }
+          
+          // Build annotations with optional moref annotation
+          const vmAnnotations = {
+            ...baseEntity.metadata.annotations,
+            ...(morefId && { 'terasky.backstage.io/vcf-automation-vm-moref-id': morefId }),
+          };
+          
           entities.push({
             apiVersion: 'backstage.io/v1alpha1',
             kind: 'Component',
@@ -913,6 +943,7 @@ export class VcfAutomationEntityProvider implements EntityProvider {
             metadata: {
               ...baseEntity.metadata,
               links: componentLinks,
+              annotations: vmAnnotations,
             },
             spec: {
               ...baseEntity.spec,

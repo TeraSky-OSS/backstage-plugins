@@ -83,7 +83,7 @@ export const VCFAutomationVSphereVMOverview = () => {
   }
 
   const getStatusComponent = (state: string) => {
-    switch (state.toUpperCase()) {
+    switch (state?.toUpperCase() || 'UNKNOWN') {
       case 'SUCCESS':
       case 'OK':
         return <StatusOK />;
@@ -110,7 +110,7 @@ export const VCFAutomationVSphereVMOverview = () => {
           <Typography variant="subtitle2">State</Typography>
           <Grid container spacing={1} alignItems="center">
             {getStatusComponent(resource.state)}
-            <Typography className={`${classes.statusText} ${resource.state.toLowerCase()}`}>
+            <Typography className={`${classes.statusText} ${resource.state?.toLowerCase() || 'unknown'}`}>
               {resource.state}
             </Typography>
           </Grid>
@@ -119,7 +119,7 @@ export const VCFAutomationVSphereVMOverview = () => {
           <Typography variant="subtitle2">Sync Status</Typography>
           <Grid container spacing={1} alignItems="center">
             {getStatusComponent(resource.syncStatus)}
-            <Typography className={`${classes.statusText} ${resource.syncStatus.toLowerCase()}`}>
+            <Typography className={`${classes.statusText} ${resource.syncStatus?.toLowerCase() || 'unknown'}`}>
               {resource.syncStatus}
             </Typography>
           </Grid>
