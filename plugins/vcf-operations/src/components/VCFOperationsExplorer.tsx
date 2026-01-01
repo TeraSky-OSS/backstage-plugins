@@ -459,7 +459,11 @@ const getMetricCategoriesForKind = (entityType?: string, tags?: string[]): Metri
   if (tags?.includes('kind:cluster')) {
     return CLUSTER_METRIC_CATEGORIES;
   }
-  // Default to VM metrics for kind:virtualmachine and other resource types
+  // VM metrics for Cloud.vSphere.Machine, kind:virtualmachine, and other resource types
+  if (entityType === 'Cloud.vSphere.Machine' || tags?.includes('kind:virtualmachine')) {
+    return VM_METRIC_CATEGORIES;
+  }
+  // Default to VM metrics for other resource types
   return VM_METRIC_CATEGORIES;
 };
 
@@ -549,7 +553,7 @@ export const VCFOperationsExplorer = () => {
         { key: 'badge|workload', label: 'Workload Badge' },
       ];
     }
-    // Default for VMs and other resources
+    // Default for Cloud.vSphere.Machine, kind:virtualmachine, and other resources
     return [
       { key: 'cpu|usage_average', label: 'CPU Usage (%)' },
       { key: 'mem|usage_average', label: 'Memory Usage (%)' },
@@ -732,6 +736,50 @@ export const VCFOperationsExplorer = () => {
             setResourceDetection({
               found: false,
               error: `Error searching for supervisor namespace in VCF Operations: ${getErrorMessage(err)}`,
+              permissionError: isPermissionError(err),
+            });
+            return;
+          }
+        }
+
+        // Check for Cloud.vSphere.Machine components
+        if (entityType === 'Cloud.vSphere.Machine') {
+          const morefAnnotation = entity.metadata.annotations?.['terasky.backstage.io/vcf-automation-vm-moref-id'];
+          
+          if (!morefAnnotation) {
+            setResourceDetection({
+              found: false,
+              error: 'No moref ID annotation found. Cloud.vSphere.Machine components require the "terasky.backstage.io/vcf-automation-vm-moref-id" annotation.',
+            });
+            return;
+          }
+          
+          // Transform the moref value by stripping everything before and including the ":"
+          // e.g., "VirtualMachine:vm-174990" -> "vm-174990"
+          const moid = morefAnnotation.includes(':') 
+            ? morefAnnotation.substring(morefAnnotation.indexOf(':') + 1)
+            : morefAnnotation;
+          
+          try {
+            const resource = await vcfOperationsApi.findResourceByProperty(
+              'summary|MOID',
+              moid,
+              selectedInstance || undefined,
+            );
+            
+            if (resource) {
+              setResourceDetection({ found: true, resource });
+              return;
+            }
+            setResourceDetection({
+              found: false,
+              error: `No VCF Operations resource found with MOID: ${moid}. Make sure the VM exists in VCF Operations and the MOID matches exactly.`,
+            });
+            return;
+          } catch (err) {
+            setResourceDetection({
+              found: false,
+              error: `Error searching for VM by MOID in VCF Operations: ${getErrorMessage(err)}`,
               permissionError: isPermissionError(err),
             });
             return;

@@ -6,8 +6,7 @@ import { discoveryApiRef, fetchApiRef } from '@backstage/core-plugin-api';
 
 const isVCFOperationsAvailable = (entity: Entity) => {
   return Boolean(
-    entity.metadata.annotations?.['vcf-automation.io/resource-id'] ||
-    entity.metadata.annotations?.['vcf-automation.io/deployment-id']
+    entity.metadata.annotations?.['terasky.backstage.io/vcf-automation-resource-type']
   );
 };
 
