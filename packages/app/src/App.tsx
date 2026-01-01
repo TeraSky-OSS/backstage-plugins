@@ -11,7 +11,7 @@ const convertedRbacAdminPage = convertLegacyPageExtension(RbacPage, {
   name: 'rbac',
   path: '/rbac',
 });
-//const convertedRbacAPI = 
+
 const convertedRbacPlugin = convertLegacyPlugin(rbacPlugin, {
   extensions: [convertedRbacAdminPage],
 });
