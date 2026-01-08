@@ -60,6 +60,10 @@ export class KROEntityProvider implements EntityProvider {
     return this.config.getOptionalString('kubernetesIngestor.annotationPrefix') || 'terasky.backstage.io';
   }
 
+  private getDefaultOwner(): string {
+    return this.config.getOptionalString('kubernetesIngestor.defaultOwner') || 'kubernetes-auto-ingested';
+  }
+
   getProviderName(): string {
     return 'KROEntityProvider';
   }
@@ -380,8 +384,8 @@ export class KROEntityProvider implements EntityProvider {
         spec: {
           type: "openapi",
           lifecycle: "production",
-          owner: "kubernetes-auto-ingested",
-          system: "kubernets-auto-ingested",
+          owner: this.getDefaultOwner(),
+          system: "kubernetes-auto-ingested",
           definition: yaml.dump(rgdOpenAPIDoc),
         },
       };
