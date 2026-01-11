@@ -82,6 +82,7 @@ const KubernetesResourceGraph = () => {
     const configApi = useApi(configApiRef); // Move this to the top level
     const config = useApi(configApiRef);
     const enablePermissions = config.getOptionalBoolean('kubernetesResources.enablePermissions') ?? false;
+    const annotationPrefix = config.getOptionalString('kubernetesResources.annotationPrefix') ?? 'terasky.backstage.io';
     const [resources, setResources] = useState<Array<KubernetesObject>>([]);
     const [selectedResource, setSelectedResource] = useState<KubernetesObject | null>(null);
     const [drawerOpen, setDrawerOpen] = useState(false);
@@ -215,10 +216,10 @@ const KubernetesResourceGraph = () => {
 
         const fetchResources = async () => {
             const annotations = entity.metadata.annotations || {};
-            const resourceName = annotations['terasky.backstage.io/kubernetes-resource-name'];
-            const resourceKind = annotations['terasky.backstage.io/kubernetes-resource-kind'];
-            const resourceApiVersion = annotations['terasky.backstage.io/kubernetes-resource-api-version'];
-            const resourceNamespace = annotations['terasky.backstage.io/kubernetes-resource-namespace'];
+            const resourceName = annotations[`${annotationPrefix}/kubernetes-resource-name`];
+            const resourceKind = annotations[`${annotationPrefix}/kubernetes-resource-kind`];
+            const resourceApiVersion = annotations[`${annotationPrefix}/kubernetes-resource-api-version`];
+            const resourceNamespace = annotations[`${annotationPrefix}/kubernetes-resource-namespace`];
             const clusterName = annotations['backstage.io/managed-by-origin-location']?.split(': ')[1];
 
             if (!resourceName || !resourceKind || !resourceApiVersion || !clusterName) {
