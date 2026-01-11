@@ -22,6 +22,8 @@ kubernetesIngestor:
     titleModel: 'name' # name, name-cluster, name-namespace
     systemModel: 'namespace' # cluster, namespace, cluster-namespace, default
     referencesNamespaceModel: 'default' # default, same
+  # Default owner for ingested entities when no owner annotation is set
+  defaultOwner: 'kubernetes-auto-ingested'
   # A list of cluster names to ingest resources from. If empty, resources from all clusters under kubernetes.clusterLocatorMethods.clusters will be ingested.
   # allowedClusterNames:
   #   - my-cluster-name
@@ -303,6 +305,18 @@ Defines system mapping:
 - `namespace`: Use namespace name  
 - `cluster-namespace`: Combine both  
 - `default`: Use default system  
+
+## Ownership
+
+### Default Owner
+If a resource does not define an owner annotation, the ingestor uses `kubernetesIngestor.defaultOwner`.
+
+Default: `kubernetes-auto-ingested`
+
+```yaml
+kubernetesIngestor:
+  defaultOwner: platform-engineering-team
+```
 
 ## Component Configuration
 
