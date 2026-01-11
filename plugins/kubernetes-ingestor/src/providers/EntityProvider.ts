@@ -72,6 +72,10 @@ export class XRDTemplateEntityProvider implements EntityProvider {
     return this.config.getOptionalString('kubernetesIngestor.annotationPrefix') || 'terasky.backstage.io';
   }
 
+  private getDefaultOwner(): string {
+    return this.config.getOptionalString('kubernetesIngestor.defaultOwner') || 'kubernetes-auto-ingested';
+  }
+
   getProviderName(): string {
     return 'XRDTemplateEntityProvider';
   }
@@ -516,8 +520,8 @@ export class XRDTemplateEntityProvider implements EntityProvider {
         spec: {
           type: "openapi",
           lifecycle: "production",
-          owner: "kubernetes-auto-ingested",
-          system: "kubernets-auto-ingested",
+          owner: this.getDefaultOwner(),
+          system: "kubernetes-auto-ingested",
           definition: yaml.dump(xrdOpenAPIDoc),
         },
       };
@@ -1505,8 +1509,8 @@ export class XRDTemplateEntityProvider implements EntityProvider {
         spec: {
           type: "openapi",
           lifecycle: "production",
-          owner: "kubernetes-auto-ingested",
-          system: "kubernets-auto-ingested",
+          owner: this.getDefaultOwner(),
+          system: "kubernetes-auto-ingested",
           definition: yaml.dump(crdOpenAPIDoc),
         },
       };
@@ -2151,7 +2155,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         annotations: customAnnotations,
       },
       spec: {
-        owner: annotations[`${prefix}/owner`] ? `${systemReferencesNamespaceValue}/${annotations[`${prefix}/owner`]}` : `${systemReferencesNamespaceValue}/kubernetes-auto-ingested`,
+        owner: annotations[`${prefix}/owner`] ? `${systemReferencesNamespaceValue}/${annotations[`${prefix}/owner`]}` : `${systemReferencesNamespaceValue}/${this.getDefaultOwner()}`,
         type: annotations[`${prefix}/system-type`] || 'kubernetes-namespace',
         ...(annotations[`${prefix}/domain`]
           ? { domain: annotations[`${prefix}/domain`] }
@@ -2191,7 +2195,7 @@ export class KubernetesEntityProvider implements EntityProvider {
       spec: {
         type: annotations[`${prefix}/component-type`] || 'service',
         lifecycle: annotations[`${prefix}/lifecycle`] || 'production',
-        owner: annotations[`${prefix}/owner`] ? `${systemReferencesNamespaceValue}/${annotations[`${prefix}/owner`]}` : `${systemReferencesNamespaceValue}/kubernetes-auto-ingested`,
+        owner: annotations[`${prefix}/owner`] ? `${systemReferencesNamespaceValue}/${annotations[`${prefix}/owner`]}` : `${systemReferencesNamespaceValue}/${this.getDefaultOwner()}`,
         system: annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`,
         dependsOn: annotations[`${prefix}/dependsOn`]?.split(','),
         ...(entityKind === 'Component' ? {
@@ -2346,7 +2350,7 @@ export class KubernetesEntityProvider implements EntityProvider {
       spec: {
         type: 'crossplane-claim',
         lifecycle: annotations[`${prefix}/lifecycle`] || 'production',
-        owner: annotations[`${prefix}/owner`] ? `${systemReferencesNamespaceValue}/${annotations[`${prefix}/owner`]}` : `${systemReferencesNamespaceValue}/kubernetes-auto-ingested`,
+        owner: annotations[`${prefix}/owner`] ? `${systemReferencesNamespaceValue}/${annotations[`${prefix}/owner`]}` : `${systemReferencesNamespaceValue}/${this.getDefaultOwner()}`,
         system: annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`,
         dependsOn: annotations[`${prefix}/dependsOn`]?.split(','),
         ...(entityKind === 'Component' ? {
@@ -2480,7 +2484,7 @@ export class KubernetesEntityProvider implements EntityProvider {
       spec: {
         type: 'kro-instance',
         lifecycle: annotations[`${prefix}/lifecycle`] || 'production',
-        owner: annotations[`${prefix}/owner`] ? `${systemReferencesNamespaceValue}/${annotations[`${prefix}/owner`]}` : `${systemReferencesNamespaceValue}/kubernetes-auto-ingested`,
+        owner: annotations[`${prefix}/owner`] ? `${systemReferencesNamespaceValue}/${annotations[`${prefix}/owner`]}` : `${systemReferencesNamespaceValue}/${this.getDefaultOwner()}`,
         system: annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`,
         dependsOn: annotations[`${prefix}/dependsOn`]?.split(','),
         ...(entityKind === 'Component' ? {
@@ -2620,7 +2624,7 @@ export class KubernetesEntityProvider implements EntityProvider {
       spec: {
         type: 'crossplane-xr',
         lifecycle: annotations[`${prefix}/lifecycle`] || 'production',
-        owner: annotations[`${prefix}/owner`] || 'kubernetes-auto-ingested',
+        owner: annotations[`${prefix}/owner`] || this.getDefaultOwner(),
         system: annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`,
         dependsOn: annotations[`${prefix}/dependsOn`]?.split(','),
         ...(entityKind === 'Component' ? {
@@ -2664,6 +2668,10 @@ export class KubernetesEntityProvider implements EntityProvider {
 
   private getAnnotationPrefix(): string {
     return this.config.getOptionalString('kubernetesIngestor.annotationPrefix') || 'terasky.backstage.io';
+  }
+
+  private getDefaultOwner(): string {
+    return this.config.getOptionalString('kubernetesIngestor.defaultOwner') || 'kubernetes-auto-ingested';
   }
 
   private extractArgoAppName(annotations: Record<string, string>): Record<string, string> {
