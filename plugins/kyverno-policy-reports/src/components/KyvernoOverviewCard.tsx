@@ -91,12 +91,7 @@ const KyvernoOverviewCard = () => {
         }
 
         const response = await kyvernoApi.getPolicyReports({
-          entity: {
-            metadata: {
-              name: entity.metadata.name,
-              namespace: entity.metadata.namespace as string,
-            },
-          },
+          entity: entity,
         });
 
         const filteredReports = response.items;
