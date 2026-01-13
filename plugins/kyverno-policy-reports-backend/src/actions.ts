@@ -71,8 +71,6 @@ export function registerMcpActions(
 
         const reports = await service.getPolicyReports({
           entity: {
-            apiVersion: 'backstage.io/v1alpha1',
-            kind: 'Component',
             metadata: input.entity.metadata,
           },
         });
@@ -197,8 +195,6 @@ export function registerMcpActions(
 
         const reports = await service.getCrossplanePolicyReports({
           entity: {
-            apiVersion: 'backstage.io/v1alpha1',
-            kind: 'Component',
             metadata: input.entity.metadata,
           },
         });

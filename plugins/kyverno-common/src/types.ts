@@ -1,5 +1,5 @@
 import { KubernetesObject } from '@backstage/plugin-kubernetes';
-import { Entity } from '@backstage/catalog-model';
+import { EntityMeta } from '@backstage/catalog-model';
 
 export interface PolicyReportSummary {
   error: number;
@@ -36,7 +36,9 @@ export interface PolicyReport {
 }
 
 export interface GetPolicyReportsRequest {
-  entity: Entity;
+  entity: {
+    metadata: EntityMeta;
+  };
 }
 
 export interface GetPolicyReportsResponse {
@@ -54,7 +56,9 @@ export interface GetPolicyResponse {
 }
 
 export interface GetCrossplanePolicyReportsRequest {
-  entity: Entity;
+  entity: {
+    metadata: EntityMeta;
+  };
 }
 
 export interface GetCrossplanePolicyReportsResponse {

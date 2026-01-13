@@ -86,7 +86,9 @@ const KyvernoPolicyReportsTable = () => {
                     throw new Error('Entity must have a namespace');
                 }
                 const response = await kyvernoApi.getPolicyReports({
-                    entity: entity
+                    entity: {
+                        metadata: entity.metadata,
+                    }
                 });
                 setPolicyReports(response.items);
             } catch (error) {
