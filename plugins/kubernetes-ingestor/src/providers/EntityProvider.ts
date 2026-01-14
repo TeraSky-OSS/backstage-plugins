@@ -833,6 +833,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
       }
     }
     const requestUserCredentials = this.config.getOptionalBoolean('kubernetesIngestor.crossplane.xrds.publishPhase.requestUserCredentialsForRepoUrl') ?? false;
+    const defaultRepoUrl = this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.git.repoUrl');
     const repoUrlUiOptions: any = {
       allowedHosts: allowedHosts,
     };
@@ -946,6 +947,17 @@ export class XRDTemplateEntityProvider implements EntityProvider {
               {
                 properties: {
                   pushToGit: { enum: [true] },
+                  ...(requestUserCredentials
+                    ? {
+                        repoUrl: {
+                          content: { type: 'string' },
+                          description: 'Name of repository',
+                          'ui:field': 'RepoUrlPicker',
+                          'ui:options': repoUrlUiOptions,
+                          ...(defaultRepoUrl && { default: defaultRepoUrl }),
+                        },
+                      }
+                    : {}),
                   manifestLayout: {
                     type: 'string',
                     description: 'Layout of the manifest',
@@ -1067,38 +1079,43 @@ export class XRDTemplateEntityProvider implements EntityProvider {
         action = 'publish:github:pull-request';
         break;
     }
-    const repoSelectionStepsYaml = `
-- id: create-pull-request
-  name: create-pull-request
-  action: ${action}
-  if: \${{ parameters.pushToGit }}
-  input:
-    repoUrl: \${{ parameters.repoUrl }}
-    branchName: create-\${{ parameters.xrName }}-resource
-    title: Create {KIND} Resource \${{ parameters.xrName }}
-    description: Create {KIND} Resource \${{ parameters.xrName }}
-    targetBranchName: \${{ parameters.targetBranch }}
-  `;
+    const allowRepoSelection = this.config.getOptionalBoolean('kubernetesIngestor.crossplane.xrds.publishPhase.allowRepoSelection') ?? false;
+    const requestUserCredentials = this.config.getOptionalBoolean('kubernetesIngestor.crossplane.xrds.publishPhase.requestUserCredentialsForRepoUrl') ?? false;
+    const userOAuthTokenInput = requestUserCredentials
+      ? '    token: ${{ secrets.USER_OAUTH_TOKEN }}\n'
+      : '';
+    const repoSelectionStepsYaml =
+      '- id: create-pull-request\n' +
+      '  name: create-pull-request\n' +
+      `  action: ${action}\n` +
+      '  if: ${{ parameters.pushToGit }}\n' +
+      '  input:\n' +
+      '    repoUrl: ${{ parameters.repoUrl }}\n' +
+      '    branchName: create-${{ parameters.xrName }}-resource\n' +
+      '    title: Create {KIND} Resource ${{ parameters.xrName }}\n' +
+      '    description: Create {KIND} Resource ${{ parameters.xrName }}\n' +
+      '    targetBranchName: ${{ parameters.targetBranch }}\n' +
+      userOAuthTokenInput;
 
     let defaultStepsYaml = baseStepsYaml;
 
     if (publishPhaseTarget !== 'yaml') {
-      if (this.config.getOptionalBoolean('kubernetesIngestor.crossplane.xrds.publishPhase.allowRepoSelection')) {
+      if (allowRepoSelection) {
         defaultStepsYaml += repoSelectionStepsYaml;
       }
       else {
-        const repoHardcodedStepsYaml = `
-- id: create-pull-request
-  name: create-pull-request
-  action: ${action}
-  if: \${{ parameters.pushToGit }}
-  input:
-    repoUrl: ${this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.git.repoUrl')}
-    branchName: create-\${{ parameters.xrName }}-resource
-    title: Create {KIND} Resource \${{ parameters.xrName }}
-    description: Create {KIND} Resource \${{ parameters.xrName }}
-    targetBranchName: ${this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.git.targetBranch')}
-      `;
+        const repoHardcodedStepsYaml =
+          '- id: create-pull-request\n' +
+          '  name: create-pull-request\n' +
+          `  action: ${action}\n` +
+          '  if: ${{ parameters.pushToGit }}\n' +
+          '  input:\n' +
+          `    repoUrl: ${this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.git.repoUrl')}\n` +
+          '    branchName: create-${{ parameters.xrName }}-resource\n' +
+          '    title: Create {KIND} Resource ${{ parameters.xrName }}\n' +
+          '    description: Create {KIND} Resource ${{ parameters.xrName }}\n' +
+          `    targetBranchName: ${this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.git.targetBranch')}\n` +
+          userOAuthTokenInput;
         defaultStepsYaml += repoHardcodedStepsYaml;
       }
     }
@@ -1624,6 +1641,17 @@ export class XRDTemplateEntityProvider implements EntityProvider {
       }
     }
 
+    const requestUserCredentials = this.config.getOptionalBoolean('kubernetesIngestor.genericCRDTemplates.publishPhase.requestUserCredentialsForRepoUrl') ?? false;
+    const defaultRepoUrl = this.config.getOptionalString('kubernetesIngestor.genericCRDTemplates.publishPhase.git.repoUrl');
+    const repoUrlUiOptions: any = {
+      allowedHosts: allowedHosts,
+    };
+    if (requestUserCredentials) {
+      repoUrlUiOptions.requestUserCredentials = {
+        secretsKey: 'USER_OAUTH_TOKEN',
+      };
+    }
+
     const publishParameters = this.config.getOptionalBoolean('kubernetesIngestor.genericCRDTemplates.publishPhase.allowRepoSelection')
       ? {
         title: "Creation Settings",
@@ -1649,9 +1677,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
                     content: { type: "string" },
                     description: "Name of repository",
                     "ui:field": "RepoUrlPicker",
-                    "ui:options": {
-                      allowedHosts: allowedHosts
-                    }
+                    "ui:options": repoUrlUiOptions
                   },
                   targetBranch: {
                     type: "string",
@@ -1730,6 +1756,17 @@ export class XRDTemplateEntityProvider implements EntityProvider {
               {
                 properties: {
                   pushToGit: { enum: [true] },
+                  ...(requestUserCredentials
+                    ? {
+                        repoUrl: {
+                          content: { type: "string" },
+                          description: "Name of repository",
+                          "ui:field": "RepoUrlPicker",
+                          "ui:options": repoUrlUiOptions,
+                          ...(defaultRepoUrl && { default: defaultRepoUrl })
+                        }
+                      }
+                    : {}),
                   manifestLayout: {
                     type: "string",
                     description: "Layout of the manifest",
@@ -1818,11 +1855,16 @@ export class XRDTemplateEntityProvider implements EntityProvider {
         action = 'publish:github:pull-request';
         break;
     }
+    const allowRepoSelection = this.config.getOptionalBoolean('kubernetesIngestor.genericCRDTemplates.publishPhase.allowRepoSelection') ?? false;
+    const requestUserCredentials = this.config.getOptionalBoolean('kubernetesIngestor.genericCRDTemplates.publishPhase.requestUserCredentialsForRepoUrl') ?? false;
+    const userOAuthTokenInput = requestUserCredentials
+      ? '    token: ${{ secrets.USER_OAUTH_TOKEN }}\n'
+      : '';
 
     let defaultStepsYaml = baseStepsYaml;
 
     if (publishPhaseTarget !== 'yaml') {
-      if (this.config.getOptionalBoolean('kubernetesIngestor.genericCRDTemplates.publishPhase.allowRepoSelection')) {
+      if (allowRepoSelection) {
         defaultStepsYaml +=
           '- id: create-pull-request\n' +
           '  name: create-pull-request\n' +
@@ -1833,7 +1875,8 @@ export class XRDTemplateEntityProvider implements EntityProvider {
           '    branchName: create-${{ parameters.name }}-resource\n' +
           `    title: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}\n` +
           `    description: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}\n` +
-          '    targetBranchName: ${{ parameters.targetBranch }}\n';
+          '    targetBranchName: ${{ parameters.targetBranch }}\n' +
+          userOAuthTokenInput;
       } else {
         defaultStepsYaml +=
           '- id: create-pull-request\n' +
@@ -1845,7 +1888,8 @@ export class XRDTemplateEntityProvider implements EntityProvider {
           '    branchName: create-${{ parameters.name }}-resource\n' +
           `    title: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}\n` +
           `    description: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}\n` +
-          `    targetBranchName: ${this.config.getOptionalString('kubernetesIngestor.genericCRDTemplates.publishPhase.git.targetBranch')}\n`;
+          `    targetBranchName: ${this.config.getOptionalString('kubernetesIngestor.genericCRDTemplates.publishPhase.git.targetBranch')}\n` +
+          userOAuthTokenInput;
       }
     }
     return yaml.load(defaultStepsYaml) as any[];

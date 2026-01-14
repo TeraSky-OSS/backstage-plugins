@@ -513,6 +513,7 @@ export class KROEntityProvider implements EntityProvider {
     }
 
     const requestUserCredentials = this.config.getOptionalBoolean('kubernetesIngestor.kro.rgds.publishPhase.requestUserCredentialsForRepoUrl') ?? false;
+    const defaultRepoUrl = this.config.getOptionalString('kubernetesIngestor.kro.rgds.publishPhase.git.repoUrl');
     const repoUrlUiOptions: any = {
       allowedHosts: allowedHosts,
     };
@@ -626,6 +627,17 @@ export class KROEntityProvider implements EntityProvider {
               {
                 properties: {
                   pushToGit: { enum: [true] },
+                  ...(requestUserCredentials
+                    ? {
+                        repoUrl: {
+                          content: { type: 'string' },
+                          description: 'Name of repository',
+                          'ui:field': 'RepoUrlPicker',
+                          'ui:options': repoUrlUiOptions,
+                          ...(defaultRepoUrl && { default: defaultRepoUrl }),
+                        },
+                      }
+                    : {}),
                   manifestLayout: {
                     type: 'string',
                     description: 'Layout of the manifest',
@@ -731,11 +743,16 @@ export class KROEntityProvider implements EntityProvider {
         action = 'publish:github:pull-request';
         break;
     }
+    const allowRepoSelection = this.config.getOptionalBoolean('kubernetesIngestor.kro.rgds.publishPhase.allowRepoSelection') ?? false;
+    const requestUserCredentials = this.config.getOptionalBoolean('kubernetesIngestor.kro.rgds.publishPhase.requestUserCredentialsForRepoUrl') ?? false;
+    const userOAuthTokenInput = requestUserCredentials
+      ? '    token: ${{ secrets.USER_OAUTH_TOKEN }}\n'
+      : '';
 
     let defaultStepsYaml = baseStepsYaml;
 
     if (publishPhaseTarget !== 'yaml') {
-      if (this.config.getOptionalBoolean('kubernetesIngestor.kro.rgds.publishPhase.allowRepoSelection')) {
+      if (allowRepoSelection) {
         defaultStepsYaml +=
           '- id: create-pull-request\n' +
           '  name: create-pull-request\n' +
@@ -746,7 +763,8 @@ export class KROEntityProvider implements EntityProvider {
           '    branchName: create-${{ parameters.name }}-resource\n' +
           `    title: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}\n` +
           `    description: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}\n` +
-          '    targetBranchName: ${{ parameters.targetBranch }}\n';
+          '    targetBranchName: ${{ parameters.targetBranch }}\n' +
+          userOAuthTokenInput;
       } else {
         defaultStepsYaml +=
           '- id: create-pull-request\n' +
@@ -758,7 +776,8 @@ export class KROEntityProvider implements EntityProvider {
           '    branchName: create-${{ parameters.name }}-resource\n' +
           `    title: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}\n` +
           `    description: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}\n` +
-          `    targetBranchName: ${this.config.getOptionalString('kubernetesIngestor.kro.rgds.publishPhase.git.targetBranch')}\n`;
+          `    targetBranchName: ${this.config.getOptionalString('kubernetesIngestor.kro.rgds.publishPhase.git.targetBranch')}\n` +
+          userOAuthTokenInput;
       }
     }
 
