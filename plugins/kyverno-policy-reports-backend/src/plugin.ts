@@ -24,6 +24,7 @@ export const kyvernoPolicyReportsPlugin = createBackendPlugin({
         permissionsRegistry: coreServices.permissionsRegistry,
         discovery: coreServices.discovery,
         auth: coreServices.auth,
+        config: coreServices.config,
         actionsRegistry: actionsRegistryServiceRef,
       },
       async init({
@@ -33,12 +34,13 @@ export const kyvernoPolicyReportsPlugin = createBackendPlugin({
         permissionsRegistry,
         discovery,
         auth,
+        config,
         actionsRegistry,
       }) {
         permissionsRegistry.addPermissions(Object.values(kyvernoPermissions));
 
         // Create the service instance
-        const kubernetesService = new KubernetesService(logger, discovery, auth);
+        const kubernetesService = new KubernetesService(logger, discovery, auth, config);
         
         // Register MCP actions
         registerMcpActions(actionsRegistry, kubernetesService, permissions, auth);

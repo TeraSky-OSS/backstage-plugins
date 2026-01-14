@@ -60,6 +60,9 @@ export function createCrossplaneClaimAction({config}: {config: any}) {
       ctx.logger.info(
         `Running example template with parameters: ${JSON.stringify(input.parameters)}`,
       );
+      const annotationPrefix =
+        config.getOptionalString('kubernetesIngestor.annotationPrefix') ||
+        'terasky.backstage.io';
       if (input.parameters[input.nameParam] === 'foo') {
         throw new Error(`myParameter cannot be 'foo'`);
       }
@@ -153,11 +156,11 @@ export function createCrossplaneClaimAction({config}: {config: any}) {
           kind: input.kind,
           metadata: {
             annotations: {
-              'terasky.backstage.io/source-info': JSON.stringify(sourceInfo),
-              'terasky.backstage.io/add-to-catalog': "true",
-              'terasky.backstage.io/owner': (input.parameters as any)[input.ownerParam],
-              'terasky.backstage.io/system': (input.parameters as any)[input.namespaceParam],
-              ...(sourceFileUrl && { 'terasky.backstage.io/source-file-url': sourceFileUrl }),
+              [`${annotationPrefix}/source-info`]: JSON.stringify(sourceInfo),
+              [`${annotationPrefix}/add-to-catalog`]: 'true',
+              [`${annotationPrefix}/owner`]: (input.parameters as any)[input.ownerParam],
+              [`${annotationPrefix}/system`]: (input.parameters as any)[input.namespaceParam],
+              ...(sourceFileUrl && { [`${annotationPrefix}/source-file-url`]: sourceFileUrl }),
             },
             name: (input.parameters as any)[input.nameParam],
             ...((input.parameters as any)[input.namespaceParam] && (input.parameters as any)[input.namespaceParam] !== '' ? { namespace: (input.parameters as any)[input.namespaceParam] } : {}),
