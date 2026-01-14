@@ -7,6 +7,7 @@ import { useEntity } from '@backstage/plugin-catalog-react';
 import { usePermission } from '@backstage/plugin-permission-react';
 import { showOverview } from '@terasky/backstage-plugin-crossplane-common';
 import { configApiRef } from '@backstage/core-plugin-api';
+import { getAnnotation, getAnnotationPrefix } from './annotationUtils';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import CancelIcon from '@material-ui/icons/Cancel';
 import { green, red } from '@material-ui/core/colors';
@@ -42,6 +43,7 @@ const CrossplaneOverviewCard = () => {
     const crossplaneApi = useApi(crossplaneApiRef);
     const config = useApi(configApiRef);
     const enablePermissions = config.getOptionalBoolean('crossplane.enablePermissions') ?? false;
+    const annotationPrefix = getAnnotationPrefix(config);
     const { allowed: canShowOverviewTemp } = usePermission({ permission: showOverview });
     const canShowOverview = enablePermissions ? canShowOverviewTemp : true;
     const [claim, setClaim] = useState<ExtendedKubernetesObject | null>(null);
@@ -55,10 +57,10 @@ const CrossplaneOverviewCard = () => {
 
         const fetchResources = async () => {
             const annotations = entity.metadata.annotations || {};
-            const claimName = annotations['terasky.backstage.io/claim-name'];
-            const claimGroup = annotations['terasky.backstage.io/claim-group'];
-            const claimVersion = annotations['terasky.backstage.io/claim-version'];
-            const claimPlural = annotations['terasky.backstage.io/claim-plural'];
+            const claimName = getAnnotation(annotations, annotationPrefix, 'claim-name');
+            const claimGroup = getAnnotation(annotations, annotationPrefix, 'claim-group');
+            const claimVersion = getAnnotation(annotations, annotationPrefix, 'claim-version');
+            const claimPlural = getAnnotation(annotations, annotationPrefix, 'claim-plural');
             const labelSelector = annotations['backstage.io/kubernetes-label-selector'];
             const namespace = labelSelector.split(',').find(s => s.startsWith('crossplane.io/claim-namespace'))?.split('=')[1];
             const clusterOfClaim = annotations['backstage.io/managed-by-location'].split(": ")[1];
@@ -79,12 +81,16 @@ const CrossplaneOverviewCard = () => {
                     claimPlural,
                 });
 
-                const claimResource = response.resources.find(r => r.kind === annotations['terasky.backstage.io/claim-kind']);
+                const claimResource = response.resources.find(r =>
+                  r.kind === getAnnotation(annotations, annotationPrefix, 'claim-kind'),
+                );
                 if (claimResource) {
                     setClaim(claimResource);
                 }
 
-                const compositeResource = response.resources.find(r => r.kind === annotations['terasky.backstage.io/composite-kind']);
+                const compositeResource = response.resources.find(r =>
+                  r.kind === getAnnotation(annotations, annotationPrefix, 'composite-kind'),
+                );
                 if (compositeResource) {
                     setManagedResourcesCount(compositeResource.spec?.resourceRefs?.length || 0);
                 }
@@ -181,7 +187,7 @@ const CrossplaneOverviewCard = () => {
                             </Grid>
                             <Grid item xs={12} sm={6}>
                                 <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray' }}>Composition</Typography>
-                                <Typography variant="body2">{entity.metadata?.annotations?.['terasky.backstage.io/composition-name'] || "Unknown" }</Typography>
+                                <Typography variant="body2">{getAnnotation(entity.metadata?.annotations || {}, annotationPrefix, 'composition-name') || "Unknown" }</Typography>
                             </Grid>
                         </Grid>
                     </Box>

@@ -38,6 +38,7 @@ import {
 import { configApiRef } from '@backstage/core-plugin-api';
 import { useNavigate } from 'react-router-dom';
 import pluralize from 'pluralize';
+import { getAnnotation, getAnnotationPrefix } from './annotationUtils';
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import KeyboardArrowRightIcon from '@material-ui/icons/KeyboardArrowRight';
 import DescriptionIcon from '@material-ui/icons/Description';
@@ -378,6 +379,7 @@ const CrossplaneV1ResourcesTable = () => {
     const navigate = useNavigate();
     const theme = useTheme();
     const enablePermissions = config.getOptionalBoolean('crossplane.enablePermissions') ?? false;
+    const annotationPrefix = getAnnotationPrefix(config);
 
     const { allowed: canListClaimsTemp } = usePermission({ permission: listClaimsPermission });
     const { allowed: canListCompositeTemp } = usePermission({ permission: listCompositeResourcesPermission });
@@ -634,8 +636,8 @@ const CrossplaneV1ResourcesTable = () => {
             const supportingResources: ExtendedKubernetesObject[] = [];
 
             // Fetch XRD
-            const xrdPlural = annotations['terasky.backstage.io/composite-plural'];
-            const xrdGroup = annotations['terasky.backstage.io/composite-group'];
+            const xrdPlural = getAnnotation(annotations, annotationPrefix, 'composite-plural');
+            const xrdGroup = getAnnotation(annotations, annotationPrefix, 'composite-group');
             const xrdName = `${xrdPlural}.${xrdGroup}`;
 
             if (xrdName) {
@@ -651,7 +653,7 @@ const CrossplaneV1ResourcesTable = () => {
             }
 
             // Fetch Composition
-            const compositionName = annotations['terasky.backstage.io/composition-name'];
+            const compositionName = getAnnotation(annotations, annotationPrefix, 'composition-name');
             if (compositionName) {
                 const compositionResponse = await crossplaneApi.getResources({
                     clusterName: clusterOfClaim,
@@ -665,7 +667,7 @@ const CrossplaneV1ResourcesTable = () => {
             }
 
             // Fetch Composition Functions
-            const compositionFunctions = annotations['terasky.backstage.io/composition-functions']?.split(',') || [];
+            const compositionFunctions = getAnnotation(annotations, annotationPrefix, 'composition-functions')?.split(',') || [];
             for (const functionName of compositionFunctions) {
                 if (functionName) {
                     try {
@@ -694,10 +696,10 @@ const CrossplaneV1ResourcesTable = () => {
             }
 
             // Fetch Provider resources (using V2 logic for V1 compatibility)
-            const compositePlural = annotations['terasky.backstage.io/composite-plural'];
-            const compositeGroup = annotations['terasky.backstage.io/composite-group'];
-            const compositeVersion = annotations['terasky.backstage.io/composite-version'];
-            const compositeName = annotations['terasky.backstage.io/composite-name'];
+            const compositePlural = getAnnotation(annotations, annotationPrefix, 'composite-plural');
+            const compositeGroup = getAnnotation(annotations, annotationPrefix, 'composite-group');
+            const compositeVersion = getAnnotation(annotations, annotationPrefix, 'composite-version');
+            const compositeName = getAnnotation(annotations, annotationPrefix, 'composite-name');
             if (compositePlural && compositeGroup && compositeVersion && compositeName) {
                 const compositeResponse = await crossplaneApi.getResources({
                     clusterName: clusterOfClaim,
@@ -842,10 +844,10 @@ const CrossplaneV1ResourcesTable = () => {
             try {
                 // Fetch Claim Resource
                 if (canListClaims) {
-                    const claimName = annotations['terasky.backstage.io/claim-name'];
-                    const plural = annotations['terasky.backstage.io/claim-plural'];
-                    const group = annotations['terasky.backstage.io/claim-group'];
-                    const version = annotations['terasky.backstage.io/claim-version'];
+                    const claimName = getAnnotation(annotations, annotationPrefix, 'claim-name');
+                    const plural = getAnnotation(annotations, annotationPrefix, 'claim-plural');
+                    const group = getAnnotation(annotations, annotationPrefix, 'claim-group');
+                    const version = getAnnotation(annotations, annotationPrefix, 'claim-version');
                     const labelSelector = annotations['backstage.io/kubernetes-label-selector'];
                     const namespace = labelSelector?.split(',').find(s => s.startsWith('crossplane.io/claim-namespace'))?.split('=')[1];
                     const clusterOfClaim = annotations['backstage.io/managed-by-location']?.split(": ")[1];
@@ -884,10 +886,10 @@ const CrossplaneV1ResourcesTable = () => {
 
                 // Fetch Composite Resource
                 if (canListComposite) {
-                    const compositePlural = annotations['terasky.backstage.io/composite-plural'];
-                    const compositeGroup = annotations['terasky.backstage.io/composite-group'];
-                    const compositeVersion = annotations['terasky.backstage.io/composite-version'];
-                    const compositeName = annotations['terasky.backstage.io/composite-name'];
+                    const compositePlural = getAnnotation(annotations, annotationPrefix, 'composite-plural');
+                    const compositeGroup = getAnnotation(annotations, annotationPrefix, 'composite-group');
+                    const compositeVersion = getAnnotation(annotations, annotationPrefix, 'composite-version');
+                    const compositeName = getAnnotation(annotations, annotationPrefix, 'composite-name');
                     const clusterOfComposite = annotations['backstage.io/managed-by-location']?.split(": ")[1];
 
                     if (compositePlural && compositeGroup && compositeVersion && compositeName && clusterOfComposite) {

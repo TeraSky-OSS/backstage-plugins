@@ -2,9 +2,10 @@ import { Entity } from '@backstage/catalog-model';
 import { useApi, configApiRef } from '@backstage/core-plugin-api';
 import { usePermission } from '@backstage/plugin-permission-react';
 import { showOverview, showResourceGraph, listCompositeResourcesPermission } from '@terasky/backstage-plugin-crossplane-common';
+import { hasCrossplaneResourceAnnotation } from './annotationUtils';
 
 export const isCrossplaneAvailable = (entity: Entity): boolean => {
-  return Boolean(entity.metadata.annotations?.['terasky.backstage.io/crossplane-resource']);
+  return hasCrossplaneResourceAnnotation(entity.metadata.annotations);
 };
 
 // Create wrapper components that handle the permission checks for content
