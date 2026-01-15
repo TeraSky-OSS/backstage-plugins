@@ -64,7 +64,7 @@ const CrossplaneOverviewCard = () => {
             const labelSelector = annotations['backstage.io/kubernetes-label-selector'];
             const namespace = labelSelector.split(',').find(s => s.startsWith('crossplane.io/claim-namespace'))?.split('=')[1];
             const clusterOfClaim = annotations['backstage.io/managed-by-location'].split(": ")[1];
-            if (!claimPlural || !claimGroup || !claimVersion || !namespace || !clusterOfClaim) {
+            if (!claimName || !claimPlural || !claimGroup || !claimVersion || !namespace || !clusterOfClaim) {
                 return;
             }
 

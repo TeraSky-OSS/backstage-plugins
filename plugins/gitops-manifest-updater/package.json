@@ -70,8 +70,10 @@
     "react": "^18.3.1",
     "typescript": "^5.8.3"
   },
+  "configSchema": "config.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "config.d.ts"
   ],
   "exports": {
     ".": "./src/index.ts",

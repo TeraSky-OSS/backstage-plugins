@@ -852,7 +852,7 @@ const CrossplaneV1ResourcesTable = () => {
                     const namespace = labelSelector?.split(',').find(s => s.startsWith('crossplane.io/claim-namespace'))?.split('=')[1];
                     const clusterOfClaim = annotations['backstage.io/managed-by-location']?.split(": ")[1];
 
-                    if (plural && group && version && namespace && clusterOfClaim) {
+                    if (claimName && plural && group && version && namespace && clusterOfClaim) {
                         try {
                             const response = await crossplaneApi.getResources({
                                 clusterName: clusterOfClaim,

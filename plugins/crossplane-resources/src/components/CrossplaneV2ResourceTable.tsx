@@ -554,7 +554,7 @@ const CrossplaneV2ResourceTable = () => {
               // Fetch top-level managed resources
               if (canListManaged && compositeResource.spec?.crossplane?.resourceRefs) {
                 const compositeId = compositeResource.metadata?.uid || `${compositeResource.kind}-${compositeResource.metadata?.name}`;
-                const managedResources = await fetchNestedResources(compositeResource, compositeId, 1, scope, clusterOfComposite, compositeResource.metadata?.namespace);
+                const managedResources = await fetchNestedResources(compositeResource, compositeId, 1, scope || 'Cluster', clusterOfComposite, compositeResource.metadata?.namespace);
                 resources.push(...managedResources);
               }
             } catch (error) {
@@ -884,9 +884,9 @@ const CrossplaneV2ResourceTable = () => {
     setExpandedRows(newExpandedRows);
     if (!nestedResources[resourceId] && resource.resource.spec?.crossplane?.resourceRefs) {
       const annotations = entity.metadata.annotations || {};
-      const scope = getAnnotation(annotations, annotationPrefix, 'crossplane-scope');
+      const scope = getAnnotation(annotations, annotationPrefix, 'crossplane-scope') || 'Cluster';
       const clusterOfComposite = annotations['backstage.io/managed-by-location']?.split(": ")[1];
-      const nested = await fetchNestedResources(resource.resource, resourceId, resource.level + 1, scope, clusterOfComposite, resource.namespace);
+      const nested = await fetchNestedResources(resource.resource, resourceId, resource.level + 1, scope, clusterOfComposite || '', resource.namespace);
       setNestedResources(prev => ({ ...prev, [resourceId]: nested }));
     }
   };

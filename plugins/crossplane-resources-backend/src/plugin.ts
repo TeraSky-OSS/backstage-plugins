@@ -24,7 +24,7 @@ export const crossplaneResourcesBackendPlugin = createBackendPlugin({
         permissionsRegistry: coreServices.permissionsRegistry,
         discovery: coreServices.discovery,
         auth: coreServices.auth,
-        config: coreServices.config,
+        config: coreServices.rootConfig,
         actionsRegistry: actionsRegistryServiceRef,
         catalogService: catalogServiceRef,
       },

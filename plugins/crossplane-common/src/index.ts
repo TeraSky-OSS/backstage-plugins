@@ -1,6 +1,28 @@
 import { createPermission } from '@backstage/plugin-permission-common';
 export * from './types';
 
+// Annotation utilities
+export const DEFAULT_ANNOTATION_PREFIX = 'terasky.backstage.io';
+
+export const getAnnotation = (
+  annotations: Record<string, string> | undefined,
+  prefix: string,
+  key: string,
+): string | undefined =>
+  annotations?.[`${prefix}/${key}`] ||
+  (prefix !== DEFAULT_ANNOTATION_PREFIX
+    ? annotations?.[`${DEFAULT_ANNOTATION_PREFIX}/${key}`]
+    : undefined);
+
+export const hasCrossplaneResourceAnnotation = (
+  annotations: Record<string, string> | undefined,
+  annotationPrefix: string = DEFAULT_ANNOTATION_PREFIX,
+): boolean =>
+  Boolean(annotations?.[`${annotationPrefix}/crossplane-resource`]) ||
+  (annotationPrefix !== DEFAULT_ANNOTATION_PREFIX
+    ? Boolean(annotations?.[`${DEFAULT_ANNOTATION_PREFIX}/crossplane-resource`])
+    : false);
+
 export const listClaimsPermission = createPermission({
   name: 'crossplane.claims.list',
   attributes: { action: 'read' },

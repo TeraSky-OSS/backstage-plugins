@@ -61,6 +61,10 @@ export function createCrdTemplateAction({config}: {config: any}) {
         `Running CRD template with parameters: ${JSON.stringify(input.parameters)}`,
       );
 
+      const annotationPrefix =
+        config.getOptionalString('kubernetesIngestor.annotationPrefix') ||
+        'terasky.backstage.io';
+
       // Remove excluded parameters
       const filteredParameters = { ...input.parameters };
       input.excludeParams.forEach((param: string) => {
@@ -150,11 +154,11 @@ export function createCrdTemplateAction({config}: {config: any}) {
               namespace: (input.parameters as any)[input.namespaceParam],
             }),
             annotations: {
-              'terasky.backstage.io/source-info': JSON.stringify(sourceInfo),
-              'terasky.backstage.io/add-to-catalog': "true",
-              'terasky.backstage.io/owner': (input.parameters as any)[input.ownerParam],
-              'terasky.backstage.io/system': (input.parameters as any)[input.namespaceParam || 'namespace'],
-              ...(sourceFileUrl && { 'terasky.backstage.io/source-file-url': sourceFileUrl }),
+              [`${annotationPrefix}/source-info`]: JSON.stringify(sourceInfo),
+              [`${annotationPrefix}/add-to-catalog`]: "true",
+              [`${annotationPrefix}/owner`]: (input.parameters as any)[input.ownerParam],
+              [`${annotationPrefix}/system`]: (input.parameters as any)[input.namespaceParam || 'namespace'],
+              ...(sourceFileUrl && { [`${annotationPrefix}/source-file-url`]: sourceFileUrl }),
             },
           },
           spec: filteredParameters,
