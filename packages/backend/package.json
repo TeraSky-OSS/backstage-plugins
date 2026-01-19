@@ -52,7 +52,7 @@
     "@roadiehq/scaffolder-backend-module-utils": "^4.1.1",
     "@terasky/backstage-plugin-ai-rules-backend": "^1.4.3",
     "@terasky/backstage-plugin-catalog-mcp-backend": "^0.2.0",
-    "@terasky/backstage-plugin-crossplane-resources-backend": "^1.7.1",
+    "@terasky/backstage-plugin-crossplane-resources-backend": "^1.8.0",
     "@terasky/backstage-plugin-educates-backend": "^1.4.0",
     "@terasky/backstage-plugin-kro-resources-backend": "^0.6.0",
     "@terasky/backstage-plugin-kubernetes-ingestor": "^3.1.1",

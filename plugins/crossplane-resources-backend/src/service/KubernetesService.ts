@@ -354,6 +354,40 @@ export class KubernetesService {
               }
               this.logger.info('Managed resource fetched:', managed);
               resources.push(managed);
+
+              // Check if this is an Object resource with a manifest in status.atProvider
+              // These are resources deployed to remote clusters via provider-kubernetes
+              if (managed.kind === 'Object' && managed.status?.atProvider?.manifest) {
+                this.logger.info('Found Object with remote cluster manifest');
+                const remoteManifest = managed.status.atProvider.manifest;
+                
+                // Create a synthetic resource from the manifest
+                // Add a synthetic owner reference to link it to the Object
+                const syntheticResource = {
+                  ...remoteManifest,
+                  metadata: {
+                    ...remoteManifest.metadata,
+                    // Generate a deterministic UID based on the Object's UID and the remote resource
+                    uid: `${managed.metadata?.uid}-remote-${remoteManifest.metadata?.name || 'unknown'}`,
+                    ownerReferences: [
+                      {
+                        apiVersion: managed.apiVersion,
+                        kind: managed.kind,
+                        name: managed.metadata?.name,
+                        uid: managed.metadata?.uid,
+                        controller: true,
+                        blockOwnerDeletion: true,
+                      },
+                    ],
+                  },
+                };
+                
+                this.logger.info('Adding remote cluster resource from Object:', {
+                  kind: remoteManifest.kind,
+                  name: remoteManifest.metadata?.name,
+                });
+                resources.push(syntheticResource);
+              }
             } catch (error) {
               this.logger.error(`Failed to fetch managed resource ${name}: ${error}`);
             }
@@ -451,6 +485,40 @@ export class KubernetesService {
             this.logger.info('Managed resource fetched:', managed);
             resources.push(managed);
 
+            // Check if this is an Object resource with a manifest in status.atProvider
+            // These are resources deployed to remote clusters via provider-kubernetes
+            if (managed.kind === 'Object' && managed.status?.atProvider?.manifest) {
+              this.logger.info('Found Object with remote cluster manifest');
+              const remoteManifest = managed.status.atProvider.manifest;
+              
+              // Create a synthetic resource from the manifest
+              // Add a synthetic owner reference to link it to the Object
+              const syntheticResource = {
+                ...remoteManifest,
+                metadata: {
+                  ...remoteManifest.metadata,
+                  // Generate a deterministic UID based on the Object's UID and the remote resource
+                  uid: `${managed.metadata?.uid}-remote-${remoteManifest.metadata?.name || 'unknown'}`,
+                  ownerReferences: [
+                    {
+                      apiVersion: managed.apiVersion,
+                      kind: managed.kind,
+                      name: managed.metadata?.name,
+                      uid: managed.metadata?.uid,
+                      controller: true,
+                      blockOwnerDeletion: true,
+                    },
+                  ],
+                },
+              };
+              
+              this.logger.info('Adding remote cluster resource from Object:', {
+                kind: remoteManifest.kind,
+                name: remoteManifest.metadata?.name,
+              });
+              resources.push(syntheticResource);
+            }
+
             // For each managed resource, check if it has its own resourceRefs (nested composition)
             const nestedRefs = managed.spec?.crossplane?.resourceRefs;
             this.logger.info('Found nested resource refs:', nestedRefs);
@@ -508,6 +576,38 @@ export class KubernetesService {
                   }
                   this.logger.info('Nested managed resource fetched:', nestedManaged);
                   resources.push(nestedManaged);
+
+                  // Check if this nested resource is also an Object with a remote manifest
+                  if (nestedManaged.kind === 'Object' && nestedManaged.status?.atProvider?.manifest) {
+                    this.logger.info('Found nested Object with remote cluster manifest');
+                    const remoteManifest = nestedManaged.status.atProvider.manifest;
+                    
+                    // Create a synthetic resource from the manifest
+                    const syntheticResource = {
+                      ...remoteManifest,
+                      metadata: {
+                        ...remoteManifest.metadata,
+                        // Generate a deterministic UID based on the Object's UID and the remote resource
+                        uid: `${nestedManaged.metadata?.uid}-remote-${remoteManifest.metadata?.name || 'unknown'}`,
+                        ownerReferences: [
+                          {
+                            apiVersion: nestedManaged.apiVersion,
+                            kind: nestedManaged.kind,
+                            name: nestedManaged.metadata?.name,
+                            uid: nestedManaged.metadata?.uid,
+                            controller: true,
+                            blockOwnerDeletion: true,
+                          },
+                        ],
+                      },
+                    };
+                    
+                    this.logger.info('Adding remote cluster resource from nested Object:', {
+                      kind: remoteManifest.kind,
+                      name: remoteManifest.metadata?.name,
+                    });
+                    resources.push(syntheticResource);
+                  }
                 } catch (error) {
                   this.logger.error(`Failed to fetch nested managed resource ${name}: ${error}`);
                 }

@@ -135,6 +135,7 @@ interface ExtendedKubernetesObject extends KubernetesObject {
             name?: string;
         };
         resourceRefs?: Array<any>;
+        forProvider?: any; // This indicates it's a Crossplane MR
         providerConfigRef?: {
             name?: string;
         };
@@ -143,7 +144,7 @@ interface ExtendedKubernetesObject extends KubernetesObject {
 }
 
 interface ResourceTableRow {
-    type: 'Claim' | 'XR' | 'MR';
+    type: 'Claim' | 'XR' | 'MR' | 'K8s';
     name: string;
     namespace?: string;
     group: string;
@@ -271,6 +272,10 @@ const useStyles = makeStyles((theme) => ({
     mrType: {
         backgroundColor: theme.palette.type === 'dark' ? '#1b5e20' : '#e8f5e9',
         color: theme.palette.type === 'dark' ? '#a5d6a7' : '#388e3c',
+    },
+    k8sType: {
+        backgroundColor: theme.palette.type === 'dark' ? '#1976d2' : '#e3f2fd',
+        color: theme.palette.type === 'dark' ? '#90caf9' : '#1976d2',
     },
     expandIcon: {
         padding: 4,
@@ -456,19 +461,39 @@ const CrossplaneV1ResourcesTable = () => {
                 });
                 const nestedResource = resourceResponse.resources[0].resource;
 
-                // Determine if this is an XR (has resourceRefs) or MR (leaf resource)
-                const resourceType = nestedResource.spec?.resourceRefs && nestedResource.spec.resourceRefs.length > 0 ? 'XR' : 'MR';
+                // Determine resource type based on spec.forProvider and resourceRefs
+                let resourceType: 'XR' | 'MR' | 'K8s';
+                if (nestedResource.spec?.resourceRefs && nestedResource.spec.resourceRefs.length > 0) {
+                    resourceType = 'XR';
+                } else if (nestedResource.spec?.forProvider) {
+                    resourceType = 'MR'; // Crossplane Managed Resource
+                } else {
+                    resourceType = 'K8s'; // Regular Kubernetes resource
+                }
+
+                // Handle status differently based on resource type
+                let status = {
+                    synced: false,
+                    ready: false,
+                    conditions: nestedResource.status?.conditions || []
+                };
+
+                if (resourceType === 'MR' || resourceType === 'XR') {
+                    // For MRs and XRs, use Synced and Ready conditions
+                    status.synced = nestedResource.status?.conditions?.find(c => c.type === 'Synced')?.status === 'True' || false;
+                    status.ready = nestedResource.status?.conditions?.find(c => c.type === 'Ready')?.status === 'True' || false;
+                } else if (resourceType === 'K8s') {
+                    // For K8s resources, don't use Synced/Ready, just track conditions
+                    status.synced = true; // Not applicable for K8s resources
+                    status.ready = true; // Not applicable for K8s resources
+                }
 
                 return {
-                    type: resourceType as 'XR' | 'MR',
+                    type: resourceType,
                     name: nestedResource.metadata?.name || 'Unknown',
                     group: getApiGroup(nestedResource.apiVersion),
                     kind: nestedResource.kind || 'Unknown',
-                    status: {
-                        synced: nestedResource.status?.conditions?.find(c => c.type === 'Synced')?.status === 'True' || false,
-                        ready: nestedResource.status?.conditions?.find(c => c.type === 'Ready')?.status === 'True' || false,
-                        conditions: nestedResource.status?.conditions || []
-                    },
+                    status: status,
                     createdAt: nestedResource.metadata?.creationTimestamp || '',
                     resource: nestedResource,
                     level: level,
@@ -501,34 +526,22 @@ const CrossplaneV1ResourcesTable = () => {
     };
 
     // Function to expand all resources recursively
-    const expandAllResources = async (resources: ResourceTableRow[]) => {
+    const expandAllResources = (resources: ResourceTableRow[], nestedResourcesMap: { [key: string]: ResourceTableRow[] }) => {
         const newExpandedRows = new Set<string>();
 
-        const expandRecursively = async (resourceList: ResourceTableRow[]) => {
+        const expandRecursively = (resourceList: ResourceTableRow[]) => {
             for (const resource of resourceList) {
                 const resourceId = resource.resource.metadata?.uid || `${resource.kind}-${resource.name}`;
-                if (resource.resource.spec?.resourceRefs && resource.resource.spec.resourceRefs.length > 0) {
+                // Check if this resource has nested resources already loaded
+                if (nestedResourcesMap[resourceId] && nestedResourcesMap[resourceId].length > 0) {
                     newExpandedRows.add(resourceId);
-
-                    // Fetch nested resources if not already loaded
-                    if (!nestedResources[resourceId]) {
-                        const nested = await fetchNestedResources(resource.resource, resourceId, resource.level + 1);
-                        setNestedResources(prev => ({
-                            ...prev,
-                            [resourceId]: nested
-                        }));
-
-                        // Recursively expand nested resources
-                        await expandRecursively(nested);
-                    } else {
-                        // If already loaded, just expand them recursively
-                        await expandRecursively(nestedResources[resourceId]);
-                    }
+                    // Recursively expand nested resources
+                    expandRecursively(nestedResourcesMap[resourceId]);
                 }
             }
         };
 
-        await expandRecursively(resources);
+        expandRecursively(resources);
         setExpandedRows(newExpandedRows);
     };
 
@@ -842,101 +855,143 @@ const CrossplaneV1ResourcesTable = () => {
             const annotations = entity.metadata.annotations || {};
 
             try {
-                // Fetch Claim Resource
-                if (canListClaims) {
-                    const claimName = getAnnotation(annotations, annotationPrefix, 'claim-name');
-                    const plural = getAnnotation(annotations, annotationPrefix, 'claim-plural');
-                    const group = getAnnotation(annotations, annotationPrefix, 'claim-group');
-                    const version = getAnnotation(annotations, annotationPrefix, 'claim-version');
-                    const labelSelector = annotations['backstage.io/kubernetes-label-selector'];
-                    const namespace = labelSelector?.split(',').find(s => s.startsWith('crossplane.io/claim-namespace'))?.split('=')[1];
-                    const clusterOfClaim = annotations['backstage.io/managed-by-location']?.split(": ")[1];
+                const claimName = getAnnotation(annotations, annotationPrefix, 'claim-name');
+                const claimGroup = getAnnotation(annotations, annotationPrefix, 'claim-group');
+                const claimVersion = getAnnotation(annotations, annotationPrefix, 'claim-version');
+                const claimPlural = getAnnotation(annotations, annotationPrefix, 'claim-plural');
+                const claimKind = getAnnotation(annotations, annotationPrefix, 'claim-kind');
+                const compositeKind = getAnnotation(annotations, annotationPrefix, 'composite-kind');
+                const labelSelector = annotations['backstage.io/kubernetes-label-selector'];
+                const namespace = labelSelector?.split(',').find(s => s.startsWith('crossplane.io/claim-namespace'))?.split('=')[1];
+                const clusterOfClaim = annotations['backstage.io/managed-by-location']?.split(": ")[1];
 
-                    if (claimName && plural && group && version && namespace && clusterOfClaim) {
-                        try {
-                            const response = await crossplaneApi.getResources({
-                                clusterName: clusterOfClaim,
-                                namespace: entity.metadata.namespace || 'default',
-                                group: group,
-                                version: version,
-                                plural,
-                                name: claimName,
-                            });
-                            const claimResource = response.resources[0].resource;
-                            resources.push({
-                                type: 'Claim',
-                                name: claimResource.metadata?.name || 'Unknown',
-                                namespace: claimResource.metadata?.namespace,
-                                group: getApiGroup(claimResource.apiVersion),
-                                kind: claimResource.kind || 'Unknown',
-                                status: {
-                                    synced: claimResource.status?.conditions?.find(c => c.type === 'Synced')?.status === 'True' || false,
-                                    ready: claimResource.status?.conditions?.find(c => c.type === 'Ready')?.status === 'True' || false,
-                                    conditions: claimResource.status?.conditions || []
-                                },
-                                createdAt: claimResource.metadata?.creationTimestamp || '',
-                                resource: claimResource,
-                                level: 0
-                            });
-                        } catch (error) {
-                            console.error('Error fetching claim:', error);
-                        }
-                    }
-                }
+                if (claimName && claimGroup && claimVersion && claimPlural && namespace && clusterOfClaim) {
+                    try {
+                        // Use getResourceGraph to get all resources including synthetic K8s resources from Objects
+                        const graphResponse = await crossplaneApi.getResourceGraph({
+                            clusterName: clusterOfClaim,
+                            namespace: namespace,
+                            xrdName: claimName,
+                            xrdId: claimName,
+                            claimId: claimName,
+                            claimName,
+                            claimGroup,
+                            claimVersion,
+                            claimPlural,
+                        });
 
-                // Fetch Composite Resource
-                if (canListComposite) {
-                    const compositePlural = getAnnotation(annotations, annotationPrefix, 'composite-plural');
-                    const compositeGroup = getAnnotation(annotations, annotationPrefix, 'composite-group');
-                    const compositeVersion = getAnnotation(annotations, annotationPrefix, 'composite-version');
-                    const compositeName = getAnnotation(annotations, annotationPrefix, 'composite-name');
-                    const clusterOfComposite = annotations['backstage.io/managed-by-location']?.split(": ")[1];
+                        // Process all resources from the graph response
+                        const allGraphResources = graphResponse.resources;
 
-                    if (compositePlural && compositeGroup && compositeVersion && compositeName && clusterOfComposite) {
-                        try {
-                            const response = await crossplaneApi.getResources({
-                                clusterName: clusterOfComposite,
-                                group: compositeGroup,
-                                version: compositeVersion,
-                                plural: compositePlural,
-                                name: compositeName,
-                                kind: 'Composite',
-                            });
-                            const compositeResource = response.resources[0].resource;
-                            resources.push({
-                                type: 'XR',
-                                name: compositeResource.metadata?.name || 'Unknown',
-                                group: getApiGroup(compositeResource.apiVersion),
-                                kind: compositeResource.kind || 'Unknown',
-                                status: {
-                                    synced: compositeResource.status?.conditions?.find(c => c.type === 'Synced')?.status === 'True' || false,
-                                    ready: compositeResource.status?.conditions?.find(c => c.type === 'Ready')?.status === 'True' || false,
-                                    conditions: compositeResource.status?.conditions || []
-                                },
-                                createdAt: compositeResource.metadata?.creationTimestamp || '',
-                                resource: compositeResource,
-                                level: 0
-                            });
-
-                            // Fetch top-level managed resources
-                            if (canListManaged && compositeResource.spec?.resourceRefs) {
-                                const compositeId = compositeResource.metadata?.uid || `${compositeResource.kind}-${compositeResource.metadata?.name}`;
-                                const managedResources = await fetchNestedResources(compositeResource, compositeId, 1);
-                                resources.push(...managedResources);
+                        // Build a map of resource UID to resource for quick lookup
+                        const resourceMap = new Map<string, ExtendedKubernetesObject>();
+                        allGraphResources.forEach(resource => {
+                            if (resource.metadata?.uid) {
+                                resourceMap.set(resource.metadata.uid, resource);
                             }
-                        } catch (error) {
-                            console.error('Error fetching composite resource:', error);
-                        }
+                        });
+
+                        // Helper to determine resource type
+                        const determineResourceType = (resource: ExtendedKubernetesObject): 'Claim' | 'XR' | 'MR' | 'K8s' => {
+                            // Check if it's the claim
+                            if (resource.kind === claimKind && resource.metadata?.name === claimName) {
+                                return 'Claim';
+                            }
+                            // Check if it's the composite (XR)
+                            if (resource.kind === compositeKind || (resource.spec?.resourceRefs && resource.spec.resourceRefs.length > 0)) {
+                                return 'XR';
+                            }
+                            // Check if it's a Managed Resource
+                            if (resource.spec?.forProvider) {
+                                return 'MR';
+                            }
+                            // Otherwise, it's a regular K8s resource
+                            return 'K8s';
+                        };
+
+                        // Build a map for quick lookup
+                        const resourceByUid = new Map<string, ExtendedKubernetesObject>();
+                        allGraphResources.forEach(resource => {
+                            if (resource.metadata?.uid) {
+                                resourceByUid.set(resource.metadata.uid, resource);
+                            }
+                        });
+
+                        // Helper to convert resource to table row
+                        const toTableRow = (resource: ExtendedKubernetesObject, level: number, parentId?: string): ResourceTableRow => {
+                            const resourceType = determineResourceType(resource);
+                            
+                            // Handle status differently based on resource type
+                            let status = {
+                                synced: false,
+                                ready: false,
+                                conditions: resource.status?.conditions || []
+                            };
+
+                            if (resourceType === 'MR' || resourceType === 'XR' || resourceType === 'Claim') {
+                                status.synced = resource.status?.conditions?.find(c => c.type === 'Synced')?.status === 'True' || false;
+                                status.ready = resource.status?.conditions?.find(c => c.type === 'Ready')?.status === 'True' || false;
+                            } else if (resourceType === 'K8s') {
+                                status.synced = true; // Not applicable
+                                status.ready = true; // Not applicable
+                            }
+
+                            return {
+                                type: resourceType,
+                                name: resource.metadata?.name || 'Unknown',
+                                namespace: resource.metadata?.namespace,
+                                group: getApiGroup(resource.apiVersion),
+                                kind: resource.kind || 'Unknown',
+                                status,
+                                createdAt: resource.metadata?.creationTimestamp || '',
+                                resource,
+                                level,
+                                parentId
+                            };
+                        };
+
+                        // Build hierarchy: group resources by their parent
+                        const childrenByParent = new Map<string | undefined, ExtendedKubernetesObject[]>();
+                        allGraphResources.forEach(resource => {
+                            const parentUid = resource.metadata?.ownerReferences?.[0]?.uid;
+                            if (!childrenByParent.has(parentUid)) {
+                                childrenByParent.set(parentUid, []);
+                            }
+                            childrenByParent.get(parentUid)!.push(resource);
+                        });
+
+                        // Recursively build table rows starting from root (no parent)
+                        const nestedResourcesMap: { [key: string]: ResourceTableRow[] } = {};
+                        
+                        const buildTableRows = (parentUid: string | undefined, level: number): ResourceTableRow[] => {
+                            const children = childrenByParent.get(parentUid) || [];
+                            return children.map(child => {
+                                const childUid = child.metadata?.uid;
+                                const tableRow = toTableRow(child, level, parentUid);
+                                
+                                // Recursively process this child's children
+                                if (childUid && childrenByParent.has(childUid)) {
+                                    const grandchildren = buildTableRows(childUid, level + 1);
+                                    if (grandchildren.length > 0) {
+                                        nestedResourcesMap[childUid] = grandchildren;
+                                    }
+                                }
+                                
+                                return tableRow;
+                            });
+                        };
+
+                        // Start from root resources (those with no parent)
+                        const topLevelRows = buildTableRows(undefined, 0);
+                        resources.push(...topLevelRows);
+                        setNestedResources(nestedResourcesMap);
+
+                    } catch (error) {
+                        console.error('Error fetching resource graph:', error);
                     }
                 }
 
                 setAllResources(resources);
-
-                // Expand all resources by default after initial load
-                if (!initialExpansionDone) {
-                    await expandAllResources(resources);
-                    setInitialExpansionDone(true);
-                }
             } catch (error) {
                 console.error('Error fetching resources:', error);
             } finally {
@@ -946,6 +1001,23 @@ const CrossplaneV1ResourcesTable = () => {
 
         fetchAllResources();
     }, [crossplaneApi, entity, canListClaims, canListComposite, canListManaged, enablePermissions]);
+
+    // Expand all resources after they are loaded (only on first load)
+    useEffect(() => {
+        let timer: NodeJS.Timeout | undefined;
+        if (!loading && !initialExpansionDone && allResources.length > 0) {
+            // Use a small delay to ensure all state updates have settled
+            timer = setTimeout(() => {
+                expandAllResources(allResources, nestedResources);
+                setInitialExpansionDone(true);
+            }, 100);
+        }
+        return () => {
+            if (timer) {
+                clearTimeout(timer);
+            }
+        };
+    }, [loading, allResources, nestedResources, initialExpansionDone]);
 
     useEffect(() => {
         fetchSupportingResources();
@@ -985,24 +1057,16 @@ const CrossplaneV1ResourcesTable = () => {
     }, [filters]);
 
     // --- Update handleRowExpand to only update user-expanded rows ---
-    const handleRowExpand = async (resource: ResourceTableRow) => {
+    const handleRowExpand = (resource: ResourceTableRow) => {
         const resourceId = resource.resource.metadata?.uid || `${resource.kind}-${resource.name}`;
         const newExpandedRows = new Set(expandedRows);
         if (expandedRows.has(resourceId)) {
             newExpandedRows.delete(resourceId);
-            setExpandedRows(newExpandedRows);
-            return;
+        } else {
+            newExpandedRows.add(resourceId);
         }
-        newExpandedRows.add(resourceId);
         setExpandedRows(newExpandedRows);
-        // Fetch nested resources if they haven't been loaded yet
-        if (!nestedResources[resourceId] && resource.resource.spec?.resourceRefs) {
-            const nested = await fetchNestedResources(resource.resource, resourceId, resource.level + 1);
-            setNestedResources(prev => ({
-                ...prev,
-                [resourceId]: nested
-            }));
-        }
+        // No need to fetch - all nested resources are already loaded from getResourceGraph
     };
 
     const getConditionStatus = (conditions: any[], conditionType: string): { status: string; condition: any } => {
@@ -1105,6 +1169,8 @@ const CrossplaneV1ResourcesTable = () => {
                 return classes.xrType;
             case 'MR':
                 return classes.mrType;
+            case 'K8s':
+                return classes.k8sType;
             default:
                 return '';
         }
@@ -1410,11 +1476,9 @@ const CrossplaneV1ResourcesTable = () => {
 
         resources.forEach((row, index) => {
             const resourceId = row.resource.metadata?.uid || `${row.kind}-${row.name}-${index}`;
-            const hasNestedResources = row.resource.spec?.resourceRefs && row.resource.spec.resourceRefs.length > 0;
+            // Check if this resource has nested resources in the nestedResources map
+            const hasNestedResourcesToShow = nestedResources[resourceId] && nestedResources[resourceId].length > 0;
             const isExpanded = expandedRows.has(resourceId);
-
-                  // Check if this resource has any nested resources (regardless of filters, since we handle filtering in getFilteredResources)
-      const hasNestedResourcesToShow = hasNestedResources && nestedResources[resourceId] && nestedResources[resourceId].length > 0;
 
             rows.push(
                 <TableRow
@@ -1456,8 +1520,53 @@ const CrossplaneV1ResourcesTable = () => {
                     </TableCell>
                     <TableCell className={classes.tableCell}>
                         <Box display="flex">
-                            {renderStatusBadge(row.status.conditions, 'Synced')}
-                            {renderStatusBadge(row.status.conditions, 'Ready')}
+                            {row.type === 'K8s' ? (
+                                // For K8s resources, show all conditions
+                                row.status.conditions.length > 0 ? (
+                                    row.status.conditions.map((condition: any, idx: number) => (
+                                        <Tooltip
+                                            key={idx}
+                                            classes={{
+                                                tooltip: classes.tooltip,
+                                            }}
+                                            title={
+                                                <Box className={classes.tooltipContent}>
+                                                    <Typography variant="subtitle2" gutterBottom>
+                                                        <strong>Condition: {condition.type}</strong>
+                                                    </Typography>
+                                                    <Typography variant="body2">Status: {condition.status}</Typography>
+                                                    {condition.reason && (
+                                                        <Typography variant="body2">Reason: {condition.reason}</Typography>
+                                                    )}
+                                                    {condition.lastTransitionTime && (
+                                                        <Typography variant="body2">
+                                                            Last Transition: {new Date(condition.lastTransitionTime).toLocaleString()}
+                                                        </Typography>
+                                                    )}
+                                                    {condition.message && (
+                                                        <Typography variant="body2" style={{ wordWrap: 'break-word' }}>
+                                                            Message: {condition.message}
+                                                        </Typography>
+                                                    )}
+                                                </Box>
+                                            }
+                                            arrow
+                                        >
+                                            <span className={`${classes.statusBadge} ${condition.status === 'True' ? classes.readySuccess : classes.readyError}`}>
+                                                {condition.type}
+                                            </span>
+                                        </Tooltip>
+                                    ))
+                                ) : (
+                                    <span className={`${classes.statusBadge} ${classes.readySuccess}`}>No Conditions</span>
+                                )
+                            ) : (
+                                // For XR and MR resources, show Synced and Ready
+                                <>
+                                    {renderStatusBadge(row.status.conditions, 'Synced')}
+                                    {renderStatusBadge(row.status.conditions, 'Ready')}
+                                </>
+                            )}
                         </Box>
                     </TableCell>
                     <TableCell className={classes.tableCell}>
@@ -1504,8 +1613,8 @@ const CrossplaneV1ResourcesTable = () => {
                 </TableRow>
             );
 
-            // Don't add nested resources here since they're already included in the flattened list
-            // The expand button is just for visual indication now
+            // Don't recursively render here - getFilteredResources() already handles the flattening
+            // and expansion logic. Just render what we're given.
         });
 
         return rows;

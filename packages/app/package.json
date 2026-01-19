@@ -46,7 +46,7 @@
     "@material-ui/icons": "^4.9.1",
     "@terasky/backstage-plugin-ai-rules": "^1.3.0",
     "@terasky/backstage-plugin-app-module-global-signin-page": "^0.1.0",
-    "@terasky/backstage-plugin-crossplane-resources-frontend": "^2.8.1",
+    "@terasky/backstage-plugin-crossplane-resources-frontend": "^2.9.0",
     "@terasky/backstage-plugin-devpod": "^1.5.0",
     "@terasky/backstage-plugin-educates": "^1.5.0",
     "@terasky/backstage-plugin-entity-scaffolder-content": "^1.4.0",

@@ -246,6 +246,11 @@ const CustomNode = ({ data }: { data: any }) => {
                         backgroundColor: '#1b5e20',
                         color: '#a5d6a7'
                     };
+                case 'K8s':
+                    return {
+                        backgroundColor: '#1976d2',
+                        color: '#90caf9'
+                    };
                 default:
                     return {
                         backgroundColor: theme.palette.primary.dark,
@@ -268,6 +273,11 @@ const CustomNode = ({ data }: { data: any }) => {
                     return {
                         backgroundColor: '#e8f5e9',
                         color: '#388e3c'
+                    };
+                case 'K8s':
+                    return {
+                        backgroundColor: '#e3f2fd',
+                        color: '#1976d2'
                     };
                 default:
                     return {
@@ -392,24 +402,40 @@ const CustomNode = ({ data }: { data: any }) => {
                 paddingTop: '6px'
             }}>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                    <div style={{
-                        ...getStatusColors(data.isSynced),
-                        padding: '2px 8px',
-                        borderRadius: '3px',
-                        fontSize: '10px',
-                        fontWeight: 'bold'
-                    }}>
-                        Synced
-                    </div>
-                    <div style={{
-                        ...getStatusColors(data.isReady),
-                        padding: '2px 8px',
-                        borderRadius: '3px',
-                        fontSize: '10px',
-                        fontWeight: 'bold'
-                    }}>
-                        Ready
-                    </div>
+                    {data.categoryBadge === 'K8s' ? (
+                        // For K8s resources, show a generic status indicator
+                        <div style={{
+                            ...getStatusColors(true), // Always show as positive for K8s
+                            padding: '2px 8px',
+                            borderRadius: '3px',
+                            fontSize: '10px',
+                            fontWeight: 'bold'
+                        }}>
+                            K8s
+                        </div>
+                    ) : (
+                        // For XR and MR resources, show Synced and Ready
+                        <>
+                            <div style={{
+                                ...getStatusColors(data.isSynced),
+                                padding: '2px 8px',
+                                borderRadius: '3px',
+                                fontSize: '10px',
+                                fontWeight: 'bold'
+                            }}>
+                                Synced
+                            </div>
+                            <div style={{
+                                ...getStatusColors(data.isReady),
+                                padding: '2px 8px',
+                                borderRadius: '3px',
+                                fontSize: '10px',
+                                fontWeight: 'bold'
+                            }}>
+                                Ready
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
 
@@ -594,7 +620,7 @@ const CrossplaneV1ResourceGraph = () => {
                 return 'Claim';
             }
 
-            // Check for XR vs MR based on resourceRefs
+            // Check for XR vs MR vs K8s based on spec structure
             const spec = (resource as any).spec;
 
             // XR: Has resourceRefs array with items
@@ -612,9 +638,13 @@ const CrossplaneV1ResourceGraph = () => {
                 return 'XR';
             }
 
-            // MR: Leaf resource (no resourceRefs or empty resourceRefs)
-            // This includes managed resources from providers
-            return 'MR';
+            // MR: Has spec.forProvider (Crossplane Managed Resource)
+            if (spec?.forProvider) {
+                return 'MR';
+            }
+
+            // K8s: Regular Kubernetes resource (no spec.forProvider)
+            return 'K8s';
         };
 
         // Create nodes
