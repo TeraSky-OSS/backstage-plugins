@@ -22,7 +22,7 @@ import { Alert } from '@material-ui/lab';
 import { makeStyles } from '@material-ui/core/styles';
 import { useApi } from '@backstage/core-plugin-api';
 import { useEntity } from '@backstage/plugin-catalog-react';
-import { vcfOperationsApiRef, MetricData, Resource, VcfOperationsApiError } from '../api/VcfOperationsClient';
+import { vcfOperationsApiRef, MetricData, Resource, VcfOperationsApiError, VcfOperationsInstance } from '../api/VcfOperationsClient';
 import { MetricChart } from './MetricChart';
 import { NotImplementedMessage } from './NotImplementedMessage';
 
@@ -569,7 +569,7 @@ export const VCFOperationsExplorer = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [metricsData, setMetricsData] = useState<MetricData[]>([]);
-  const [instances, setInstances] = useState<Array<{ name: string }>>([]);
+  const [instances, setInstances] = useState<VcfOperationsInstance[]>([]);
   const [selectedInstance, setSelectedInstance] = useState<string>('');
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [resourceDetection, setResourceDetection] = useState<ResourceDetectionResult>({ found: false });
@@ -582,8 +582,23 @@ export const VCFOperationsExplorer = () => {
       try {
         const instancesList = await vcfOperationsApi.getInstances();
         setInstances(instancesList);
+        
+        // Auto-select instance based on entity's VCF Automation instance
+        const vcfaInstanceName = entity.metadata.annotations?.['terasky.backstage.io/vcf-automation-instance'];
+        
         if (instancesList.length === 1) {
+          // Only one instance available, select it
           setSelectedInstance(instancesList[0].name);
+        } else if (vcfaInstanceName && instancesList.length > 1) {
+          // Multiple instances available, find the matching one based on relatedVCFAInstances
+          const matchedInstance = instancesList.find(instance => 
+            instance.relatedVCFAInstances?.includes(vcfaInstanceName)
+          );
+          
+          if (matchedInstance) {
+            setSelectedInstance(matchedInstance.name);
+          }
+          // If no match found, user will need to manually select
         }
       } catch (err) {
         // Check if this is a permission error
@@ -600,7 +615,7 @@ export const VCFOperationsExplorer = () => {
     };
 
     loadInstances();
-  }, [vcfOperationsApi]);
+  }, [vcfOperationsApi, entity]);
 
   // Extract URN from CCI namespace endpoint URL
   const extractUrnFromEndpoint = (endpoint: string): string | null => {
@@ -1046,6 +1061,52 @@ export const VCFOperationsExplorer = () => {
 
   const isAllSelected = selectedMetrics.length === allMetrics.length;
   const isNoneSelected = selectedMetrics.length === 0;
+
+  // Show message when multiple instances available but none selected
+  if (instances.length > 1 && !selectedInstance) {
+    const vcfaInstanceName = entity.metadata.annotations?.['terasky.backstage.io/vcf-automation-instance'];
+    
+    return (
+      <Box className={classes.root}>
+        <Card>
+          <CardContent>
+            <Alert severity="info">
+              <Typography variant="h6" gutterBottom>
+                Select a VCF Operations Instance
+              </Typography>
+              <Typography variant="body2" gutterBottom>
+                Multiple VCF Operations instances are available. Please select one to view metrics:
+              </Typography>
+              {vcfaInstanceName && (
+                <Typography variant="body2" color="textSecondary" gutterBottom>
+                  Note: Could not automatically match VCF Automation instance "{vcfaInstanceName}" to a VCF Operations instance. 
+                  Check that the instance is listed in the relatedVCFAInstances configuration.
+                </Typography>
+              )}
+              <Box style={{ marginTop: 16 }}>
+                <FormControl style={{ minWidth: 300 }}>
+                  <InputLabel>Instance</InputLabel>
+                  <Select
+                    value={selectedInstance}
+                    onChange={(e) => setSelectedInstance(e.target.value as string)}
+                  >
+                    {instances.map((instance) => (
+                      <MenuItem key={instance.name} value={instance.name}>
+                        {instance.name}
+                        {instance.relatedVCFAInstances && instance.relatedVCFAInstances.length > 0 && 
+                          ` (${instance.relatedVCFAInstances.join(', ')})`
+                        }
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
+            </Alert>
+          </CardContent>
+        </Card>
+      </Box>
+    );
+  }
 
   // Show loading while detecting resource
   if (detectingResource) {

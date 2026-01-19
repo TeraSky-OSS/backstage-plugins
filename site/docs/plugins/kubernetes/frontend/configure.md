@@ -10,7 +10,8 @@ When using the new frontend system through the `/alpha` export, the plugin is co
 kubernetesResources:
   # Whether to enable permission checks
   enablePermissions: true
-  
+  # If using a non default annotation prefix in the kubernetes ingestor set this to the value from the kubernetes ingestor as well
+  annotationPrefix: terasky.backstage.io
   # Maximum concurrent requests to Kubernetes API
   concurrency: 10
 ```
@@ -25,7 +26,8 @@ The plugin is configured through your `app-config.yaml`. Here's a comprehensive 
 kubernetesResources:
   # Whether to enable permission checks
   enablePermissions: true
-  
+  # If using a non default annotation prefix in the kubernetes ingestor set this to the value from the kubernetes ingestor as well
+  annotationPrefix: terasky.backstage.io
   # Maximum concurrent requests to Kubernetes API
   concurrency: 10
 ```

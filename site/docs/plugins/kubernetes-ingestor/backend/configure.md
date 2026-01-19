@@ -8,6 +8,8 @@ The plugin is configured through your `app-config.yaml`. Here's a comprehensive 
 
 ```yaml
 kubernetesIngestor:
+  # Optional field to set the default owner of the ingested resources.
+  defaultOwner: kubernetes-auto-ingested
   # Mappings of kubernetes resource metadata to backstage entity metadata
   # The list bellow are the default values when the mappings are not set in the app-config.yaml
   # The recommended values are:
