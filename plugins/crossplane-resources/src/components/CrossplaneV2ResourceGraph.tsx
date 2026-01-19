@@ -34,6 +34,7 @@ import ReactFlow, { ReactFlowProvider, MiniMap, Controls, Background, Node, Edge
 import dagre from 'dagre';
 import { usePermission } from '@backstage/plugin-permission-react';
 import { showResourceGraph } from '@terasky/backstage-plugin-crossplane-common';
+import { getAnnotation, getAnnotationPrefix } from './annotationUtils';
 
 const useStyles = makeStyles((theme) => ({
     drawer: {
@@ -505,6 +506,7 @@ const CrossplaneV2ResourceGraph = () => {
     const crossplaneApi = useApi(crossplaneApiRef);
     const config = useApi(configApiRef);
     const enablePermissions = config.getOptionalBoolean('crossplane.enablePermissions') ?? false;
+    const annotationPrefix = getAnnotationPrefix(config);
     const [resources, setResources] = useState<Array<KubernetesObject>>([]);
     const [selectedResource, setSelectedResource] = useState<KubernetesObject | null>(null);
     const [drawerOpen, setDrawerOpen] = useState(false);
@@ -606,7 +608,7 @@ const CrossplaneV2ResourceGraph = () => {
         let claimNodeId: string | undefined;
 
         // Find the claim node first (it should be the entity's claim)
-        const claimName = entity.metadata.annotations?.['terasky.backstage.io/claim-name'];
+        const claimName = getAnnotation(entity.metadata.annotations || {}, annotationPrefix, 'claim-name');
         const claimResource = resourceList.find(r => r.metadata?.name === claimName);
 
         // Helper function to determine category badge
@@ -810,13 +812,13 @@ const CrossplaneV2ResourceGraph = () => {
 
         const fetchResources = async () => {
             const annotations = entity.metadata.annotations || {};
-            const plural = annotations['terasky.backstage.io/composite-plural'];
-            const group = annotations['terasky.backstage.io/composite-group'];
-            const version = annotations['terasky.backstage.io/composite-version'];
-            const name = annotations['terasky.backstage.io/composite-name'];
+            const plural = getAnnotation(annotations, annotationPrefix, 'composite-plural');
+            const group = getAnnotation(annotations, annotationPrefix, 'composite-group');
+            const version = getAnnotation(annotations, annotationPrefix, 'composite-version');
+            const name = getAnnotation(annotations, annotationPrefix, 'composite-name');
             const clusterOfComposite = annotations['backstage.io/managed-by-location'].split(": ")[1];
-            const scope = annotations['terasky.backstage.io/crossplane-scope'] as 'Namespaced' | 'Cluster';
-            const namespace = annotations['terasky.backstage.io/composite-namespace'] || 'default';
+            const scope = getAnnotation(annotations, annotationPrefix, 'crossplane-scope') as 'Namespaced' | 'Cluster';
+            const namespace = getAnnotation(annotations, annotationPrefix, 'composite-namespace') || 'default';
             if (!plural || !group || !version || !name || !clusterOfComposite) {
                 setLoading(false);
                 return;

@@ -21,6 +21,27 @@ interface BackstageLink {
   [key: string]: string;
 }
 
+/**
+ * Resolves owner reference from annotation value.
+ * If the annotation contains a full entity ref (with kind like "group:" or "user:"),
+ * it returns it as-is. Otherwise, it prefixes with the namespace.
+ */
+function resolveOwnerRef(
+  ownerAnnotation: string | undefined,
+  namespacePrefix: string,
+  defaultOwner: string,
+): string {
+  if (!ownerAnnotation) {
+    return `${namespacePrefix}/${defaultOwner}`;
+  }
+  // If owner annotation contains a colon, it's a full entity ref (e.g., "group:default/team")
+  if (ownerAnnotation.includes(':')) {
+    return ownerAnnotation;
+  }
+  // Otherwise, prefix with namespace
+  return `${namespacePrefix}/${ownerAnnotation}`;
+}
+
 export class XRDTemplateEntityProvider implements EntityProvider {
   private connection?: EntityProviderConnection;
 
@@ -2155,7 +2176,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         annotations: customAnnotations,
       },
       spec: {
-        owner: annotations[`${prefix}/owner`] ? `${systemReferencesNamespaceValue}/${annotations[`${prefix}/owner`]}` : `${systemReferencesNamespaceValue}/${this.getDefaultOwner()}`,
+        owner: resolveOwnerRef(annotations[`${prefix}/owner`], systemReferencesNamespaceValue, this.getDefaultOwner()),
         type: annotations[`${prefix}/system-type`] || 'kubernetes-namespace',
         ...(annotations[`${prefix}/domain`]
           ? { domain: annotations[`${prefix}/domain`] }
@@ -2195,7 +2216,7 @@ export class KubernetesEntityProvider implements EntityProvider {
       spec: {
         type: annotations[`${prefix}/component-type`] || 'service',
         lifecycle: annotations[`${prefix}/lifecycle`] || 'production',
-        owner: annotations[`${prefix}/owner`] ? `${systemReferencesNamespaceValue}/${annotations[`${prefix}/owner`]}` : `${systemReferencesNamespaceValue}/${this.getDefaultOwner()}`,
+        owner: resolveOwnerRef(annotations[`${prefix}/owner`], systemReferencesNamespaceValue, this.getDefaultOwner()),
         system: annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`,
         dependsOn: annotations[`${prefix}/dependsOn`]?.split(','),
         ...(entityKind === 'Component' ? {
@@ -2350,7 +2371,7 @@ export class KubernetesEntityProvider implements EntityProvider {
       spec: {
         type: 'crossplane-claim',
         lifecycle: annotations[`${prefix}/lifecycle`] || 'production',
-        owner: annotations[`${prefix}/owner`] ? `${systemReferencesNamespaceValue}/${annotations[`${prefix}/owner`]}` : `${systemReferencesNamespaceValue}/${this.getDefaultOwner()}`,
+        owner: resolveOwnerRef(annotations[`${prefix}/owner`], systemReferencesNamespaceValue, this.getDefaultOwner()),
         system: annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`,
         dependsOn: annotations[`${prefix}/dependsOn`]?.split(','),
         ...(entityKind === 'Component' ? {
@@ -2484,7 +2505,7 @@ export class KubernetesEntityProvider implements EntityProvider {
       spec: {
         type: 'kro-instance',
         lifecycle: annotations[`${prefix}/lifecycle`] || 'production',
-        owner: annotations[`${prefix}/owner`] ? `${systemReferencesNamespaceValue}/${annotations[`${prefix}/owner`]}` : `${systemReferencesNamespaceValue}/${this.getDefaultOwner()}`,
+        owner: resolveOwnerRef(annotations[`${prefix}/owner`], systemReferencesNamespaceValue, this.getDefaultOwner()),
         system: annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`,
         dependsOn: annotations[`${prefix}/dependsOn`]?.split(','),
         ...(entityKind === 'Component' ? {

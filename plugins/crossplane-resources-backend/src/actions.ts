@@ -1,6 +1,7 @@
 import { actionsRegistryServiceRef } from '@backstage/backend-plugin-api/alpha';
 import { CatalogService } from '@backstage/plugin-catalog-node';
 import { PermissionsService, AuthService } from '@backstage/backend-plugin-api';
+import { Config } from '@backstage/config';
 import { AuthorizeResult } from '@backstage/plugin-permission-common';
 import { ConflictError, InputError } from '@backstage/errors';
 import {
@@ -10,6 +11,8 @@ import {
   showEventsClaimsPermission,
   showEventsCompositeResourcesPermission,
   showEventsManagedResourcesPermission,
+  getAnnotation,
+  DEFAULT_ANNOTATION_PREFIX,
 } from '@terasky/backstage-plugin-crossplane-common';
 import { KubernetesService } from './service/KubernetesService';
 
@@ -32,7 +35,14 @@ interface V1CrossplaneInfo {
 
 type CrossplaneInfo = V1CrossplaneInfo | V2CrossplaneInfo;
 
-async function getEntityAndCrossplaneInfo(catalog: CatalogService, name: string, kind: string = 'component', namespace: string = 'default', credentials?: any): Promise<{ entity: any; crossplaneInfo: CrossplaneInfo }> {
+async function getEntityAndCrossplaneInfo(
+  catalog: CatalogService,
+  name: string,
+  kind: string = 'component',
+  namespace: string = 'default',
+  annotationPrefix: string,
+  credentials?: any,
+): Promise<{ entity: any; crossplaneInfo: CrossplaneInfo }> {
   const filter: Record<string, string> = { 'metadata.name': name };
   filter.kind = kind;
   filter['metadata.namespace'] = namespace;
@@ -61,7 +71,8 @@ async function getEntityAndCrossplaneInfo(catalog: CatalogService, name: string,
   }
 
   const clusterName = clusterLocation.split(': ')[1];
-  const version = entity?.metadata?.annotations?.['terasky.backstage.io/crossplane-version'] || 'v1';
+  const version =
+    getAnnotation(annotations, annotationPrefix, 'crossplane-version') || 'v1';
   // Determine mode based on entity kind
   const isV2 = version === 'v2';
   const isV1 = version === 'v1';
@@ -72,32 +83,49 @@ async function getEntityAndCrossplaneInfo(catalog: CatalogService, name: string,
 
   if (isV2) {
     // Extract V2 (composite) annotations
-    const crossplaneInfo = {
-      clusterName,
-      name: annotations['terasky.backstage.io/composite-name'],
-      group: annotations['terasky.backstage.io/composite-group'],
-      version: annotations['terasky.backstage.io/composite-version'],
-      plural: annotations['terasky.backstage.io/composite-plural'],
-      kind: annotations['terasky.backstage.io/composite-kind'],
-      scope: annotations['terasky.backstage.io/crossplane-scope'] as 'Namespaced' | 'Cluster',
-      namespace: entity.metadata.namespace || annotations['namespace'] || 'default',
-    };
+    const name = getAnnotation(annotations, annotationPrefix, 'composite-name');
+    const group = getAnnotation(annotations, annotationPrefix, 'composite-group');
+    const version = getAnnotation(annotations, annotationPrefix, 'composite-version');
+    const plural = getAnnotation(annotations, annotationPrefix, 'composite-plural');
+    const kind = getAnnotation(annotations, annotationPrefix, 'composite-kind');
+    const scope = getAnnotation(annotations, annotationPrefix, 'crossplane-scope') as
+      | 'Namespaced'
+      | 'Cluster'
+      | undefined;
+    const entityNamespace = entity.metadata.namespace || annotations['namespace'] || 'default';
 
     // Validate required annotations
-    const missingAnnotations = Object.entries(crossplaneInfo)
-      .filter(([key, value]) => !value && key !== 'namespace')
-      .map(([key]) => `terasky.backstage.io/composite-${key}`);
+    const missing: string[] = [];
+    if (!name) missing.push(`${annotationPrefix}/composite-name`);
+    if (!group) missing.push(`${annotationPrefix}/composite-group`);
+    if (!version) missing.push(`${annotationPrefix}/composite-version`);
+    if (!plural) missing.push(`${annotationPrefix}/composite-plural`);
+    if (!kind) missing.push(`${annotationPrefix}/composite-kind`);
+    if (!scope) missing.push(`${annotationPrefix}/crossplane-scope`);
 
-    if (missingAnnotations.length > 0) {
-      throw new InputError(`Entity is missing required annotations: ${missingAnnotations.join(', ')}`);
+    if (missing.length > 0) {
+      throw new InputError(`Entity is missing required annotations: ${missing.join(', ')}`);
     }
+
+    const crossplaneInfo: V2CrossplaneInfo = {
+      clusterName,
+      name: name!,
+      group: group!,
+      version: version!,
+      plural: plural!,
+      kind: kind!,
+      scope: scope!,
+      namespace: entityNamespace,
+    };
 
     return { entity, crossplaneInfo };
   } else {
     // Extract V1 (claim) annotations
-    const claimName = annotations['terasky.backstage.io/claim-name'];
+    const claimName = getAnnotation(annotations, annotationPrefix, 'claim-name');
     if (!claimName) {
-      throw new InputError('Entity is missing required annotation: terasky.backstage.io/claim-name');
+      throw new InputError(
+        `Entity is missing required annotation: ${annotationPrefix}/claim-name`,
+      );
     }
 
     const crossplaneInfo = {
@@ -115,8 +143,12 @@ export function registerMcpActions(
   service: KubernetesService,
   catalog: CatalogService,
   permissions: PermissionsService,
-  auth: AuthService
+  auth: AuthService,
+  config: Config,
 ) {
+  const annotationPrefix =
+    config.getOptionalString('kubernetesIngestor.annotationPrefix') ||
+    DEFAULT_ANNOTATION_PREFIX;
   // Get Crossplane Resources
   actionsRegistry.register({
     name: 'get_crossplane_resources',
@@ -172,36 +204,56 @@ export function registerMcpActions(
         const entity = items[0];
         const annotations = entity.metadata.annotations || {};
         const clusterName = annotations['backstage.io/managed-by-location'].split(': ')[1];
-        const version = annotations['terasky.backstage.io/crossplane-version'] || 'v1';
+        const version = getAnnotation(annotations, annotationPrefix, 'crossplane-version') || 'v1';
         let result;
         if (version === 'v2') {
-          const scope = annotations['terasky.backstage.io/crossplane-scope'] || 'Namespaced';
+          const scope =
+            getAnnotation(annotations, annotationPrefix, 'crossplane-scope') ||
+            'Namespaced';
+          const compositeGroup = getAnnotation(annotations, annotationPrefix, 'composite-group');
+          const compositeVersion = getAnnotation(annotations, annotationPrefix, 'composite-version');
+          const compositePlural = getAnnotation(annotations, annotationPrefix, 'composite-plural');
+          const compositeName = getAnnotation(annotations, annotationPrefix, 'composite-name');
+
+          if (!compositeGroup || !compositeVersion || !compositePlural || !compositeName) {
+            throw new InputError('Entity is missing required composite annotations');
+          }
+
           if (scope === 'Namespaced') {
             result = await service.getResources({
               clusterName,
               namespace: entity.metadata.namespace || 'default',
-              group: annotations['terasky.backstage.io/composite-group'],
-              version: annotations['terasky.backstage.io/composite-version'],
-              plural: annotations['terasky.backstage.io/composite-plural'],
-              name: annotations['terasky.backstage.io/composite-name'],
+              group: compositeGroup,
+              version: compositeVersion,
+              plural: compositePlural,
+              name: compositeName,
             });
           } else {
             result = await service.getResources({
               clusterName,
-              name: annotations['terasky.backstage.io/composite-name'],
-              group: annotations['terasky.backstage.io/composite-group'],
-              version: annotations['terasky.backstage.io/composite-version'],
-              plural: annotations['terasky.backstage.io/composite-plural'],
+              name: compositeName,
+              group: compositeGroup,
+              version: compositeVersion,
+              plural: compositePlural,
             });
           }
         } else {
+          const claimName = getAnnotation(annotations, annotationPrefix, 'claim-name');
+          const claimGroup = getAnnotation(annotations, annotationPrefix, 'claim-group');
+          const claimVersion = getAnnotation(annotations, annotationPrefix, 'claim-version');
+          const claimPlural = getAnnotation(annotations, annotationPrefix, 'claim-plural');
+
+          if (!claimName || !claimGroup || !claimVersion || !claimPlural) {
+            throw new InputError('Entity is missing required claim annotations');
+          }
+
           result = await service.getResources({
             clusterName,
             namespace: entity.metadata.namespace || 'default',
-            name: annotations['terasky.backstage.io/claim-name'],
-            group: annotations['terasky.backstage.io/claim-group'],
-            version: annotations['terasky.backstage.io/claim-version'],
-            plural: annotations['terasky.backstage.io/claim-plural'],
+            name: claimName,
+            group: claimGroup,
+            version: claimVersion,
+            plural: claimPlural,
           });
         }
 
@@ -274,6 +326,7 @@ export function registerMcpActions(
           input.backstageEntityName,
           input.backstageEntityKind,
           input.backstageEntityNamespace,
+          annotationPrefix,
           credentials
         );
 
@@ -336,25 +389,41 @@ export function registerMcpActions(
         const entity = items[0];
         const annotations = entity.metadata.annotations || {};
         const clusterName = annotations['backstage.io/managed-by-location'].split(': ')[1];
-        const version = annotations['terasky.backstage.io/crossplane-version'] || 'v1';
+        const version =
+          getAnnotation(annotations, annotationPrefix, 'crossplane-version') ||
+          'v1';
         const namespace = entity.metadata.namespace || 'default';
 
         let result;
         if (version === 'v2') {
+          const compositeName = getAnnotation(annotations, annotationPrefix, 'composite-name');
+          const compositeGroup = getAnnotation(annotations, annotationPrefix, 'composite-group');
+          const compositeVersion = getAnnotation(annotations, annotationPrefix, 'composite-version');
+          const compositePlural = getAnnotation(annotations, annotationPrefix, 'composite-plural');
+          const scope = (getAnnotation(annotations, annotationPrefix, 'crossplane-scope') || 'Namespaced') as 'Namespaced' | 'Cluster';
+
+          if (!compositeName || !compositeGroup || !compositeVersion || !compositePlural) {
+            throw new InputError('Entity is missing required composite annotations');
+          }
+
           result = await service.getV2ResourceGraph({
             clusterName,
             namespace,
-            name: annotations['terasky.backstage.io/composite-name'],
-            group: annotations['terasky.backstage.io/composite-group'],
-            version: annotations['terasky.backstage.io/composite-version'],
-            plural: annotations['terasky.backstage.io/composite-plural'],
-            scope: (annotations['terasky.backstage.io/crossplane-scope'] || 'Namespaced') as 'Namespaced' | 'Cluster',
+            name: compositeName,
+            group: compositeGroup,
+            version: compositeVersion,
+            plural: compositePlural,
+            scope,
           });
         } else {
-          const claimName = annotations['terasky.backstage.io/claim-name'];
-          const claimGroup = annotations['terasky.backstage.io/claim-group'];
-          const claimVersion = annotations['terasky.backstage.io/claim-version'];
-          const claimPlural = annotations['terasky.backstage.io/claim-plural'];
+          const claimName = getAnnotation(annotations, annotationPrefix, 'claim-name');
+          const claimGroup = getAnnotation(annotations, annotationPrefix, 'claim-group');
+          const claimVersion = getAnnotation(annotations, annotationPrefix, 'claim-version');
+          const claimPlural = getAnnotation(annotations, annotationPrefix, 'claim-plural');
+
+          if (!claimName || !claimGroup || !claimVersion || !claimPlural) {
+            throw new InputError('Entity is missing required claim annotations');
+          }
 
           result = await service.getResourceGraph({
             clusterName,

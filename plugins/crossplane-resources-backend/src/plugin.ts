@@ -24,6 +24,7 @@ export const crossplaneResourcesBackendPlugin = createBackendPlugin({
         permissionsRegistry: coreServices.permissionsRegistry,
         discovery: coreServices.discovery,
         auth: coreServices.auth,
+        config: coreServices.rootConfig,
         actionsRegistry: actionsRegistryServiceRef,
         catalogService: catalogServiceRef,
       },
@@ -34,6 +35,7 @@ export const crossplaneResourcesBackendPlugin = createBackendPlugin({
         permissionsRegistry,
         discovery,
         auth,
+        config,
         actionsRegistry,
         catalogService,
       }) {
@@ -43,7 +45,14 @@ export const crossplaneResourcesBackendPlugin = createBackendPlugin({
         const kubernetesService = new KubernetesService(logger, discovery, auth);
         
         // Register MCP actions
-        registerMcpActions(actionsRegistry, kubernetesService, catalogService, permissions, auth);
+        registerMcpActions(
+          actionsRegistry,
+          kubernetesService,
+          catalogService,
+          permissions,
+          auth,
+          config,
+        );
         
         httpRouter.use(
           await createRouter({

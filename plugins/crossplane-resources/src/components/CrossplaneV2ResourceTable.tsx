@@ -16,6 +16,7 @@ import {
 import { configApiRef } from '@backstage/core-plugin-api';
 import { useNavigate } from 'react-router-dom';
 import pluralize from 'pluralize';
+import { getAnnotation, getAnnotationPrefix } from './annotationUtils';
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import KeyboardArrowRightIcon from '@material-ui/icons/KeyboardArrowRight';
 import DescriptionIcon from '@material-ui/icons/Description';
@@ -287,6 +288,7 @@ const CrossplaneV2ResourceTable = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const enablePermissions = config.getOptionalBoolean('crossplane.enablePermissions') ?? false;
+  const annotationPrefix = getAnnotationPrefix(config);
 
   const { allowed: canListCompositeTemp } = usePermission({ permission: listCompositeResourcesPermission });
   const { allowed: canListManagedTemp } = usePermission({ permission: listManagedResourcesPermission });
@@ -486,7 +488,7 @@ const CrossplaneV2ResourceTable = () => {
 
           // Fetch nested resources if not already loaded
           if (!nestedResources[resourceId]) {
-            const scope = entity.metadata.annotations?.['terasky.backstage.io/crossplane-scope'] || 'Cluster';
+            const scope = getAnnotation(entity.metadata.annotations || {}, annotationPrefix, 'crossplane-scope') || 'Cluster';
             const clusterOfComposite = entity.metadata.annotations?.['backstage.io/managed-by-location']?.split(": ")[1];
             const nested = await fetchNestedResources(resource.resource, resourceId, resource.level + 1, scope, clusterOfComposite || '', resource.namespace);
             setNestedResources(prev => ({
@@ -516,13 +518,13 @@ const CrossplaneV2ResourceTable = () => {
       const annotations = entity.metadata.annotations || {};
       try {
         if (canListComposite) {
-          const compositePlural = annotations['terasky.backstage.io/composite-plural'];
-          const compositeGroup = annotations['terasky.backstage.io/composite-group'];
-          const compositeVersion = annotations['terasky.backstage.io/composite-version'];
-          const compositeName = annotations['terasky.backstage.io/composite-name'];
+          const compositePlural = getAnnotation(annotations, annotationPrefix, 'composite-plural');
+          const compositeGroup = getAnnotation(annotations, annotationPrefix, 'composite-group');
+          const compositeVersion = getAnnotation(annotations, annotationPrefix, 'composite-version');
+          const compositeName = getAnnotation(annotations, annotationPrefix, 'composite-name');
           const clusterOfComposite = annotations['backstage.io/managed-by-location']?.split(": ")[1];
-          const scope = annotations['terasky.backstage.io/crossplane-scope'];
-          const namespace = annotations['terasky.backstage.io/composite-namespace'] || 'default';
+          const scope = getAnnotation(annotations, annotationPrefix, 'crossplane-scope');
+          const namespace = getAnnotation(annotations, annotationPrefix, 'composite-namespace') || 'default';
           if (compositePlural && compositeGroup && compositeVersion && compositeName && clusterOfComposite) {
             try {
               const response = await crossplaneApi.getResources({
@@ -552,7 +554,7 @@ const CrossplaneV2ResourceTable = () => {
               // Fetch top-level managed resources
               if (canListManaged && compositeResource.spec?.crossplane?.resourceRefs) {
                 const compositeId = compositeResource.metadata?.uid || `${compositeResource.kind}-${compositeResource.metadata?.name}`;
-                const managedResources = await fetchNestedResources(compositeResource, compositeId, 1, scope, clusterOfComposite, compositeResource.metadata?.namespace);
+                const managedResources = await fetchNestedResources(compositeResource, compositeId, 1, scope || 'Cluster', clusterOfComposite, compositeResource.metadata?.namespace);
                 resources.push(...managedResources);
               }
             } catch (error) {
@@ -593,8 +595,8 @@ const CrossplaneV2ResourceTable = () => {
       try {
         const supportingResources: ExtendedKubernetesObject[] = [];
         // Fetch XRD
-        const xrdPlural = annotations['terasky.backstage.io/composite-plural'];
-        const xrdGroup = annotations['terasky.backstage.io/composite-group'];
+        const xrdPlural = getAnnotation(annotations, annotationPrefix, 'composite-plural');
+        const xrdGroup = getAnnotation(annotations, annotationPrefix, 'composite-group');
         const xrdName = `${xrdPlural}.${xrdGroup}`;
         console.log('XRD Info:', { xrdPlural, xrdGroup, xrdName });
         if (xrdName && xrdPlural && xrdGroup) {
@@ -615,7 +617,7 @@ const CrossplaneV2ResourceTable = () => {
         }
 
         // Fetch Composition
-        const compositionName = annotations['terasky.backstage.io/composition-name'];
+        const compositionName = getAnnotation(annotations, annotationPrefix, 'composition-name');
         console.log('Composition Name:', compositionName);
         if (compositionName) {
           try {
@@ -635,7 +637,7 @@ const CrossplaneV2ResourceTable = () => {
         }
 
         // Fetch Composition Functions
-        const compositionFunctions = annotations['terasky.backstage.io/composition-functions']?.split(',') || [];
+        const compositionFunctions = getAnnotation(annotations, annotationPrefix, 'composition-functions')?.split(',') || [];
         console.log('Composition Functions:', compositionFunctions);
         for (const functionName of compositionFunctions) {
           if (functionName) {
@@ -661,11 +663,11 @@ const CrossplaneV2ResourceTable = () => {
           }
         }
         // Fetch Provider resources (using V2 logic)
-        const compositePlural = annotations['terasky.backstage.io/composite-plural'];
-        const compositeGroup = annotations['terasky.backstage.io/composite-group'];
-        const compositeVersion = annotations['terasky.backstage.io/composite-version'];
-        const compositeName = annotations['terasky.backstage.io/composite-name'];
-        const scope = annotations['terasky.backstage.io/crossplane-scope'];
+        const compositePlural = getAnnotation(annotations, annotationPrefix, 'composite-plural');
+        const compositeGroup = getAnnotation(annotations, annotationPrefix, 'composite-group');
+        const compositeVersion = getAnnotation(annotations, annotationPrefix, 'composite-version');
+        const compositeName = getAnnotation(annotations, annotationPrefix, 'composite-name');
+        const scope = getAnnotation(annotations, annotationPrefix, 'crossplane-scope');
         const namespace = entity.metadata.namespace || annotations['namespace'] || 'default';
         if (compositePlural && compositeGroup && compositeVersion && compositeName) {
           // For supporting resources, we don't need to pass namespace since they're always cluster-scoped
@@ -882,9 +884,9 @@ const CrossplaneV2ResourceTable = () => {
     setExpandedRows(newExpandedRows);
     if (!nestedResources[resourceId] && resource.resource.spec?.crossplane?.resourceRefs) {
       const annotations = entity.metadata.annotations || {};
-      const scope = annotations['terasky.backstage.io/crossplane-scope'];
+      const scope = getAnnotation(annotations, annotationPrefix, 'crossplane-scope') || 'Cluster';
       const clusterOfComposite = annotations['backstage.io/managed-by-location']?.split(": ")[1];
-      const nested = await fetchNestedResources(resource.resource, resourceId, resource.level + 1, scope, clusterOfComposite, resource.namespace);
+      const nested = await fetchNestedResources(resource.resource, resourceId, resource.level + 1, scope, clusterOfComposite || '', resource.namespace);
       setNestedResources(prev => ({ ...prev, [resourceId]: nested }));
     }
   };
@@ -1511,7 +1513,7 @@ const CrossplaneV2ResourceTable = () => {
 
   const annotations = entity.metadata.annotations || {};
   const clusterOfComposite = annotations['backstage.io/managed-by-location']?.split(": ")[1];
-  const scope = annotations['terasky.backstage.io/crossplane-scope'];
+  const scope = getAnnotation(annotations, annotationPrefix, 'crossplane-scope');
 
   return (
     <>

@@ -1,4 +1,5 @@
 import { LoggerService, DiscoveryService, AuthService } from '@backstage/backend-plugin-api';
+import { Config } from '@backstage/config';
 import { PolicyReport, GetPolicyReportsRequest, GetCrossplanePolicyReportsRequest } from '@terasky/backstage-plugin-kyverno-common';
 import fetch from 'node-fetch';
 
@@ -7,7 +8,29 @@ export class KubernetesService {
     private readonly logger: LoggerService,
     private readonly discovery: DiscoveryService,
     private readonly auth: AuthService,
+    private readonly config: Config,
   ) {}
+
+  private getAnnotationPrefix(): string {
+    return (
+      this.config.getOptionalString('kubernetesIngestor.annotationPrefix') ||
+      'terasky.backstage.io'
+    );
+  }
+
+  private getAnnotation(
+    annotations: Record<string, string>,
+    key: string,
+  ): string | undefined {
+    const defaultPrefix = 'terasky.backstage.io';
+    const prefix = this.getAnnotationPrefix();
+    return (
+      annotations[`${prefix}/${key}`] ||
+      (prefix !== defaultPrefix
+        ? annotations[`${defaultPrefix}/${key}`]
+        : undefined)
+    );
+  }
 
   private async proxyKubernetesRequest(clusterName: string, path: string) {
     const baseUrl = await this.discovery.getBaseUrl('kubernetes');
@@ -123,7 +146,7 @@ export class KubernetesService {
 
     try {
       const annotations = entity.metadata.annotations || {};
-      const crossplaneVersion = annotations['terasky.backstage.io/crossplane-version'];
+      const crossplaneVersion = this.getAnnotation(annotations, 'crossplane-version');
       const labelSelector = annotations['backstage.io/kubernetes-label-selector'];
       const cluster = annotations['backstage.io/managed-by-location']?.split(': ')[1];
 
@@ -135,10 +158,10 @@ export class KubernetesService {
 
       // Fetch claim (v1 only)
       if (crossplaneVersion === 'v1') {
-        const claimPlural = annotations['terasky.backstage.io/claim-plural'];
-        const claimGroup = annotations['terasky.backstage.io/claim-group'];
-        const claimVersion = annotations['terasky.backstage.io/claim-version'];
-        const claimName = annotations['terasky.backstage.io/claim-name'];
+        const claimPlural = this.getAnnotation(annotations, 'claim-plural');
+        const claimGroup = this.getAnnotation(annotations, 'claim-group');
+        const claimVersion = this.getAnnotation(annotations, 'claim-version');
+        const claimName = this.getAnnotation(annotations, 'claim-name');
         const namespace = labelSelector?.split(',').find(s => s.startsWith('crossplane.io/claim-namespace'))?.split('=')[1];
 
         if (claimPlural && claimGroup && claimVersion && claimName && namespace) {
@@ -153,11 +176,11 @@ export class KubernetesService {
       }
 
       // Fetch composite (for both v1 and v2)
-      const compositePlural = annotations['terasky.backstage.io/composite-plural'];
-      const compositeGroup = annotations['terasky.backstage.io/composite-group'];
-      const compositeVersion = annotations['terasky.backstage.io/composite-version'];
-      const compositeName = annotations['terasky.backstage.io/composite-name'];
-      const compositeScope = annotations['terasky.backstage.io/crossplane-scope'];
+      const compositePlural = this.getAnnotation(annotations, 'composite-plural');
+      const compositeGroup = this.getAnnotation(annotations, 'composite-group');
+      const compositeVersion = this.getAnnotation(annotations, 'composite-version');
+      const compositeName = this.getAnnotation(annotations, 'composite-name');
+      const compositeScope = this.getAnnotation(annotations, 'crossplane-scope');
 
       if (compositePlural && compositeGroup && compositeVersion && compositeName) {
         try {
@@ -166,7 +189,9 @@ export class KubernetesService {
             const ns = labelSelector?.split(',').find(s => 
               s.startsWith('crossplane.io/claim-namespace') || 
               s.startsWith('crossplane.io/composite-namespace')
-            )?.split('=')[1] || annotations['terasky.backstage.io/composite-namespace'] || 'default';
+            )?.split('=')[1] ||
+              this.getAnnotation(annotations, 'composite-namespace') ||
+              'default';
             compositeUrl = `/apis/${compositeGroup}/${compositeVersion}/namespaces/${ns}/${compositePlural}/${compositeName}`;
           } else {
             compositeUrl = `/apis/${compositeGroup}/${compositeVersion}/${compositePlural}/${compositeName}`;

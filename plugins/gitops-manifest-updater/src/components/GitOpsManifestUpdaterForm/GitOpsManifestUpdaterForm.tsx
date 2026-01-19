@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef, ChangeEvent } from 'react';
-import { useApi, fetchApiRef, githubAuthApiRef, gitlabAuthApiRef, bitbucketAuthApiRef } from '@backstage/core-plugin-api';
+import { useApi, fetchApiRef, githubAuthApiRef, gitlabAuthApiRef, bitbucketAuthApiRef, configApiRef } from '@backstage/core-plugin-api';
 import {
   Progress,
   ResponseErrorPanel,
@@ -673,6 +673,8 @@ export const GitOpsManifestUpdaterForm = ({
   const githubAuth = useApi(githubAuthApiRef);
   const gitlabAuth = useApi(gitlabAuthApiRef);
   const bitbucketAuth = useApi(bitbucketAuthApiRef);
+  const config = useApi(configApiRef);
+  const annotationPrefix = config.getOptionalString('kubernetesIngestor.annotationPrefix') || 'terasky.backstage.io';
 
   const getEntityFromRef = useCallback(async (entityRef: string) => {
     try {
@@ -696,7 +698,10 @@ export const GitOpsManifestUpdaterForm = ({
 
         if (entityRef) {
           const entity = await getEntityFromRef(entityRef);
-          sourceURI = entity.metadata.annotations?.['terasky.backstage.io/source-file-url'] || formContext?.formData?.sourceFileUrl;
+          // Try configured prefix first, then fallback to default
+          sourceURI = entity.metadata.annotations?.[`${annotationPrefix}/source-file-url`] 
+            || (annotationPrefix !== 'terasky.backstage.io' ? entity.metadata.annotations?.['terasky.backstage.io/source-file-url'] : undefined)
+            || formContext?.formData?.sourceFileUrl;
         }
 
         // If no sourceURI from annotation, use manual input

@@ -6,6 +6,7 @@ import { useEntity } from '@backstage/plugin-catalog-react';
 import { usePermission } from '@backstage/plugin-permission-react';
 import { showOverview } from '@terasky/backstage-plugin-crossplane-common';
 import { configApiRef } from '@backstage/core-plugin-api';
+import { getAnnotation, getAnnotationPrefix } from './annotationUtils';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import CancelIcon from '@material-ui/icons/Cancel';
 import { green, red } from '@material-ui/core/colors';
@@ -27,6 +28,7 @@ const CrossplaneV2OverviewCard = () => {
     const crossplaneApi = useApi(crossplaneApiRef);
     const config = useApi(configApiRef);
     const enablePermissions = config.getOptionalBoolean('crossplane.enablePermissions') ?? false;
+    const annotationPrefix = getAnnotationPrefix(config);
     const { allowed: canShowOverviewTemp } = usePermission({ permission: showOverview });
     const canShowOverview = enablePermissions ? canShowOverviewTemp : true;
     const [composite, setComposite] = useState<any | null>(null);
@@ -39,13 +41,13 @@ const CrossplaneV2OverviewCard = () => {
         }
         const fetchResources = async () => {
             const annotations = entity.metadata.annotations || {};
-            const plural = annotations['terasky.backstage.io/composite-plural'];
-            const group = annotations['terasky.backstage.io/composite-group'];
-            const version = annotations['terasky.backstage.io/composite-version'];
-            const name = annotations['terasky.backstage.io/composite-name'];
+            const plural = getAnnotation(annotations, annotationPrefix, 'composite-plural');
+            const group = getAnnotation(annotations, annotationPrefix, 'composite-group');
+            const version = getAnnotation(annotations, annotationPrefix, 'composite-version');
+            const name = getAnnotation(annotations, annotationPrefix, 'composite-name');
             const clusterOfComposite = annotations['backstage.io/managed-by-location'].split(": ")[1];
-            const scope = annotations['terasky.backstage.io/crossplane-scope'] as 'Namespaced' | 'Cluster';
-            const namespace = annotations['terasky.backstage.io/composite-namespace'] || 'default';
+            const scope = getAnnotation(annotations, annotationPrefix, 'crossplane-scope') as 'Namespaced' | 'Cluster';
+            const namespace = getAnnotation(annotations, annotationPrefix, 'composite-namespace') || 'default';
             if (!plural || !group || !version || !name || !clusterOfComposite) {
                 return;
             }
@@ -153,11 +155,11 @@ const CrossplaneV2OverviewCard = () => {
                             </Grid>
                             <Grid item xs={12} sm={6}>
                                 <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray' }}>Composition</Typography>
-                                <Typography variant="body2">{entity.metadata?.annotations?.['terasky.backstage.io/composition-name'] || "Unknown" }</Typography>
+                                <Typography variant="body2">{getAnnotation(entity.metadata?.annotations || {}, annotationPrefix, 'composition-name') || "Unknown" }</Typography>
                             </Grid>
                             <Grid item xs={12} sm={6}>
                                 <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray' }}>XR Scope</Typography>
-                                <Typography variant="body2">{entity.metadata?.annotations?.['terasky.backstage.io/crossplane-scope'] || 'Unknown'}</Typography>
+                                <Typography variant="body2">{getAnnotation(entity.metadata?.annotations || {}, annotationPrefix, 'crossplane-scope') || 'Unknown'}</Typography>
                             </Grid>
                         </Grid>
                     </Box>

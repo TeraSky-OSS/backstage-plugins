@@ -34,6 +34,7 @@ import ReactFlow, { ReactFlowProvider, MiniMap, Controls, Background, Node, Edge
 import dagre from 'dagre';
 import { usePermission } from '@backstage/plugin-permission-react';
 import { showResourceGraph } from '@terasky/backstage-plugin-crossplane-common';
+import { getAnnotation, getAnnotationPrefix } from './annotationUtils';
 
 const useStyles = makeStyles((theme) => ({
     drawer: {
@@ -479,6 +480,7 @@ const CrossplaneV1ResourceGraph = () => {
     const crossplaneApi = useApi(crossplaneApiRef);
     const config = useApi(configApiRef);
     const enablePermissions = config.getOptionalBoolean('crossplane.enablePermissions') ?? false;
+    const annotationPrefix = getAnnotationPrefix(config);
     const [resources, setResources] = useState<Array<KubernetesObject>>([]);
     const [selectedResource, setSelectedResource] = useState<KubernetesObject | null>(null);
     const [drawerOpen, setDrawerOpen] = useState(false);
@@ -580,9 +582,9 @@ const CrossplaneV1ResourceGraph = () => {
         let claimNodeId: string | undefined;
 
         // Find the claim node first (it should be the entity's claim)
-        const claimName = entity.metadata.annotations?.['terasky.backstage.io/claim-name'];
-        const claimKind = entity.metadata.annotations?.['terasky.backstage.io/claim-kind'];
-        const claimGroup = entity.metadata.annotations?.['terasky.backstage.io/claim-group'];
+        const claimName = getAnnotation(entity.metadata.annotations || {}, annotationPrefix, 'claim-name');
+        const claimKind = getAnnotation(entity.metadata.annotations || {}, annotationPrefix, 'claim-kind');
+        const claimGroup = getAnnotation(entity.metadata.annotations || {}, annotationPrefix, 'claim-group');
         const claimResource = resourceList.find(r => r.metadata?.name === claimName);
 
         // Helper function to determine category badge
@@ -787,14 +789,14 @@ const CrossplaneV1ResourceGraph = () => {
         const fetchResources = async () => {
             try {
                 const annotations = entity.metadata.annotations || {};
-                const claimName = annotations['terasky.backstage.io/claim-name'];
+                const claimName = getAnnotation(annotations, annotationPrefix, 'claim-name');
                 const clusterOfClaim = annotations['backstage.io/managed-by-location'].split(": ")[1];
                 const labelSelector = annotations['backstage.io/kubernetes-label-selector'];
                 const namespace = labelSelector.split(',').find(s => s.startsWith('crossplane.io/claim-namespace'))?.split('=')[1];
 
-                const claimGroup = annotations['terasky.backstage.io/claim-group'];
-                const claimVersion = annotations['terasky.backstage.io/claim-version'];
-                const claimPlural = annotations['terasky.backstage.io/claim-plural'];
+                const claimGroup = getAnnotation(annotations, annotationPrefix, 'claim-group');
+                const claimVersion = getAnnotation(annotations, annotationPrefix, 'claim-version');
+                const claimPlural = getAnnotation(annotations, annotationPrefix, 'claim-plural');
 
                 if (!claimName || !claimGroup || !claimVersion || !claimPlural) {
                     throw new Error('Missing required claim information in annotations');

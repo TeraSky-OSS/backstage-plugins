@@ -2,9 +2,10 @@ import { Entity } from '@backstage/catalog-model';
 import { useApi, configApiRef } from '@backstage/core-plugin-api';
 import { usePermission } from '@backstage/plugin-permission-react';
 import { showOverview, showResourceGraph, listCompositeResourcesPermission } from '@terasky/backstage-plugin-crossplane-common';
+import { hasCrossplaneResourceAnnotation, getAnnotationPrefix } from './annotationUtils';
 
-export const isCrossplaneAvailable = (entity: Entity): boolean => {
-  return Boolean(entity.metadata.annotations?.['terasky.backstage.io/crossplane-resource']);
+export const isCrossplaneAvailable = (entity: Entity, annotationPrefix?: string): boolean => {
+  return hasCrossplaneResourceAnnotation(entity.metadata.annotations, annotationPrefix);
 };
 
 // Create wrapper components that handle the permission checks for content
@@ -35,16 +36,18 @@ export const IfCrossplaneResourcesListAvailable = (props: { children: JSX.Elemen
 // Create components that provide the condition functions for EntityLayout.Route
 export const useResourceGraphAvailable = () => {
   const config = useApi(configApiRef);
+  const annotationPrefix = getAnnotationPrefix(config);
   const enablePermissions = config.getOptionalBoolean('crossplane.enablePermissions') ?? false;
   const { allowed } = usePermission({ permission: showResourceGraph });
   
-  return (entity: Entity) => isCrossplaneAvailable(entity) && (!enablePermissions || allowed);
+  return (entity: Entity) => isCrossplaneAvailable(entity, annotationPrefix) && (!enablePermissions || allowed);
 };
 
 export const useResourcesListAvailable = () => {
   const config = useApi(configApiRef);
+  const annotationPrefix = getAnnotationPrefix(config);
   const enablePermissions = config.getOptionalBoolean('crossplane.enablePermissions') ?? false;
   const { allowed } = usePermission({ permission: listCompositeResourcesPermission });
   
-  return (entity: Entity) => isCrossplaneAvailable(entity) && (!enablePermissions || allowed);
+  return (entity: Entity) => isCrossplaneAvailable(entity, annotationPrefix) && (!enablePermissions || allowed);
 };
