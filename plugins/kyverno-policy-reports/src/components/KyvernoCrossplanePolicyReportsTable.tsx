@@ -85,12 +85,8 @@ const KyvernoCrossplanePolicyReportsTable = () => {
             try {
                 const response = await kyvernoApi.getCrossplanePolicyReports({
                     entity: {
-                        metadata: {
-                            name: entity.metadata.name,
-                            namespace: entity.metadata.namespace,
-                            annotations: entity.metadata.annotations,
-                        },
-                    },
+                        metadata: entity.metadata,
+                    }
                 });
                 setPolicyReports(response.items);
             } catch (error) {

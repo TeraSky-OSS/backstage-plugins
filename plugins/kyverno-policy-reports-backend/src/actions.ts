@@ -70,7 +70,9 @@ export function registerMcpActions(
         }
 
         const reports = await service.getPolicyReports({
-          entity: input.entity,
+          entity: {
+            metadata: input.entity.metadata,
+          },
         });
         return {
           output: {
@@ -192,7 +194,9 @@ export function registerMcpActions(
         }
 
         const reports = await service.getCrossplanePolicyReports({
-          entity: input.entity,
+          entity: {
+            metadata: input.entity.metadata,
+          },
         });
         return {
           output: {

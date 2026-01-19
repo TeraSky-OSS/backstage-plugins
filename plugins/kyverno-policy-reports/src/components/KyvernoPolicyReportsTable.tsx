@@ -87,10 +87,7 @@ const KyvernoPolicyReportsTable = () => {
                 }
                 const response = await kyvernoApi.getPolicyReports({
                     entity: {
-                        metadata: {
-                            name: entity.metadata.name,
-                            namespace: entity.metadata.namespace as string
-                        }
+                        metadata: entity.metadata,
                     }
                 });
                 setPolicyReports(response.items);
