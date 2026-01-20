@@ -59,6 +59,7 @@
     "@terasky/backstage-plugin-kubernetes-resources-permissions-backend": "^0.5.0",
     "@terasky/backstage-plugin-kyverno-policy-reports-backend": "^1.6.1",
     "@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils": "^2.1.1",
+    "@terasky/backstage-plugin-spectrocloud-cluster-provider": "^0.1.0",
     "@terasky/backstage-plugin-vcf-automation-backend": "^1.8.0",
     "@terasky/backstage-plugin-vcf-automation-ingestor": "^1.8.1",
     "@terasky/backstage-plugin-vcf-operations-backend": "^0.5.0",
