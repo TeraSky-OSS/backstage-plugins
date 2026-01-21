@@ -162,6 +162,7 @@ spec:
         title: Updating Kubernetes YAML for ${{ steps['get-entity'].output.entity.metadata.name }}
         description: Updating Kubernetes YAML for ${{ steps['get-entity'].output.entity.metadata.name }}
         targetBranchName: ${{ steps['parse-url'].output.result.branch }}
+        update: true
 
   output:
     links:
