@@ -1,5 +1,5 @@
 import { ApiBlueprint, configApiRef, createFrontendPlugin, identityApiRef } from '@backstage/frontend-plugin-api';
-import { FormFieldBlueprint, formFieldsApi } from '@backstage/plugin-scaffolder-react/alpha';
+import { FormFieldBlueprint } from '@backstage/plugin-scaffolder-react/alpha';
 import { TerraformScaffolderClient } from './api/TerraformScaffolderClient';
 import { terraformScaffolderApiRef } from './api/TerraformScaffolderApi';
 import { catalogApiRef } from '@backstage/plugin-catalog-react';
@@ -30,7 +30,7 @@ export const terraformModuleApi = ApiBlueprint.make({
 /** @alpha */
 export const terraformScaffolderPlugin = createFrontendPlugin({
   pluginId: 'terraform-scaffolder',
-  extensions: [formFieldsApi, terraformModuleApi, terraformModuleExtension],
+  extensions: [terraformModuleApi, terraformModuleExtension],
 });
 
 export default terraformScaffolderPlugin;
