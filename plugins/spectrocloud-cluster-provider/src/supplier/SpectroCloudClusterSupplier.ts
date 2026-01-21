@@ -220,10 +220,10 @@ export class SpectroCloudClusterSupplier implements KubernetesClustersSupplier {
 
       // Create namespace
       try {
-        await k8sApi.readNamespace(namespace);
+        await k8sApi.readNamespace({ name: namespace });
       } catch (error: any) {
         if (error.statusCode === 404) {
-          await k8sApi.createNamespace({ metadata: { name: namespace } });
+          await k8sApi.createNamespace({ body: { metadata: { name: namespace } } });
         } else if (error.code === 'ETIMEDOUT' || error.code === 'ECONNREFUSED' || error.code === 'EHOSTUNREACH') {
           throw new Error(`Cannot reach cluster ${clusterName}: ${error.code}`);
         } else {
@@ -233,11 +233,12 @@ export class SpectroCloudClusterSupplier implements KubernetesClustersSupplier {
 
       // Create service account
       try {
-        await k8sApi.readNamespacedServiceAccount(serviceAccountName, namespace);
+        await k8sApi.readNamespacedServiceAccount({ name: serviceAccountName, namespace });
       } catch (error: any) {
         if (error.statusCode === 404) {
-          await k8sApi.createNamespacedServiceAccount(namespace, {
-            metadata: { name: serviceAccountName },
+          await k8sApi.createNamespacedServiceAccount({
+            namespace,
+            body: { metadata: { name: serviceAccountName } },
           });
         } else {
           throw error;
@@ -246,17 +247,20 @@ export class SpectroCloudClusterSupplier implements KubernetesClustersSupplier {
 
       // Create secret for SA token
       try {
-        await k8sApi.readNamespacedSecret(secretName, namespace);
+        await k8sApi.readNamespacedSecret({ name: secretName, namespace });
       } catch (error: any) {
         if (error.statusCode === 404) {
-          await k8sApi.createNamespacedSecret(namespace, {
-            metadata: {
-              name: secretName,
-              annotations: {
-                'kubernetes.io/service-account.name': serviceAccountName,
+          await k8sApi.createNamespacedSecret({
+            namespace,
+            body: {
+              metadata: {
+                name: secretName,
+                annotations: {
+                  'kubernetes.io/service-account.name': serviceAccountName,
+                },
               },
+              type: 'kubernetes.io/service-account-token',
             },
-            type: 'kubernetes.io/service-account-token',
           });
         } else {
           throw error;
@@ -265,7 +269,7 @@ export class SpectroCloudClusterSupplier implements KubernetesClustersSupplier {
 
       // Create ClusterRole
       try {
-        await rbacApi.readClusterRole(clusterRoleName);
+        await rbacApi.readClusterRole({ name: clusterRoleName });
       } catch (error: any) {
         if (error.statusCode === 404) {
           // Use custom rules if provided, otherwise use default read-only rules
@@ -284,8 +288,10 @@ export class SpectroCloudClusterSupplier implements KubernetesClustersSupplier {
           }));
           
           await rbacApi.createClusterRole({
-            metadata: { name: clusterRoleName },
-            rules,
+            body: {
+              metadata: { name: clusterRoleName },
+              rules,
+            },
           });
         } else {
           throw error;
@@ -294,23 +300,25 @@ export class SpectroCloudClusterSupplier implements KubernetesClustersSupplier {
 
       // Create ClusterRoleBinding
       try {
-        await rbacApi.readClusterRoleBinding(clusterRoleBindingName);
+        await rbacApi.readClusterRoleBinding({ name: clusterRoleBindingName });
       } catch (error: any) {
         if (error.statusCode === 404) {
           await rbacApi.createClusterRoleBinding({
-            metadata: { name: clusterRoleBindingName },
-            roleRef: {
-              apiGroup: 'rbac.authorization.k8s.io',
-              kind: 'ClusterRole',
-              name: clusterRoleName,
-            },
-            subjects: [
-              {
-                kind: 'ServiceAccount',
-                name: serviceAccountName,
-                namespace: namespace,
+            body: {
+              metadata: { name: clusterRoleBindingName },
+              roleRef: {
+                apiGroup: 'rbac.authorization.k8s.io',
+                kind: 'ClusterRole',
+                name: clusterRoleName,
               },
-            ],
+              subjects: [
+                {
+                  kind: 'ServiceAccount',
+                  name: serviceAccountName,
+                  namespace: namespace,
+                },
+              ],
+            },
           });
         } else {
           throw error;
@@ -321,9 +329,9 @@ export class SpectroCloudClusterSupplier implements KubernetesClustersSupplier {
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       // Get the service account token
-      const secretResponse = await k8sApi.readNamespacedSecret(secretName, namespace);
-      const token = secretResponse.body.data?.token;
-      const caCert = secretResponse.body.data?.['ca.crt'];
+      const secretResponse = await k8sApi.readNamespacedSecret({ name: secretName, namespace });
+      const token = secretResponse.data?.token;
+      const caCert = secretResponse.data?.['ca.crt'];
 
       if (!token) {
         throw new Error('Service account token not found in secret');
