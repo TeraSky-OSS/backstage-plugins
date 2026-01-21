@@ -66,7 +66,7 @@
     "@terasky/plugin-rbac-mcp-backend": "^0.4.0",
     "@terasky/plugin-scaffolder-mcp-backend": "^0.4.0",
     "app": "link:../app",
-    "better-sqlite3": "^9.0.0",
+    "better-sqlite3": "^12.6.2",
     "node-gyp": "^10.3.1",
     "pg": "^8.11.3"
   },
