@@ -71,6 +71,7 @@ backend.add(import('@terasky/backstage-plugin-educates-backend'));
 backend.add(import('@terasky/backstage-plugin-ai-rules-backend'));
 backend.add(import('@terasky/backstage-plugin-vcf-operations-backend'));
 backend.add(import('@terasky/backstage-plugin-kro-resources-backend'));
+backend.add(import('@terasky/backstage-plugin-scaleops-backend'));
 
 //MCP
 backend.add(import('@backstage/plugin-mcp-actions-backend'));
