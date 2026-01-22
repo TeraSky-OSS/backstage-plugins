@@ -3,6 +3,13 @@
   "version": "1.5.0",
   "main": "src/index.ts",
   "types": "src/index.ts",
+  "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public",
+    "main": "dist/index.cjs.js",
+    "module": "dist/index.esm.js",
+    "types": "dist/index.d.ts"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/TeraSky-OSS/backstage-plugins.git",
@@ -17,11 +24,6 @@
       "@terasky/backstage-plugin-educates-backend",
       "@terasky/backstage-plugin-educates-common"
     ]
-  },
-  "publishConfig": {
-    "access": "public",
-    "main": "dist/index.esm.js",
-    "types": "dist/index.d.ts"
   },
   "sideEffects": false,
   "scripts": {
