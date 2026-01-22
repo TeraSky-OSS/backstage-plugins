@@ -1,11 +1,14 @@
 import { createFrontendPlugin } from '@backstage/frontend-plugin-api';
-import { EntityCardBlueprint, EntityContentBlueprint } from '@backstage/plugin-catalog-react/alpha';
+import { EntityContentBlueprint } from '@backstage/plugin-catalog-react/alpha';
 import { isKubernetesResourcesAvailable } from './components/isKubernetesResourcesAvailable';
 
 /** @alpha */
-export const kubernetesResourcesGraphCard = EntityCardBlueprint.make({
+export const kubernetesResourcesGraphCard = EntityContentBlueprint.make({
   name: 'kubernetes-resources.graph',
   params: {
+    path: '/kubernetes-resources-graph',
+    title: 'Resource Graph',
+    group: 'Kubernetes',
     filter: isKubernetesResourcesAvailable,
     loader: () => import('./components/KubernetesResourceGraph').then(m => <m.default />),
   },
@@ -17,7 +20,8 @@ export const kubernetesResourcesContent = EntityContentBlueprint.make({
   name: 'kubernetes-resources.content',
   params: {
     path: '/kubernetes-resources',
-    title: 'Kubernetes Resources',
+    title: 'Resource Table',
+    group: 'Kubernetes',
     filter: isKubernetesResourcesAvailable,
     loader: () => import('./components/KubernetesResourcesPage').then(m => <m.default />),
   },
