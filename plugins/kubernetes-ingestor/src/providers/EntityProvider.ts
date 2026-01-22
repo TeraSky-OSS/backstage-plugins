@@ -1998,8 +1998,9 @@ export class KubernetesEntityProvider implements EntityProvider {
     try {
       const isCrossplaneEnabled = this.config.getOptionalBoolean('kubernetesIngestor.crossplane.enabled') ?? true;
       const isKROEnabled = this.config.getOptionalBoolean('kubernetesIngestor.kro.enabled') ?? false;
+      const componentsEnabled = this.config.getOptionalBoolean('kubernetesIngestor.components.enabled') ?? true;
       
-      if (this.config.getOptionalBoolean('kubernetesIngestor.components.enabled')) {
+      if (componentsEnabled) {
         // Initialize providers
         const kubernetesDataProvider = new KubernetesDataProvider(
           this.resourceFetcher,
@@ -2104,6 +2105,11 @@ export class KubernetesEntityProvider implements EntityProvider {
             entity,
             locationKey: `provider:${this.getProviderName()}`,
           })),
+        });
+      } else {
+        await this.connection.applyMutation({
+          type: 'full',
+          entities: [],
         });
       }
     } catch (error) {
