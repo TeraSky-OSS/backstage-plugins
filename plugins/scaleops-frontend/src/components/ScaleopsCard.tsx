@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useApi, configApiRef } from '@backstage/core-plugin-api';
+import { useApi, configApiRef, identityApiRef } from '@backstage/core-plugin-api';
 import { Table, TableColumn, Link } from '@backstage/core-components';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { Entity } from '@backstage/catalog-model';
@@ -41,6 +41,7 @@ const columns: TableColumn<Workload>[] = [
 
 export const ScaleopsCard = () => {
   const configApi = useApi(configApiRef);
+  const identityApi = useApi(identityApiRef);
   const { entity } = useEntity();
   const [workloads, setWorkloads] = useState<Workload[]>([]);
   const [linkToDashboard, setLinkToDashboard] = useState(false);
@@ -53,40 +54,32 @@ export const ScaleopsCard = () => {
 
       const labelsQuery = labelSelector.split(',').map(label => `labels=${encodeURIComponent(label)}`).join('&');
 
+      const token = await identityApi.getCredentials();
+      
+      if (!token.token) {
+        console.error('No Backstage token available');
+        return;
+      }
+
       const backendUrl = configApi.getString('backend.baseUrl');
-      const baseURL = `${backendUrl  }/api/proxy/scaleops`;
+      const baseURL = `${backendUrl}/api/scaleops`;
       const scaleopsConfig = configApi.getConfig('scaleops');
       const currencyPrefix = scaleopsConfig?.getString('currencyPrefix');
       const dashboardURL = scaleopsConfig?.getString('baseUrl');
-      const authConfig = scaleopsConfig?.getConfig('authentication');
       setLinkToDashboard(scaleopsConfig?.getBoolean('linkToDashboard') || false);
       setDashboardUrl(`${dashboardURL}/cost-report/compute?searchTerms=&selectedTable=Workloads&groupByCluster=0&groupByNamespace=0&logicalLabel=AND&${labelsQuery}`);
-      let authToken;
-      let response;
-      let data;
-      if (authConfig.getBoolean('enabled') === true && authConfig.getString('type') === "internal") {
-        const user = authConfig.getString('user');
-        const password = authConfig.getString('password');
-        const authResponse = await fetch(`${baseURL}/auth/callback`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userName: user, password: password }),
-        });
-        authToken = authResponse.headers.get('Location')?.split("=")[1];
-        response = await fetch(`${baseURL}/api/v1/dashboard/byNamespace?multiCluster=true&logicalLabel=AND`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
-          body: JSON.stringify({ label: labelSelector.split(',') }),
-        });
-        data = await response.json();
-      } else {
-        response = await fetch(`${baseURL}/api/v1/dashboard/byNamespace?multiCluster=true&logicalLabel=AND`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ label: labelSelector.split(',') }),
-        });
-        data = await response.json();
-      }
+      
+      // Authentication is now handled by the backend plugin
+      const response = await fetch(`${baseURL}/api/api/v1/dashboard/byNamespace?multiCluster=true&logicalLabel=AND`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token.token}`
+        },
+        body: JSON.stringify({ label: labelSelector.split(',') }),
+      });
+      
+      const data = await response.json();
       if (!data.workloads || !Array.isArray(data.workloads) || data.workloads.length === 0) {
         setWorkloads([]);
         return;
@@ -121,7 +114,7 @@ export const ScaleopsCard = () => {
     };
 
     fetchWorkloads();
-  }, [configApi, entity]);
+  }, [configApi, identityApi, entity]);
 
   return (
     <>

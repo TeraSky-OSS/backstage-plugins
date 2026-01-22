@@ -1,58 +1,23 @@
 export interface Config {
   /**
-  * Frontend root URL
-  * NOTE: Visibility applies to only this field
+  * ScaleOps configuration
   * @visibility frontend
   */
   scaleops?: {
     /**
-    * Frontend root URL
-    * NOTE: Visibility applies to only this field
+    * ScaleOps base URL (used for dashboard links)
     * @visibility frontend
     */
     baseUrl: string;
     /**
-    * Frontend root URL
-    * NOTE: Visibility applies to only this field
+    * Currency prefix for cost display
     * @visibility frontend
     */
     currencyPrefix?: string;
     /**
-    * Frontend root URL
-    * NOTE: Visibility applies to only this field
+    * Whether to show links to ScaleOps dashboard
     * @visibility frontend
     */
     linkToDashboard?: boolean;
-    /**
-    * Frontend root URL
-    * NOTE: Visibility applies to only this field
-    * @visibility frontend
-    */
-    authentication?: {
-      /**
-      * Frontend root URL
-      * NOTE: Visibility applies to only this field
-      * @visibility frontend
-      */
-      enabled?: boolean;
-      /**
-      * Frontend root URL
-      * NOTE: Visibility applies to only this field
-      * @visibility frontend
-      */
-      type?: string;
-      /**
-      * Frontend root URL
-      * NOTE: Visibility applies to only this field
-      * @visibility frontend
-      */
-      user?: string;
-      /**
-      * Frontend root URL
-      * NOTE: Visibility applies to only this field
-      * @visibility frontend
-      */
-      password?: string;
-    };
   }
 }  

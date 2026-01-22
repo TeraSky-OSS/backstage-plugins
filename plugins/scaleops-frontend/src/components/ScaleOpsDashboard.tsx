@@ -208,6 +208,9 @@ export const ScaleOpsDashboard = () => {
     }] : [])
   ];
 
+  // Note: Authentication is now handled by the backend plugin
+  // No need for frontend authentication logic
+
   useEffect(() => {
     const fetchWorkloads = async () => {
       const labelSelector = entity.metadata.annotations?.['backstage.io/kubernetes-label-selector'];
@@ -215,36 +218,24 @@ export const ScaleOpsDashboard = () => {
     
       const token = await identityApi.getCredentials(); 
       
-      const backendUrl = configApi.getString('backend.baseUrl');
-      const baseURL = `${backendUrl  }/api/proxy/scaleops`;
-      const scaleopsConfig = configApi.getConfig('scaleops');
-      const authConfig = scaleopsConfig?.getConfig('authentication');
-      let authToken;
-      let response;
-      let data;
-      if (authConfig.getBoolean('enabled') === true && authConfig.getString('type') === "internal") {
-        const user = authConfig.getString('user');
-        const password = authConfig.getString('password');
-        const authResponse = await fetch(`${baseURL}/auth/callback`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token.token}` },
-          body: JSON.stringify({ userName: user, password: password }),
-        });
-        authToken = authResponse.headers.get('Location')?.split("=")[1];
-        response = await fetch(`${baseURL}/api/v1/dashboard/byNamespace?multiCluster=true&logicalLabel=AND`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
-          body: JSON.stringify({ label: labelSelector.split(',') }),
-        });
-        data = await response.json();
-      } else {
-        response = await fetch(`${baseURL}/api/v1/dashboard/byNamespace?multiCluster=true&logicalLabel=AND`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token.token}` },
-          body: JSON.stringify({ label: labelSelector.split(',') }),
-        });
-        data = await response.json();
+      if (!token.token) {
+        console.error('No Backstage token available');
+        return;
       }
+      
+      const backendUrl = configApi.getString('backend.baseUrl');
+      const baseURL = `${backendUrl}/api/scaleops`;
+
+      const response = await fetch(`${baseURL}/api/api/v1/dashboard/byNamespace?multiCluster=true&logicalLabel=AND`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${token.token}` 
+        },
+        body: JSON.stringify({ label: labelSelector.split(',') }),
+      });
+      
+      const data = await response.json();
       if (!data.workloads || !Array.isArray(data.workloads) || data.workloads.length === 0) {
         setWorkloads([]);
         return;
@@ -260,20 +251,20 @@ export const ScaleOpsDashboard = () => {
         overridden: w.overridden ?? false,
         shouldBinPack: w.shouldBinPack ?? false,
         rolloutPolicyValue: w.rollingStrategyDetails?.rolloutPolicyValue ?? 'N/A',
-        cpuRequests: w.cpuRequests ?? 'N/A',
-        memRequests: w.memRequests ?? 'N/A',
+        cpuRequests: w.cpuRequests ?? 0,
+        memRequests: w.memRequests ?? 0,
         priorityClassName: w.priorityClassName ?? 'N/A',
-        replicas: w.replicas ?? 'N/A',
+        replicas: w.replicas ?? 0,
         hasGPU: w.hasGPU ?? false,
         hasHpa: w.hasHpa ?? false,
-        cpuRecommended: w.cpuRecommended ?? 'N/A',
-        memRecommended: w.memRecommended ?? 'N/A',
+        cpuRecommended: w.cpuRecommended ?? 0,
+        memRecommended: w.memRecommended ?? 0,
         isUnderProvisioned: w.isUnderProvisioned ?? false,
         isOverProvisioned: w.isOverProvisioned ?? false,
-        savingsAvailable: w.savingsAvailable ?? 'N/A',
-        activeSavings: w.activeSavings ?? 'N/A',
-        overallAvailableSavings: w.overallAvailableSavings ?? 'N/A',
-        oomCountLast24h: w.oomCountLast24h ?? 'N/A',
+        savingsAvailable: w.savingsAvailable ?? 0,
+        activeSavings: w.activeSavings ?? 0,
+        overallAvailableSavings: w.overallAvailableSavings ?? 0,
+        oomCountLast24h: w.oomCountLast24h ?? 0,
         oomLastTimestamp: w.oomLastTimestamp ?? 'N/A',
         workloadErrors: w.workloadErrors ?? 'N/A',
         hpaStatusWarnings: w.hpaStatusWarnings ?? 'N/A',
@@ -294,12 +285,22 @@ export const ScaleOpsDashboard = () => {
       if (!labelSelector) return;
 
       const token = await identityApi.getCredentials(); 
+      
+      if (!token.token) {
+        console.error('No Backstage token available');
+        return;
+      }
 
       const backendUrl = configApi.getString('backend.baseUrl');
-      const baseURL = `${backendUrl  }/api/proxy/scaleops`;
-      const response = await fetch(`${baseURL}/detailedCostReport/getWorkloads?multiCluster=true&range=7d`, {
+      const baseURL = `${backendUrl}/api/scaleops`;
+
+      const response = await fetch(`${baseURL}/api/detailedCostReport/getWorkloads?multiCluster=true&range=7d`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Scaleops-Cluster': selectedWorkload.clusterName, Authorization: `Bearer ${token.token}` },
+        headers: { 
+          'Content-Type': 'application/json', 
+          'X-Scaleops-Cluster': selectedWorkload.clusterName, 
+          Authorization: `Bearer ${token.token}` 
+        },
         body: JSON.stringify({
           clusterFilters: [selectedWorkload.clusterName],
           namespaces: [selectedWorkload.namespace],
@@ -317,14 +318,22 @@ export const ScaleOpsDashboard = () => {
 
   useEffect(() => {
     const checkNetworkCostEnabled = async () => {
-
       const token = await identityApi.getCredentials(); 
+      
+      if (!token.token) {
+        console.error('No Backstage token available');
+        return;
+      }
 
       const backendUrl = configApi.getString('backend.baseUrl');
-      const baseURL = `${backendUrl  }/api/proxy/scaleops`;
-      const response = await fetch(`${baseURL}/api/v1/networkCost/networkCostEnabled?multiCluster=true`, {
+      const baseURL = `${backendUrl}/api/scaleops`;
+
+      const response = await fetch(`${baseURL}/api/api/v1/networkCost/networkCostEnabled?multiCluster=true`, {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token.token}` },
+        headers: { 
+          'Content-Type': 'application/json', 
+          Authorization: `Bearer ${token.token}` 
+        },
       });
       const data = await response.json();
       if (selectedWorkload && data.networkCostEnabled[selectedWorkload.clusterName]) {
@@ -341,17 +350,26 @@ export const ScaleOpsDashboard = () => {
     if (!selectedWorkload || !networkCostEnabled) return;
 
     const fetchNetworkUsage = async () => {
-
       const token = await identityApi.getCredentials(); 
+      
+      if (!token.token) {
+        console.error('No Backstage token available');
+        return;
+      }
 
       const backendUrl = configApi.getString('backend.baseUrl');
-      const baseURL = `${backendUrl  }/api/proxy/scaleops`;
+      const baseURL = `${backendUrl}/api/scaleops`;
+
       const now = Date.now();
       const from = now - 24 * 60 * 60 * 1000; // 24 hours ago
       const to = now;
-      const response = await fetch(`${baseURL}/api/v1/workload-network?name=${selectedWorkload.workloadName}&namespace=${selectedWorkload.namespace}&workloadType=${selectedWorkload.type}&from=${from}&to=${to}`, {
+      const response = await fetch(`${baseURL}/api/api/v1/workload-network?name=${selectedWorkload.workloadName}&namespace=${selectedWorkload.namespace}&workloadType=${selectedWorkload.type}&from=${from}&to=${to}`, {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json', 'X-Scaleops-Cluster': selectedWorkload.clusterName, Authorization: `Bearer ${token.token}` },
+        headers: { 
+          'Content-Type': 'application/json', 
+          'X-Scaleops-Cluster': selectedWorkload.clusterName, 
+          Authorization: `Bearer ${token.token}` 
+        },
       });
       const data = await response.json();
       setNetworkUsage(data.destinations);
