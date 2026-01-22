@@ -89,6 +89,10 @@ nav:
   - Resource And Cost Optimization:
       - ScaleOps:
           - Overview: plugins/scaleops/overview.md
+          - Backend:
+              - About: plugins/scaleops/backend/about.md
+              - Install: plugins/scaleops/backend/install.md
+              - Configure: plugins/scaleops/backend/configure.md
           - Frontend:
               - About: plugins/scaleops/frontend/about.md
               - Install: plugins/scaleops/frontend/install.md

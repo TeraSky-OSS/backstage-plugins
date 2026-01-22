@@ -4,24 +4,27 @@ This guide will help you install and set up the ScaleOps frontend plugin in your
 
 ## Prerequisites
 
-Before installing the plugin, ensure you have:
+Before installing the frontend plugin, ensure you have:
 
 1. A working Backstage instance
-2. Access to a ScaleOps instance
-3. Authentication credentials (if required)
-4. Proper proxy configuration
+2. **ScaleOps Backend Plugin** installed and configured (required)
+3. Access to a ScaleOps instance
 
 ## Installation Steps
 
-### 1. Add the Package
+### 1. Install Backend Plugin First
 
-Install the plugin package using yarn:
+The frontend plugin requires the backend plugin to be installed and configured. See the [Backend Installation Guide](../backend/install.md) if not already done.
+
+### 2. Add the Frontend Package
+
+Install the plugin package:
 
 ```bash
 yarn --cwd packages/app add @terasky/backstage-plugin-scaleops-frontend
 ```
 
-### 2. Add to Entity Page
+### 3. Add to Entity Page
 
 Modify your entity page configuration in `packages/app/src/components/catalog/EntityPage.tsx`:
 
@@ -30,6 +33,8 @@ import { ScaleOpsDashboard, isScaleopsAvailable } from '@terasky/backstage-plugi
 
 const serviceEntityPage = (
   <EntityLayout>
+    {/* ... other routes ... */}
+    
     <EntityLayout.Route 
       path="/scaleops" 
       if={isScaleopsAvailable}
@@ -41,54 +46,43 @@ const serviceEntityPage = (
 );
 ```
 
-### 3. Configure Authentication
+### 4. (Optional) Add Summary Card
 
-Add authentication configuration to your `app-config.yaml`:
+Add the ScaleOps card to your overview page:
 
-#### With Internal Authentication
-```yaml
-scaleops:
-  baseUrl: 'https://your-scaleops-instance.com'
-  linkToDashboard: true
-  authentication:
-    enabled: true
-    user: 'YOUR_USERNAME'
-    password: 'YOUR_PASSWORD'
+```typescript
+import { ScaleopsCard } from '@terasky/backstage-plugin-scaleops-frontend';
 
-proxy:
-  endpoints:
-    '/scaleops':
-      target: 'https://your-scaleops-instance.com'
-      changeOrigin: true
+const overviewContent = (
+  <Grid container spacing={3}>
+    {/* ... other cards ... */}
+    
+    <Grid item md={6}>
+      <ScaleopsCard />
+    </Grid>
+  </Grid>
+);
 ```
 
-#### Without Authentication
+### 5. Configure Entity Annotations
+
+Add the required annotation to your component entities in `catalog-info.yaml`:
+
 ```yaml
-scaleops:
-  baseUrl: 'https://your-scaleops-instance.com'
-  linkToDashboard: true
-  authentication:
-    enabled: false
-
-proxy:
-  endpoints:
-    '/scaleops':
-      target: 'https://your-scaleops-instance.com'
-      changeOrigin: true
-```
-
-### 4. Configure Environment Variables
-
-Set up any required environment variables:
-
-```bash
-export SCALEOPS_USERNAME=your-username
-export SCALEOPS_PASSWORD=your-password
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: my-service
+  annotations:
+    backstage.io/kubernetes-label-selector: 'app=my-service,env=prod'
+spec:
+  type: service
+  lifecycle: production
 ```
 
 ## New Frontend System Support (Alpha)
 
-The plugin now supports the new frontend system available in the `/alpha` export. To use this:
+The plugin supports the new frontend system available in the `/alpha` export:
 
 ```typescript
 import { createApp } from '@backstage/frontend-defaults';
@@ -96,45 +90,41 @@ import { scaleopsPlugin } from '@terasky/backstage-plugin-scaleops-frontend/alph
 
 export default createApp({
   features: [
-    ...
+    // ... other features
     scaleopsPlugin,
-    ...
   ],
 });
 ```
 
-This replaces the need for manual route configuration in `EntityPage.tsx` and other files. The plugin will be automatically integrated into the appropriate entity pages.
+This automatically integrates the plugin into appropriate entity pages without manual route configuration.
 
 ## Verification
 
 After installation, verify that:
 
 1. The plugin appears in your package.json dependencies
-2. The ScaleOps dashboard is accessible
-3. Cost data is being displayed
-4. Authentication is working
-5. Links to ScaleOps are functioning
+2. The ScaleOps tab appears on entities with the kubernetes label selector annotation
+3. Cost data is being displayed correctly
+4. Dashboard links work (if enabled in backend config)
 
-## Troubleshooting
+### Testing the Installation
 
-Common issues and solutions:
+1. **Check Entity Page**
+   - Navigate to a component with `backstage.io/kubernetes-label-selector` annotation
+   - Look for the "ScaleOps" tab
+   - Verify data loads without errors
 
-1. **Dashboard Not Loading**
-    - Check proxy configuration
-    - Verify authentication settings
-    - Check ScaleOps instance URL
-    - Review browser console
+2. **Check Browser Console**
+   - No error messages related to ScaleOps
+   - API calls to `/api/scaleops/api/*` succeed
 
-2. **Authentication Issues**
-    - Verify credentials
-    - Check environment variables
-    - Review proxy headers
-    - Test ScaleOps access
+## Next Steps
 
-3. **Data Not Displaying**
-    - Check API connectivity
-    - Verify data availability
-    - Review permissions
-    - Check entity configuration
+After successful installation:
 
-For configuration options and customization, proceed to the [Configuration Guide](./configure.md).
+1. Configure backend plugin settings (see [Backend Configuration](../backend/configure.md))
+2. Add annotations to more entities
+3. Enable dashboard links (optional)
+4. Start monitoring costs and optimizations
+
+For configuration options, proceed to the [Configuration Guide](./configure.md).

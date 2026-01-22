@@ -1,84 +1,180 @@
 # Configuring the ScaleOps Frontend Plugin
 
-This guide covers the configuration options available for the ScaleOps frontend plugin.
+This guide covers the frontend-specific configuration options for the ScaleOps plugin.
+
+## Backend Configuration
+
+**Important:** All authentication and API configuration is handled by the backend plugin. See the [Backend Configuration Guide](../backend/configure.md) for:
+- ScaleOps authentication setup
+- Dashboard link enablement
+- API connectivity
+
+The frontend plugin automatically uses the backend API at `/api/scaleops/api/*`.
+
+## Entity Configuration
+
+The frontend plugin displays data for entities with the required annotation.
+
+### Required Annotation
+
+Add to your `catalog-info.yaml`:
+
+```yaml
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: my-service
+  annotations:
+    backstage.io/kubernetes-label-selector: 'app=my-service,env=prod'
+spec:
+  type: service
+  lifecycle: production
+```
+
+### Label Selector Format
+
+The `kubernetes-label-selector` annotation should contain Kubernetes labels in the format:
+
+```yaml
+# Single label
+backstage.io/kubernetes-label-selector: 'app=my-service'
+
+# Multiple labels (AND logic)
+backstage.io/kubernetes-label-selector: 'app=my-service,env=prod,tier=backend'
+```
+
+## Component Placement
+
+### Dashboard Tab
+
+Add to entity pages in `packages/app/src/components/catalog/EntityPage.tsx`:
+
+```typescript
+import { ScaleOpsDashboard, isScaleopsAvailable } from '@terasky/backstage-plugin-scaleops-frontend';
+
+const serviceEntityPage = (
+  <EntityLayout>
+    <EntityLayout.Route 
+      path="/scaleops" 
+      if={isScaleopsAvailable}
+      title="ScaleOps"
+    >
+      <ScaleOpsDashboard />
+    </EntityLayout.Route>
+  </EntityLayout>
+);
+```
+
+### Summary Card (Optional)
+
+Add to overview page:
+
+```typescript
+import { ScaleopsCard } from '@terasky/backstage-plugin-scaleops-frontend';
+
+const overviewContent = (
+  <Grid container spacing={3}>
+    <Grid item md={6}>
+      <ScaleopsCard />
+    </Grid>
+  </Grid>
+);
+```
 
 ## New Frontend System Configuration (Alpha)
 
-When using the new frontend system through the `/alpha` export, the plugin is configured automatically with sensible defaults. The configuration in `app-config.yaml` is still respected:
+When using the new frontend system, the plugin is configured automatically:
 
-```yaml
-scaleops:
-  baseUrl: 'https://your-scaleops-instance.com'
-  linkToDashboard: true
-  authentication:
-    enabled: true
-    user: 'YOUR_USERNAME'
-    password: 'YOUR_PASSWORD'
+```typescript
+import { scaleopsPlugin } from '@terasky/backstage-plugin-scaleops-frontend/alpha';
+
+export default createApp({
+  features: [
+    scaleopsPlugin,
+  ],
+});
 ```
 
-The plugin will be automatically integrated into the appropriate entity pages without requiring manual route configuration.
+No manual route configuration needed - the plugin automatically appears on entities with the correct annotation.
 
-## Configuration File
+## Display Customization
 
-The plugin is configured through your `app-config.yaml`. Here's a comprehensive example:
+### Tab Title
 
-```yaml
-scaleops:
-  # Base URL of your ScaleOps instance
-  baseUrl: 'https://your-scaleops-instance.com'
-  
-  # Enable direct links to ScaleOps dashboard
-  linkToDashboard: true
-  
-  # Authentication configuration
-  authentication:
-    enabled: true
-    user: 'YOUR_USERNAME'
-    password: 'YOUR_PASSWORD'
+Customize the tab title:
+
+```typescript
+<EntityLayout.Route 
+  path="/scaleops" 
+  if={isScaleopsAvailable}
+  title="Cost Optimization"  // Custom title
+>
+  <ScaleOpsDashboard />
+</EntityLayout.Route>
 ```
 
-## Authentication Options
+### Conditional Display
 
-### Internal Authentication
-```yaml
-authentication:
-  enabled: true
-  user: 'username'
-  password: 'password'
-```
-
-### No Authentication
-```yaml
-authentication:
-  enabled: false
-```
-
-### Environment Variables
-```yaml
-authentication:
-  enabled: true
-  user: ${SCALEOPS_USERNAME}
-  password: ${SCALEOPS_PASSWORD}
-```
+The `isScaleopsAvailable` function checks for the `kubernetes-label-selector` annotation. The tab only appears when this annotation is present.
 
 ## Best Practices
 
-1. **Authentication**
-    - Use environment variables
-    - Rotate credentials regularly
-    - Implement proper secret management
-    - Use secure authentication methods
+### Entity Annotations
 
-2. **Performance**
-    - Set appropriate refresh intervals
-    - Configure caching if needed
-    - Monitor API usage
-    - Handle errors gracefully
+1. **Label Accuracy**
+   - Ensure labels match your Kubernetes workloads exactly
+   - Use the same labels ScaleOps uses to track workloads
+   - Test labels against your cluster
 
-3. **Integration**
-    - Use consistent configuration
-    - Document custom settings
-    - Monitor dashboard performance
-    - Maintain security standards
+2. **Label Specificity**
+   - Use specific labels to avoid matching unrelated workloads
+   - Include environment labels when appropriate
+   - Document label meanings in entity descriptions
 
-For installation instructions, refer to the [Installation Guide](./install.md).
+### UI Integration
+
+1. **Tab Placement**
+   - Place near other operations/monitoring tabs
+   - Use consistent naming across services
+   - Consider your team's workflow
+
+2. **Component Selection**
+   - Use dashboard for detailed analysis
+   - Use card for quick overview
+   - Consider both on important services
+
+## Troubleshooting
+
+### Tab Not Appearing
+
+**Issue:** ScaleOps tab doesn't show on entity page
+
+**Solutions:**
+1. Verify `backstage.io/kubernetes-label-selector` annotation exists
+2. Check annotation format is correct
+3. Ensure `isScaleopsAvailable` condition is used
+4. Check browser console for errors
+
+### No Data Displayed
+
+**Issue:** Tab appears but shows no data
+
+**Solutions:**
+1. Verify backend plugin is installed and configured
+2. Check entity labels match ScaleOps workloads
+3. Verify ScaleOps has data for those labels
+4. Check browser console for API errors
+5. Verify backend authentication is working
+
+### Dashboard Links Not Working
+
+**Issue:** "View Dashboard" links don't work
+
+**Solution:**
+- Enable dashboard links in backend configuration:
+  ```yaml
+  scaleops:
+    linkToDashboard: true
+  ```
+
+For backend configuration issues, see the [Backend Configuration Guide](../backend/configure.md).
