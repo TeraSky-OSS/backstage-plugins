@@ -4,7 +4,9 @@ This guide covers the configuration options available for the SpectroCloud Kuber
 
 ## Configuration File
 
-The plugin is configured through your `app-config.yaml` under the `kubernetes.clusterLocatorMethods` section.
+The plugin is configured through your `app-config.yaml` under the **`spectrocloud`** section (separate from `kubernetes.clusterLocatorMethods`). 
+
+The configuration supports **multiple SpectroCloud instances**, each with its own cluster provider settings. Generic SpectroCloud connection fields (`url`, `tenant`, `apiToken`) are at the top level of each instance, while cluster provider-specific settings are nested under `clusterProvider`.
 
 ## Basic Configuration
 
@@ -13,12 +15,10 @@ The plugin is configured through your `app-config.yaml` under the `kubernetes.cl
 The minimum required configuration:
 
 ```yaml
-kubernetes:
-  clusterLocatorMethods:
-    - type: 'spectrocloud'
-      url: https://api.spectrocloud.com
-      tenant: my-tenant
-      apiToken: ${SPECTROCLOUD_API_TOKEN}
+spectrocloud:
+  - url: https://api.spectrocloud.com
+    tenant: my-tenant
+    apiToken: ${SPECTROCLOUD_API_TOKEN}
 ```
 
 ### Recommended Configuration
@@ -26,12 +26,11 @@ kubernetes:
 A more complete configuration with filtering:
 
 ```yaml
-kubernetes:
-  clusterLocatorMethods:
-    - type: 'spectrocloud'
-      url: https://api.spectrocloud.com
-      tenant: my-tenant
-      apiToken: ${SPECTROCLOUD_API_TOKEN}
+spectrocloud:
+  - url: https://api.spectrocloud.com
+    tenant: my-tenant
+    apiToken: ${SPECTROCLOUD_API_TOKEN}
+    clusterProvider:
       excludeProjects: [sandbox, development]
       excludeTenantScopedClusters: false
       skipMetricsLookup: true
@@ -40,12 +39,6 @@ kubernetes:
 ## Configuration Options
 
 ### Required Options
-
-#### `type`
-- **Type**: `string`
-- **Required**: Yes
-- **Value**: `'spectrocloud'`
-- **Description**: Identifies this as a SpectroCloud cluster locator method
 
 #### `url`
 - **Type**: `string`
@@ -69,6 +62,33 @@ kubernetes:
 - **Best Practice**: Always use environment variable substitution
 - **Permissions**: Token needs cluster read access
 
+#### `name`
+- **Type**: `string`
+- **Required**: No
+- **Default**: `undefined` (no prefix)
+- **Example**: `prod`, `staging-eu`, `us-west`
+- **Description**: Instance name used as prefix for cluster names to prevent conflicts
+- **Behavior**:
+    - If set: Cluster names are prefixed with `{name}-`
+    - If not set: Cluster names are used as-is
+- **Use Case**: Essential when using multiple SpectroCloud instances that may have clusters with the same name
+
+**Example:**
+```yaml
+spectrocloud:
+  - name: prod
+    url: https://api.spectrocloud.com
+    tenant: production
+    apiToken: ${SPECTRO_PROD_TOKEN}
+    # Cluster "my-cluster" becomes "prod-my-cluster"
+  
+  - name: staging
+    url: https://api-eu.spectrocloud.com
+    tenant: staging
+    apiToken: ${SPECTRO_STAGING_TOKEN}
+    # Cluster "my-cluster" becomes "staging-my-cluster"
+```
+
 ### Optional Filtering Options
 
 #### `includeProjects`
@@ -84,11 +104,12 @@ kubernetes:
 
 ```yaml
 # Only production and staging clusters
-- type: 'spectrocloud'
-  url: https://api.spectrocloud.com
-  tenant: my-tenant
-  apiToken: ${SPECTROCLOUD_API_TOKEN}
-  includeProjects: ['production', 'staging']
+spectrocloud:
+  - url: https://api.spectrocloud.com
+    tenant: my-tenant
+    apiToken: ${SPECTROCLOUD_API_TOKEN}
+    clusterProvider:
+      includeProjects: ['production', 'staging']
 ```
 
 #### `excludeProjects`
@@ -104,11 +125,12 @@ kubernetes:
 
 ```yaml
 # All clusters except sandbox and dev
-- type: 'spectrocloud'
-  url: https://api.spectrocloud.com
-  tenant: my-tenant
-  apiToken: ${SPECTROCLOUD_API_TOKEN}
-  excludeProjects: ['sandbox', 'development']
+spectrocloud:
+  - url: https://api.spectrocloud.com
+    tenant: my-tenant
+    apiToken: ${SPECTROCLOUD_API_TOKEN}
+    clusterProvider:
+      excludeProjects: ['sandbox', 'development']
 ```
 
 #### `excludeTenantScopedClusters`
@@ -123,11 +145,12 @@ kubernetes:
 
 ```yaml
 # Only project-scoped clusters
-- type: 'spectrocloud'
-  url: https://api.spectrocloud.com
-  tenant: my-tenant
-  apiToken: ${SPECTROCLOUD_API_TOKEN}
-  excludeTenantScopedClusters: true
+spectrocloud:
+  - url: https://api.spectrocloud.com
+    tenant: my-tenant
+    apiToken: ${SPECTROCLOUD_API_TOKEN}
+    clusterProvider:
+      excludeTenantScopedClusters: true
 ```
 
 ### Optional Performance Options
@@ -144,11 +167,12 @@ kubernetes:
 
 ```yaml
 # Skip metrics for performance
-- type: 'spectrocloud'
-  url: https://api.spectrocloud.com
-  tenant: my-tenant
-  apiToken: ${SPECTROCLOUD_API_TOKEN}
-  skipMetricsLookup: true
+spectrocloud:
+  - url: https://api.spectrocloud.com
+    tenant: my-tenant
+    apiToken: ${SPECTROCLOUD_API_TOKEN}
+    clusterProvider:
+      skipMetricsLookup: true
 ```
 
 ## Complete Configuration Examples
@@ -156,12 +180,11 @@ kubernetes:
 ### Example 1: Production Only
 
 ```yaml
-kubernetes:
-  clusterLocatorMethods:
-    - type: 'spectrocloud'
-      url: https://api.spectrocloud.com
-      tenant: acme-corp
-      apiToken: ${SPECTROCLOUD_API_TOKEN}
+spectrocloud:
+  - url: https://api.spectrocloud.com
+    tenant: acme-corp
+    apiToken: ${SPECTROCLOUD_API_TOKEN}
+    clusterProvider:
       includeProjects: ['production']
       skipMetricsLookup: true
 ```
@@ -169,12 +192,11 @@ kubernetes:
 ### Example 2: Exclude Development Environments
 
 ```yaml
-kubernetes:
-  clusterLocatorMethods:
-    - type: 'spectrocloud'
-      url: https://api.spectrocloud.com
-      tenant: acme-corp
-      apiToken: ${SPECTROCLOUD_API_TOKEN}
+spectrocloud:
+  - url: https://api.spectrocloud.com
+    tenant: acme-corp
+    apiToken: ${SPECTROCLOUD_API_TOKEN}
+    clusterProvider:
       excludeProjects: ['sandbox', 'development', 'testing']
       excludeTenantScopedClusters: true
       skipMetricsLookup: true
@@ -183,12 +205,11 @@ kubernetes:
 ### Example 3: Multiple Environments
 
 ```yaml
-kubernetes:
-  clusterLocatorMethods:
-    - type: 'spectrocloud'
-      url: https://api.spectrocloud.com
-      tenant: acme-corp
-      apiToken: ${SPECTROCLOUD_API_TOKEN}
+spectrocloud:
+  - url: https://api.spectrocloud.com
+    tenant: acme-corp
+    apiToken: ${SPECTROCLOUD_API_TOKEN}
+    clusterProvider:
       includeProjects: ['production', 'staging', 'qa']
       skipMetricsLookup: false  # Enable metrics for these critical clusters
 ```
@@ -196,14 +217,46 @@ kubernetes:
 ### Example 4: Self-Hosted SpectroCloud
 
 ```yaml
-kubernetes:
-  clusterLocatorMethods:
-    - type: 'spectrocloud'
-      url: https://spectrocloud.internal.company.com
-      tenant: internal
-      apiToken: ${SPECTROCLOUD_API_TOKEN}
+spectrocloud:
+  - url: https://spectrocloud.internal.company.com
+    tenant: internal
+    apiToken: ${SPECTROCLOUD_API_TOKEN}
+    clusterProvider:
       skipMetricsLookup: true
 ```
+
+### Example 5: Multiple SpectroCloud Instances
+
+Connect to multiple SpectroCloud instances (e.g., different regions or environments):
+
+```yaml
+spectrocloud:
+  # Production SpectroCloud instance (US)
+  - url: https://api.spectrocloud.com
+    tenant: production-tenant
+    apiToken: ${SPECTROCLOUD_PROD_API_TOKEN}
+    name: prod-us  # Clusters will be prefixed with "prod-us-"
+    clusterProvider:
+      includeProjects: ['production']
+      skipMetricsLookup: false
+      refreshIntervalSeconds: 600
+  
+  # Staging SpectroCloud instance (EU region)
+  - url: https://api-eu.spectrocloud.com
+    tenant: staging-tenant
+    apiToken: ${SPECTROCLOUD_STAGING_API_TOKEN}
+    name: staging-eu  # Clusters will be prefixed with "staging-eu-"
+    clusterProvider:
+      includeProjects: ['staging', 'qa']
+      skipMetricsLookup: true
+      refreshIntervalSeconds: 300
+```
+
+**Result:** If both instances have a cluster named `my-cluster`, they will appear in Backstage as:
+- `prod-us-my-cluster` (from production instance)
+- `staging-eu-my-cluster` (from staging instance)
+
+This prevents naming conflicts and makes it clear which instance each cluster belongs to.
 
 ## Multi-Source Configuration
 
@@ -223,12 +276,13 @@ kubernetes:
           serviceAccountToken: ${PROD_TOKEN}
           skipTLSVerify: false
           skipMetricsLookup: false
-    
-    # All other clusters from SpectroCloud
-    - type: 'spectrocloud'
-      url: https://api.spectrocloud.com
-      tenant: my-tenant
-      apiToken: ${SPECTROCLOUD_API_TOKEN}
+
+# All other clusters from SpectroCloud
+spectrocloud:
+  - url: https://api.spectrocloud.com
+    tenant: my-tenant
+    apiToken: ${SPECTROCLOUD_API_TOKEN}
+    clusterProvider:
       excludeProjects: ['development']
 ```
 
@@ -245,12 +299,13 @@ kubernetes:
     
     # Catalog-based clusters
     - type: 'catalog'
-    
-    # SpectroCloud clusters
-    - type: 'spectrocloud'
-      url: https://api.spectrocloud.com
-      tenant: my-tenant
-      apiToken: ${SPECTROCLOUD_API_TOKEN}
+
+# SpectroCloud clusters
+spectrocloud:
+  - url: https://api.spectrocloud.com
+    tenant: my-tenant
+    apiToken: ${SPECTROCLOUD_API_TOKEN}
+    clusterProvider:
       includeProjects: ['production', 'staging']
 ```
 
@@ -267,12 +322,12 @@ kubernetes:
           authProvider: oidc
           oidcTokenProvider: microsoft
           skipTLSVerify: false
-    
-    # SpectroCloud clusters (service account auth)
-    - type: 'spectrocloud'
-      url: https://api.spectrocloud.com
-      tenant: my-tenant
-      apiToken: ${SPECTROCLOUD_API_TOKEN}
+
+# SpectroCloud clusters (service account auth)
+spectrocloud:
+  - url: https://api.spectrocloud.com
+    tenant: my-tenant
+    apiToken: ${SPECTROCLOUD_API_TOKEN}
 ```
 
 ## Configuration Schema
@@ -281,18 +336,32 @@ The plugin provides TypeScript definitions for configuration validation:
 
 ```typescript
 export interface Config {
-  kubernetes?: {
-    clusterLocatorMethods?: Array<{
-      type: 'spectrocloud';
-      url: string;
-      tenant: string;
-      apiToken: string;
+  spectrocloud?: Array<{
+    url: string;
+    tenant: string;
+    apiToken: string;
+    name?: string;
+    clusterProvider?: {
       includeProjects?: string[];
       excludeProjects?: string[];
       skipMetricsLookup?: boolean;
       excludeTenantScopedClusters?: boolean;
-    }>;
-  };
+      refreshIntervalSeconds?: number;
+      clusterTimeoutSeconds?: number;
+      rbac?: {
+        namespace?: string;
+        serviceAccountName?: string;
+        secretName?: string;
+        clusterRoleName?: string;
+        clusterRoleBindingName?: string;
+        clusterRoleRules?: Array<{
+          apiGroups: string[];
+          resources: string[];
+          verbs: string[];
+        }>;
+      };
+    };
+  }>;
 }
 ```
 
@@ -345,30 +414,29 @@ export interface Config {
    - Use consistent naming conventions
    - Document project purposes
 
-2. **Separate concerns**
+2. **Separate concerns** (use different config files)
    ```yaml
-   # Production clusters
-   - type: 'spectrocloud'
+   # app-config.production.yaml
+   spectrocloud:
      tenant: prod
      includeProjects: ['production']
    
-   # Non-production clusters
-   - type: 'spectrocloud'
+   # app-config.development.yaml
+   spectrocloud:
      tenant: nonprod
      excludeProjects: ['sandbox']
    ```
 
 3. **Document your configuration**
    ```yaml
-   kubernetes:
-     clusterLocatorMethods:
-       # Production SpectroCloud clusters
-       # Managed by Platform team
-       # Contact: platform@example.com
-       - type: 'spectrocloud'
-         url: https://api.spectrocloud.com
-         tenant: my-tenant
-         apiToken: ${SPECTROCLOUD_API_TOKEN}
+   # Production SpectroCloud clusters
+   # Managed by Platform team
+   # Contact: platform@example.com
+   spectrocloud:
+     - url: https://api.spectrocloud.com
+       tenant: my-tenant
+       apiToken: ${SPECTROCLOUD_API_TOKEN}
+       clusterProvider:
          includeProjects: ['production']
    ```
 
@@ -381,12 +449,11 @@ export interface Config {
 Control how often the plugin queries SpectroCloud for cluster updates:
 
 ```yaml
-kubernetes:
-  clusterLocatorMethods:
-    - type: 'spectrocloud'
-      url: https://api.spectrocloud.com
-      tenant: my-tenant
-      apiToken: ${SPECTROCLOUD_API_TOKEN}
+spectrocloud:
+  - url: https://api.spectrocloud.com
+    tenant: my-tenant
+    apiToken: ${SPECTROCLOUD_API_TOKEN}
+    clusterProvider:
       refreshIntervalSeconds: 300  # 5 minutes (default: 600)
 ```
 
@@ -401,12 +468,11 @@ kubernetes:
 Configure timeout for RBAC setup per cluster:
 
 ```yaml
-kubernetes:
-  clusterLocatorMethods:
-    - type: 'spectrocloud'
-      url: https://api.spectrocloud.com
-      tenant: my-tenant
-      apiToken: ${SPECTROCLOUD_API_TOKEN}
+spectrocloud:
+  - url: https://api.spectrocloud.com
+    tenant: my-tenant
+    apiToken: ${SPECTROCLOUD_API_TOKEN}
+    clusterProvider:
       clusterTimeoutSeconds: 30  # 30 seconds (default: 15)
 ```
 
@@ -423,12 +489,11 @@ Override default Kubernetes resource names and permissions:
 #### Basic RBAC Configuration
 
 ```yaml
-kubernetes:
-  clusterLocatorMethods:
-    - type: 'spectrocloud'
-      url: https://api.spectrocloud.com
-      tenant: my-tenant
-      apiToken: ${SPECTROCLOUD_API_TOKEN}
+spectrocloud:
+  - url: https://api.spectrocloud.com
+    tenant: my-tenant
+    apiToken: ${SPECTROCLOUD_API_TOKEN}
+    clusterProvider:
       rbac:
         namespace: custom-namespace           # default: backstage-system
         serviceAccountName: custom-sa         # default: backstage-sa
@@ -442,12 +507,11 @@ kubernetes:
 Define custom RBAC permissions instead of default read-only access:
 
 ```yaml
-kubernetes:
-  clusterLocatorMethods:
-    - type: 'spectrocloud'
-      url: https://api.spectrocloud.com
-      tenant: my-tenant
-      apiToken: ${SPECTROCLOUD_API_TOKEN}
+spectrocloud:
+  - url: https://api.spectrocloud.com
+    tenant: my-tenant
+    apiToken: ${SPECTROCLOUD_API_TOKEN}
+    clusterProvider:
       rbac:
         clusterRoleRules:
           # Read pods and services (core API group)
@@ -542,13 +606,11 @@ rbac:
 ### Complete Advanced Configuration Example
 
 ```yaml
-kubernetes:
-  clusterLocatorMethods:
-    - type: 'spectrocloud'
-      url: https://api.spectrocloud.com
-      tenant: my-tenant
-      apiToken: ${SPECTROCLOUD_API_TOKEN}
-      
+spectrocloud:
+  - url: https://api.spectrocloud.com
+    tenant: my-tenant
+    apiToken: ${SPECTROCLOUD_API_TOKEN}
+    clusterProvider:
       # Project filtering
       includeProjects: ['production', 'staging']
       excludeTenantScopedClusters: true
@@ -575,7 +637,7 @@ kubernetes:
           - apiGroups: ['apps']
             resources: ['deployments', 'statefulsets', 'daemonsets', 'replicasets']
             verbs: ['get', 'list', 'watch']
-          
+      
           # Ingress
           - apiGroups: ['networking.k8s.io']
             resources: ['ingresses', 'networkpolicies']

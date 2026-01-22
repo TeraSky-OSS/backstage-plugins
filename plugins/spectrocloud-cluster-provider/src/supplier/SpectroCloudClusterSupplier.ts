@@ -23,6 +23,7 @@ export interface SpectroCloudConfig {
   url: string;
   tenant: string;
   apiToken: string;
+  name?: string; // Optional instance name for cluster name prefixing
   includeProjects: string[];
   excludeProjects: string[];
   skipMetricsLookup: boolean;
@@ -52,8 +53,11 @@ export class SpectroCloudClusterSupplier implements KubernetesClustersSupplier {
   }
 
   static fromConfig(methodConfig: Config, logger: LoggerService): SpectroCloudClusterSupplier {
-    // Read RBAC configuration with defaults
-    const rbacConfig = methodConfig.getOptionalConfig('rbac');
+    // Read cluster provider configuration (if present)
+    const clusterProviderConfig = methodConfig.getOptionalConfig('clusterProvider');
+    
+    // Read RBAC configuration with defaults (from clusterProvider section)
+    const rbacConfig = clusterProviderConfig?.getOptionalConfig('rbac');
     const rbacRulesConfig = rbacConfig?.getOptionalConfigArray('clusterRoleRules');
     let clusterRoleRules: RBACRule[] | undefined;
     
@@ -66,15 +70,19 @@ export class SpectroCloudClusterSupplier implements KubernetesClustersSupplier {
     }
 
     const spectroConfig: SpectroCloudConfig = {
+      // Generic SpectroCloud fields (top-level)
       url: methodConfig.getString('url'),
       tenant: methodConfig.getString('tenant'),
       apiToken: methodConfig.getString('apiToken'),
-      excludeProjects: methodConfig.getOptionalStringArray('excludeProjects') ?? [],
-      includeProjects: methodConfig.getOptionalStringArray('includeProjects') ?? [],
-      skipMetricsLookup: methodConfig.getOptionalBoolean('skipMetricsLookup') ?? true,
-      excludeTenantScopedClusters: methodConfig.getOptionalBoolean('excludeTenantScopedClusters') ?? false,
-      refreshIntervalSeconds: methodConfig.getOptionalNumber('refreshIntervalSeconds') ?? 600,
-      clusterTimeoutSeconds: methodConfig.getOptionalNumber('clusterTimeoutSeconds') ?? 15,
+      name: methodConfig.getOptionalString('name'),
+      
+      // Cluster provider-specific fields (from clusterProvider section)
+      excludeProjects: clusterProviderConfig?.getOptionalStringArray('excludeProjects') ?? [],
+      includeProjects: clusterProviderConfig?.getOptionalStringArray('includeProjects') ?? [],
+      skipMetricsLookup: clusterProviderConfig?.getOptionalBoolean('skipMetricsLookup') ?? true,
+      excludeTenantScopedClusters: clusterProviderConfig?.getOptionalBoolean('excludeTenantScopedClusters') ?? false,
+      refreshIntervalSeconds: clusterProviderConfig?.getOptionalNumber('refreshIntervalSeconds') ?? 600,
+      clusterTimeoutSeconds: clusterProviderConfig?.getOptionalNumber('clusterTimeoutSeconds') ?? 15,
       rbac: {
         namespace: rbacConfig?.getOptionalString('namespace') ?? 'backstage-system',
         serviceAccountName: rbacConfig?.getOptionalString('serviceAccountName') ?? 'backstage-sa',
@@ -154,14 +162,17 @@ export class SpectroCloudClusterSupplier implements KubernetesClustersSupplier {
             continue;
           }
 
+          // Apply instance name prefix if configured
+          const prefixedClusterName = this.prefixClusterName(cluster.metadata.name);
+
           const setupPromise = this.setupServiceAccountAccess(
-            cluster.metadata.name,
+            prefixedClusterName,
             adminKubeconfigText,
           );
 
           const timeoutPromise = new Promise<ClusterDetails | undefined>((resolve) => {
             setTimeout(() => {
-              this.logger.warn(`Timeout: ${cluster.metadata.name} unreachable (${this.config.clusterTimeoutSeconds}s)`);
+              this.logger.warn(`Timeout: ${prefixedClusterName} unreachable (${this.config.clusterTimeoutSeconds}s)`);
               resolve(undefined);
             }, this.config.clusterTimeoutSeconds * 1000);
           });
@@ -191,6 +202,16 @@ export class SpectroCloudClusterSupplier implements KubernetesClustersSupplier {
 
   async getClusters(_options: { credentials: any }): Promise<ClusterDetails[]> {
     return this.clusterDetails;
+  }
+
+  /**
+   * Apply instance name prefix to cluster name if configured
+   */
+  private prefixClusterName(clusterName: string): string {
+    if (this.config.name) {
+      return `${this.config.name}-${clusterName}`;
+    }
+    return clusterName;
   }
 
   /**

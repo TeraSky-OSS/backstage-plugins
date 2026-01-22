@@ -96,29 +96,37 @@ Eliminate manual cluster configuration:
 ### Basic Configuration
 
 ```yaml
+# Standard Kubernetes clusters (handled by default plugin)
 kubernetes:
   clusterLocatorMethods:
-    # SpectroCloud clusters
-    - type: 'spectrocloud'
-      url: https://api.spectrocloud.com
-      tenant: my-tenant
-      apiToken: ${SPECTROCLOUD_API_TOKEN}
+    - type: 'config'
+      clusters:
+        - name: my-cluster
+          url: https://k8s.example.com
+          authProvider: serviceAccount
+          serviceAccountToken: ${K8S_TOKEN}
+
+# SpectroCloud configuration (supports multiple instances)
+spectrocloud:
+  - url: https://api.spectrocloud.com
+    tenant: my-tenant
+    apiToken: ${SPECTROCLOUD_API_TOKEN}
+    clusterProvider:
       includeProjects: [production, staging]
       excludeProjects: [sandbox]
       excludeTenantScopedClusters: false
       skipMetricsLookup: true
 ```
 
+
 ### Advanced Configuration with Custom RBAC
 
 ```yaml
-kubernetes:
-  clusterLocatorMethods:
-    - type: 'spectrocloud'
-      url: https://api.spectrocloud.com
-      tenant: my-tenant
-      apiToken: ${SPECTROCLOUD_API_TOKEN}
-      
+spectrocloud:
+  - url: https://api.spectrocloud.com
+    tenant: my-tenant
+    apiToken: ${SPECTROCLOUD_API_TOKEN}
+    clusterProvider:
       # Project filtering
       includeProjects: [production, staging]
       
@@ -145,12 +153,6 @@ kubernetes:
 ```yaml
 kubernetes:
   clusterLocatorMethods:
-    # SpectroCloud clusters
-    - type: 'spectrocloud'
-      url: https://api.spectrocloud.com
-      tenant: my-tenant
-      apiToken: ${SPECTROCLOUD_API_TOKEN}
-    
     # Static clusters
     - type: 'config'
       clusters:
@@ -163,6 +165,23 @@ kubernetes:
     - type: 'gke'
       projectId: my-gcp-project
       region: us-central1
+
+# SpectroCloud clusters (supports multiple instances)
+spectrocloud:
+  - url: https://api.spectrocloud.com
+    tenant: my-tenant
+    apiToken: ${SPECTROCLOUD_API_TOKEN}
+    name: prod  # Optional: prefix for cluster names (e.g., "my-cluster" becomes "prod-my-cluster")
+    clusterProvider:
+      includeProjects: [production]
+  
+  # Optional: Add more SpectroCloud instances
+  - url: https://api-eu.spectrocloud.com
+    tenant: eu-tenant
+    apiToken: ${SPECTROCLOUD_EU_API_TOKEN}
+    name: staging-eu  # Prevents name conflicts with prod clusters
+    clusterProvider:
+      includeProjects: [staging]
 ```
 
 ## Getting Started

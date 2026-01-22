@@ -56,13 +56,15 @@ kubernetes:
 Add SpectroCloud configuration to your `app-config.yaml`:
 
 ```yaml
-kubernetes:
-  clusterLocatorMethods:
-    - type: 'spectrocloud'
-      url: https://api.spectrocloud.com
-      tenant: my-tenant
-      apiToken: ${SPECTROCLOUD_API_TOKEN}
-      
+spectrocloud:
+  - url: https://api.spectrocloud.com
+    tenant: my-tenant
+    apiToken: ${SPECTROCLOUD_API_TOKEN}
+    
+    # Optional: Instance name (prefixes cluster names to avoid conflicts)
+    # name: prod
+    
+    clusterProvider:
       # Optional: Filter by projects
       includeProjects: []
       excludeProjects: []
@@ -107,18 +109,18 @@ After installation, verify that:
 
 Check backend logs for:
 ```
-[kubernetes] info: ✓ Loaded X cluster(s) from config
-[kubernetes] info: ✓ Registered SpectroCloud cluster supplier
-[kubernetes] info: ✓ Initial SpectroCloud refresh complete
-[kubernetes] info: Kubernetes cluster supplier registered with X supplier(s)
+[kubernetes] info: ✓ Loaded default Kubernetes cluster suppliers
+[kubernetes] info: ✓ Created SpectroCloud cluster supplier
+[kubernetes] info: ✓ Initial SpectroCloud cluster refresh complete
 ```
 
 ### 2. Clusters Are Discovered
 
 Check for successful cluster configuration:
 ```
-[kubernetes] info: ✓ cluster-name-01 configured
-[kubernetes] info: ✓ cluster-name-02 configured
+[kubernetes] info: ✓ cluster-name-01 (Service Account)
+[kubernetes] info: ✓ cluster-name-02 (Service Account)
+[kubernetes] info: === SpectroCloud Refresh Complete: X/Y cluster(s) configured ===
 ```
 
 ### 3. Clusters Appear in Backstage
@@ -150,12 +152,12 @@ kubernetes:
     
     # Catalog-based clusters
     - type: 'catalog'
-    
-    # SpectroCloud clusters
-    - type: 'spectrocloud'
-      url: https://api.spectrocloud.com
-      tenant: my-tenant
-      apiToken: ${SPECTROCLOUD_API_TOKEN}
+
+# SpectroCloud clusters (supports multiple instances)
+spectrocloud:
+  - url: https://api.spectrocloud.com
+    tenant: my-tenant
+    apiToken: ${SPECTROCLOUD_API_TOKEN}
 ```
 
 ## Network Requirements
