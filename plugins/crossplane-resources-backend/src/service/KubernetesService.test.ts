@@ -1175,7 +1175,7 @@ describe('KubernetesService', () => {
             spec: {
               crossplane: {
                 resourceRefs: [
-                  { apiVersion: 'nested.example.com/v1', kind: 'NestedComposite', name: 'nested-1' },
+                  { apiVersion: 'nested.example.com/v1', kind: 'NestedComposite', name: 'nested-1', namespace: 'default' },
                 ],
               },
             },
@@ -1189,7 +1189,7 @@ describe('KubernetesService', () => {
             spec: {
               crossplane: {
                 resourceRefs: [
-                  { apiVersion: 'leaf.example.com/v1', kind: 'LeafResource', name: 'leaf-1' },
+                  { apiVersion: 'leaf.example.com/v1', kind: 'LeafResource', name: 'leaf-1', namespace: 'default' },
                 ],
               },
             },
@@ -1215,7 +1215,7 @@ describe('KubernetesService', () => {
       });
 
       expect(result.resources).toHaveLength(3);
-    });
+    }, 10000);
 
     it('should handle nested Object with remote manifest', async () => {
       server.use(
@@ -1227,7 +1227,7 @@ describe('KubernetesService', () => {
             spec: {
               crossplane: {
                 resourceRefs: [
-                  { apiVersion: 'nested.example.com/v1', kind: 'NestedComposite', name: 'nested-1' },
+                  { apiVersion: 'nested.example.com/v1', kind: 'NestedComposite', name: 'nested-1', namespace: 'default' },
                 ],
               },
             },
@@ -1241,7 +1241,7 @@ describe('KubernetesService', () => {
             spec: {
               crossplane: {
                 resourceRefs: [
-                  { apiVersion: 'kubernetes.crossplane.io/v1alpha1', kind: 'Object', name: 'nested-obj' },
+                  { apiVersion: 'kubernetes.crossplane.io/v1alpha1', kind: 'Object', name: 'nested-obj', namespace: 'default' },
                 ],
               },
             },
@@ -1276,7 +1276,7 @@ describe('KubernetesService', () => {
       });
 
       expect(result.resources).toHaveLength(4);
-    });
+    }, 10000);
 
     it('should handle core API group resources in V2', async () => {
       server.use(

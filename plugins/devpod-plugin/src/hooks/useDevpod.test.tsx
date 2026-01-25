@@ -1,12 +1,14 @@
 import { renderHook, act } from '@testing-library/react';
-import React from 'react';
 import { useDevpod } from './useDevpod';
 import { useEntity } from '@backstage/plugin-catalog-react';
-import { DevpodProvider } from '../components/DevpodProvider/DevpodProvider';
 import { DevpodIDE } from '../types';
 
 jest.mock('@backstage/plugin-catalog-react', () => ({
   useEntity: jest.fn(),
+}));
+
+jest.mock('../components/DevpodProvider/DevpodProvider', () => ({
+  useDevpodConfig: jest.fn().mockReturnValue({ defaultIde: 'vscode' }),
 }));
 
 const mockUseEntity = useEntity as jest.MockedFunction<typeof useEntity>;
@@ -25,12 +27,6 @@ describe('useDevpod', () => {
     spec: {},
   };
 
-  const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <DevpodProvider defaultIde={DevpodIDE.VSCODE}>
-      {children}
-    </DevpodProvider>
-  );
-
   beforeEach(() => {
     jest.clearAllMocks();
     
@@ -43,7 +39,7 @@ describe('useDevpod', () => {
   });
 
   it('should return initial state', () => {
-    const { result } = renderHook(() => useDevpod(), { wrapper });
+    const { result } = renderHook(() => useDevpod());
 
     expect(result.current.gitUrl).toBe('https://github.com/test/repo');
     expect(result.current.hasGitUrl).toBe(true);
@@ -66,7 +62,7 @@ describe('useDevpod', () => {
       refresh: jest.fn(),
     });
 
-    const { result } = renderHook(() => useDevpod(), { wrapper });
+    const { result } = renderHook(() => useDevpod());
 
     expect(result.current.gitUrl).toBeUndefined();
     expect(result.current.hasGitUrl).toBe(false);
@@ -89,7 +85,7 @@ describe('useDevpod', () => {
       refresh: jest.fn(),
     });
 
-    const { result } = renderHook(() => useDevpod(), { wrapper });
+    const { result } = renderHook(() => useDevpod());
 
     expect(result.current.gitUrl).toBe('https://github.com/test/repo@subpath:src/components');
     expect(result.current.hasGitUrl).toBe(true);
@@ -111,7 +107,7 @@ describe('useDevpod', () => {
       refresh: jest.fn(),
     });
 
-    const { result } = renderHook(() => useDevpod(), { wrapper });
+    const { result } = renderHook(() => useDevpod());
 
     expect(result.current.gitUrl).toBe('https://github.com/test/repo@develop');
     expect(result.current.hasGitUrl).toBe(true);
@@ -133,7 +129,7 @@ describe('useDevpod', () => {
       refresh: jest.fn(),
     });
 
-    const { result } = renderHook(() => useDevpod(), { wrapper });
+    const { result } = renderHook(() => useDevpod());
 
     expect(result.current.gitUrl).toBe('https://github.com/test/repo@subpath:package.json');
     expect(result.current.hasGitUrl).toBe(true);
@@ -155,14 +151,14 @@ describe('useDevpod', () => {
       refresh: jest.fn(),
     });
 
-    const { result } = renderHook(() => useDevpod(), { wrapper });
+    const { result } = renderHook(() => useDevpod());
 
     expect(result.current.gitUrl).toBe('https://github.com/test/repo@feature');
     expect(result.current.hasGitUrl).toBe(true);
   });
 
   it('should allow changing selected IDE', () => {
-    const { result } = renderHook(() => useDevpod(), { wrapper });
+    const { result } = renderHook(() => useDevpod());
 
     expect(result.current.selectedIde).toBe(DevpodIDE.VSCODE);
 
@@ -175,7 +171,7 @@ describe('useDevpod', () => {
   });
 
   it('should generate correct devpod URL', () => {
-    const { result } = renderHook(() => useDevpod(), { wrapper });
+    const { result } = renderHook(() => useDevpod());
 
     const url = result.current.devpodUrl;
     
@@ -201,7 +197,7 @@ describe('useDevpod', () => {
       refresh: jest.fn(),
     });
 
-    const { result } = renderHook(() => useDevpod(), { wrapper });
+    const { result } = renderHook(() => useDevpod());
 
     expect(result.current.gitUrl).toBe('https://github.com/test/repo');
   });
@@ -222,7 +218,7 @@ describe('useDevpod', () => {
       refresh: jest.fn(),
     });
 
-    const { result } = renderHook(() => useDevpod(), { wrapper });
+    const { result } = renderHook(() => useDevpod());
 
     expect(result.current.gitUrl).toBe('https://github.com/test/repo');
   });
@@ -243,10 +239,9 @@ describe('useDevpod', () => {
       refresh: jest.fn(),
     });
 
-    const { result } = renderHook(() => useDevpod(), { wrapper });
+    const { result } = renderHook(() => useDevpod());
 
     expect(result.current.gitUrl).toBeUndefined();
     expect(result.current.hasGitUrl).toBe(false);
   });
 });
-
