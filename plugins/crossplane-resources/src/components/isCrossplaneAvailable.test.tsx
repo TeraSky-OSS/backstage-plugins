@@ -12,7 +12,7 @@ import { Entity } from '@backstage/catalog-model';
 jest.mock('@backstage/core-plugin-api', () => ({
   useApi: jest.fn().mockReturnValue({
     getOptionalBoolean: jest.fn().mockReturnValue(false),
-    getOptionalString: jest.fn().mockReturnValue('crossplane.io'),
+    getOptionalString: jest.fn().mockReturnValue('terasky.backstage.io'),
   }),
   configApiRef: { id: 'config' },
 }));
@@ -29,12 +29,12 @@ describe('isCrossplaneAvailable', () => {
       metadata: {
         name: 'test-component',
         annotations: {
-          'crossplane.io/composite-resource': 'xrd-test',
+          'terasky.backstage.io/crossplane-resource': 'xrd-test',
         },
       },
     };
 
-    expect(isCrossplaneAvailable(entity, 'crossplane.io')).toBe(true);
+    expect(isCrossplaneAvailable(entity, 'terasky.backstage.io')).toBe(true);
   });
 
   it('should return false when entity has no crossplane annotation', () => {
@@ -47,7 +47,7 @@ describe('isCrossplaneAvailable', () => {
       },
     };
 
-    expect(isCrossplaneAvailable(entity, 'crossplane.io')).toBe(false);
+    expect(isCrossplaneAvailable(entity, 'terasky.backstage.io')).toBe(false);
   });
 
   it('should return false when entity has no annotations', () => {
@@ -69,7 +69,7 @@ describe('isCrossplaneAvailable', () => {
       metadata: {
         name: 'test-component',
         annotations: {
-          'terasky.backstage.io/composite-resource': 'xrd-test',
+          'terasky.backstage.io/crossplane-resource': 'xrd-test',
         },
       },
     };
@@ -109,7 +109,7 @@ describe('IfCrossplaneOverviewAvailable', () => {
     usePermission.mockReturnValue({ allowed: false, loading: false });
     useApi.mockReturnValue({
       getOptionalBoolean: jest.fn().mockReturnValue(true), // permissions enabled
-      getOptionalString: jest.fn().mockReturnValue('crossplane.io'),
+      getOptionalString: jest.fn().mockReturnValue('terasky.backstage.io'),
     });
 
     render(
@@ -129,7 +129,7 @@ describe('IfCrossplaneResourceGraphAvailable', () => {
     
     useApi.mockReturnValue({
       getOptionalBoolean: jest.fn().mockReturnValue(false),
-      getOptionalString: jest.fn().mockReturnValue('crossplane.io'),
+      getOptionalString: jest.fn().mockReturnValue('terasky.backstage.io'),
     });
     usePermission.mockReturnValue({ allowed: true, loading: false });
   });
@@ -152,7 +152,7 @@ describe('IfCrossplaneResourcesListAvailable', () => {
     
     useApi.mockReturnValue({
       getOptionalBoolean: jest.fn().mockReturnValue(false),
-      getOptionalString: jest.fn().mockReturnValue('crossplane.io'),
+      getOptionalString: jest.fn().mockReturnValue('terasky.backstage.io'),
     });
     usePermission.mockReturnValue({ allowed: true, loading: false });
   });
@@ -167,4 +167,3 @@ describe('IfCrossplaneResourcesListAvailable', () => {
     expect(screen.getByText('List Content')).toBeInTheDocument();
   });
 });
-

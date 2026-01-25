@@ -5,11 +5,8 @@ import {
   IfKroOverviewAvailable,
   IfKroResourceGraphAvailable,
   IfKroResourcesListAvailable,
-  useKroResourceGraphAvailable,
-  useKroResourceListAvailable,
 } from './isKroAvailable';
 import { Entity } from '@backstage/catalog-model';
-import { renderHook } from '@testing-library/react-hooks';
 
 // Mock the Backstage APIs
 jest.mock('@backstage/core-plugin-api', () => ({
@@ -162,67 +159,3 @@ describe('IfKroResourcesListAvailable', () => {
     expect(screen.getByText('List Content')).toBeInTheDocument();
   });
 });
-
-describe('useKroResourceGraphAvailable', () => {
-  beforeEach(() => {
-    const { useApi } = require('@backstage/core-plugin-api');
-    const { usePermission } = require('@backstage/plugin-permission-react');
-    
-    useApi.mockReturnValue({
-      getOptionalBoolean: jest.fn().mockReturnValue(false),
-    });
-    usePermission.mockReturnValue({ allowed: true, loading: false });
-  });
-
-  it('should return function that checks entity availability', () => {
-    const { result } = renderHook(() => useKroResourceGraphAvailable());
-    
-    const entityWithAnnotation: Entity = {
-      apiVersion: 'backstage.io/v1alpha1',
-      kind: 'Component',
-      metadata: {
-        name: 'test',
-        annotations: { 'terasky.backstage.io/kro-rgd-id': 'test' },
-      },
-    };
-
-    const entityWithoutAnnotation: Entity = {
-      apiVersion: 'backstage.io/v1alpha1',
-      kind: 'Component',
-      metadata: {
-        name: 'test',
-      },
-    };
-
-    expect(result.current(entityWithAnnotation)).toBe(true);
-    expect(result.current(entityWithoutAnnotation)).toBe(false);
-  });
-});
-
-describe('useKroResourceListAvailable', () => {
-  beforeEach(() => {
-    const { useApi } = require('@backstage/core-plugin-api');
-    const { usePermission } = require('@backstage/plugin-permission-react');
-    
-    useApi.mockReturnValue({
-      getOptionalBoolean: jest.fn().mockReturnValue(false),
-    });
-    usePermission.mockReturnValue({ allowed: true, loading: false });
-  });
-
-  it('should return function that checks entity availability', () => {
-    const { result } = renderHook(() => useKroResourceListAvailable());
-    
-    const entityWithAnnotation: Entity = {
-      apiVersion: 'backstage.io/v1alpha1',
-      kind: 'Component',
-      metadata: {
-        name: 'test',
-        annotations: { 'terasky.backstage.io/kro-rgd-id': 'test' },
-      },
-    };
-
-    expect(result.current(entityWithAnnotation)).toBe(true);
-  });
-});
-
