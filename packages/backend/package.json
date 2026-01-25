@@ -60,7 +60,7 @@
     "@terasky/backstage-plugin-kyverno-policy-reports-backend": "^1.7.0",
     "@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils": "^2.2.0",
     "@terasky/backstage-plugin-spectrocloud-backend": "^0.1.0",
-    "@terasky/backstage-plugin-spectrocloud-cluster-provider": "^0.3.0",
+    "@terasky/backstage-plugin-spectrocloud-cluster-provider": "^0.4.0",
     "@terasky/backstage-plugin-spectrocloud-ingestor": "^0.1.0",
     "@terasky/backstage-plugin-vcf-automation-backend": "^1.9.0",
     "@terasky/backstage-plugin-vcf-automation-ingestor": "^1.9.0",
