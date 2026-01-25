@@ -7,7 +7,7 @@ import { setupServer } from 'msw/node';
 import { rest } from 'msw';
 
 const mswServer = setupServer();
-beforeAll(() => mswServer.listen());
+beforeAll(() => mswServer.listen({ onUnhandledRequest: 'bypass' }));
 afterEach(() => mswServer.resetHandlers());
 afterAll(() => mswServer.close());
 
@@ -29,8 +29,9 @@ describe('createRouter', () => {
   beforeEach(async () => {
     jest.clearAllMocks();
 
+    // Default auth handler for all tests
     mswServer.use(
-      rest.post('http://scaleops.example.com/auth/callback', (req, res, ctx) => {
+      rest.post('http://scaleops.example.com/auth/callback', (_req, res, ctx) => {
         return res(
           ctx.status(302),
           ctx.set('Location', 'http://scaleops.example.com/redirect?token=test-token-123')
@@ -54,7 +55,7 @@ describe('createRouter', () => {
 
   it('proxies GET requests to ScaleOps API', async () => {
     mswServer.use(
-      rest.get('http://scaleops.example.com/workloads', (req, res, ctx) => {
+      rest.get('http://scaleops.example.com/workloads', (_req, res, ctx) => {
         return res(ctx.json({ workloads: [] }));
       }),
     );
@@ -66,7 +67,7 @@ describe('createRouter', () => {
 
   it('proxies POST requests to ScaleOps API', async () => {
     mswServer.use(
-      rest.post('http://scaleops.example.com/workloads/query', (req, res, ctx) => {
+      rest.post('http://scaleops.example.com/workloads/query', (_req, res, ctx) => {
         return res(ctx.json({ results: [] }));
       }),
     );
@@ -81,7 +82,7 @@ describe('createRouter', () => {
 
   it('handles API errors', async () => {
     mswServer.use(
-      rest.get('http://scaleops.example.com/error-endpoint', (req, res, ctx) => {
+      rest.get('http://scaleops.example.com/error-endpoint', (_req, res, ctx) => {
         return res(ctx.status(500), ctx.json({ error: 'Internal Server Error' }));
       }),
     );
@@ -92,7 +93,10 @@ describe('createRouter', () => {
 
   it('handles authentication failure', async () => {
     mswServer.use(
-      rest.post('http://scaleops.example.com/auth/callback', (req, res, ctx) => {
+      rest.post('http://scaleops.example.com/auth/callback', (_req, res, ctx) => {
+        return res(ctx.status(401), ctx.json({ error: 'Unauthorized' }));
+      }),
+      rest.get('http://scaleops.example.com/workloads', (_req, res, ctx) => {
         return res(ctx.status(401), ctx.json({ error: 'Unauthorized' }));
       }),
     );
@@ -142,9 +146,14 @@ describe('createRouter without authentication', () => {
   });
 
   it('returns error when authentication is not configured', async () => {
+    mswServer.use(
+      rest.get('http://scaleops.example.com/workloads', (_req, res, ctx) => {
+        return res(ctx.status(401), ctx.json({ error: 'Unauthorized' }));
+      }),
+    );
+
     const response = await request(app).get('/api/workloads');
     expect(response.status).toBe(500);
     expect(response.body.error).toBeDefined();
   });
 });
-

@@ -4,46 +4,48 @@ PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/rul
 PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/api/VcfAutomationClient.test.ts
 PASS @terasky/backstage-plugin-vcf-operations plugins/vcf-operations/src/api/VcfOperationsClient.test.ts
 PASS @terasky/backstage-plugin-educates plugins/educates/src/api/EducatesClient.test.ts
-PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/api/KroApi.test.ts
 PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/api/CrossplaneApi.test.ts
+PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/api/KroApi.test.ts
 PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/api/AiRulesClient.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/client/SpectroCloudClient.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/actions.test.ts
 PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/actions.test.ts
 PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/MCPService.test.ts
-PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/service/EducatesService.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/supplier/SpectroCloudClusterSupplier.test.ts
 PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/AiRulesService.test.ts
-PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/providers/SpectroCloudEntityProvider.test.ts
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/service/EducatesService.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/client/SpectroCloudClient.test.ts
 PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/supplier/SpectroCloudClusterSupplier.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/actions.test.ts
 PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/permissions.test.ts
-PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/conditions.test.ts
-(node:82393) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
-(Use `node --trace-warnings ...` to show where the warning was created)
-PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/service/KubernetesService.test.ts
-PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/service/KubernetesService.test.ts
 PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/service/router.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/service/KubernetesService.test.ts
-(node:82473) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/providers/SpectroCloudEntityProvider.test.ts
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/conditions.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/service/KubernetesService.test.ts
+(node:85423) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
 (Use `node --trace-warnings ...` to show where the warning was created)
-PASS @terasky/backstage-plugin-spectrocloud-ingestor plugins/spectrocloud-ingestor/src/client/SpectroCloudClient.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/client/SpectroCloudClient.test.ts
+(node:85491) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
+(Use `node --trace-warnings ...` to show where the warning was created)
 PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/service/router.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/service/KubernetesService.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/client/SpectroCloudClient.test.ts
+PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/service/KubernetesService.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-ingestor plugins/spectrocloud-ingestor/src/client/SpectroCloudClient.test.ts
 PASS @terasky/backstage-plugin-crossplane-common plugins/crossplane-common/src/index.test.ts
 PASS @terasky/backstage-plugin-educates-common plugins/educates-common/src/index.test.ts
 PASS @terasky/backstage-plugin-vcf-automation-common plugins/vcf-automation-common/src/index.test.ts
 PASS @terasky/backstage-plugin-kubernetes-resources-common plugins/kubernetes-resources-common/src/index.test.ts
 PASS @terasky/backstage-plugin-kro-common plugins/kro-common/src/index.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/annotationUtils.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/plugin.test.ts
 PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/service/router.test.ts
   ● Console
 
     console.warn
       [MSW] Warning: captured a request without a matching request handler:
       
-        • GET http://127.0.0.1:45325/health
+        • GET http://127.0.0.1:44827/health
       
       If you still wish to intercept this unhandled request, please create a request handler for it.
       Read more: https://mswjs.io/docs/getting-started/mocks
@@ -57,7 +59,7 @@ PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/ser
     console.warn
       [MSW] Warning: captured a request without a matching request handler:
       
-        • GET http://127.0.0.1:46155/api/workloads
+        • GET http://127.0.0.1:44945/api/workloads
       
       If you still wish to intercept this unhandled request, please create a request handler for it.
       Read more: https://mswjs.io/docs/getting-started/mocks
@@ -71,7 +73,7 @@ PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/ser
     console.warn
       [MSW] Warning: captured a request without a matching request handler:
       
-        • POST http://127.0.0.1:44877/api/workloads/query
+        • POST http://127.0.0.1:44951/api/workloads/query
       
       If you still wish to intercept this unhandled request, please create a request handler for it.
       Read more: https://mswjs.io/docs/getting-started/mocks
@@ -85,7 +87,7 @@ PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/ser
     console.warn
       [MSW] Warning: captured a request without a matching request handler:
       
-        • GET http://127.0.0.1:46203/api/error-endpoint
+        • GET http://127.0.0.1:46081/api/error-endpoint
       
       If you still wish to intercept this unhandled request, please create a request handler for it.
       Read more: https://mswjs.io/docs/getting-started/mocks
@@ -99,49 +101,7 @@ PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/ser
     console.warn
       [MSW] Warning: captured a request without a matching request handler:
       
-        • GET http://127.0.0.1:45321/api/workloads
-      
-      If you still wish to intercept this unhandled request, please create a request handler for it.
-      Read more: https://mswjs.io/docs/getting-started/mocks
-
-      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
-      at warn (../node_modules/msw/lib/node/index.js:1391:18)
-      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
-      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
-      at ../node_modules/msw/lib/node/index.js:1503:25
-
-    console.warn
-      [MSW] Warning: captured a request without a matching request handler:
-      
-        • GET http://scaleops.example.com/workloads
-      
-      If you still wish to intercept this unhandled request, please create a request handler for it.
-      Read more: https://mswjs.io/docs/getting-started/mocks
-
-      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
-      at warn (../node_modules/msw/lib/node/index.js:1391:18)
-      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
-      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
-      at ../node_modules/msw/lib/node/index.js:1503:25
-
-    console.warn
-      [MSW] Warning: captured a request without a matching request handler:
-      
-        • GET http://127.0.0.1:45537/api/workloads
-      
-      If you still wish to intercept this unhandled request, please create a request handler for it.
-      Read more: https://mswjs.io/docs/getting-started/mocks
-
-      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
-      at warn (../node_modules/msw/lib/node/index.js:1391:18)
-      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
-      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
-      at ../node_modules/msw/lib/node/index.js:1503:25
-
-    console.warn
-      [MSW] Warning: captured a request without a matching request handler:
-      
-        • GET http://127.0.0.1:46409/api/workloads
+        • GET http://127.0.0.1:46313/api/workloads
       
       If you still wish to intercept this unhandled request, please create a request handler for it.
       Read more: https://mswjs.io/docs/getting-started/mocks
@@ -166,57 +126,83 @@ PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/ser
       at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
       at ../node_modules/msw/lib/node/index.js:1503:25
 
-PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/plugin.test.ts
+    console.warn
+      [MSW] Warning: captured a request without a matching request handler:
+      
+        • GET http://127.0.0.1:46297/api/workloads
+      
+      If you still wish to intercept this unhandled request, please create a request handler for it.
+      Read more: https://mswjs.io/docs/getting-started/mocks
+
+      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
+      at warn (../node_modules/msw/lib/node/index.js:1391:18)
+      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
+      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
+      at ../node_modules/msw/lib/node/index.js:1503:25
+
+    console.warn
+      [MSW] Warning: captured a request without a matching request handler:
+      
+        • GET http://127.0.0.1:46441/api/workloads
+      
+      If you still wish to intercept this unhandled request, please create a request handler for it.
+      Read more: https://mswjs.io/docs/getting-started/mocks
+
+      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
+      at warn (../node_modules/msw/lib/node/index.js:1391:18)
+      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
+      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
+      at ../node_modules/msw/lib/node/index.js:1503:25
+
+    console.warn
+      [MSW] Warning: captured a request without a matching request handler:
+      
+        • GET http://scaleops.example.com/workloads
+      
+      If you still wish to intercept this unhandled request, please create a request handler for it.
+      Read more: https://mswjs.io/docs/getting-started/mocks
+
+      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
+      at warn (../node_modules/msw/lib/node/index.js:1391:18)
+      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
+      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
+      at ../node_modules/msw/lib/node/index.js:1503:25
+
 PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/plugin.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/annotationUtils.test.ts
-PASS @terasky/backstage-plugin-spectrocloud plugins/spectrocloud/src/plugin.test.ts
-PASS @terasky/backstage-plugin-scaleops-frontend plugins/scaleops-frontend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-kubernetes-resources-permissions-backend plugins/kubernetes-resources-permissions-backend/src/plugin.test.ts
 PASS @terasky/backstage-plugin-devpod plugins/devpod-plugin/src/plugin.test.ts
 PASS @terasky/backstage-plugin-kyverno-common plugins/kyverno-common/src/index.test.ts
-PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-scaleops-frontend plugins/scaleops-frontend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kubernetes-resources-permissions-backend plugins/kubernetes-resources-permissions-backend/src/plugin.test.ts
 PASS @terasky/backstage-plugin-spectrocloud-ingestor plugins/spectrocloud-ingestor/src/module.test.ts
-PASS @terasky/backstage-plugin-vcf-automation-ingestor plugins/vcf-automation-ingestor/src/module.test.ts
-PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/services/KubernetesResourceFetcher.test.ts
-PASS @terasky/plugin-scaffolder-mcp-backend plugins/scaffolder-mcp-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/plugin.test.ts
 PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/plugin.test.ts
 PASS @terasky/backstage-plugin-entity-scaffolder-content plugins/entity-scaffolder-content/src/plugin.test.ts
-PASS @terasky/backstage-plugin-kubernetes-resources-frontend plugins/kubernetes-resources/src/plugin.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/router.test.ts
 PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/services/KubernetesResourceFetcher.test.ts
+PASS @terasky/backstage-plugin-kubernetes-resources-frontend plugins/kubernetes-resources/src/plugin.test.ts
 PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/service/router.test.ts
-PASS @terasky/backstage-plugin-catalog-mcp-backend plugins/catalog-mcp-backend/src/plugin.test.ts
-PASS @terasky/plugin-rbac-mcp-backend plugins/rbac-mcp-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-educates plugins/educates/src/plugin.test.ts
-PASS @terasky/plugin-rbac-mcp-backend plugins/rbac-mcp-backend/src/plugin.test.ts
-FAIL @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/providers/EntityProvider.test.ts
-  ● KubernetesEntityProvider › connect › should set connection and schedule task
-
-    TypeError: this.taskRunner.run is not a function
-
-      1984 |   async connect(connection: EntityProviderConnection): Promise<void> {
-      1985 |     this.connection = connection;
-    > 1986 |     await this.taskRunner.run({
-           |                           ^
-      1987 |       id: this.getProviderName(),
-      1988 |       fn: async () => {
-      1989 |         await this.run();
-
-      at KubernetesEntityProvider.run [as connect] (providers/EntityProvider.ts:1986:27)
-      at Object.connect (providers/EntityProvider.test.ts:93:22)
-
-PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/router.test.ts
-PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/plugin.test.ts
-PASS @terasky/plugin-scaffolder-mcp-backend plugins/scaffolder-mcp-backend/src/plugin.test.ts
 PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-educates plugins/educates/src/plugin.test.ts
+PASS @terasky/backstage-plugin-vcf-automation-ingestor plugins/vcf-automation-ingestor/src/module.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/router.test.ts
+PASS @terasky/plugin-scaffolder-mcp-backend plugins/scaffolder-mcp-backend/src/actions.test.ts
 PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/module.test.ts
-PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/service/router.test.ts
-PASS @terasky/backstage-plugin-vcf-operations-common plugins/vcf-operations-common/src/index.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-common plugins/spectrocloud-common/src/index.test.ts
 PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-catalog-mcp-backend plugins/catalog-mcp-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-spectrocloud plugins/spectrocloud/src/plugin.test.ts
+PASS @terasky/plugin-scaffolder-mcp-backend plugins/scaffolder-mcp-backend/src/plugin.test.ts
+PASS @terasky/plugin-rbac-mcp-backend plugins/rbac-mcp-backend/src/plugin.test.ts
+PASS @terasky/plugin-rbac-mcp-backend plugins/rbac-mcp-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/module.test.ts
+PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/module.test.ts
+PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/router.test.ts
+PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-vcf-operations-common plugins/vcf-operations-common/src/index.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/api/KyvernoApi.test.ts
+PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/service/router.test.ts
 PASS @terasky/backstage-plugin-catalog-mcp-backend plugins/catalog-mcp-backend/src/actions.test.ts
   ● Console
 
@@ -259,18 +245,17 @@ PASS @terasky/backstage-plugin-catalog-mcp-backend plugins/catalog-mcp-backend/s
       at Object.log [as action] (actions.ts:77:15)
 
 PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/module.test.ts
-PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-vcf-operations plugins/vcf-operations/src/plugin.test.ts
+PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/claim-templating.test.ts
 PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/catalog-info-cleaner.test.ts
 PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/crd-templating.test.ts
-PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/api/KyvernoApi.test.ts
-PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/claim-templating.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-common plugins/spectrocloud-common/src/index.test.ts
 PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/plugin.test.ts
-PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/service/ScaleOpsService.test.ts
-PASS @terasky/backstage-plugin-vcf-automation-ingestor plugins/vcf-automation-ingestor/src/provider/EntityProvider.test.ts
 PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/module.test.ts
 PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/service/ScaleOpsService.test.ts
+PASS @terasky/backstage-plugin-vcf-operations plugins/vcf-operations/src/plugin.test.ts
+PASS @terasky/backstage-plugin-vcf-automation-ingestor plugins/vcf-automation-ingestor/src/provider/EntityProvider.test.ts
+PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/providers/EntityProvider.test.ts
 PASS @terasky/backstage-plugin-app-module-global-signin-page plugins/app-module-global-signin-page/src/module.test.tsx
 PASS @terasky/backstage-plugin-gitops-manifest-updater plugins/gitops-manifest-updater/src/plugin.test.ts
 PASS @terasky/backstage-plugin-terraform-scaffolder plugins/terraform-scaffolder/src/plugin.test.ts
@@ -592,26 +577,8 @@ All files                                                                 |   18
   VCFOperationsExplorer.tsx                                               |       0 |        0 |       0 |       0 | 29-1409                                                                                                                                                                   
 --------------------------------------------------------------------------|---------|----------|---------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Summary of all failing tests
-FAIL plugins/kubernetes-ingestor/src/providers/EntityProvider.test.ts
-  ● KubernetesEntityProvider › connect › should set connection and schedule task
-
-    TypeError: this.taskRunner.run is not a function
-
-      1984 |   async connect(connection: EntityProviderConnection): Promise<void> {
-      1985 |     this.connection = connection;
-    > 1986 |     await this.taskRunner.run({
-           |                           ^
-      1987 |       id: this.getProviderName(),
-      1988 |       fn: async () => {
-      1989 |         await this.run();
-
-      at KubernetesEntityProvider.run [as connect] (providers/EntityProvider.ts:1986:27)
-      at Object.connect (providers/EntityProvider.test.ts:93:22)
-
-
-Test Suites: 1 failed, 89 passed, 90 total
-Tests:       1 failed, 486 passed, 487 total
+Test Suites: 90 passed, 90 total
+Tests:       487 passed, 487 total
 Snapshots:   0 total
-Time:        8.179 s
+Time:        8.208 s
 Ran all test suites matching /plugins\//i in 42 projects.
