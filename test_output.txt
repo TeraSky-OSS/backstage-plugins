@@ -1,49 +1,56 @@
-PASS @terasky/backstage-plugin-educates-common plugins/educates-common/src/index.test.ts
 PASS @terasky/backstage-plugin-kubernetes-resources-common plugins/kubernetes-resources-common/src/index.test.ts
-PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/api/AiRulesClient.test.ts
-PASS @terasky/backstage-plugin-kubernetes-resources-frontend plugins/kubernetes-resources/src/components/isKubernetesResourcesAvailable.test.tsx
-PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/annotationUtils.test.ts
-PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/plugin.test.ts
-PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/plugin.test.ts
-PASS @terasky/backstage-plugin-kubernetes-resources-permissions-backend plugins/kubernetes-resources-permissions-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-devpod plugins/devpod-plugin/src/plugin.test.ts
-PASS @terasky/backstage-plugin-kubernetes-resources-frontend plugins/kubernetes-resources/src/plugin.test.ts
-PASS @terasky/backstage-plugin-entity-scaffolder-content plugins/entity-scaffolder-content/src/plugin.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/isCrossplaneAvailable.test.tsx
-PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/api/CrossplaneApi.test.ts
-PASS @terasky/backstage-plugin-catalog-mcp-backend plugins/catalog-mcp-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-ingestor plugins/spectrocloud-ingestor/src/module.test.ts
+PASS @terasky/backstage-plugin-educates-common plugins/educates-common/src/index.test.ts
 PASS @terasky/backstage-plugin-kyverno-common plugins/kyverno-common/src/index.test.ts
-PASS @terasky/backstage-plugin-scaleops-frontend plugins/scaleops-frontend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kubernetes-resources-frontend plugins/kubernetes-resources/src/components/isKubernetesResourcesAvailable.test.tsx
+PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/api/AiRulesClient.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/annotationUtils.test.ts
 PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/plugin.test.ts
 PASS @terasky/backstage-plugin-spectrocloud plugins/spectrocloud/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kubernetes-resources-frontend plugins/kubernetes-resources/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/plugin.test.ts
+PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/plugin.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/api/CrossplaneApi.test.ts
+PASS @terasky/backstage-plugin-devpod plugins/devpod-plugin/src/plugin.test.ts
+PASS @terasky/backstage-plugin-scaleops-frontend plugins/scaleops-frontend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kubernetes-resources-permissions-backend plugins/kubernetes-resources-permissions-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/isCrossplaneAvailable.test.tsx
+PASS @terasky/backstage-plugin-catalog-mcp-backend plugins/catalog-mcp-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-entity-scaffolder-content plugins/entity-scaffolder-content/src/plugin.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-ingestor plugins/spectrocloud-ingestor/src/module.test.ts
 PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/module.test.ts
+PASS @terasky/backstage-plugin-devpod plugins/devpod-plugin/src/components/DevpodProvider/DevpodProvider.test.tsx
 PASS @terasky/backstage-plugin-app-module-global-signin-page plugins/app-module-global-signin-page/src/module.test.tsx
-PASS @terasky/backstage-plugin-spectrocloud-ingestor plugins/spectrocloud-ingestor/src/providers/SpectroCloudEntityProvider.test.ts
-(node:266702) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
-(Use `node --trace-warnings ...` to show where the warning was created)
 PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/services/KubernetesResourceFetcher.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-ingestor plugins/spectrocloud-ingestor/src/providers/SpectroCloudEntityProvider.test.ts
+(node:286029) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
+(Use `node --trace-warnings ...` to show where the warning was created)
 PASS @terasky/backstage-plugin-spectrocloud-ingestor plugins/spectrocloud-ingestor/src/client/SpectroCloudClient.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/components/KyvernoCrossplaneOverviewCard.test.tsx
+PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/components/KyvernoOverviewCard.test.tsx
 PASS @terasky/backstage-plugin-scaleops-frontend plugins/scaleops-frontend/src/components/ScaleopsCard.test.tsx
-PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/actions.test.ts
-FAIL @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/components/KyvernoOverviewCard.test.tsx (5.219 s)
-  ● KyvernoOverviewCard › should be defined
+PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/CrossplaneOverviewCardSelector.test.tsx
+PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/components/AiInstructionsComponent/AiInstructionsComponent.test.tsx
+PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/components/MCPServersComponent/MCPServersComponent.test.tsx
+PASS @terasky/backstage-plugin-devpod plugins/devpod-plugin/src/components/DevpodComponent/DevpodComponent.test.tsx
+PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/components/KroResourceGraph.test.tsx (5.268 s)
+FAIL @terasky/backstage-plugin-gitops-manifest-updater plugins/gitops-manifest-updater/src/components/GitOpsManifestUpdaterField.test.tsx
+  ● GitOpsManifestUpdaterField › should be defined
 
     expect(received).toBeDefined()
 
     Received: undefined
 
-      3 | describe('KyvernoOverviewCard', () => {
+      3 | describe('GitOpsManifestUpdaterField', () => {
       4 |   it('should be defined', () => {
-    > 5 |     expect(KyvernoOverviewCard).toBeDefined();
-        |                                 ^
+    > 5 |     expect(GitOpsManifestUpdaterField).toBeDefined();
+        |                                        ^
       6 |   });
       7 |
       8 |   it('should be a function component', () => {
 
-      at Object.toBeDefined (components/KyvernoOverviewCard.test.tsx:5:33)
+      at Object.toBeDefined (components/GitOpsManifestUpdaterField.test.tsx:5:40)
 
-  ● KyvernoOverviewCard › should be a function component
+  ● GitOpsManifestUpdaterField › should be a function component
 
     expect(received).toBe(expected) // Object.is equality
 
@@ -52,91 +59,323 @@ FAIL @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-rep
 
        7 |
        8 |   it('should be a function component', () => {
-    >  9 |     expect(typeof KyvernoOverviewCard).toBe('function');
-         |                                        ^
+    >  9 |     expect(typeof GitOpsManifestUpdaterField).toBe('function');
+         |                                               ^
       10 |   });
       11 | });
       12 |
 
-      at Object.toBe (components/KyvernoOverviewCard.test.tsx:9:40)
+      at Object.toBe (components/GitOpsManifestUpdaterField.test.tsx:9:47)
 
-FAIL @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/CrossplaneOverviewCardSelector.test.tsx
-  ● CrossplaneOverviewCardSelector › should be defined
+PASS @terasky/backstage-plugin-gitops-manifest-updater plugins/gitops-manifest-updater/src/plugin.test.ts
+PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/router.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/CrossplaneResourcesTableSelector.test.tsx
+PASS app packages/app/src/App.test.tsx (5.585 s)
+PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationDeploymentDetails.test.tsx
+PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/CrossplaneResourceGraphSelector.test.tsx
+PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/components/KroResourceTable.test.tsx
+PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationCCIResourceOverview.test.tsx
+PASS @terasky/backstage-plugin-kubernetes-resources-frontend plugins/kubernetes-resources/src/components/KubernetesResourcesPage.test.tsx
+  ● Console
 
-    expect(received).toBeDefined()
+    console.error
+      Error: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)
+          at module.exports (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
+          at HTMLCanvasElementImpl.getContext (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jsdom/lib/jsdom/living/nodes/HTMLCanvasElement-impl.js:42:5)
+          at HTMLCanvasElement.getContext (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jsdom/lib/jsdom/living/generated/HTMLCanvasElement.js:131:58)
+          at createLinearGradient (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/common/Color.ts:133:27)
+          at Object.rs (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/common/Color.ts:247:32)
+          at i (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:284562)
+          at Object.3787 (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/renderer/dom/DomRendererRowFactory.ts:49:26)
+          at i (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:284562)
+          at Object.1296 (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/renderer/dom/DomRenderer.ts:20:31)
+          at i (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:284562)
+          at Object.3236 (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/Terminal.ts:45:1)
+          at i (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:284562)
+          at Disposable (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/public/Terminal.ts:23:31)
+          at /home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:289313
+          at /home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:289319
+          at /home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/webpack/universalModuleDefinition:8:39
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:325)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/PodExecTerminal/PodExecTerminal.esm.js:16:16)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/PodExecTerminal/PodExecTerminalDialog.esm.js:27:29)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/Pods/PodDrawer/ContainerCard.esm.js:35:35)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/Pods/PodDrawer/PodDrawer.esm.js:16:27)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/DeploymentsAccordions/DeploymentsAccordions.esm.js:19:1)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/Cluster/Cluster.esm.js:19:35)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/index.esm.js:227:22)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/plugins/kubernetes-resources/src/components/KubernetesResourcesPage.tsx:4459:27)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/plugins/kubernetes-resources/src/components/KubernetesResourcesPage.test.tsx:5:73)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at jestAdapter (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:77:13)
+          at processTicksAndRejections (node:internal/process/task_queues:103:5)
+          at runTestInternal (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runner/build/runTest.js:367:16)
+          at runTest (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runner/build/runTest.js:444:34)
+          at Object.worker (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runner/build/testWorker.js:106:12) {
+        type: 'not implemented'
+      }
 
-    Received: undefined
 
-      3 | describe('CrossplaneOverviewCardSelector', () => {
-      4 |   it('should be defined', () => {
-    > 5 |     expect(CrossplaneOverviewCardSelector).toBeDefined();
-        |                                            ^
-      6 |   });
-      7 |
-      8 |   it('should be a function component', () => {
 
-      at Object.toBeDefined (components/CrossplaneOverviewCardSelector.test.tsx:5:44)
-
-  ● CrossplaneOverviewCardSelector › should be a function component
-
-    expect(received).toBe(expected) // Object.is equality
-
-    Expected: "function"
-    Received: "undefined"
-
-       7 |
-       8 |   it('should be a function component', () => {
-    >  9 |     expect(typeof CrossplaneOverviewCardSelector).toBe('function');
-         |                                                   ^
-      10 |   });
-      11 | });
-      12 |
-
-      at Object.toBe (components/CrossplaneOverviewCardSelector.test.tsx:9:51)
+      at VirtualConsole.<anonymous> (../../../node_modules/jest-environment-jsdom/build/index.js:63:23)
+      at module.exports (../../../node_modules/jsdom/lib/jsdom/browser/not-implemented.js:12:26)
+      at HTMLCanvasElementImpl.getContext (../../../node_modules/jsdom/lib/jsdom/living/nodes/HTMLCanvasElement-impl.js:42:5)
+      at HTMLCanvasElement.getContext (../../../node_modules/jsdom/lib/jsdom/living/generated/HTMLCanvasElement.js:131:58)
+      at createLinearGradient (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/common/Color.ts:133:27)
+      at Object.rs (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/common/Color.ts:247:32)
+      at i (../../../node_modules/@xterm/xterm/lib/xterm.js:1:284562)
+      at Object.3787 (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/renderer/dom/DomRendererRowFactory.ts:49:26)
+      at i (../../../node_modules/@xterm/xterm/lib/xterm.js:1:284562)
+      at Object.1296 (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/renderer/dom/DomRenderer.ts:20:31)
+      at i (../../../node_modules/@xterm/xterm/lib/xterm.js:1:284562)
+      at Object.3236 (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/Terminal.ts:45:1)
+      at i (../../../node_modules/@xterm/xterm/lib/xterm.js:1:284562)
+      at Disposable (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/public/Terminal.ts:23:31)
+      at ../../../node_modules/@xterm/xterm/lib/xterm.js:1:289313
+      at ../../../node_modules/@xterm/xterm/lib/xterm.js:1:289319
+      at ../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/webpack/universalModuleDefinition:8:39
+      at Object.<anonymous> (../../../node_modules/@xterm/xterm/lib/xterm.js:1:325)
+      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/PodExecTerminal/PodExecTerminal.esm.js:16:16)
+      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/PodExecTerminal/PodExecTerminalDialog.esm.js:27:29)
+      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/Pods/PodDrawer/ContainerCard.esm.js:35:35)
+      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/Pods/PodDrawer/PodDrawer.esm.js:16:27)
+      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/DeploymentsAccordions/DeploymentsAccordions.esm.js:19:1)
+      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/Cluster/Cluster.esm.js:19:35)
+      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/index.esm.js:227:22)
+      at Object.<anonymous> (components/KubernetesResourcesPage.tsx:4459:27)
+      at Object.<anonymous> (components/KubernetesResourcesPage.test.tsx:5:73)
 
 PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationCCINamespaceOverview.test.tsx
-FAIL @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/components/KyvernoCrossplaneOverviewCard.test.tsx (5.069 s)
-  ● KyvernoCrossplaneOverviewCard › should be defined
+PASS @terasky/backstage-plugin-entity-scaffolder-content plugins/entity-scaffolder-content/src/components/EntityScaffolderContent.test.tsx (5.477 s)
+PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationVSphereVMOverview.test.tsx
+PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationDeploymentOverview.test.tsx
+PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationResourceOverview.test.tsx
+PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationGenericResourceOverview.test.tsx
+PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/components/KroOverviewCard.test.tsx
+  ● Console
 
-    expect(received).toBeDefined()
+    console.error
+      Warning: An update to KroOverviewCard inside a test was not wrapped in act(...).
+      
+      When testing, code that causes React state updates should be wrapped into act(...):
+      
+      act(() => {
+        /* fire events that update state */
+      });
+      /* assert on the output */
+      
+      This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+          at KroOverviewCard (/home/vrabbi/projects/backstage/backstage-plugins/plugins/kro-resources/src/components/KroOverviewCard.tsx:26:31)
+          at attributes (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/core-plugin-api/dist/analytics/AnalyticsContext.esm.js:22:11)
+          at children (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-catalog-react/dist/hooks/useEntity.esm.js:10:11)
+          at entity (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-catalog-react/dist/hooks/useEntity.esm.js:25:19)
+          at apis (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/core-app-api/dist/apis/system/ApiProvider.esm.js:9:11)
+          at apis (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/test-utils/dist/testUtils/TestApiProvider.esm.js:43:43)
 
-    Received: undefined
+      69 |         const instanceResource = resources.find(r => r.type === 'Instance')?.resource;
+      70 |
+    > 71 |         setRgd(rgdResource);
+         |         ^
+      72 |         setInstance(instanceResource);
+      73 |       } catch (error) {
+      74 |         console.error('Failed to fetch RGD:', error);
 
-      3 | describe('KyvernoCrossplaneOverviewCard', () => {
-      4 |   it('should be defined', () => {
-    > 5 |     expect(KyvernoCrossplaneOverviewCard).toBeDefined();
-        |                                           ^
-      6 |   });
-      7 |
-      8 |   it('should be a function component', () => {
+      at printWarning (../../../node_modules/react-dom/cjs/react-dom.development.js:86:30)
+      at error (../../../node_modules/react-dom/cjs/react-dom.development.js:60:7)
+      at warnIfUpdatesNotWrappedWithActDEV (../../../node_modules/react-dom/cjs/react-dom.development.js:27628:9)
+      at scheduleUpdateOnFiber (../../../node_modules/react-dom/cjs/react-dom.development.js:25547:5)
+      at dispatchSetState (../../../node_modules/react-dom/cjs/react-dom.development.js:16708:7)
+      at setRgd (components/KroOverviewCard.tsx:71:9)
 
-      at Object.toBeDefined (components/KyvernoCrossplaneOverviewCard.test.tsx:5:43)
+    console.error
+      Warning: An update to KroOverviewCard inside a test was not wrapped in act(...).
+      
+      When testing, code that causes React state updates should be wrapped into act(...):
+      
+      act(() => {
+        /* fire events that update state */
+      });
+      /* assert on the output */
+      
+      This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+          at KroOverviewCard (/home/vrabbi/projects/backstage/backstage-plugins/plugins/kro-resources/src/components/KroOverviewCard.tsx:26:31)
+          at attributes (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/core-plugin-api/dist/analytics/AnalyticsContext.esm.js:22:11)
+          at children (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-catalog-react/dist/hooks/useEntity.esm.js:10:11)
+          at entity (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-catalog-react/dist/hooks/useEntity.esm.js:25:19)
+          at apis (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/core-app-api/dist/apis/system/ApiProvider.esm.js:9:11)
+          at apis (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/test-utils/dist/testUtils/TestApiProvider.esm.js:43:43)
 
-  ● KyvernoCrossplaneOverviewCard › should be a function component
+      70 |
+      71 |         setRgd(rgdResource);
+    > 72 |         setInstance(instanceResource);
+         |         ^
+      73 |       } catch (error) {
+      74 |         console.error('Failed to fetch RGD:', error);
+      75 |       }
 
-    expect(received).toBe(expected) // Object.is equality
+      at printWarning (../../../node_modules/react-dom/cjs/react-dom.development.js:86:30)
+      at error (../../../node_modules/react-dom/cjs/react-dom.development.js:60:7)
+      at warnIfUpdatesNotWrappedWithActDEV (../../../node_modules/react-dom/cjs/react-dom.development.js:27628:9)
+      at scheduleUpdateOnFiber (../../../node_modules/react-dom/cjs/react-dom.development.js:25547:5)
+      at dispatchSetState (../../../node_modules/react-dom/cjs/react-dom.development.js:16708:7)
+      at setInstance (components/KroOverviewCard.tsx:72:9)
 
-    Expected: "function"
-    Received: "undefined"
+    console.error
+      Warning: An update to KroOverviewCard inside a test was not wrapped in act(...).
+      
+      When testing, code that causes React state updates should be wrapped into act(...):
+      
+      act(() => {
+        /* fire events that update state */
+      });
+      /* assert on the output */
+      
+      This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+          at KroOverviewCard (/home/vrabbi/projects/backstage/backstage-plugins/plugins/kro-resources/src/components/KroOverviewCard.tsx:26:31)
+          at attributes (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/core-plugin-api/dist/analytics/AnalyticsContext.esm.js:22:11)
+          at children (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-catalog-react/dist/hooks/useEntity.esm.js:10:11)
+          at entity (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-catalog-react/dist/hooks/useEntity.esm.js:25:19)
+          at apis (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/core-app-api/dist/apis/system/ApiProvider.esm.js:9:11)
+          at apis (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/test-utils/dist/testUtils/TestApiProvider.esm.js:43:43)
 
-       7 |
-       8 |   it('should be a function component', () => {
-    >  9 |     expect(typeof KyvernoCrossplaneOverviewCard).toBe('function');
-         |                                                  ^
-      10 |   });
-      11 | });
-      12 |
+      69 |         const instanceResource = resources.find(r => r.type === 'Instance')?.resource;
+      70 |
+    > 71 |         setRgd(rgdResource);
+         |         ^
+      72 |         setInstance(instanceResource);
+      73 |       } catch (error) {
+      74 |         console.error('Failed to fetch RGD:', error);
 
-      at Object.toBe (components/KyvernoCrossplaneOverviewCard.test.tsx:9:50)
+      at printWarning (../../../node_modules/react-dom/cjs/react-dom.development.js:86:30)
+      at error (../../../node_modules/react-dom/cjs/react-dom.development.js:60:7)
+      at warnIfUpdatesNotWrappedWithActDEV (../../../node_modules/react-dom/cjs/react-dom.development.js:27628:9)
+      at scheduleUpdateOnFiber (../../../node_modules/react-dom/cjs/react-dom.development.js:25547:5)
+      at dispatchSetState (../../../node_modules/react-dom/cjs/react-dom.development.js:16708:7)
+      at setRgd (components/KroOverviewCard.tsx:71:9)
 
-PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/service/ScaleOpsService.test.ts
-PASS @terasky/backstage-plugin-gitops-manifest-updater plugins/gitops-manifest-updater/src/plugin.test.ts (5.467 s)
-PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationCCIResourceOverview.test.tsx
-PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationProjectOverview.test.tsx
-PASS app packages/app/src/App.test.tsx (6.505 s)
-PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/services/VcfOperationsService.test.ts (5.228 s)
-PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/router.test.ts (5.515 s)
-PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/router.test.ts (5.875 s)
+    console.error
+      Warning: An update to KroOverviewCard inside a test was not wrapped in act(...).
+      
+      When testing, code that causes React state updates should be wrapped into act(...):
+      
+      act(() => {
+        /* fire events that update state */
+      });
+      /* assert on the output */
+      
+      This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+          at KroOverviewCard (/home/vrabbi/projects/backstage/backstage-plugins/plugins/kro-resources/src/components/KroOverviewCard.tsx:26:31)
+          at attributes (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/core-plugin-api/dist/analytics/AnalyticsContext.esm.js:22:11)
+          at children (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-catalog-react/dist/hooks/useEntity.esm.js:10:11)
+          at entity (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-catalog-react/dist/hooks/useEntity.esm.js:25:19)
+          at apis (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/core-app-api/dist/apis/system/ApiProvider.esm.js:9:11)
+          at apis (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/test-utils/dist/testUtils/TestApiProvider.esm.js:43:43)
+
+      70 |
+      71 |         setRgd(rgdResource);
+    > 72 |         setInstance(instanceResource);
+         |         ^
+      73 |       } catch (error) {
+      74 |         console.error('Failed to fetch RGD:', error);
+      75 |       }
+
+      at printWarning (../../../node_modules/react-dom/cjs/react-dom.development.js:86:30)
+      at error (../../../node_modules/react-dom/cjs/react-dom.development.js:60:7)
+      at warnIfUpdatesNotWrappedWithActDEV (../../../node_modules/react-dom/cjs/react-dom.development.js:27628:9)
+      at scheduleUpdateOnFiber (../../../node_modules/react-dom/cjs/react-dom.development.js:25547:5)
+      at dispatchSetState (../../../node_modules/react-dom/cjs/react-dom.development.js:16708:7)
+      at setInstance (components/KroOverviewCard.tsx:72:9)
+
+    console.error
+      Warning: findDOMNode is deprecated and will be removed in the next major release. Instead, add a ref directly to the element you want to reference. Learn more about using refs safely here: https://reactjs.org/link/strict-mode-find-node
+          at p
+          at Typography (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@material-ui/core/Typography/Typography.js:173:28)
+          at WithStyles (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@material-ui/styles/withStyles/withStyles.js:67:31)
+          at Tooltip (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@material-ui/core/Tooltip/Tooltip.js:214:28)
+          at WithStyles (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@material-ui/styles/withStyles/withStyles.js:67:31)
+          at div
+          at Grid (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@material-ui/core/Grid/Grid.js:243:35)
+          at WithStyles (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@material-ui/styles/withStyles/withStyles.js:67:31)
+          at div
+          at Grid (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@material-ui/core/Grid/Grid.js:243:35)
+          at WithStyles (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@material-ui/styles/withStyles/withStyles.js:67:31)
+          at div
+          at StyledComponent (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@material-ui/styles/styled/styled.js:95:28)
+          at div
+          at CardContent (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@material-ui/core/CardContent/CardContent.js:35:23)
+          at WithStyles (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@material-ui/styles/withStyles/withStyles.js:67:31)
+          at div
+          at Paper (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@material-ui/core/Paper/Paper.js:55:23)
+          at WithStyles (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@material-ui/styles/withStyles/withStyles.js:67:31)
+          at Card (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@material-ui/core/Card/Card.js:34:23)
+          at WithStyles (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@material-ui/styles/withStyles/withStyles.js:67:31)
+          at KroOverviewCard (/home/vrabbi/projects/backstage/backstage-plugins/plugins/kro-resources/src/components/KroOverviewCard.tsx:26:31)
+          at attributes (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/core-plugin-api/dist/analytics/AnalyticsContext.esm.js:22:11)
+          at children (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-catalog-react/dist/hooks/useEntity.esm.js:10:11)
+          at entity (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-catalog-react/dist/hooks/useEntity.esm.js:25:19)
+          at apis (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/core-app-api/dist/apis/system/ApiProvider.esm.js:9:11)
+          at apis (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/test-utils/dist/testUtils/TestApiProvider.esm.js:43:43)
+
+      at printWarning (../../../node_modules/react-dom/cjs/react-dom.development.js:86:30)
+      at error (../../../node_modules/react-dom/cjs/react-dom.development.js:60:7)
+      at Object.findDOMNode (../../../node_modules/react-dom/cjs/react-dom.development.js:29666:7)
+      at ../../../node_modules/@material-ui/core/Tooltip/Tooltip.js:468:51
+      at setRef (../../../node_modules/@material-ui/core/utils/setRef.js:11:5)
+      at ../../../node_modules/@material-ui/core/utils/useForkRef.js:29:27
+      at commitAttachRef (../../../node_modules/react-dom/cjs/react-dom.development.js:23689:18)
+      at commitLayoutEffectOnFiber (../../../node_modules/react-dom/cjs/react-dom.development.js:23542:9)
+      at commitLayoutMountEffects_complete (../../../node_modules/react-dom/cjs/react-dom.development.js:24727:9)
+      at commitLayoutEffects_begin (../../../node_modules/react-dom/cjs/react-dom.development.js:24713:7)
+      at commitLayoutEffects (../../../node_modules/react-dom/cjs/react-dom.development.js:24651:3)
+      at commitRootImpl (../../../node_modules/react-dom/cjs/react-dom.development.js:26862:5)
+      at commitRoot (../../../node_modules/react-dom/cjs/react-dom.development.js:26721:5)
+      at finishConcurrentRender (../../../node_modules/react-dom/cjs/react-dom.development.js:26020:9)
+      at performConcurrentWorkOnRoot (../../../node_modules/react-dom/cjs/react-dom.development.js:25848:7)
+      at workLoop (../../../node_modules/scheduler/cjs/scheduler.development.js:266:34)
+      at flushWork (../../../node_modules/scheduler/cjs/scheduler.development.js:239:14)
+      at performWorkUntilDeadline (../../../node_modules/scheduler/cjs/scheduler.development.js:533:21)
+      at Timeout.task [as _onTimeout] (../../../node_modules/jsdom/lib/jsdom/browser/Window.js:520:19)
+
+PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/components/KyvernoPolicyReportsTable.test.tsx (7.313 s)
 PASS @terasky/backstage-plugin-educates plugins/educates/src/components/TrainingPortalHeader.test.tsx
   ● Console
 
@@ -489,304 +728,132 @@ PASS @terasky/backstage-plugin-educates plugins/educates/src/components/Training
       at render (../node_modules/@testing-library/react/dist/pure.js:97:24)
       at Object.<anonymous> (components/TrainingPortalHeader.test.tsx:132:11)
 
-PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/components/KroOverviewCard.test.tsx (5.796 s)
-  ● Console
-
-    console.error
-      Warning: An update to KroOverviewCard inside a test was not wrapped in act(...).
-      
-      When testing, code that causes React state updates should be wrapped into act(...):
-      
-      act(() => {
-        /* fire events that update state */
-      });
-      /* assert on the output */
-      
-      This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
-          at KroOverviewCard (/home/vrabbi/projects/backstage/backstage-plugins/plugins/kro-resources/src/components/KroOverviewCard.tsx:26:31)
-          at attributes (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/core-plugin-api/dist/analytics/AnalyticsContext.esm.js:22:11)
-          at children (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-catalog-react/dist/hooks/useEntity.esm.js:10:11)
-          at entity (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-catalog-react/dist/hooks/useEntity.esm.js:25:19)
-          at apis (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/core-app-api/dist/apis/system/ApiProvider.esm.js:9:11)
-          at apis (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/test-utils/dist/testUtils/TestApiProvider.esm.js:43:43)
-
-      69 |         const instanceResource = resources.find(r => r.type === 'Instance')?.resource;
-      70 |
-    > 71 |         setRgd(rgdResource);
-         |         ^
-      72 |         setInstance(instanceResource);
-      73 |       } catch (error) {
-      74 |         console.error('Failed to fetch RGD:', error);
-
-      at printWarning (../../../node_modules/react-dom/cjs/react-dom.development.js:86:30)
-      at error (../../../node_modules/react-dom/cjs/react-dom.development.js:60:7)
-      at warnIfUpdatesNotWrappedWithActDEV (../../../node_modules/react-dom/cjs/react-dom.development.js:27628:9)
-      at scheduleUpdateOnFiber (../../../node_modules/react-dom/cjs/react-dom.development.js:25547:5)
-      at dispatchSetState (../../../node_modules/react-dom/cjs/react-dom.development.js:16708:7)
-      at setRgd (components/KroOverviewCard.tsx:71:9)
-
-    console.error
-      Warning: An update to KroOverviewCard inside a test was not wrapped in act(...).
-      
-      When testing, code that causes React state updates should be wrapped into act(...):
-      
-      act(() => {
-        /* fire events that update state */
-      });
-      /* assert on the output */
-      
-      This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
-          at KroOverviewCard (/home/vrabbi/projects/backstage/backstage-plugins/plugins/kro-resources/src/components/KroOverviewCard.tsx:26:31)
-          at attributes (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/core-plugin-api/dist/analytics/AnalyticsContext.esm.js:22:11)
-          at children (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-catalog-react/dist/hooks/useEntity.esm.js:10:11)
-          at entity (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-catalog-react/dist/hooks/useEntity.esm.js:25:19)
-          at apis (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/core-app-api/dist/apis/system/ApiProvider.esm.js:9:11)
-          at apis (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/test-utils/dist/testUtils/TestApiProvider.esm.js:43:43)
-
-      70 |
-      71 |         setRgd(rgdResource);
-    > 72 |         setInstance(instanceResource);
-         |         ^
-      73 |       } catch (error) {
-      74 |         console.error('Failed to fetch RGD:', error);
-      75 |       }
-
-      at printWarning (../../../node_modules/react-dom/cjs/react-dom.development.js:86:30)
-      at error (../../../node_modules/react-dom/cjs/react-dom.development.js:60:7)
-      at warnIfUpdatesNotWrappedWithActDEV (../../../node_modules/react-dom/cjs/react-dom.development.js:27628:9)
-      at scheduleUpdateOnFiber (../../../node_modules/react-dom/cjs/react-dom.development.js:25547:5)
-      at dispatchSetState (../../../node_modules/react-dom/cjs/react-dom.development.js:16708:7)
-      at setInstance (components/KroOverviewCard.tsx:72:9)
-
-    console.error
-      Warning: An update to KroOverviewCard inside a test was not wrapped in act(...).
-      
-      When testing, code that causes React state updates should be wrapped into act(...):
-      
-      act(() => {
-        /* fire events that update state */
-      });
-      /* assert on the output */
-      
-      This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
-          at KroOverviewCard (/home/vrabbi/projects/backstage/backstage-plugins/plugins/kro-resources/src/components/KroOverviewCard.tsx:26:31)
-          at attributes (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/core-plugin-api/dist/analytics/AnalyticsContext.esm.js:22:11)
-          at children (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-catalog-react/dist/hooks/useEntity.esm.js:10:11)
-          at entity (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-catalog-react/dist/hooks/useEntity.esm.js:25:19)
-          at apis (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/core-app-api/dist/apis/system/ApiProvider.esm.js:9:11)
-          at apis (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/test-utils/dist/testUtils/TestApiProvider.esm.js:43:43)
-
-      69 |         const instanceResource = resources.find(r => r.type === 'Instance')?.resource;
-      70 |
-    > 71 |         setRgd(rgdResource);
-         |         ^
-      72 |         setInstance(instanceResource);
-      73 |       } catch (error) {
-      74 |         console.error('Failed to fetch RGD:', error);
-
-      at printWarning (../../../node_modules/react-dom/cjs/react-dom.development.js:86:30)
-      at error (../../../node_modules/react-dom/cjs/react-dom.development.js:60:7)
-      at warnIfUpdatesNotWrappedWithActDEV (../../../node_modules/react-dom/cjs/react-dom.development.js:27628:9)
-      at scheduleUpdateOnFiber (../../../node_modules/react-dom/cjs/react-dom.development.js:25547:5)
-      at dispatchSetState (../../../node_modules/react-dom/cjs/react-dom.development.js:16708:7)
-      at setRgd (components/KroOverviewCard.tsx:71:9)
-
-    console.error
-      Warning: An update to KroOverviewCard inside a test was not wrapped in act(...).
-      
-      When testing, code that causes React state updates should be wrapped into act(...):
-      
-      act(() => {
-        /* fire events that update state */
-      });
-      /* assert on the output */
-      
-      This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
-          at KroOverviewCard (/home/vrabbi/projects/backstage/backstage-plugins/plugins/kro-resources/src/components/KroOverviewCard.tsx:26:31)
-          at attributes (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/core-plugin-api/dist/analytics/AnalyticsContext.esm.js:22:11)
-          at children (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-catalog-react/dist/hooks/useEntity.esm.js:10:11)
-          at entity (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-catalog-react/dist/hooks/useEntity.esm.js:25:19)
-          at apis (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/core-app-api/dist/apis/system/ApiProvider.esm.js:9:11)
-          at apis (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/test-utils/dist/testUtils/TestApiProvider.esm.js:43:43)
-
-      70 |
-      71 |         setRgd(rgdResource);
-    > 72 |         setInstance(instanceResource);
-         |         ^
-      73 |       } catch (error) {
-      74 |         console.error('Failed to fetch RGD:', error);
-      75 |       }
-
-      at printWarning (../../../node_modules/react-dom/cjs/react-dom.development.js:86:30)
-      at error (../../../node_modules/react-dom/cjs/react-dom.development.js:60:7)
-      at warnIfUpdatesNotWrappedWithActDEV (../../../node_modules/react-dom/cjs/react-dom.development.js:27628:9)
-      at scheduleUpdateOnFiber (../../../node_modules/react-dom/cjs/react-dom.development.js:25547:5)
-      at dispatchSetState (../../../node_modules/react-dom/cjs/react-dom.development.js:16708:7)
-      at setInstance (components/KroOverviewCard.tsx:72:9)
-
-    console.error
-      Warning: findDOMNode is deprecated and will be removed in the next major release. Instead, add a ref directly to the element you want to reference. Learn more about using refs safely here: https://reactjs.org/link/strict-mode-find-node
-          at p
-          at Typography (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@material-ui/core/Typography/Typography.js:173:28)
-          at WithStyles (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@material-ui/styles/withStyles/withStyles.js:67:31)
-          at Tooltip (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@material-ui/core/Tooltip/Tooltip.js:214:28)
-          at WithStyles (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@material-ui/styles/withStyles/withStyles.js:67:31)
-          at div
-          at Grid (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@material-ui/core/Grid/Grid.js:243:35)
-          at WithStyles (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@material-ui/styles/withStyles/withStyles.js:67:31)
-          at div
-          at Grid (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@material-ui/core/Grid/Grid.js:243:35)
-          at WithStyles (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@material-ui/styles/withStyles/withStyles.js:67:31)
-          at div
-          at StyledComponent (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@material-ui/styles/styled/styled.js:95:28)
-          at div
-          at CardContent (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@material-ui/core/CardContent/CardContent.js:35:23)
-          at WithStyles (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@material-ui/styles/withStyles/withStyles.js:67:31)
-          at div
-          at Paper (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@material-ui/core/Paper/Paper.js:55:23)
-          at WithStyles (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@material-ui/styles/withStyles/withStyles.js:67:31)
-          at Card (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@material-ui/core/Card/Card.js:34:23)
-          at WithStyles (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@material-ui/styles/withStyles/withStyles.js:67:31)
-          at KroOverviewCard (/home/vrabbi/projects/backstage/backstage-plugins/plugins/kro-resources/src/components/KroOverviewCard.tsx:26:31)
-          at attributes (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/core-plugin-api/dist/analytics/AnalyticsContext.esm.js:22:11)
-          at children (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-catalog-react/dist/hooks/useEntity.esm.js:10:11)
-          at entity (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-catalog-react/dist/hooks/useEntity.esm.js:25:19)
-          at apis (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/core-app-api/dist/apis/system/ApiProvider.esm.js:9:11)
-          at apis (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/test-utils/dist/testUtils/TestApiProvider.esm.js:43:43)
-
-      at printWarning (../../../node_modules/react-dom/cjs/react-dom.development.js:86:30)
-      at error (../../../node_modules/react-dom/cjs/react-dom.development.js:60:7)
-      at Object.findDOMNode (../../../node_modules/react-dom/cjs/react-dom.development.js:29666:7)
-      at ../../../node_modules/@material-ui/core/Tooltip/Tooltip.js:468:51
-      at setRef (../../../node_modules/@material-ui/core/utils/setRef.js:11:5)
-      at ../../../node_modules/@material-ui/core/utils/useForkRef.js:29:27
-      at commitAttachRef (../../../node_modules/react-dom/cjs/react-dom.development.js:23689:18)
-      at commitLayoutEffectOnFiber (../../../node_modules/react-dom/cjs/react-dom.development.js:23542:9)
-      at commitLayoutMountEffects_complete (../../../node_modules/react-dom/cjs/react-dom.development.js:24727:9)
-      at commitLayoutEffects_begin (../../../node_modules/react-dom/cjs/react-dom.development.js:24713:7)
-      at commitLayoutEffects (../../../node_modules/react-dom/cjs/react-dom.development.js:24651:3)
-      at commitRootImpl (../../../node_modules/react-dom/cjs/react-dom.development.js:26862:5)
-      at commitRoot (../../../node_modules/react-dom/cjs/react-dom.development.js:26721:5)
-      at finishConcurrentRender (../../../node_modules/react-dom/cjs/react-dom.development.js:26020:9)
-      at performConcurrentWorkOnRoot (../../../node_modules/react-dom/cjs/react-dom.development.js:25848:7)
-      at workLoop (../../../node_modules/scheduler/cjs/scheduler.development.js:266:34)
-      at flushWork (../../../node_modules/scheduler/cjs/scheduler.development.js:239:14)
-      at performWorkUntilDeadline (../../../node_modules/scheduler/cjs/scheduler.development.js:533:21)
-      at Timeout.task [as _onTimeout] (../../../node_modules/jsdom/lib/jsdom/browser/Window.js:520:19)
-
-PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/service/router.test.ts
-FAIL @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/CrossplaneResourceGraphSelector.test.tsx (6.704 s)
-  ● CrossplaneResourceGraphSelector › should be defined
-
-    expect(received).toBeDefined()
-
-    Received: undefined
-
-      3 | describe('CrossplaneResourceGraphSelector', () => {
-      4 |   it('should be defined', () => {
-    > 5 |     expect(CrossplaneResourceGraphSelector).toBeDefined();
-        |                                             ^
-      6 |   });
-      7 |
-      8 |   it('should be a function component', () => {
-
-      at Object.toBeDefined (components/CrossplaneResourceGraphSelector.test.tsx:5:45)
-
-  ● CrossplaneResourceGraphSelector › should be a function component
-
-    expect(received).toBe(expected) // Object.is equality
-
-    Expected: "function"
-    Received: "undefined"
-
-       7 |
-       8 |   it('should be a function component', () => {
-    >  9 |     expect(typeof CrossplaneResourceGraphSelector).toBe('function');
-         |                                                    ^
-      10 |   });
-      11 | });
-      12 |
-
-      at Object.toBe (components/CrossplaneResourceGraphSelector.test.tsx:9:52)
-
-PASS @terasky/backstage-plugin-entity-scaffolder-content plugins/entity-scaffolder-content/src/components/EntityScaffolderContent.test.tsx (7.006 s)
-PASS @terasky/backstage-plugin-terraform-scaffolder plugins/terraform-scaffolder/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/components/KyvernoCrossplanePolicyReportsTable.test.tsx (7.442 s)
 PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/components/AiRulesComponent/AiRulesComponent.test.tsx
-PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/service/KubernetesService.test.ts
-PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationResourceOverview.test.tsx
+PASS @terasky/backstage-plugin-terraform-scaffolder plugins/terraform-scaffolder/src/plugin.test.ts
+PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/services/VcfOperationsService.test.ts
 PASS @terasky/backstage-plugin-spectrocloud plugins/spectrocloud/src/components/SpectroCloudClusterProfileCard.test.tsx
-PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationVSphereVMOverview.test.tsx (5.106 s)
-PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/providers/SpectroCloudEntityProvider.test.ts
-PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationDeploymentOverview.test.tsx (5.172 s)
-PASS @terasky/plugin-scaffolder-mcp-backend plugins/scaffolder-mcp-backend/src/actions.test.ts (7.938 s)
-PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/router.test.ts
+PASS @terasky/backstage-plugin-scaleops-frontend plugins/scaleops-frontend/src/components/ScaleOpsDashboard.test.tsx
+PASS @terasky/backstage-plugin-kubernetes-resources-frontend plugins/kubernetes-resources/src/components/KubernetesResourceGraph.test.tsx
   ● Console
 
-    console.warn
-      Permission check failed: Error: Permission service unavailable
+    console.error
+      Error: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)
+          at module.exports (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
+          at HTMLCanvasElementImpl.getContext (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jsdom/lib/jsdom/living/nodes/HTMLCanvasElement-impl.js:42:5)
+          at HTMLCanvasElement.getContext (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jsdom/lib/jsdom/living/generated/HTMLCanvasElement.js:131:58)
+          at createLinearGradient (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/common/Color.ts:133:27)
+          at Object.rs (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/common/Color.ts:247:32)
+          at i (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:284562)
+          at Object.3787 (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/renderer/dom/DomRendererRowFactory.ts:49:26)
+          at i (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:284562)
+          at Object.1296 (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/renderer/dom/DomRenderer.ts:20:31)
+          at i (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:284562)
+          at Object.3236 (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/Terminal.ts:45:1)
+          at i (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:284562)
+          at Disposable (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/public/Terminal.ts:23:31)
+          at /home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:289313
+          at /home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:289319
+          at /home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/webpack/universalModuleDefinition:8:39
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:325)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/PodExecTerminal/PodExecTerminal.esm.js:16:16)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/PodExecTerminal/PodExecTerminalDialog.esm.js:27:29)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/Pods/PodDrawer/ContainerCard.esm.js:35:35)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/Pods/PodDrawer/PodDrawer.esm.js:16:27)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/DeploymentsAccordions/DeploymentsAccordions.esm.js:19:1)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/Cluster/Cluster.esm.js:19:35)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/index.esm.js:227:22)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/plugins/kubernetes-resources/src/components/KubernetesResourceGraph.tsx:5087:26)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/plugins/kubernetes-resources/src/components/KubernetesResourceGraph.test.tsx:5:73)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at jestAdapter (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:77:13)
+          at processTicksAndRejections (node:internal/process/task_queues:103:5)
+          at runTestInternal (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runner/build/runTest.js:367:16)
+          at runTest (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runner/build/runTest.js:444:34)
+          at Object.worker (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runner/build/testWorker.js:106:12) {
+        type: 'not implemented'
+      }
 
-      51 |       }
-      52 |       // Log but don't block on permission check failures when service is unavailable
-    > 53 |       console.warn(`Permission check failed: ${error}`);
-         |               ^
-      54 |     }
-      55 |   }
-      56 |
 
-      at warn (actions.ts:53:15)
-      at Object.action (actions.ts:149:7)
-      at Object.<anonymous> (actions.test.ts:500:7)
 
+      at VirtualConsole.<anonymous> (../../../node_modules/jest-environment-jsdom/build/index.js:63:23)
+      at module.exports (../../../node_modules/jsdom/lib/jsdom/browser/not-implemented.js:12:26)
+      at HTMLCanvasElementImpl.getContext (../../../node_modules/jsdom/lib/jsdom/living/nodes/HTMLCanvasElement-impl.js:42:5)
+      at HTMLCanvasElement.getContext (../../../node_modules/jsdom/lib/jsdom/living/generated/HTMLCanvasElement.js:131:58)
+      at createLinearGradient (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/common/Color.ts:133:27)
+      at Object.rs (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/common/Color.ts:247:32)
+      at i (../../../node_modules/@xterm/xterm/lib/xterm.js:1:284562)
+      at Object.3787 (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/renderer/dom/DomRendererRowFactory.ts:49:26)
+      at i (../../../node_modules/@xterm/xterm/lib/xterm.js:1:284562)
+      at Object.1296 (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/renderer/dom/DomRenderer.ts:20:31)
+      at i (../../../node_modules/@xterm/xterm/lib/xterm.js:1:284562)
+      at Object.3236 (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/Terminal.ts:45:1)
+      at i (../../../node_modules/@xterm/xterm/lib/xterm.js:1:284562)
+      at Disposable (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/public/Terminal.ts:23:31)
+      at ../../../node_modules/@xterm/xterm/lib/xterm.js:1:289313
+      at ../../../node_modules/@xterm/xterm/lib/xterm.js:1:289319
+      at ../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/webpack/universalModuleDefinition:8:39
+      at Object.<anonymous> (../../../node_modules/@xterm/xterm/lib/xterm.js:1:325)
+      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/PodExecTerminal/PodExecTerminal.esm.js:16:16)
+      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/PodExecTerminal/PodExecTerminalDialog.esm.js:27:29)
+      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/Pods/PodDrawer/ContainerCard.esm.js:35:35)
+      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/Pods/PodDrawer/PodDrawer.esm.js:16:27)
+      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/DeploymentsAccordions/DeploymentsAccordions.esm.js:19:1)
+      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/Cluster/Cluster.esm.js:19:35)
+      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/index.esm.js:227:22)
+      at Object.<anonymous> (components/KubernetesResourceGraph.tsx:5087:26)
+      at Object.<anonymous> (components/KubernetesResourceGraph.test.tsx:5:73)
+
+PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/service/ScaleOpsService.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/router.test.ts
+(node:286092) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
+(Use `node --trace-warnings ...` to show where the warning was created)
 PASS @terasky/backstage-plugin-vcf-automation-ingestor plugins/vcf-automation-ingestor/src/provider/EntityProvider.test.ts
 PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-scaleops-frontend plugins/scaleops-frontend/src/components/ScaleOpsDashboard.test.tsx
-PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationGenericResourceOverview.test.tsx
-PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/router.test.ts
-PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/router.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/service/router.test.ts
-PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/AiRulesService.test.ts
-PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationVMPowerManagement.test.tsx
 PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/providers/EntityProvider.test.ts
-(node:266695) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
-(Use `node --trace-warnings ...` to show where the warning was created)
-PASS @terasky/backstage-plugin-vcf-automation-ingestor plugins/vcf-automation-ingestor/src/module.test.ts
-PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/actions.test.ts
-FAIL @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/components/KyvernoCrossplanePolicyReportsTable.test.tsx (10.011 s)
-  ● KyvernoCrossplanePolicyReportsTable › should be defined
-
-    expect(received).toBeDefined()
-
-    Received: undefined
-
-      3 | describe('KyvernoCrossplanePolicyReportsTable', () => {
-      4 |   it('should be defined', () => {
-    > 5 |     expect(KyvernoCrossplanePolicyReportsTable).toBeDefined();
-        |                                                 ^
-      6 |   });
-      7 |
-      8 |   it('should be a function component', () => {
-
-      at Object.toBeDefined (components/KyvernoCrossplanePolicyReportsTable.test.tsx:5:49)
-
-  ● KyvernoCrossplanePolicyReportsTable › should be a function component
-
-    expect(received).toBe(expected) // Object.is equality
-
-    Expected: "function"
-    Received: "undefined"
-
-       7 |
-       8 |   it('should be a function component', () => {
-    >  9 |     expect(typeof KyvernoCrossplanePolicyReportsTable).toBe('function');
-         |                                                        ^
-      10 |   });
-      11 | });
-      12 |
-
-      at Object.toBe (components/KyvernoCrossplanePolicyReportsTable.test.tsx:9:56)
-
-PASS @terasky/backstage-plugin-educates plugins/educates/src/components/EducatesPage.test.tsx
+PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/service/KubernetesService.test.ts
+PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/service/router.test.ts
+PASS @terasky/backstage-plugin-vcf-operations plugins/vcf-operations/src/components/VCFOperationsExplorer.test.tsx
+PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/actions.test.ts
 PASS @terasky/backstage-plugin-educates plugins/educates/src/components/WorkshopCard.test.tsx
   ● Console
 
@@ -1216,11 +1283,48 @@ PASS @terasky/backstage-plugin-educates plugins/educates/src/components/Workshop
       at render (../node_modules/@testing-library/react/dist/pure.js:97:24)
       at Object.<anonymous> (components/WorkshopCard.test.tsx:166:13)
 
+PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/service/router.test.ts
+PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationProjectOverview.test.tsx
+PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/service/router.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/providers/SpectroCloudEntityProvider.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/actions.test.ts
+  ● Console
+
+    console.warn
+      Permission check failed: Error: Permission service unavailable
+
+      51 |       }
+      52 |       // Log but don't block on permission check failures when service is unavailable
+    > 53 |       console.warn(`Permission check failed: ${error}`);
+         |               ^
+      54 |     }
+      55 |   }
+      56 |
+
+      at warn (actions.ts:53:15)
+      at Object.action (actions.ts:149:7)
+      at Object.<anonymous> (actions.test.ts:500:7)
+
+PASS @terasky/backstage-plugin-vcf-operations plugins/vcf-operations/src/components/MetricChart.test.tsx
+PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/AiRulesService.test.ts
+PASS @terasky/backstage-plugin-vcf-automation-ingestor plugins/vcf-automation-ingestor/src/module.test.ts
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/service/router.test.ts
 PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/api/VcfAutomationClient.test.ts
+PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationVMPowerManagement.test.tsx
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/actions.test.ts
 PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/plugin.test.ts
-PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/components/isKroAvailable.test.tsx
-PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/service/EducatesService.test.ts
 PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/client/SpectroCloudClient.test.ts
+(node:286090) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/components/isKroAvailable.test.tsx
+PASS @terasky/backstage-plugin-educates plugins/educates/src/components/EducatesPage.test.tsx
+PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/api/KyvernoApi.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/client/SpectroCloudClient.test.ts
+PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/router.test.ts
+PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/plugin.test.ts
 PASS @terasky/backstage-plugin-vcf-operations plugins/vcf-operations/src/components/NotImplementedMessage.test.tsx
   ● Console
 
@@ -1335,98 +1439,56 @@ PASS @terasky/backstage-plugin-vcf-operations plugins/vcf-operations/src/compone
       at render (../../educates/node_modules/@testing-library/react/dist/pure.js:97:24)
       at Object.<anonymous> (components/NotImplementedMessage.test.tsx:53:11)
 
-PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/api/KyvernoApi.test.ts
-FAIL @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/components/KyvernoPolicyReportsTable.test.tsx (11.338 s)
-  ● KyvernoPolicyReportsTable › should be defined
-
-    expect(received).toBeDefined()
-
-    Received: undefined
-
-      3 | describe('KyvernoPolicyReportsTable', () => {
-      4 |   it('should be defined', () => {
-    > 5 |     expect(KyvernoPolicyReportsTable).toBeDefined();
-        |                                       ^
-      6 |   });
-      7 |
-      8 |   it('should be a function component', () => {
-
-      at Object.toBeDefined (components/KyvernoPolicyReportsTable.test.tsx:5:39)
-
-  ● KyvernoPolicyReportsTable › should be a function component
-
-    expect(received).toBe(expected) // Object.is equality
-
-    Expected: "function"
-    Received: "undefined"
-
-       7 |
-       8 |   it('should be a function component', () => {
-    >  9 |     expect(typeof KyvernoPolicyReportsTable).toBe('function');
-         |                                              ^
-      10 |   });
-      11 | });
-      12 |
-
-      at Object.toBe (components/KyvernoPolicyReportsTable.test.tsx:9:46)
-
-PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/supplier/SpectroCloudClusterSupplier.test.ts
-PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/service/EducatesService.test.ts
 PASS @terasky/backstage-plugin-educates plugins/educates/src/api/EducatesClient.test.ts
-PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/service/router.test.ts (5.85 s)
-PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/plugin.test.ts
-(node:266798) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
-(Use `node --trace-warnings ...` to show where the warning was created)
-PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/conditions.test.ts
-PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/plugin.test.ts
 PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/rules.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/client/SpectroCloudClient.test.ts
-PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/api/KroApi.test.ts
-PASS @terasky/backstage-plugin-catalog-mcp-backend plugins/catalog-mcp-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/plugin.test.ts
-PASS @terasky/plugin-scaffolder-mcp-backend plugins/scaffolder-mcp-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/runPeriodically.test.ts
-PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/service/KubernetesService.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-common plugins/spectrocloud-common/src/index.test.ts
-PASS @terasky/backstage-plugin-vcf-automation-common plugins/vcf-automation-common/src/index.test.ts
-PASS @terasky/backstage-plugin-spectrocloud plugins/spectrocloud/src/components/PermissionGuards.test.tsx
-PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/actions.test.ts
-PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/permissions.test.ts
-PASS @terasky/backstage-plugin-vcf-operations plugins/vcf-operations/src/api/VcfOperationsClient.test.ts
-PASS @terasky/backstage-plugin-crossplane-common plugins/crossplane-common/src/index.test.ts
-PASS @terasky/backstage-plugin-educates plugins/educates/src/plugin.test.ts
-PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-kro-common plugins/kro-common/src/index.test.ts
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/supplier/SpectroCloudClusterSupplier.test.ts
 PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/module.test.ts
-PASS @terasky/backstage-plugin-devpod plugins/devpod-plugin/src/components/VisuallyHidden/VisuallyHidden.test.tsx
-PASS @terasky/plugin-rbac-mcp-backend plugins/rbac-mcp-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-vcf-operations-common plugins/vcf-operations-common/src/index.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/plugin.test.ts
 PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-spectrocloud plugins/spectrocloud/src/api/SpectroCloudApi.test.ts
-PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/client/SpectroCloudClient.test.ts
-PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/service/router.test.ts
-PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/module.test.ts
-PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/catalog-info-cleaner.test.ts
-PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/services/VcfAutomationService.test.ts (11.202 s)
-PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/claim-templating.test.ts
-PASS @terasky/backstage-plugin-vcf-operations plugins/vcf-operations/src/plugin.test.ts
-PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/crd-templating.test.ts
+PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/api/KroApi.test.ts
+PASS @terasky/backstage-plugin-vcf-automation-common plugins/vcf-automation-common/src/index.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/plugin.test.ts
+PASS @terasky/plugin-scaffolder-mcp-backend plugins/scaffolder-mcp-backend/src/actions.test.ts (6.52 s)
+PASS @terasky/backstage-plugin-spectrocloud-common plugins/spectrocloud-common/src/index.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/permissions.test.ts
+PASS @terasky/backstage-plugin-educates plugins/educates/src/plugin.test.ts
+PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/actions.test.ts
+PASS @terasky/plugin-scaffolder-mcp-backend plugins/scaffolder-mcp-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/module.test.ts
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/conditions.test.ts
+PASS @terasky/backstage-plugin-spectrocloud plugins/spectrocloud/src/components/PermissionGuards.test.tsx
+PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/runPeriodically.test.ts
+PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/actions.test.ts
+PASS @terasky/backstage-plugin-kro-common plugins/kro-common/src/index.test.ts
+PASS @terasky/plugin-rbac-mcp-backend plugins/rbac-mcp-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-crossplane-common plugins/crossplane-common/src/index.test.ts
+PASS @terasky/backstage-plugin-vcf-operations-common plugins/vcf-operations-common/src/index.test.ts
+PASS @terasky/backstage-plugin-catalog-mcp-backend plugins/catalog-mcp-backend/src/actions.test.ts
 PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/service/KubernetesService.test.ts
+PASS @terasky/backstage-plugin-devpod plugins/devpod-plugin/src/components/VisuallyHidden/VisuallyHidden.test.tsx
+PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-vcf-operations plugins/vcf-operations/src/api/VcfOperationsClient.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/service/KubernetesService.test.ts
+PASS @terasky/backstage-plugin-spectrocloud plugins/spectrocloud/src/api/SpectroCloudApi.test.ts
+PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/catalog-info-cleaner.test.ts
+PASS @terasky/backstage-plugin-vcf-operations plugins/vcf-operations/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/service/router.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/crd-templating.test.ts
+PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/claim-templating.test.ts
+PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/module.test.ts
 PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/MCPService.test.ts
 PASS @terasky/plugin-rbac-mcp-backend plugins/rbac-mcp-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/service/router.test.ts
 PASS @terasky/backstage-plugin-spectrocloud plugins/spectrocloud/src/components/SpectroCloudClusterCard.test.tsx
+PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/services/VcfAutomationService.test.ts (8.709 s)
 A worker process has failed to exit gracefully and has been force exited. This is likely caused by tests leaking due to improper teardown. Try running with --detectOpenHandles to find leaks. Active timers can also cause this, ensure that .unref() was called on them.
 --------------------------------------------------------------------------|---------|----------|---------|---------|----------------------------------------------------------------------------------------------------------------------------------
 File                                                                      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                                                                                                
 --------------------------------------------------------------------------|---------|----------|---------|---------|----------------------------------------------------------------------------------------------------------------------------------
-All files                                                                 |    36.5 |    19.64 |   23.33 |   37.26 |                                                                                                                                  
+All files                                                                 |   37.78 |    19.64 |   23.34 |   38.56 |                                                                                                                                  
  packages/app/src                                                         |      88 |      100 |       0 |   86.36 |                                                                                                                                  
   App.tsx                                                                 |     100 |      100 |     100 |     100 |                                                                                                                                  
   index.tsx                                                               |       0 |      100 |     100 |       0 | 6                                                                                                                                
@@ -1451,18 +1513,20 @@ All files                                                                 |    3
   plugin.ts                                                               |    42.3 |      100 |       0 |   53.84 | 16-17,26-27,36-37                                                                                                                
   routes.ts                                                               |     100 |      100 |     100 |     100 |                                                                                                                                  
   types.ts                                                                |     100 |      100 |     100 |     100 |                                                                                                                                  
- plugins/ai-rules-plugin/src/api                                          |   95.23 |       50 |     100 |   95.23 |                                                                                                                                  
+ plugins/ai-rules-plugin/src/api                                          |   95.65 |       50 |     100 |     100 |                                                                                                                                  
   AiRulesClient.ts                                                        |     100 |       50 |     100 |     100 | 33-34                                                                                                                            
-  types.ts                                                                |       0 |      100 |     100 |       0 | 6                                                                                                                                
- plugins/ai-rules-plugin/src/components/AiInstructionsComponent           |       0 |        0 |       0 |       0 |                                                                                                                                  
-  AiInstructionsComponent.tsx                                             |       0 |        0 |       0 |       0 | 18-64                                                                                                                            
- plugins/ai-rules-plugin/src/components/AiRulesComponent                  |   18.51 |     2.66 |       4 |   18.62 |                                                                                                                                  
+  types.ts                                                                |   66.66 |      100 |     100 |     100 |                                                                                                                                  
+ plugins/ai-rules-plugin/src/components/AiInstructionsComponent           |   53.33 |        0 |       0 |   53.84 |                                                                                                                                  
+  AiInstructionsComponent.tsx                                             |   53.33 |        0 |       0 |   53.84 | 18-38,60-64                                                                                                                      
+ plugins/ai-rules-plugin/src/components/AiRulesComponent                  |   18.91 |     2.66 |       4 |   19.41 |                                                                                                                                  
   AiRulesComponent.tsx                                                    |   18.51 |     2.66 |       4 |   18.62 | 96,107-138,162,168-216,225-238,242-433,438-584                                                                                   
- plugins/ai-rules-plugin/src/components/MCPServersComponent               |       0 |        0 |       0 |       0 |                                                                                                                                  
-  MCPServersComponent.tsx                                                 |       0 |        0 |       0 |       0 | 21-262                                                                                                                           
- plugins/ai-rules-plugin/src/hooks                                        |    4.42 |        0 |       0 |    4.46 |                                                                                                                                  
+  index.ts                                                                |   33.33 |      100 |     100 |     100 |                                                                                                                                  
+ plugins/ai-rules-plugin/src/components/MCPServersComponent               |   29.03 |        0 |       0 |   27.58 |                                                                                                                                  
+  MCPServersComponent.tsx                                                 |   26.66 |        0 |       0 |      25 | 136-262                                                                                                                          
+  index.ts                                                                |     100 |      100 |     100 |     100 |                                                                                                                                  
+ plugins/ai-rules-plugin/src/hooks                                        |    8.47 |        0 |       0 |    8.62 |                                                                                                                                  
   useAiRules.ts                                                           |    5.55 |        0 |       0 |    5.61 | 7-161                                                                                                                            
-  useMCPServers.ts                                                        |       0 |        0 |       0 |       0 | 8-44                                                                                                                             
+  useMCPServers.ts                                                        |   17.85 |        0 |       0 |   18.51 | 9-44                                                                                                                             
  plugins/app-module-global-signin-page/src                                |    40.9 |        0 |       0 |   38.09 |                                                                                                                                  
   module.tsx                                                              |    40.9 |        0 |       0 |   38.09 | 92-120                                                                                                                           
  plugins/catalog-mcp-backend/src                                          |      88 |    83.87 |      40 |   87.87 |                                                                                                                                  
@@ -1483,31 +1547,32 @@ All files                                                                 |    3
   routes.ts                                                               |     100 |      100 |     100 |     100 |                                                                                                                                  
  plugins/crossplane-resources/src/api                                     |     100 |      100 |     100 |     100 |                                                                                                                                  
   CrossplaneApi.ts                                                        |     100 |      100 |     100 |     100 |                                                                                                                                  
- plugins/crossplane-resources/src/components                              |    5.67 |     0.81 |    1.05 |    5.92 |                                                                                                                                  
-  CrossplaneOverviewCardSelector.tsx                                      |   43.75 |        0 |       0 |   46.66 | 8-18                                                                                                                             
-  CrossplaneResourceGraphSelector.tsx                                     |   43.75 |        0 |       0 |   46.66 | 8-18                                                                                                                             
-  CrossplaneResourcesTableSelector.tsx                                    |       0 |        0 |       0 |       0 | 7-18                                                                                                                             
+ plugins/crossplane-resources/src/components                              |     8.5 |     0.81 |    1.05 |    8.84 |                                                                                                                                  
+  CrossplaneOverviewCardSelector.tsx                                      |      50 |        0 |       0 |   46.66 | 8-18                                                                                                                             
+  CrossplaneResourceGraphSelector.tsx                                     |      50 |        0 |       0 |   46.66 | 8-18                                                                                                                             
+  CrossplaneResourcesTableSelector.tsx                                    |      50 |        0 |       0 |   46.66 | 8-18                                                                                                                             
   CrossplaneV1OverviewCard.tsx                                            |   23.72 |        0 |       0 |      25 | 42-172                                                                                                                           
   CrossplaneV1ResourceGraph.tsx                                           |    7.82 |        0 |       0 |    8.43 | 79-128,139-217,221-482,503-1063                                                                                                  
-  CrossplaneV1ResourceTable.tsx                                           |       0 |        0 |       0 |       0 | 60-2096                                                                                                                          
+  CrossplaneV1ResourceTable.tsx                                           |    4.29 |        0 |       0 |    4.65 | 61-110,381-2096                                                                                                                  
   CrossplaneV2OverviewCard.tsx                                            |   26.41 |        0 |       0 |   27.45 | 27-140                                                                                                                           
   CrossplaneV2ResourceGraph.tsx                                           |    7.79 |        0 |       0 |    8.38 | 79-128,139-217,221-482,503-1060                                                                                                  
-  CrossplaneV2ResourceTable.tsx                                           |       0 |        0 |       0 |       0 | 45-1893                                                                                                                          
+  CrossplaneV2ResourceTable.tsx                                           |    4.11 |        0 |       0 |    4.47 | 232-281,285-1893                                                                                                                 
   annotationUtils.ts                                                      |   71.42 |      100 |     100 |     100 |                                                                                                                                  
   isCrossplaneAvailable.tsx                                               |   65.85 |    39.28 |      50 |   69.69 | 38-43,47-52                                                                                                                      
- plugins/devpod-plugin/src                                                |      50 |      100 |       0 |   58.33 |                                                                                                                                  
+ plugins/devpod-plugin/src                                                |   57.14 |      100 |       0 |   66.66 |                                                                                                                                  
   alpha.tsx                                                               |       0 |      100 |       0 |       0 | 8-15                                                                                                                             
   plugin.ts                                                               |   57.14 |      100 |       0 |   71.42 | 15,24                                                                                                                            
   routes.ts                                                               |     100 |      100 |     100 |     100 |                                                                                                                                  
-  types.ts                                                                |       0 |      100 |       0 |       0 | 1                                                                                                                                
- plugins/devpod-plugin/src/components/DevpodComponent                     |       0 |        0 |       0 |       0 |                                                                                                                                  
-  DevpodComponent.tsx                                                     |       0 |        0 |       0 |       0 | 11-67                                                                                                                            
- plugins/devpod-plugin/src/components/DevpodProvider                      |       0 |        0 |       0 |       0 |                                                                                                                                  
-  DevpodProvider.tsx                                                      |       0 |        0 |       0 |       0 | 6-27                                                                                                                             
- plugins/devpod-plugin/src/components/VisuallyHidden                      |      75 |        0 |      60 |   73.68 |                                                                                                                                  
+  types.ts                                                                |     100 |      100 |     100 |     100 |                                                                                                                                  
+ plugins/devpod-plugin/src/components/DevpodComponent                     |   38.46 |        0 |       0 |   39.13 |                                                                                                                                  
+  DevpodComponent.tsx                                                     |   38.46 |        0 |       0 |   39.13 | 12-13,37-67                                                                                                                      
+ plugins/devpod-plugin/src/components/DevpodProvider                      |   47.05 |        0 |       0 |   53.33 |                                                                                                                                  
+  DevpodProvider.tsx                                                      |   47.05 |        0 |       0 |   53.33 | 13-17,24-27                                                                                                                      
+ plugins/devpod-plugin/src/components/VisuallyHidden                      |   76.19 |        0 |      60 |      75 |                                                                                                                                  
   VisuallyHidden.tsx                                                      |      75 |        0 |      60 |   73.68 | 28,32-33,38-39                                                                                                                   
- plugins/devpod-plugin/src/hooks                                          |       0 |        0 |       0 |       0 |                                                                                                                                  
-  useDevpod.ts                                                            |       0 |        0 |       0 |       0 | 7-45                                                                                                                             
+  index.ts                                                                |     100 |      100 |     100 |     100 |                                                                                                                                  
+ plugins/devpod-plugin/src/hooks                                          |   14.28 |        0 |       0 |   14.81 |                                                                                                                                  
+  useDevpod.ts                                                            |   14.28 |        0 |       0 |   14.81 | 8-45                                                                                                                             
  plugins/educates-backend/src                                             |   80.58 |       80 |      48 |   78.65 |                                                                                                                                  
   actions.ts                                                              |   84.44 |       75 |   45.45 |   84.09 | 23-24,53-56,107-111,170                                                                                                          
   conditions.ts                                                           |     100 |      100 |     100 |     100 |                                                                                                                                  
@@ -1539,11 +1604,11 @@ All files                                                                 |    3
  plugins/gitops-manifest-updater/src                                      |   57.14 |        0 |       0 |   54.54 |                                                                                                                                  
   alpha.tsx                                                               |       0 |      100 |       0 |       0 | 5-14                                                                                                                             
   plugin.ts                                                               |      80 |        0 |       0 |      75 | 19-20                                                                                                                            
- plugins/gitops-manifest-updater/src/components                           |       0 |        0 |       0 |       0 |                                                                                                                                  
-  GitOpsManifestUpdaterField.tsx                                          |       0 |        0 |       0 |       0 | 11-17                                                                                                                            
- plugins/gitops-manifest-updater/src/components/GitOpsManifestUpdaterForm |    7.24 |        0 |     3.7 |    6.52 |                                                                                                                                  
+ plugins/gitops-manifest-updater/src/components                           |   57.14 |        0 |       0 |   66.66 |                                                                                                                                  
+  GitOpsManifestUpdaterField.tsx                                          |   57.14 |        0 |       0 |   66.66 | 16-17                                                                                                                            
+ plugins/gitops-manifest-updater/src/components/GitOpsManifestUpdaterForm |    7.52 |        0 |     3.7 |    6.52 |                                                                                                                                  
   GitOpsManifestUpdaterForm.tsx                                           |    4.61 |        0 |       0 |    4.54 | 64-125,145-268,304-450,483-640,659-1029                                                                                          
-  GitOpsManifestUpdaterSchema.ts                                          |   85.71 |      100 |     100 |     100 |                                                                                                                                  
+  GitOpsManifestUpdaterSchema.ts                                          |     100 |      100 |     100 |     100 |                                                                                                                                  
   index.ts                                                                |      80 |      100 |     100 |     100 |                                                                                                                                  
  plugins/kro-common/src                                                   |      75 |      100 |     100 |     100 |                                                                                                                                  
   index.ts                                                                |   76.92 |      100 |     100 |     100 |                                                                                                                                  
@@ -1560,10 +1625,10 @@ All files                                                                 |    3
   routes.ts                                                               |     100 |      100 |     100 |     100 |                                                                                                                                  
  plugins/kro-resources/src/api                                            |     100 |      100 |     100 |     100 |                                                                                                                                  
   KroApi.ts                                                               |     100 |      100 |     100 |     100 |                                                                                                                                  
- plugins/kro-resources/src/components                                     |     7.8 |     3.86 |    6.27 |    7.74 |                                                                                                                                  
+ plugins/kro-resources/src/components                                     |   13.06 |     3.86 |    6.27 |   13.29 |                                                                                                                                  
   KroOverviewCard.tsx                                                     |   92.59 |    62.06 |    90.9 |      94 | 48,54,74                                                                                                                         
-  KroResourceGraph.tsx                                                    |       0 |        0 |       0 |       0 | 37-1130                                                                                                                          
-  KroResourceTable.tsx                                                    |       0 |        0 |       0 |       0 | 49-1513                                                                                                                          
+  KroResourceGraph.tsx                                                    |    7.58 |        0 |       0 |    7.89 | 77-120,130-471,492-560,564-1130                                                                                                  
+  KroResourceTable.tsx                                                    |     5.2 |        0 |       0 |    5.47 | 221-270,274-1513                                                                                                                 
   isKroAvailable.tsx                                                      |   68.42 |    39.28 |      50 |   73.33 | 37-41,45-49                                                                                                                      
  plugins/kubernetes-ingestor/src                                          |   27.27 |        0 |       0 |    23.8 |                                                                                                                                  
   module.ts                                                               |   27.27 |        0 |       0 |    23.8 | 15-91                                                                                                                            
@@ -1590,9 +1655,9 @@ All files                                                                 |    3
   alpha.tsx                                                               |       0 |      100 |       0 |       0 | 6-32                                                                                                                             
   plugin.ts                                                               |   57.14 |      100 |       0 |   71.42 | 19,28                                                                                                                            
   routes.ts                                                               |     100 |      100 |     100 |     100 |                                                                                                                                  
- plugins/kubernetes-resources/src/components                              |    0.93 |     0.69 |    1.72 |    0.63 |                                                                                                                                  
-  KubernetesResourceGraph.tsx                                             |       0 |        0 |       0 |       0 | 27-384                                                                                                                           
-  KubernetesResourcesPage.tsx                                             |       0 |        0 |       0 |       0 | 56-446                                                                                                                           
+ plugins/kubernetes-resources/src/components                              |   13.55 |     0.69 |    1.72 |   12.96 |                                                                                                                                  
+  KubernetesResourceGraph.tsx                                             |   13.87 |        0 |       0 |   13.69 | 28-37,47-74,78-384                                                                                                               
+  KubernetesResourcesPage.tsx                                             |   11.79 |        0 |       0 |   11.29 | 57-66,71-78,88-111,115-446                                                                                                       
   isKubernetesResourcesAvailable.tsx                                      |     100 |      100 |     100 |     100 |                                                                                                                                  
  plugins/kyverno-common/src                                               |     100 |      100 |     100 |     100 |                                                                                                                                  
   index.ts                                                                |     100 |      100 |     100 |     100 |                                                                                                                                  
@@ -1609,11 +1674,11 @@ All files                                                                 |    3
   routes.ts                                                               |     100 |      100 |     100 |     100 |                                                                                                                                  
  plugins/kyverno-policy-reports/src/api                                   |     100 |      100 |     100 |     100 |                                                                                                                                  
   KyvernoApi.ts                                                           |     100 |      100 |     100 |     100 |                                                                                                                                  
- plugins/kyverno-policy-reports/src/components                            |   21.21 |        0 |       0 |   23.17 |                                                                                                                                  
-  KyvernoCrossplaneOverviewCard.tsx                                       |      25 |        0 |       0 |   30.76 | 59-159                                                                                                                           
-  KyvernoCrossplanePolicyReportsTable.tsx                                 |   19.19 |        0 |       0 |   19.58 | 46-55,59-267                                                                                                                     
-  KyvernoOverviewCard.tsx                                                 |   24.24 |        0 |       0 |   29.62 | 59-165                                                                                                                           
-  KyvernoPolicyReportsTable.tsx                                           |   18.81 |        0 |       0 |   19.19 | 45-54,58-270                                                                                                                     
+ plugins/kyverno-policy-reports/src/components                            |   22.42 |        0 |       0 |   23.17 |                                                                                                                                  
+  KyvernoCrossplaneOverviewCard.tsx                                       |   26.56 |        0 |       0 |   30.76 | 59-159                                                                                                                           
+  KyvernoCrossplanePolicyReportsTable.tsx                                 |    20.2 |        0 |       0 |   19.58 | 46-55,59-267                                                                                                                     
+  KyvernoOverviewCard.tsx                                                 |   25.75 |        0 |       0 |   29.62 | 59-165                                                                                                                           
+  KyvernoPolicyReportsTable.tsx                                           |    19.8 |        0 |       0 |   19.19 | 45-54,58-270                                                                                                                     
  plugins/rbac-mcp-backend/src                                             |   88.33 |    80.58 |      60 |   88.08 |                                                                                                                                  
   actions.ts                                                              |   88.76 |    80.58 |   62.26 |   88.56 | 15,50-52,126-134,301-310,395-415,446,533,568-598,632,655-656,684,709-738,804-813,900-908,1053-1062,1135-1171,1218,1277,1304,1334 
   plugin.ts                                                               |   71.42 |      100 |       0 |   66.66 | 16-24                                                                                                                            
@@ -1704,12 +1769,12 @@ All files                                                                 |    3
  plugins/vcf-automation/src/api                                           |    99.3 |    98.14 |     100 |   99.29 |                                                                                                                                  
   VcfAutomationClient.ts                                                  |     100 |    98.14 |     100 |     100 | 321                                                                                                                              
   index.ts                                                                |   66.66 |      100 |     100 |   66.66 | 2                                                                                                                                
- plugins/vcf-automation/src/components                                    |   10.27 |        0 |       0 |   10.31 |                                                                                                                                  
+ plugins/vcf-automation/src/components                                    |   11.58 |        0 |       0 |   11.63 |                                                                                                                                  
   VCFAutomationCCINamespaceDetails.tsx                                    |       0 |        0 |       0 |       0 | 14-144                                                                                                                           
   VCFAutomationCCINamespaceOverview.tsx                                   |   16.17 |        0 |       0 |   15.38 | 32-247                                                                                                                           
   VCFAutomationCCIResourceDetails.tsx                                     |       0 |        0 |       0 |       0 | 44-989                                                                                                                           
   VCFAutomationCCIResourceOverview.tsx                                    |    8.79 |        0 |       0 |    9.04 | 99-838                                                                                                                           
-  VCFAutomationDeploymentDetails.tsx                                      |       0 |        0 |       0 |       0 | 40-192                                                                                                                           
+  VCFAutomationDeploymentDetails.tsx                                      |      26 |        0 |       0 |   24.48 | 56-61,86-93,97-192                                                                                                               
   VCFAutomationDeploymentOverview.tsx                                     |   41.66 |        0 |       0 |   39.13 | 15-59                                                                                                                            
   VCFAutomationGenericResourceDetails.tsx                                 |       0 |        0 |       0 |       0 | 12-64                                                                                                                            
   VCFAutomationGenericResourceOverview.tsx                                |   20.58 |        0 |       0 |   23.07 | 13-52                                                                                                                            
@@ -1733,31 +1798,31 @@ All files                                                                 |    3
   routes.ts                                                               |     100 |      100 |     100 |     100 |                                                                                                                                  
  plugins/vcf-operations/src/api                                           |   97.65 |    88.88 |     100 |     100 |                                                                                                                                  
   VcfOperationsClient.ts                                                  |   97.65 |    88.88 |     100 |     100 | 248,290,318                                                                                                                      
- plugins/vcf-operations/src/components                                    |    2.61 |     0.62 |    1.25 |     2.5 |                                                                                                                                  
-  MetricChart.tsx                                                         |       0 |        0 |       0 |       0 | 26-119                                                                                                                           
+ plugins/vcf-operations/src/components                                    |   10.02 |     0.62 |    1.25 |     9.9 |                                                                                                                                  
+  MetricChart.tsx                                                         |   15.15 |        0 |       0 |   13.79 | 30-119                                                                                                                           
   NotImplementedMessage.tsx                                               |      90 |      100 |      50 |     100 |                                                                                                                                  
-  VCFOperationsExplorer.tsx                                               |       0 |        0 |       0 |       0 | 29-1409                                                                                                                          
+  VCFOperationsExplorer.tsx                                               |    6.96 |        0 |       0 |    7.09 | 453-467,472,498,503-509,513-1409                                                                                                 
 --------------------------------------------------------------------------|---------|----------|---------|---------|----------------------------------------------------------------------------------------------------------------------------------
 
 Summary of all failing tests
-FAIL plugins/kyverno-policy-reports/src/components/KyvernoOverviewCard.test.tsx (5.219 s)
-  ● KyvernoOverviewCard › should be defined
+FAIL plugins/gitops-manifest-updater/src/components/GitOpsManifestUpdaterField.test.tsx
+  ● GitOpsManifestUpdaterField › should be defined
 
     expect(received).toBeDefined()
 
     Received: undefined
 
-      3 | describe('KyvernoOverviewCard', () => {
+      3 | describe('GitOpsManifestUpdaterField', () => {
       4 |   it('should be defined', () => {
-    > 5 |     expect(KyvernoOverviewCard).toBeDefined();
-        |                                 ^
+    > 5 |     expect(GitOpsManifestUpdaterField).toBeDefined();
+        |                                        ^
       6 |   });
       7 |
       8 |   it('should be a function component', () => {
 
-      at Object.toBeDefined (components/KyvernoOverviewCard.test.tsx:5:33)
+      at Object.toBeDefined (components/GitOpsManifestUpdaterField.test.tsx:5:40)
 
-  ● KyvernoOverviewCard › should be a function component
+  ● GitOpsManifestUpdaterField › should be a function component
 
     expect(received).toBe(expected) // Object.is equality
 
@@ -1766,187 +1831,17 @@ FAIL plugins/kyverno-policy-reports/src/components/KyvernoOverviewCard.test.tsx 
 
        7 |
        8 |   it('should be a function component', () => {
-    >  9 |     expect(typeof KyvernoOverviewCard).toBe('function');
-         |                                        ^
+    >  9 |     expect(typeof GitOpsManifestUpdaterField).toBe('function');
+         |                                               ^
       10 |   });
       11 | });
       12 |
 
-      at Object.toBe (components/KyvernoOverviewCard.test.tsx:9:40)
-
-FAIL plugins/crossplane-resources/src/components/CrossplaneOverviewCardSelector.test.tsx
-  ● CrossplaneOverviewCardSelector › should be defined
-
-    expect(received).toBeDefined()
-
-    Received: undefined
-
-      3 | describe('CrossplaneOverviewCardSelector', () => {
-      4 |   it('should be defined', () => {
-    > 5 |     expect(CrossplaneOverviewCardSelector).toBeDefined();
-        |                                            ^
-      6 |   });
-      7 |
-      8 |   it('should be a function component', () => {
-
-      at Object.toBeDefined (components/CrossplaneOverviewCardSelector.test.tsx:5:44)
-
-  ● CrossplaneOverviewCardSelector › should be a function component
-
-    expect(received).toBe(expected) // Object.is equality
-
-    Expected: "function"
-    Received: "undefined"
-
-       7 |
-       8 |   it('should be a function component', () => {
-    >  9 |     expect(typeof CrossplaneOverviewCardSelector).toBe('function');
-         |                                                   ^
-      10 |   });
-      11 | });
-      12 |
-
-      at Object.toBe (components/CrossplaneOverviewCardSelector.test.tsx:9:51)
-
-FAIL plugins/kyverno-policy-reports/src/components/KyvernoCrossplaneOverviewCard.test.tsx (5.069 s)
-  ● KyvernoCrossplaneOverviewCard › should be defined
-
-    expect(received).toBeDefined()
-
-    Received: undefined
-
-      3 | describe('KyvernoCrossplaneOverviewCard', () => {
-      4 |   it('should be defined', () => {
-    > 5 |     expect(KyvernoCrossplaneOverviewCard).toBeDefined();
-        |                                           ^
-      6 |   });
-      7 |
-      8 |   it('should be a function component', () => {
-
-      at Object.toBeDefined (components/KyvernoCrossplaneOverviewCard.test.tsx:5:43)
-
-  ● KyvernoCrossplaneOverviewCard › should be a function component
-
-    expect(received).toBe(expected) // Object.is equality
-
-    Expected: "function"
-    Received: "undefined"
-
-       7 |
-       8 |   it('should be a function component', () => {
-    >  9 |     expect(typeof KyvernoCrossplaneOverviewCard).toBe('function');
-         |                                                  ^
-      10 |   });
-      11 | });
-      12 |
-
-      at Object.toBe (components/KyvernoCrossplaneOverviewCard.test.tsx:9:50)
-
-FAIL plugins/crossplane-resources/src/components/CrossplaneResourceGraphSelector.test.tsx (6.704 s)
-  ● CrossplaneResourceGraphSelector › should be defined
-
-    expect(received).toBeDefined()
-
-    Received: undefined
-
-      3 | describe('CrossplaneResourceGraphSelector', () => {
-      4 |   it('should be defined', () => {
-    > 5 |     expect(CrossplaneResourceGraphSelector).toBeDefined();
-        |                                             ^
-      6 |   });
-      7 |
-      8 |   it('should be a function component', () => {
-
-      at Object.toBeDefined (components/CrossplaneResourceGraphSelector.test.tsx:5:45)
-
-  ● CrossplaneResourceGraphSelector › should be a function component
-
-    expect(received).toBe(expected) // Object.is equality
-
-    Expected: "function"
-    Received: "undefined"
-
-       7 |
-       8 |   it('should be a function component', () => {
-    >  9 |     expect(typeof CrossplaneResourceGraphSelector).toBe('function');
-         |                                                    ^
-      10 |   });
-      11 | });
-      12 |
-
-      at Object.toBe (components/CrossplaneResourceGraphSelector.test.tsx:9:52)
-
-FAIL plugins/kyverno-policy-reports/src/components/KyvernoCrossplanePolicyReportsTable.test.tsx (10.011 s)
-  ● KyvernoCrossplanePolicyReportsTable › should be defined
-
-    expect(received).toBeDefined()
-
-    Received: undefined
-
-      3 | describe('KyvernoCrossplanePolicyReportsTable', () => {
-      4 |   it('should be defined', () => {
-    > 5 |     expect(KyvernoCrossplanePolicyReportsTable).toBeDefined();
-        |                                                 ^
-      6 |   });
-      7 |
-      8 |   it('should be a function component', () => {
-
-      at Object.toBeDefined (components/KyvernoCrossplanePolicyReportsTable.test.tsx:5:49)
-
-  ● KyvernoCrossplanePolicyReportsTable › should be a function component
-
-    expect(received).toBe(expected) // Object.is equality
-
-    Expected: "function"
-    Received: "undefined"
-
-       7 |
-       8 |   it('should be a function component', () => {
-    >  9 |     expect(typeof KyvernoCrossplanePolicyReportsTable).toBe('function');
-         |                                                        ^
-      10 |   });
-      11 | });
-      12 |
-
-      at Object.toBe (components/KyvernoCrossplanePolicyReportsTable.test.tsx:9:56)
-
-FAIL plugins/kyverno-policy-reports/src/components/KyvernoPolicyReportsTable.test.tsx (11.338 s)
-  ● KyvernoPolicyReportsTable › should be defined
-
-    expect(received).toBeDefined()
-
-    Received: undefined
-
-      3 | describe('KyvernoPolicyReportsTable', () => {
-      4 |   it('should be defined', () => {
-    > 5 |     expect(KyvernoPolicyReportsTable).toBeDefined();
-        |                                       ^
-      6 |   });
-      7 |
-      8 |   it('should be a function component', () => {
-
-      at Object.toBeDefined (components/KyvernoPolicyReportsTable.test.tsx:5:39)
-
-  ● KyvernoPolicyReportsTable › should be a function component
-
-    expect(received).toBe(expected) // Object.is equality
-
-    Expected: "function"
-    Received: "undefined"
-
-       7 |
-       8 |   it('should be a function component', () => {
-    >  9 |     expect(typeof KyvernoPolicyReportsTable).toBe('function');
-         |                                              ^
-      10 |   });
-      11 | });
-      12 |
-
-      at Object.toBe (components/KyvernoPolicyReportsTable.test.tsx:9:46)
+      at Object.toBe (components/GitOpsManifestUpdaterField.test.tsx:9:47)
 
 
-Test Suites: 6 failed, 121 passed, 127 total
-Tests:       12 failed, 1240 passed, 1252 total
+Test Suites: 1 failed, 139 passed, 140 total
+Tests:       2 failed, 1276 passed, 1278 total
 Snapshots:   0 total
-Time:        16.885 s
+Time:        13.499 s
 Ran all test suites matching /plugins\//i in 42 projects.

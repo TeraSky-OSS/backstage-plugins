@@ -1,4 +1,4 @@
-import { KubernetesResourceGraph } from './KubernetesResourceGraph';
+import KubernetesResourceGraph from './KubernetesResourceGraph';
 
 describe('KubernetesResourceGraph', () => {
   it('should be defined', () => {

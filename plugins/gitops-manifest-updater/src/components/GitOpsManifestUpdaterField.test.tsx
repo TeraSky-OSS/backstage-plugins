@@ -1,12 +1,12 @@
-import { GitOpsManifestUpdaterField } from './GitOpsManifestUpdaterField';
+import { gitopsManifestUpdaterField } from './GitOpsManifestUpdaterField';
 
 describe('GitOpsManifestUpdaterField', () => {
   it('should be defined', () => {
-    expect(GitOpsManifestUpdaterField).toBeDefined();
+    expect(gitopsManifestUpdaterField).toBeDefined();
   });
 
-  it('should be a function component', () => {
-    expect(typeof GitOpsManifestUpdaterField).toBe('function');
+  it('should have extension type', () => {
+    expect(gitopsManifestUpdaterField.kind).toBe('form-field');
   });
 });
 

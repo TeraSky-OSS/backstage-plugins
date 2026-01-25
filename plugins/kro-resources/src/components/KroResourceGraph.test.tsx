@@ -1,4 +1,4 @@
-import { KroResourceGraph } from './KroResourceGraph';
+import KroResourceGraph from './KroResourceGraph';
 
 describe('KroResourceGraph', () => {
   it('should be defined', () => {

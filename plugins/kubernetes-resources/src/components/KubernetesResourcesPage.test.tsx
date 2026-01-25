@@ -1,4 +1,4 @@
-import { KubernetesResourcesPage } from './KubernetesResourcesPage';
+import KubernetesResourcesPage from './KubernetesResourcesPage';
 
 describe('KubernetesResourcesPage', () => {
   it('should be defined', () => {

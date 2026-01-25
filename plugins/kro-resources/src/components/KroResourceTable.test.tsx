@@ -1,4 +1,4 @@
-import { KroResourceTable } from './KroResourceTable';
+import KroResourceTable from './KroResourceTable';
 
 describe('KroResourceTable', () => {
   it('should be defined', () => {
