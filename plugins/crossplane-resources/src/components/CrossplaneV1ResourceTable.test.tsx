@@ -4,6 +4,7 @@ import { TestApiProvider } from '@backstage/test-utils';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { usePermission } from '@backstage/plugin-permission-react';
 import { configApiRef } from '@backstage/core-plugin-api';
+import { MemoryRouter } from 'react-router-dom';
 import CrossplaneResourcesTable from './CrossplaneV1ResourceTable';
 import { crossplaneApiRef } from '../api/CrossplaneApi';
 
@@ -68,12 +69,14 @@ describe('CrossplaneV1ResourceTable', () => {
 
   it('should render without crashing', () => {
     const { container } = render(
-      <TestApiProvider apis={[
-        [configApiRef, mockConfigApi],
-        [crossplaneApiRef, mockCrossplaneApi],
-      ]}>
-        <CrossplaneResourcesTable />
-      </TestApiProvider>
+      <MemoryRouter>
+        <TestApiProvider apis={[
+          [configApiRef, mockConfigApi],
+          [crossplaneApiRef, mockCrossplaneApi],
+        ]}>
+          <CrossplaneResourcesTable />
+        </TestApiProvider>
+      </MemoryRouter>
     );
 
     expect(container).toBeInTheDocument();
@@ -89,12 +92,14 @@ describe('CrossplaneV1ResourceTable', () => {
     mockConfigApi.getOptionalBoolean.mockReturnValue(true);
 
     render(
-      <TestApiProvider apis={[
-        [configApiRef, mockConfigApi],
-        [crossplaneApiRef, mockCrossplaneApi],
-      ]}>
-        <CrossplaneResourcesTable />
-      </TestApiProvider>
+      <MemoryRouter>
+        <TestApiProvider apis={[
+          [configApiRef, mockConfigApi],
+          [crossplaneApiRef, mockCrossplaneApi],
+        ]}>
+          <CrossplaneResourcesTable />
+        </TestApiProvider>
+      </MemoryRouter>
     );
 
     expect(mockCrossplaneApi.getResources).not.toHaveBeenCalled();

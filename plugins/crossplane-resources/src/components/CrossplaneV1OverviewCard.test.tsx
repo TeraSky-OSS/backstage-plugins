@@ -83,7 +83,7 @@ describe('CrossplaneV1OverviewCard', () => {
       </TestApiProvider>
     );
 
-    expect(screen.getByText(/Permission Denied/i)).toBeInTheDocument();
+    expect(screen.getByText(/don't have permissions/i)).toBeInTheDocument();
   });
 
   it('should render loading state initially', () => {
