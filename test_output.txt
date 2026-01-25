@@ -1,208 +1,88 @@
 PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/actions.test.ts
-PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/actions.test.ts
 PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/rules.test.ts
-PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/api/VcfAutomationClient.test.ts
+PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/actions.test.ts
 PASS @terasky/backstage-plugin-vcf-operations plugins/vcf-operations/src/api/VcfOperationsClient.test.ts
+PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/api/VcfAutomationClient.test.ts
 PASS @terasky/backstage-plugin-educates plugins/educates/src/api/EducatesClient.test.ts
 PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/api/CrossplaneApi.test.ts
 PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/api/KroApi.test.ts
-PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/api/AiRulesClient.test.ts
-PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/MCPService.test.ts
-PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/AiRulesService.test.ts
-PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/service/EducatesService.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/client/SpectroCloudClient.test.ts
-PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/actions.test.ts
 PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/supplier/SpectroCloudClusterSupplier.test.ts
 PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/client/SpectroCloudClient.test.ts
+PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/AiRulesService.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/actions.test.ts
 PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/permissions.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/service/router.test.ts
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/service/EducatesService.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/MCPService.test.ts
 PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/providers/SpectroCloudEntityProvider.test.ts
+(node:91967) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/permissions.test.ts
 PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/conditions.test.ts
-PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/service/KubernetesService.test.ts
-(node:85423) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
-(Use `node --trace-warnings ...` to show where the warning was created)
-(node:85491) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
-(Use `node --trace-warnings ...` to show where the warning was created)
-PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/service/router.test.ts
 PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/service/KubernetesService.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/client/SpectroCloudClient.test.ts
-PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/service/KubernetesService.test.ts
+(node:92060) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
+(Use `node --trace-warnings ...` to show where the warning was created)
 PASS @terasky/backstage-plugin-spectrocloud-ingestor plugins/spectrocloud-ingestor/src/client/SpectroCloudClient.test.ts
+PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/service/KubernetesService.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/service/KubernetesService.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/client/SpectroCloudClient.test.ts
 PASS @terasky/backstage-plugin-crossplane-common plugins/crossplane-common/src/index.test.ts
+PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/api/AiRulesClient.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/service/router.test.ts
 PASS @terasky/backstage-plugin-educates-common plugins/educates-common/src/index.test.ts
+FAIL @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/service/router.test.ts
+  ● createRouter › handles authentication failure
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 500
+    Received: 401
+
+      103 |
+      104 |     const response = await request(app).get('/api/workloads');
+    > 105 |     expect(response.status).toBe(500);
+          |                             ^
+      106 |     expect(response.body.error).toBeDefined();
+      107 |   });
+      108 |
+
+      at Object.toBe (service/router.test.ts:105:29)
+
+  ● createRouter without authentication › returns error when authentication is not configured
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 500
+    Received: 401
+
+      154 |
+      155 |     const response = await request(app).get('/api/workloads');
+    > 156 |     expect(response.status).toBe(500);
+          |                             ^
+      157 |     expect(response.body.error).toBeDefined();
+      158 |   });
+      159 | });
+
+      at Object.toBe (service/router.test.ts:156:29)
+
 PASS @terasky/backstage-plugin-vcf-automation-common plugins/vcf-automation-common/src/index.test.ts
 PASS @terasky/backstage-plugin-kubernetes-resources-common plugins/kubernetes-resources-common/src/index.test.ts
-PASS @terasky/backstage-plugin-kro-common plugins/kro-common/src/index.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/annotationUtils.test.ts
 PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/plugin.test.ts
-PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/service/router.test.ts
-  ● Console
-
-    console.warn
-      [MSW] Warning: captured a request without a matching request handler:
-      
-        • GET http://127.0.0.1:44827/health
-      
-      If you still wish to intercept this unhandled request, please create a request handler for it.
-      Read more: https://mswjs.io/docs/getting-started/mocks
-
-      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
-      at warn (../node_modules/msw/lib/node/index.js:1391:18)
-      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
-      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
-      at ../node_modules/msw/lib/node/index.js:1503:25
-
-    console.warn
-      [MSW] Warning: captured a request without a matching request handler:
-      
-        • GET http://127.0.0.1:44945/api/workloads
-      
-      If you still wish to intercept this unhandled request, please create a request handler for it.
-      Read more: https://mswjs.io/docs/getting-started/mocks
-
-      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
-      at warn (../node_modules/msw/lib/node/index.js:1391:18)
-      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
-      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
-      at ../node_modules/msw/lib/node/index.js:1503:25
-
-    console.warn
-      [MSW] Warning: captured a request without a matching request handler:
-      
-        • POST http://127.0.0.1:44951/api/workloads/query
-      
-      If you still wish to intercept this unhandled request, please create a request handler for it.
-      Read more: https://mswjs.io/docs/getting-started/mocks
-
-      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
-      at warn (../node_modules/msw/lib/node/index.js:1391:18)
-      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
-      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
-      at ../node_modules/msw/lib/node/index.js:1503:25
-
-    console.warn
-      [MSW] Warning: captured a request without a matching request handler:
-      
-        • GET http://127.0.0.1:46081/api/error-endpoint
-      
-      If you still wish to intercept this unhandled request, please create a request handler for it.
-      Read more: https://mswjs.io/docs/getting-started/mocks
-
-      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
-      at warn (../node_modules/msw/lib/node/index.js:1391:18)
-      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
-      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
-      at ../node_modules/msw/lib/node/index.js:1503:25
-
-    console.warn
-      [MSW] Warning: captured a request without a matching request handler:
-      
-        • GET http://127.0.0.1:46313/api/workloads
-      
-      If you still wish to intercept this unhandled request, please create a request handler for it.
-      Read more: https://mswjs.io/docs/getting-started/mocks
-
-      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
-      at warn (../node_modules/msw/lib/node/index.js:1391:18)
-      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
-      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
-      at ../node_modules/msw/lib/node/index.js:1503:25
-
-    console.warn
-      [MSW] Warning: captured a request without a matching request handler:
-      
-        • GET http://scaleops.example.com/workloads
-      
-      If you still wish to intercept this unhandled request, please create a request handler for it.
-      Read more: https://mswjs.io/docs/getting-started/mocks
-
-      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
-      at warn (../node_modules/msw/lib/node/index.js:1391:18)
-      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
-      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
-      at ../node_modules/msw/lib/node/index.js:1503:25
-
-    console.warn
-      [MSW] Warning: captured a request without a matching request handler:
-      
-        • GET http://127.0.0.1:46297/api/workloads
-      
-      If you still wish to intercept this unhandled request, please create a request handler for it.
-      Read more: https://mswjs.io/docs/getting-started/mocks
-
-      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
-      at warn (../node_modules/msw/lib/node/index.js:1391:18)
-      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
-      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
-      at ../node_modules/msw/lib/node/index.js:1503:25
-
-    console.warn
-      [MSW] Warning: captured a request without a matching request handler:
-      
-        • GET http://127.0.0.1:46441/api/workloads
-      
-      If you still wish to intercept this unhandled request, please create a request handler for it.
-      Read more: https://mswjs.io/docs/getting-started/mocks
-
-      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
-      at warn (../node_modules/msw/lib/node/index.js:1391:18)
-      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
-      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
-      at ../node_modules/msw/lib/node/index.js:1503:25
-
-    console.warn
-      [MSW] Warning: captured a request without a matching request handler:
-      
-        • GET http://scaleops.example.com/workloads
-      
-      If you still wish to intercept this unhandled request, please create a request handler for it.
-      Read more: https://mswjs.io/docs/getting-started/mocks
-
-      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
-      at warn (../node_modules/msw/lib/node/index.js:1391:18)
-      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
-      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
-      at ../node_modules/msw/lib/node/index.js:1503:25
-
-PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/plugin.test.ts
-PASS @terasky/backstage-plugin-devpod plugins/devpod-plugin/src/plugin.test.ts
-PASS @terasky/backstage-plugin-kyverno-common plugins/kyverno-common/src/index.test.ts
-PASS @terasky/backstage-plugin-scaleops-frontend plugins/scaleops-frontend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-kubernetes-resources-permissions-backend plugins/kubernetes-resources-permissions-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-ingestor plugins/spectrocloud-ingestor/src/module.test.ts
-PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/plugin.test.ts
-PASS @terasky/backstage-plugin-entity-scaffolder-content plugins/entity-scaffolder-content/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kro-common plugins/kro-common/src/index.test.ts
 PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/plugin.test.ts
-PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/services/KubernetesResourceFetcher.test.ts
-PASS @terasky/backstage-plugin-kubernetes-resources-frontend plugins/kubernetes-resources/src/plugin.test.ts
-PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/service/router.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-educates plugins/educates/src/plugin.test.ts
-PASS @terasky/backstage-plugin-vcf-automation-ingestor plugins/vcf-automation-ingestor/src/module.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/router.test.ts
-PASS @terasky/plugin-scaffolder-mcp-backend plugins/scaffolder-mcp-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-catalog-mcp-backend plugins/catalog-mcp-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-spectrocloud plugins/spectrocloud/src/plugin.test.ts
-PASS @terasky/plugin-scaffolder-mcp-backend plugins/scaffolder-mcp-backend/src/plugin.test.ts
-PASS @terasky/plugin-rbac-mcp-backend plugins/rbac-mcp-backend/src/plugin.test.ts
-PASS @terasky/plugin-rbac-mcp-backend plugins/rbac-mcp-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/module.test.ts
-PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/module.test.ts
-PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/annotationUtils.test.ts
 PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/router.test.ts
-PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-vcf-operations-common plugins/vcf-operations-common/src/index.test.ts
-PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/api/KyvernoApi.test.ts
+PASS @terasky/backstage-plugin-kubernetes-resources-frontend plugins/kubernetes-resources/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/service/router.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kubernetes-resources-permissions-backend plugins/kubernetes-resources-permissions-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/plugin.test.ts
+PASS @terasky/backstage-plugin-devpod plugins/devpod-plugin/src/plugin.test.ts
 PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/service/router.test.ts
+PASS @terasky/backstage-plugin-scaleops-frontend plugins/scaleops-frontend/src/plugin.test.ts
 PASS @terasky/backstage-plugin-catalog-mcp-backend plugins/catalog-mcp-backend/src/actions.test.ts
   ● Console
 
@@ -244,27 +124,119 @@ PASS @terasky/backstage-plugin-catalog-mcp-backend plugins/catalog-mcp-backend/s
 
       at Object.log [as action] (actions.ts:77:15)
 
-PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/claim-templating.test.ts
-PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/catalog-info-cleaner.test.ts
-PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/crd-templating.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-common plugins/spectrocloud-common/src/index.test.ts
+PASS @terasky/plugin-rbac-mcp-backend plugins/rbac-mcp-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/service/router.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-ingestor plugins/spectrocloud-ingestor/src/module.test.ts
+PASS @terasky/backstage-plugin-kyverno-common plugins/kyverno-common/src/index.test.ts
+PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-catalog-mcp-backend plugins/catalog-mcp-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-entity-scaffolder-content plugins/entity-scaffolder-content/src/plugin.test.ts
+PASS @terasky/backstage-plugin-vcf-automation-ingestor plugins/vcf-automation-ingestor/src/module.test.ts
+PASS @terasky/backstage-plugin-educates plugins/educates/src/plugin.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/plugin.test.ts
+PASS @terasky/plugin-scaffolder-mcp-backend plugins/scaffolder-mcp-backend/src/actions.test.ts
+PASS @terasky/plugin-rbac-mcp-backend plugins/rbac-mcp-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/services/KubernetesResourceFetcher.test.ts
+PASS @terasky/plugin-scaffolder-mcp-backend plugins/scaffolder-mcp-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/plugin.test.ts
 PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/module.test.ts
+PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/module.test.ts
+PASS @terasky/backstage-plugin-spectrocloud plugins/spectrocloud/src/plugin.test.ts
+PASS @terasky/backstage-plugin-vcf-operations-common plugins/vcf-operations-common/src/index.test.ts
+PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/catalog-info-cleaner.test.ts
+PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/crd-templating.test.ts
+PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/claim-templating.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/router.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-common plugins/spectrocloud-common/src/index.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/api/KyvernoApi.test.ts
 PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/module.test.ts
 PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/service/ScaleOpsService.test.ts
-PASS @terasky/backstage-plugin-vcf-operations plugins/vcf-operations/src/plugin.test.ts
 PASS @terasky/backstage-plugin-vcf-automation-ingestor plugins/vcf-automation-ingestor/src/provider/EntityProvider.test.ts
+PASS @terasky/backstage-plugin-vcf-operations plugins/vcf-operations/src/plugin.test.ts
 PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/providers/EntityProvider.test.ts
+PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/service/ScaleOpsService.test.ts
 PASS @terasky/backstage-plugin-app-module-global-signin-page plugins/app-module-global-signin-page/src/module.test.tsx
 PASS @terasky/backstage-plugin-gitops-manifest-updater plugins/gitops-manifest-updater/src/plugin.test.ts
-PASS @terasky/backstage-plugin-terraform-scaffolder plugins/terraform-scaffolder/src/plugin.test.ts
 PASS app packages/app/src/App.test.tsx
+PASS @terasky/backstage-plugin-terraform-scaffolder plugins/terraform-scaffolder/src/plugin.test.ts
+FAIL @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/services/VcfOperationsService.test.ts (8.817 s)
+  ● VcfOperationsService › authentication › should handle authentication failure
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      111 |     });
+      112 |
+    > 113 |     it('should handle authentication failure', async () => {
+          |     ^
+      114 |       mswServer.use(
+      115 |         rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
+      116 |           return res(ctx.status(401), ctx.json({ error: 'Unauthorized' }));
+
+      at it (services/VcfOperationsService.test.ts:113:5)
+      at describe (services/VcfOperationsService.test.ts:81:3)
+      at Object.describe (services/VcfOperationsService.test.ts:12:1)
+
+FAIL @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/services/VcfAutomationService.test.ts (9.104 s)
+  ● VcfAutomationService › authentication version 8 › should handle authentication failure
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      110 |     });
+      111 |
+    > 112 |     it('should handle authentication failure', async () => {
+          |     ^
+      113 |       mswServer.use(
+      114 |         rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+      115 |           return res(ctx.status(401), ctx.json({ error: 'Unauthorized' }));
+
+      at it (services/VcfAutomationService.test.ts:112:5)
+      at describe (services/VcfAutomationService.test.ts:83:3)
+      at Object.describe (services/VcfAutomationService.test.ts:12:1)
+
+  ● VcfAutomationService › authentication version 9 › should authenticate successfully with version 9
+
+    Failed to initialize VCF Automation service: Invalid configuration
+
+      77 |         error: error instanceof Error ? error.message : String(error),
+      78 |       });
+    > 79 |       throw new Error('Failed to initialize VCF Automation service: Invalid configuration');
+         |             ^
+      80 |     }
+      81 |
+      82 |     if (instances.length === 0) {
+
+      at new VcfAutomationService (services/VcfAutomationService.ts:79:13)
+      at Object.<anonymous> (services/VcfAutomationService.test.ts:154:23)
+
+  ● VcfAutomationService › authentication version 9 › should handle missing access token in response
+
+    Failed to initialize VCF Automation service: Invalid configuration
+
+      77 |         error: error instanceof Error ? error.message : String(error),
+      78 |       });
+    > 79 |       throw new Error('Failed to initialize VCF Automation service: Invalid configuration');
+         |             ^
+      80 |     }
+      81 |
+      82 |     if (instances.length === 0) {
+
+      at new VcfAutomationService (services/VcfAutomationService.ts:79:13)
+      at Object.<anonymous> (services/VcfAutomationService.test.ts:167:23)
+
 A worker process has failed to exit gracefully and has been force exited. This is likely caused by tests leaking due to improper teardown. Try running with --detectOpenHandles to find leaks. Active timers can also cause this, ensure that .unref() was called on them.
 --------------------------------------------------------------------------|---------|----------|---------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 File                                                                      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                                                                                                                                         
 --------------------------------------------------------------------------|---------|----------|---------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-All files                                                                 |   18.25 |     7.97 |   12.47 |   18.09 |                                                                                                                                                                           
+All files                                                                 |   19.94 |     9.32 |    13.8 |   19.84 |                                                                                                                                                                           
  packages/app/src                                                         |      88 |      100 |       0 |   86.36 |                                                                                                                                                                           
   App.tsx                                                                 |     100 |      100 |     100 |     100 |                                                                                                                                                                           
   index.tsx                                                               |       0 |      100 |     100 |       0 | 6                                                                                                                                                                         
@@ -467,9 +439,9 @@ All files                                                                 |   18
  plugins/scaleops-backend/src                                             |   64.85 |    44.66 |   52.27 |   64.82 |                                                                                                                                                                           
   actions.ts                                                              |   65.07 |    44.66 |   54.76 |   65.24 | 19-22,136,147-151,190,195,222-273,284-288,330,335,342,375-380,403,426-429,440-445,515,520,528,548-552,565,592,607,625-626,646-649,660-664,698,703,711,731-735,752,793-796 
   plugin.ts                                                               |   61.53 |      100 |       0 |   58.33 | 18-44                                                                                                                                                                     
- plugins/scaleops-backend/src/service                                     |   50.38 |       44 |      50 |   50.76 |                                                                                                                                                                           
-  ScaleOpsService.ts                                                      |   19.44 |       20 |      30 |   19.71 | 38-237                                                                                                                                                                    
-  router.ts                                                               |   88.13 |       80 |     100 |   88.13 | 34-35,61-62,86-89                                                                                                                                                         
+ plugins/scaleops-backend/src/service                                     |   93.12 |       92 |     100 |   93.07 |                                                                                                                                                                           
+  ScaleOpsService.ts                                                      |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+  router.ts                                                               |   84.74 |       80 |     100 |   84.74 | 34-35,61-62,86-89,132-133                                                                                                                                                 
  plugins/scaleops-frontend/src                                            |    42.3 |      100 |       0 |   43.75 |                                                                                                                                                                           
   alpha.tsx                                                               |       0 |      100 |       0 |       0 | 5-32                                                                                                                                                                      
   plugin.ts                                                               |   57.14 |      100 |       0 |   71.42 | 19,28                                                                                                                                                                     
@@ -527,8 +499,8 @@ All files                                                                 |   18
   actions.ts                                                              |   20.37 |      5.4 |   14.28 |   20.88 | 12-13,47-50,75,86-90,109,120-142,153-176,187-209,220-257,268-392,408-432,443-465,476-499,510-544,555-593                                                                  
   plugin.ts                                                               |   57.14 |      100 |       0 |   53.84 | 17-49                                                                                                                                                                     
   router.ts                                                               |    1.72 |        0 |       0 |    1.72 | 11-190                                                                                                                                                                    
- plugins/vcf-automation-backend/src/services                              |    0.61 |        0 |       0 |    0.62 |                                                                                                                                                                           
-  VcfAutomationService.ts                                                 |    0.61 |        0 |       0 |    0.62 | 29-548                                                                                                                                                                    
+ plugins/vcf-automation-backend/src/services                              |   48.14 |       35 |   64.28 |    47.5 |                                                                                                                                                                           
+  VcfAutomationService.ts                                                 |   48.14 |       35 |   64.28 |    47.5 | 83,95-96,103-131,159-160,216-219,227-230,238-241,247,258-261,267,278-281,290-293,302-305,314-317,326-329,338-341,350-548                                                  
  plugins/vcf-automation-common/src                                        |     100 |      100 |     100 |     100 |                                                                                                                                                                           
   index.ts                                                                |     100 |      100 |     100 |     100 |                                                                                                                                                                           
  plugins/vcf-automation-ingestor/src                                      |   41.66 |        0 |       0 |   36.36 |                                                                                                                                                                           
@@ -561,8 +533,8 @@ All files                                                                 |   18
   actions.ts                                                              |    28.7 |    16.07 |      12 |    28.7 | 20-21,50,61-69,120-162,173-203,214-244,255-292,303-338,349-384                                                                                                            
   plugin.ts                                                               |   57.14 |      100 |       0 |   53.84 | 18-55                                                                                                                                                                     
   router.ts                                                               |    2.56 |        0 |       0 |    2.75 | 15-357                                                                                                                                                                    
- plugins/vcf-operations-backend/src/services                              |     0.4 |        0 |       0 |    0.43 |                                                                                                                                                                           
-  VcfOperationsService.ts                                                 |     0.4 |        0 |       0 |    0.43 | 90-710                                                                                                                                                                    
+ plugins/vcf-operations-backend/src/services                              |   46.31 |    45.16 |   34.48 |   46.12 |                                                                                                                                                                           
+  VcfOperationsService.ts                                                 |   46.31 |    45.16 |   34.48 |   46.12 | 118-121,176,232,299,305-306,369-379,401-710                                                                                                                               
  plugins/vcf-operations-common/src                                        |     100 |      100 |     100 |     100 |                                                                                                                                                                           
   index.ts                                                                |     100 |      100 |     100 |     100 |                                                                                                                                                                           
  plugins/vcf-operations/src                                               |   35.71 |      100 |       0 |    42.1 |                                                                                                                                                                           
@@ -576,9 +548,111 @@ All files                                                                 |   18
   NotImplementedMessage.tsx                                               |       0 |        0 |       0 |       0 | 15-45                                                                                                                                                                     
   VCFOperationsExplorer.tsx                                               |       0 |        0 |       0 |       0 | 29-1409                                                                                                                                                                   
 --------------------------------------------------------------------------|---------|----------|---------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Summary of all failing tests
+FAIL plugins/scaleops-backend/src/service/router.test.ts
+  ● createRouter › handles authentication failure
 
-Test Suites: 90 passed, 90 total
-Tests:       487 passed, 487 total
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 500
+    Received: 401
+
+      103 |
+      104 |     const response = await request(app).get('/api/workloads');
+    > 105 |     expect(response.status).toBe(500);
+          |                             ^
+      106 |     expect(response.body.error).toBeDefined();
+      107 |   });
+      108 |
+
+      at Object.toBe (service/router.test.ts:105:29)
+
+  ● createRouter without authentication › returns error when authentication is not configured
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 500
+    Received: 401
+
+      154 |
+      155 |     const response = await request(app).get('/api/workloads');
+    > 156 |     expect(response.status).toBe(500);
+          |                             ^
+      157 |     expect(response.body.error).toBeDefined();
+      158 |   });
+      159 | });
+
+      at Object.toBe (service/router.test.ts:156:29)
+
+FAIL plugins/vcf-operations-backend/src/services/VcfOperationsService.test.ts (8.817 s)
+  ● VcfOperationsService › authentication › should handle authentication failure
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      111 |     });
+      112 |
+    > 113 |     it('should handle authentication failure', async () => {
+          |     ^
+      114 |       mswServer.use(
+      115 |         rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
+      116 |           return res(ctx.status(401), ctx.json({ error: 'Unauthorized' }));
+
+      at it (services/VcfOperationsService.test.ts:113:5)
+      at describe (services/VcfOperationsService.test.ts:81:3)
+      at Object.describe (services/VcfOperationsService.test.ts:12:1)
+
+FAIL plugins/vcf-automation-backend/src/services/VcfAutomationService.test.ts (9.104 s)
+  ● VcfAutomationService › authentication version 8 › should handle authentication failure
+
+    thrown: "Exceeded timeout of 5000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      110 |     });
+      111 |
+    > 112 |     it('should handle authentication failure', async () => {
+          |     ^
+      113 |       mswServer.use(
+      114 |         rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+      115 |           return res(ctx.status(401), ctx.json({ error: 'Unauthorized' }));
+
+      at it (services/VcfAutomationService.test.ts:112:5)
+      at describe (services/VcfAutomationService.test.ts:83:3)
+      at Object.describe (services/VcfAutomationService.test.ts:12:1)
+
+  ● VcfAutomationService › authentication version 9 › should authenticate successfully with version 9
+
+    Failed to initialize VCF Automation service: Invalid configuration
+
+      77 |         error: error instanceof Error ? error.message : String(error),
+      78 |       });
+    > 79 |       throw new Error('Failed to initialize VCF Automation service: Invalid configuration');
+         |             ^
+      80 |     }
+      81 |
+      82 |     if (instances.length === 0) {
+
+      at new VcfAutomationService (services/VcfAutomationService.ts:79:13)
+      at Object.<anonymous> (services/VcfAutomationService.test.ts:154:23)
+
+  ● VcfAutomationService › authentication version 9 › should handle missing access token in response
+
+    Failed to initialize VCF Automation service: Invalid configuration
+
+      77 |         error: error instanceof Error ? error.message : String(error),
+      78 |       });
+    > 79 |       throw new Error('Failed to initialize VCF Automation service: Invalid configuration');
+         |             ^
+      80 |     }
+      81 |
+      82 |     if (instances.length === 0) {
+
+      at new VcfAutomationService (services/VcfAutomationService.ts:79:13)
+      at Object.<anonymous> (services/VcfAutomationService.test.ts:167:23)
+
+
+Test Suites: 3 failed, 89 passed, 92 total
+Tests:       6 failed, 535 passed, 541 total
 Snapshots:   0 total
-Time:        8.208 s
+Time:        11.554 s
 Ran all test suites matching /plugins\//i in 42 projects.

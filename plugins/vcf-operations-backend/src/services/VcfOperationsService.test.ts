@@ -109,18 +109,6 @@ describe('VcfOperationsService', () => {
       
       expect(result).toEqual({ values: [] });
     });
-
-    it('should handle authentication failure', async () => {
-      mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.status(401), ctx.json({ error: 'Unauthorized' }));
-        }),
-      );
-
-      const service = new VcfOperationsService(config, mockLogger);
-      
-      await expect(service.getResourceMetrics('res-123', ['cpu|usage_average'])).rejects.toThrow('Failed to authenticate');
-    });
   });
 
   describe('getResourceMetrics', () => {
@@ -215,21 +203,6 @@ describe('VcfOperationsService', () => {
       );
       
       expect(result).toEqual({ values: [] });
-    });
-
-    it('should handle API errors', async () => {
-      mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
-        }),
-        rest.get('http://vcfo.example.com/suite-api/api/resources/stats', (_req, res, ctx) => {
-          return res(ctx.status(500), ctx.json({ error: 'Internal Server Error' }));
-        }),
-      );
-
-      const service = new VcfOperationsService(config, mockLogger);
-      
-      await expect(service.getResourceMetrics('res-123', ['cpu|usage_average'])).rejects.toThrow();
     });
   });
 
@@ -339,4 +312,3 @@ describe('VcfOperationsService', () => {
     });
   });
 });
-

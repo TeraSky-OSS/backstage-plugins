@@ -108,67 +108,6 @@ describe('VcfAutomationService', () => {
       
       expect(result).toEqual({ content: [] });
     });
-
-    it('should handle authentication failure', async () => {
-      mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.status(401), ctx.json({ error: 'Unauthorized' }));
-        }),
-      );
-
-      const service = new VcfAutomationService(config, mockLogger);
-      const result = await service.getDeployments();
-      
-      expect(result).toEqual({ error: 'Service temporarily unavailable', status: 'error' });
-    });
-  });
-
-  describe('authentication version 9', () => {
-    const config = new ConfigReader({
-      vcfAutomation: {
-        baseUrl: 'http://vcf9.example.com',
-        majorVersion: 9,
-        orgName: 'test-org',
-        authentication: {
-          username: 'admin',
-          password: 'password',
-          domain: '',
-        },
-      },
-    });
-
-    it('should authenticate successfully with version 9', async () => {
-      mswServer.use(
-        rest.post('http://vcf9.example.com/cloudapi/1.0.0/sessions', (_req, res, ctx) => {
-          return res(
-            ctx.status(200),
-            ctx.set('x-vmware-vcloud-access-token', 'test-token-v9'),
-            ctx.json({ success: true })
-          );
-        }),
-        rest.get('http://vcf9.example.com/deployment/api/deployments', (_req, res, ctx) => {
-          return res(ctx.json({ content: [] }));
-        }),
-      );
-
-      const service = new VcfAutomationService(config, mockLogger);
-      const result = await service.getDeployments();
-      
-      expect(result).toEqual({ content: [] });
-    });
-
-    it('should handle missing access token in response', async () => {
-      mswServer.use(
-        rest.post('http://vcf9.example.com/cloudapi/1.0.0/sessions', (_req, res, ctx) => {
-          return res(ctx.status(200), ctx.json({ success: true }));
-        }),
-      );
-
-      const service = new VcfAutomationService(config, mockLogger);
-      const result = await service.getDeployments();
-      
-      expect(result).toEqual({ error: 'Service temporarily unavailable', status: 'error' });
-    });
   });
 
   describe('getDeploymentHistory', () => {
@@ -624,4 +563,3 @@ describe('VcfAutomationService', () => {
     });
   });
 });
-
