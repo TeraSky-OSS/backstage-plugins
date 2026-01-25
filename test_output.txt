@@ -1,21 +1,20 @@
 PASS @terasky/backstage-plugin-educates-common plugins/educates-common/src/index.test.ts
 PASS @terasky/backstage-plugin-kubernetes-resources-common plugins/kubernetes-resources-common/src/index.test.ts
 PASS @terasky/backstage-plugin-kyverno-common plugins/kyverno-common/src/index.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/annotationUtils.test.ts
 PASS @terasky/backstage-plugin-kubernetes-resources-frontend plugins/kubernetes-resources/src/components/isKubernetesResourcesAvailable.test.tsx
-PASS @terasky/backstage-plugin-kubernetes-resources-frontend plugins/kubernetes-resources/src/plugin.test.ts
-PASS @terasky/backstage-plugin-spectrocloud plugins/spectrocloud/src/plugin.test.ts
-PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/plugin.test.ts
-PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/plugin.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/plugin.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/api/CrossplaneApi.test.ts
-PASS @terasky/backstage-plugin-scaleops-frontend plugins/scaleops-frontend/src/plugin.test.ts
 PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/api/AiRulesClient.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/isCrossplaneAvailable.test.tsx
+PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/annotationUtils.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/plugin.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/api/CrossplaneApi.test.ts
+PASS @terasky/backstage-plugin-kubernetes-resources-frontend plugins/kubernetes-resources/src/plugin.test.ts
 PASS @terasky/backstage-plugin-devpod plugins/devpod-plugin/src/plugin.test.ts
+PASS @terasky/backstage-plugin-spectrocloud plugins/spectrocloud/src/plugin.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/isCrossplaneAvailable.test.tsx
+PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/plugin.test.ts
+PASS @terasky/backstage-plugin-scaleops-frontend plugins/scaleops-frontend/src/plugin.test.ts
 PASS @terasky/backstage-plugin-catalog-mcp-backend plugins/catalog-mcp-backend/src/plugin.test.ts
 PASS @terasky/backstage-plugin-entity-scaffolder-content plugins/entity-scaffolder-content/src/plugin.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-ingestor plugins/spectrocloud-ingestor/src/module.test.ts
 PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/hooks/useAiRules.test.ts
   ● Console
 
@@ -446,29 +445,44 @@ PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/hooks/useAiR
 
       at error (hooks/useAiRules.ts:114:15)
 
+PASS @terasky/backstage-plugin-spectrocloud-ingestor plugins/spectrocloud-ingestor/src/module.test.ts
 PASS @terasky/backstage-plugin-kubernetes-resources-permissions-backend plugins/kubernetes-resources-permissions-backend/src/service/router.test.ts
 PASS @terasky/backstage-plugin-app-module-global-signin-page plugins/app-module-global-signin-page/src/module.test.tsx
+(node:411466) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS @terasky/backstage-plugin-terraform-scaffolder plugins/terraform-scaffolder/src/components/TerraformModuleForm.test.tsx
 PASS @terasky/backstage-plugin-spectrocloud-ingestor plugins/spectrocloud-ingestor/src/providers/SpectroCloudEntityProvider.test.ts
 PASS @terasky/backstage-plugin-spectrocloud-ingestor plugins/spectrocloud-ingestor/src/client/SpectroCloudClient.test.ts
 PASS @terasky/backstage-plugin-scaleops-frontend plugins/scaleops-frontend/src/components/ScaleopsCard.test.tsx
-PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/CrossplaneOverviewCardSelector.test.tsx (5.447 s)
-PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/components/AiInstructionsComponent/AiInstructionsComponent.test.tsx (5.729 s)
-PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/components/KyvernoOverviewCard.test.tsx (5.958 s)
-PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/components/KyvernoCrossplaneOverviewCard.test.tsx (6.051 s)
-PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/service/KubernetesService.test.ts (6.894 s)
-PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/router.test.ts (7.245 s)
-PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/components/MCPServersComponent/MCPServersComponent.test.tsx (7.809 s)
+PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/components/KyvernoCrossplaneOverviewCard.test.tsx
+PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/components/KyvernoOverviewCard.test.tsx
+PASS @terasky/backstage-plugin-scaleops-frontend plugins/scaleops-frontend/src/components/ScaleOpsDashboard.test.tsx
+PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/CrossplaneOverviewCardSelector.test.tsx
+PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/service/ScaleOpsService.test.ts
+PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/components/MCPServersComponent/MCPServersComponent.test.tsx
+PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/components/AiInstructionsComponent/AiInstructionsComponent.test.tsx
+PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/service/KubernetesService.test.ts
+PASS @terasky/backstage-plugin-gitops-manifest-updater plugins/gitops-manifest-updater/src/plugin.test.ts
 PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationResourceOverview.test.tsx
-PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationCCIResourceOverview.test.tsx
 PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationCCIResourceDetails.test.tsx
 PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationDeploymentOverview.test.tsx
-PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/services/VcfOperationsService.test.ts (8.145 s)
-PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/router.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/service/KubernetesService.test.ts
-PASS @terasky/backstage-plugin-gitops-manifest-updater plugins/gitops-manifest-updater/src/plugin.test.ts (8.348 s)
-PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/CrossplaneResourceGraphSelector.test.tsx (9.149 s)
-PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/CrossplaneResourcesTableSelector.test.tsx (9.486 s)
+PASS app packages/app/src/App.test.tsx (5.556 s)
+PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationCCIResourceOverview.test.tsx
+PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationProjectDetails.test.tsx
+PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/CrossplaneResourcesTableSelector.test.tsx
+PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/CrossplaneResourceGraphSelector.test.tsx
+PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationGenericResourceDetails.test.tsx
+PASS @terasky/backstage-plugin-gitops-manifest-updater plugins/gitops-manifest-updater/src/components/GitOpsManifestUpdaterField.test.tsx
+PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationVSphereVMOverview.test.tsx
 PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationGenericResourceOverview.test.tsx
+PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationCCINamespaceOverview.test.tsx
+PASS @terasky/backstage-plugin-entity-scaffolder-content plugins/entity-scaffolder-content/src/components/EntityScaffolderContent.test.tsx (5.246 s)
+PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationCCINamespaceDetails.test.tsx
+PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/router.test.ts
+PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationDeploymentDetails.test.tsx
+PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/components/KyvernoPolicyReportsTable.test.tsx (6.025 s)
+PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/services/VcfOperationsService.test.ts
+PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/router.test.ts
 PASS @terasky/backstage-plugin-educates plugins/educates/src/components/TrainingPortalHeader.test.tsx
   ● Console
 
@@ -821,151 +835,8 @@ PASS @terasky/backstage-plugin-educates plugins/educates/src/components/Training
       at render (../node_modules/@testing-library/react/dist/pure.js:97:24)
       at Object.<anonymous> (components/TrainingPortalHeader.test.tsx:132:11)
 
-PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationCCINamespaceOverview.test.tsx
-PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationVSphereVMOverview.test.tsx
-PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationProjectOverview.test.tsx
-PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/service/ScaleOpsService.test.ts (7.132 s)
-PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationGenericResourceDetails.test.tsx
-PASS app packages/app/src/App.test.tsx (10.699 s)
-PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationDeploymentDetails.test.tsx
-PASS @terasky/backstage-plugin-entity-scaffolder-content plugins/entity-scaffolder-content/src/components/EntityScaffolderContent.test.tsx (11.536 s)
-PASS @terasky/backstage-plugin-gitops-manifest-updater plugins/gitops-manifest-updater/src/components/GitOpsManifestUpdaterField.test.tsx (7.792 s)
-PASS @terasky/plugin-scaffolder-mcp-backend plugins/scaffolder-mcp-backend/src/actions.test.ts (11.496 s)
-PASS @terasky/backstage-plugin-vcf-operations plugins/vcf-operations/src/components/MetricChart.test.tsx
-  ● Console
-
-    console.error
-      Warning: `ReactDOMTestUtils.act` is deprecated in favor of `React.act`. Import `act` from `react` instead of `react-dom/test-utils`. See https://react.dev/warnings/react-dom-test-utils for more info.
-
-      29 |     };
-      30 |
-    > 31 |     render(<MetricChart data={emptyData as any} />);
-         |           ^
-      32 |
-      33 |     expect(screen.getByText('No data available')).toBeInTheDocument();
-      34 |   });
-
-      at printWarning (../../../node_modules/react-dom/cjs/react-dom-test-utils.development.js:71:30)
-      at error (../../../node_modules/react-dom/cjs/react-dom-test-utils.development.js:45:7)
-      at actWithWarning (../../../node_modules/react-dom/cjs/react-dom-test-utils.development.js:1736:7)
-      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:97:24)
-      at Object.<anonymous> (components/MetricChart.test.tsx:31:11)
-
-    console.error
-      Warning: ReactDOM.render is no longer supported in React 18. Use createRoot instead. Until you switch to the new API, your app will behave as if it's running React 17. Learn more: https://reactjs.org/link/switch-to-createroot
-
-      29 |     };
-      30 |
-    > 31 |     render(<MetricChart data={emptyData as any} />);
-         |           ^
-      32 |
-      33 |     expect(screen.getByText('No data available')).toBeInTheDocument();
-      34 |   });
-
-      at printWarning (../../../node_modules/react-dom/cjs/react-dom.development.js:86:30)
-      at error (../../../node_modules/react-dom/cjs/react-dom.development.js:60:7)
-      at Object.render (../../../node_modules/react-dom/cjs/react-dom.development.js:29716:5)
-      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:101:25)
-      at act (../../../node_modules/react/cjs/react.development.js:2512:16)
-      at actWithWarning (../../../node_modules/react-dom/cjs/react-dom-test-utils.development.js:1740:10)
-      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:97:24)
-      at Object.<anonymous> (components/MetricChart.test.tsx:31:11)
-
-    console.error
-      Warning: unmountComponentAtNode is deprecated and will be removed in the next major release. Switch to the createRoot API. Learn more: https://reactjs.org/link/switch-to-createroot
-
-      at printWarning (../../../node_modules/react-dom/cjs/react-dom.development.js:86:30)
-      at error (../../../node_modules/react-dom/cjs/react-dom.development.js:60:7)
-      at Object.unmountComponentAtNode (../../../node_modules/react-dom/cjs/react-dom.development.js:29754:7)
-      at unmountComponentAtNode (../../educates/node_modules/@testing-library/react/dist/pure.js:144:23)
-      at act (../../../node_modules/react/cjs/react.development.js:2512:16)
-      at actWithWarning (../../../node_modules/react-dom/cjs/react-dom-test-utils.development.js:1740:10)
-      at cleanupAtContainer (../../educates/node_modules/@testing-library/react/dist/pure.js:143:24)
-          at Set.forEach (<anonymous>)
-      at forEach (../../educates/node_modules/@testing-library/react/dist/pure.js:137:21)
-      at Object.<anonymous> (../../educates/node_modules/@testing-library/react/dist/index.js:33:23)
-
-    console.error
-      Warning: ReactDOM.render is no longer supported in React 18. Use createRoot instead. Until you switch to the new API, your app will behave as if it's running React 17. Learn more: https://reactjs.org/link/switch-to-createroot
-
-      43 |     };
-      44 |
-    > 45 |     render(<MetricChart data={data as any} />);
-         |           ^
-      46 |
-      47 |     expect(screen.getByTestId('line-chart')).toBeInTheDocument();
-      48 |     expect(screen.getByTestId('responsive-container')).toBeInTheDocument();
-
-      at printWarning (../../../node_modules/react-dom/cjs/react-dom.development.js:86:30)
-      at error (../../../node_modules/react-dom/cjs/react-dom.development.js:60:7)
-      at Object.render (../../../node_modules/react-dom/cjs/react-dom.development.js:29716:5)
-      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:101:25)
-      at act (../../../node_modules/react/cjs/react.development.js:2512:16)
-      at actWithWarning (../../../node_modules/react-dom/cjs/react-dom-test-utils.development.js:1740:10)
-      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:97:24)
-      at Object.<anonymous> (components/MetricChart.test.tsx:45:11)
-
-    console.error
-      Warning: ReactDOM.render is no longer supported in React 18. Use createRoot instead. Until you switch to the new API, your app will behave as if it's running React 17. Learn more: https://reactjs.org/link/switch-to-createroot
-
-      58 |     };
-      59 |
-    > 60 |     const { container } = render(<MetricChart data={data as any} height={400} />);
-         |                                 ^
-      61 |
-      62 |     expect(container).toBeInTheDocument();
-      63 |   });
-
-      at printWarning (../../../node_modules/react-dom/cjs/react-dom.development.js:86:30)
-      at error (../../../node_modules/react-dom/cjs/react-dom.development.js:60:7)
-      at Object.render (../../../node_modules/react-dom/cjs/react-dom.development.js:29716:5)
-      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:101:25)
-      at act (../../../node_modules/react/cjs/react.development.js:2512:16)
-      at actWithWarning (../../../node_modules/react-dom/cjs/react-dom-test-utils.development.js:1740:10)
-      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:97:24)
-      at Object.<anonymous> (components/MetricChart.test.tsx:60:33)
-
-    console.error
-      Warning: ReactDOM.render is no longer supported in React 18. Use createRoot instead. Until you switch to the new API, your app will behave as if it's running React 17. Learn more: https://reactjs.org/link/switch-to-createroot
-
-      72 |     };
-      73 |
-    > 74 |     render(<MetricChart data={data as any} />);
-         |           ^
-      75 |
-      76 |     expect(screen.getByText('No data available')).toBeInTheDocument();
-      77 |   });
-
-      at printWarning (../../../node_modules/react-dom/cjs/react-dom.development.js:86:30)
-      at error (../../../node_modules/react-dom/cjs/react-dom.development.js:60:7)
-      at Object.render (../../../node_modules/react-dom/cjs/react-dom.development.js:29716:5)
-      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:101:25)
-      at act (../../../node_modules/react/cjs/react.development.js:2512:16)
-      at actWithWarning (../../../node_modules/react-dom/cjs/react-dom-test-utils.development.js:1740:10)
-      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:97:24)
-      at Object.<anonymous> (components/MetricChart.test.tsx:74:11)
-
-    console.error
-      Warning: ReactDOM.render is no longer supported in React 18. Use createRoot instead. Until you switch to the new API, your app will behave as if it's running React 17. Learn more: https://reactjs.org/link/switch-to-createroot
-
-      86 |     };
-      87 |
-    > 88 |     render(<MetricChart data={data as any} />);
-         |           ^
-      89 |
-      90 |     expect(screen.getByText('No data available')).toBeInTheDocument();
-      91 |   });
-
-      at printWarning (../../../node_modules/react-dom/cjs/react-dom.development.js:86:30)
-      at error (../../../node_modules/react-dom/cjs/react-dom.development.js:60:7)
-      at Object.render (../../../node_modules/react-dom/cjs/react-dom.development.js:29716:5)
-      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:101:25)
-      at act (../../../node_modules/react/cjs/react.development.js:2512:16)
-      at actWithWarning (../../../node_modules/react-dom/cjs/react-dom-test-utils.development.js:1740:10)
-      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:97:24)
-      at Object.<anonymous> (components/MetricChart.test.tsx:88:11)
-
-PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/components/KyvernoPolicyReportsTable.test.tsx (12.276 s)
+PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/components/KyvernoCrossplanePolicyReportsTable.test.tsx (6.15 s)
+PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/components/KroResourceGraph.test.tsx
 PASS @terasky/backstage-plugin-terraform-scaffolder plugins/terraform-scaffolder/src/components/FormField.test.tsx
 PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/CrossplaneV2ResourceTable.test.tsx
   ● Console
@@ -1126,9 +997,222 @@ PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-
       at renderRoot (../../../node_modules/@testing-library/react/dist/pure.js:271:10)
       at Object.<anonymous> (components/CrossplaneV2ResourceTable.test.tsx:72:33)
 
-PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/components/KroResourceGraph.test.tsx
-PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/components/KyvernoCrossplanePolicyReportsTable.test.tsx (12.704 s)
-PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationVSphereVMDetails.test.tsx (5.018 s)
+PASS @terasky/backstage-plugin-kubernetes-resources-frontend plugins/kubernetes-resources/src/components/KubernetesResourceGraph.test.tsx
+  ● Console
+
+    console.error
+      Error: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)
+          at module.exports (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
+          at HTMLCanvasElementImpl.getContext (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jsdom/lib/jsdom/living/nodes/HTMLCanvasElement-impl.js:42:5)
+          at HTMLCanvasElement.getContext (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jsdom/lib/jsdom/living/generated/HTMLCanvasElement.js:131:58)
+          at createLinearGradient (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/common/Color.ts:133:27)
+          at Object.rs (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/common/Color.ts:247:32)
+          at i (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:284562)
+          at Object.3787 (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/renderer/dom/DomRendererRowFactory.ts:49:26)
+          at i (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:284562)
+          at Object.1296 (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/renderer/dom/DomRenderer.ts:20:31)
+          at i (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:284562)
+          at Object.3236 (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/Terminal.ts:45:1)
+          at i (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:284562)
+          at Disposable (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/public/Terminal.ts:23:31)
+          at /home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:289313
+          at /home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:289319
+          at /home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/webpack/universalModuleDefinition:8:39
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:325)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/PodExecTerminal/PodExecTerminal.esm.js:16:16)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/PodExecTerminal/PodExecTerminalDialog.esm.js:27:29)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/Pods/PodDrawer/ContainerCard.esm.js:35:35)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/Pods/PodDrawer/PodDrawer.esm.js:16:27)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/DeploymentsAccordions/DeploymentsAccordions.esm.js:19:1)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/Cluster/Cluster.esm.js:19:35)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/index.esm.js:227:22)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/plugins/kubernetes-resources/src/components/KubernetesResourceGraph.tsx:5087:26)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/plugins/kubernetes-resources/src/components/KubernetesResourceGraph.test.tsx:5:73)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at jestAdapter (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:77:13)
+          at processTicksAndRejections (node:internal/process/task_queues:103:5)
+          at runTestInternal (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runner/build/runTest.js:367:16)
+          at runTest (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runner/build/runTest.js:444:34)
+          at Object.worker (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runner/build/testWorker.js:106:12) {
+        type: 'not implemented'
+      }
+
+
+
+      at VirtualConsole.<anonymous> (../../../node_modules/jest-environment-jsdom/build/index.js:63:23)
+      at module.exports (../../../node_modules/jsdom/lib/jsdom/browser/not-implemented.js:12:26)
+      at HTMLCanvasElementImpl.getContext (../../../node_modules/jsdom/lib/jsdom/living/nodes/HTMLCanvasElement-impl.js:42:5)
+      at HTMLCanvasElement.getContext (../../../node_modules/jsdom/lib/jsdom/living/generated/HTMLCanvasElement.js:131:58)
+      at createLinearGradient (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/common/Color.ts:133:27)
+      at Object.rs (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/common/Color.ts:247:32)
+      at i (../../../node_modules/@xterm/xterm/lib/xterm.js:1:284562)
+      at Object.3787 (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/renderer/dom/DomRendererRowFactory.ts:49:26)
+      at i (../../../node_modules/@xterm/xterm/lib/xterm.js:1:284562)
+      at Object.1296 (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/renderer/dom/DomRenderer.ts:20:31)
+      at i (../../../node_modules/@xterm/xterm/lib/xterm.js:1:284562)
+      at Object.3236 (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/Terminal.ts:45:1)
+      at i (../../../node_modules/@xterm/xterm/lib/xterm.js:1:284562)
+      at Disposable (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/public/Terminal.ts:23:31)
+      at ../../../node_modules/@xterm/xterm/lib/xterm.js:1:289313
+      at ../../../node_modules/@xterm/xterm/lib/xterm.js:1:289319
+      at ../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/webpack/universalModuleDefinition:8:39
+      at Object.<anonymous> (../../../node_modules/@xterm/xterm/lib/xterm.js:1:325)
+      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/PodExecTerminal/PodExecTerminal.esm.js:16:16)
+      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/PodExecTerminal/PodExecTerminalDialog.esm.js:27:29)
+      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/Pods/PodDrawer/ContainerCard.esm.js:35:35)
+      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/Pods/PodDrawer/PodDrawer.esm.js:16:27)
+      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/DeploymentsAccordions/DeploymentsAccordions.esm.js:19:1)
+      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/Cluster/Cluster.esm.js:19:35)
+      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/index.esm.js:227:22)
+      at Object.<anonymous> (components/KubernetesResourceGraph.tsx:5087:26)
+      at Object.<anonymous> (components/KubernetesResourceGraph.test.tsx:5:73)
+
+PASS @terasky/backstage-plugin-kubernetes-resources-frontend plugins/kubernetes-resources/src/components/KubernetesResourcesPage.test.tsx
+  ● Console
+
+    console.error
+      Error: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)
+          at module.exports (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
+          at HTMLCanvasElementImpl.getContext (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jsdom/lib/jsdom/living/nodes/HTMLCanvasElement-impl.js:42:5)
+          at HTMLCanvasElement.getContext (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jsdom/lib/jsdom/living/generated/HTMLCanvasElement.js:131:58)
+          at createLinearGradient (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/common/Color.ts:133:27)
+          at Object.rs (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/common/Color.ts:247:32)
+          at i (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:284562)
+          at Object.3787 (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/renderer/dom/DomRendererRowFactory.ts:49:26)
+          at i (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:284562)
+          at Object.1296 (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/renderer/dom/DomRenderer.ts:20:31)
+          at i (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:284562)
+          at Object.3236 (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/Terminal.ts:45:1)
+          at i (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:284562)
+          at Disposable (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/public/Terminal.ts:23:31)
+          at /home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:289313
+          at /home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:289319
+          at /home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/webpack/universalModuleDefinition:8:39
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:325)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/PodExecTerminal/PodExecTerminal.esm.js:16:16)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/PodExecTerminal/PodExecTerminalDialog.esm.js:27:29)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/Pods/PodDrawer/ContainerCard.esm.js:35:35)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/Pods/PodDrawer/PodDrawer.esm.js:16:27)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/DeploymentsAccordions/DeploymentsAccordions.esm.js:19:1)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/Cluster/Cluster.esm.js:19:35)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/index.esm.js:227:22)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/plugins/kubernetes-resources/src/components/KubernetesResourcesPage.tsx:4459:27)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
+          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/plugins/kubernetes-resources/src/components/KubernetesResourcesPage.test.tsx:5:73)
+          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
+          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
+          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
+          at jestAdapter (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:77:13)
+          at processTicksAndRejections (node:internal/process/task_queues:103:5)
+          at runTestInternal (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runner/build/runTest.js:367:16)
+          at runTest (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runner/build/runTest.js:444:34)
+          at Object.worker (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runner/build/testWorker.js:106:12) {
+        type: 'not implemented'
+      }
+
+
+
+      at VirtualConsole.<anonymous> (../../../node_modules/jest-environment-jsdom/build/index.js:63:23)
+      at module.exports (../../../node_modules/jsdom/lib/jsdom/browser/not-implemented.js:12:26)
+      at HTMLCanvasElementImpl.getContext (../../../node_modules/jsdom/lib/jsdom/living/nodes/HTMLCanvasElement-impl.js:42:5)
+      at HTMLCanvasElement.getContext (../../../node_modules/jsdom/lib/jsdom/living/generated/HTMLCanvasElement.js:131:58)
+      at createLinearGradient (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/common/Color.ts:133:27)
+      at Object.rs (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/common/Color.ts:247:32)
+      at i (../../../node_modules/@xterm/xterm/lib/xterm.js:1:284562)
+      at Object.3787 (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/renderer/dom/DomRendererRowFactory.ts:49:26)
+      at i (../../../node_modules/@xterm/xterm/lib/xterm.js:1:284562)
+      at Object.1296 (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/renderer/dom/DomRenderer.ts:20:31)
+      at i (../../../node_modules/@xterm/xterm/lib/xterm.js:1:284562)
+      at Object.3236 (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/Terminal.ts:45:1)
+      at i (../../../node_modules/@xterm/xterm/lib/xterm.js:1:284562)
+      at Disposable (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/public/Terminal.ts:23:31)
+      at ../../../node_modules/@xterm/xterm/lib/xterm.js:1:289313
+      at ../../../node_modules/@xterm/xterm/lib/xterm.js:1:289319
+      at ../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/webpack/universalModuleDefinition:8:39
+      at Object.<anonymous> (../../../node_modules/@xterm/xterm/lib/xterm.js:1:325)
+      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/PodExecTerminal/PodExecTerminal.esm.js:16:16)
+      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/PodExecTerminal/PodExecTerminalDialog.esm.js:27:29)
+      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/Pods/PodDrawer/ContainerCard.esm.js:35:35)
+      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/Pods/PodDrawer/PodDrawer.esm.js:16:27)
+      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/DeploymentsAccordions/DeploymentsAccordions.esm.js:19:1)
+      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/Cluster/Cluster.esm.js:19:35)
+      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/index.esm.js:227:22)
+      at Object.<anonymous> (components/KubernetesResourcesPage.tsx:4459:27)
+      at Object.<anonymous> (components/KubernetesResourcesPage.test.tsx:5:73)
+
 PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/CrossplaneV1ResourceTable.test.tsx
   ● Console
 
@@ -1195,7 +1279,7 @@ PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-
     console.error
       Error fetching supporting resources: TypeError: Cannot read properties of undefined (reading 'resource')
           at resource (/home/vrabbi/projects/backstage/backstage-plugins/plugins/crossplane-resources/src/components/CrossplaneV1ResourceTable.tsx:664:62)
-          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at processTicksAndRejections (node:internal/process/task_queues:103:5)
 
       843 |             setSupportingResources(supportingResources);
       844 |         } catch (error) {
@@ -1239,6 +1323,141 @@ PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-
       at dispatchSetState (../../../node_modules/react-dom/cjs/react-dom.development.js:16708:7)
       at setLoadingSupportingResources (components/CrossplaneV1ResourceTable.tsx:847:13)
 
+PASS @terasky/backstage-plugin-vcf-operations plugins/vcf-operations/src/components/MetricChart.test.tsx
+  ● Console
+
+    console.error
+      Warning: `ReactDOMTestUtils.act` is deprecated in favor of `React.act`. Import `act` from `react` instead of `react-dom/test-utils`. See https://react.dev/warnings/react-dom-test-utils for more info.
+
+      29 |     };
+      30 |
+    > 31 |     render(<MetricChart data={emptyData as any} />);
+         |           ^
+      32 |
+      33 |     expect(screen.getByText('No data available')).toBeInTheDocument();
+      34 |   });
+
+      at printWarning (../../../node_modules/react-dom/cjs/react-dom-test-utils.development.js:71:30)
+      at error (../../../node_modules/react-dom/cjs/react-dom-test-utils.development.js:45:7)
+      at actWithWarning (../../../node_modules/react-dom/cjs/react-dom-test-utils.development.js:1736:7)
+      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:97:24)
+      at Object.<anonymous> (components/MetricChart.test.tsx:31:11)
+
+    console.error
+      Warning: ReactDOM.render is no longer supported in React 18. Use createRoot instead. Until you switch to the new API, your app will behave as if it's running React 17. Learn more: https://reactjs.org/link/switch-to-createroot
+
+      29 |     };
+      30 |
+    > 31 |     render(<MetricChart data={emptyData as any} />);
+         |           ^
+      32 |
+      33 |     expect(screen.getByText('No data available')).toBeInTheDocument();
+      34 |   });
+
+      at printWarning (../../../node_modules/react-dom/cjs/react-dom.development.js:86:30)
+      at error (../../../node_modules/react-dom/cjs/react-dom.development.js:60:7)
+      at Object.render (../../../node_modules/react-dom/cjs/react-dom.development.js:29716:5)
+      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:101:25)
+      at act (../../../node_modules/react/cjs/react.development.js:2512:16)
+      at actWithWarning (../../../node_modules/react-dom/cjs/react-dom-test-utils.development.js:1740:10)
+      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:97:24)
+      at Object.<anonymous> (components/MetricChart.test.tsx:31:11)
+
+    console.error
+      Warning: unmountComponentAtNode is deprecated and will be removed in the next major release. Switch to the createRoot API. Learn more: https://reactjs.org/link/switch-to-createroot
+
+      at printWarning (../../../node_modules/react-dom/cjs/react-dom.development.js:86:30)
+      at error (../../../node_modules/react-dom/cjs/react-dom.development.js:60:7)
+      at Object.unmountComponentAtNode (../../../node_modules/react-dom/cjs/react-dom.development.js:29754:7)
+      at unmountComponentAtNode (../../educates/node_modules/@testing-library/react/dist/pure.js:144:23)
+      at act (../../../node_modules/react/cjs/react.development.js:2512:16)
+      at actWithWarning (../../../node_modules/react-dom/cjs/react-dom-test-utils.development.js:1740:10)
+      at cleanupAtContainer (../../educates/node_modules/@testing-library/react/dist/pure.js:143:24)
+          at Set.forEach (<anonymous>)
+      at forEach (../../educates/node_modules/@testing-library/react/dist/pure.js:137:21)
+      at Object.<anonymous> (../../educates/node_modules/@testing-library/react/dist/index.js:33:23)
+
+    console.error
+      Warning: ReactDOM.render is no longer supported in React 18. Use createRoot instead. Until you switch to the new API, your app will behave as if it's running React 17. Learn more: https://reactjs.org/link/switch-to-createroot
+
+      43 |     };
+      44 |
+    > 45 |     render(<MetricChart data={data as any} />);
+         |           ^
+      46 |
+      47 |     expect(screen.getByTestId('line-chart')).toBeInTheDocument();
+      48 |     expect(screen.getByTestId('responsive-container')).toBeInTheDocument();
+
+      at printWarning (../../../node_modules/react-dom/cjs/react-dom.development.js:86:30)
+      at error (../../../node_modules/react-dom/cjs/react-dom.development.js:60:7)
+      at Object.render (../../../node_modules/react-dom/cjs/react-dom.development.js:29716:5)
+      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:101:25)
+      at act (../../../node_modules/react/cjs/react.development.js:2512:16)
+      at actWithWarning (../../../node_modules/react-dom/cjs/react-dom-test-utils.development.js:1740:10)
+      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:97:24)
+      at Object.<anonymous> (components/MetricChart.test.tsx:45:11)
+
+    console.error
+      Warning: ReactDOM.render is no longer supported in React 18. Use createRoot instead. Until you switch to the new API, your app will behave as if it's running React 17. Learn more: https://reactjs.org/link/switch-to-createroot
+
+      58 |     };
+      59 |
+    > 60 |     const { container } = render(<MetricChart data={data as any} height={400} />);
+         |                                 ^
+      61 |
+      62 |     expect(container).toBeInTheDocument();
+      63 |   });
+
+      at printWarning (../../../node_modules/react-dom/cjs/react-dom.development.js:86:30)
+      at error (../../../node_modules/react-dom/cjs/react-dom.development.js:60:7)
+      at Object.render (../../../node_modules/react-dom/cjs/react-dom.development.js:29716:5)
+      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:101:25)
+      at act (../../../node_modules/react/cjs/react.development.js:2512:16)
+      at actWithWarning (../../../node_modules/react-dom/cjs/react-dom-test-utils.development.js:1740:10)
+      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:97:24)
+      at Object.<anonymous> (components/MetricChart.test.tsx:60:33)
+
+    console.error
+      Warning: ReactDOM.render is no longer supported in React 18. Use createRoot instead. Until you switch to the new API, your app will behave as if it's running React 17. Learn more: https://reactjs.org/link/switch-to-createroot
+
+      72 |     };
+      73 |
+    > 74 |     render(<MetricChart data={data as any} />);
+         |           ^
+      75 |
+      76 |     expect(screen.getByText('No data available')).toBeInTheDocument();
+      77 |   });
+
+      at printWarning (../../../node_modules/react-dom/cjs/react-dom.development.js:86:30)
+      at error (../../../node_modules/react-dom/cjs/react-dom.development.js:60:7)
+      at Object.render (../../../node_modules/react-dom/cjs/react-dom.development.js:29716:5)
+      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:101:25)
+      at act (../../../node_modules/react/cjs/react.development.js:2512:16)
+      at actWithWarning (../../../node_modules/react-dom/cjs/react-dom-test-utils.development.js:1740:10)
+      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:97:24)
+      at Object.<anonymous> (components/MetricChart.test.tsx:74:11)
+
+    console.error
+      Warning: ReactDOM.render is no longer supported in React 18. Use createRoot instead. Until you switch to the new API, your app will behave as if it's running React 17. Learn more: https://reactjs.org/link/switch-to-createroot
+
+      86 |     };
+      87 |
+    > 88 |     render(<MetricChart data={data as any} />);
+         |           ^
+      89 |
+      90 |     expect(screen.getByText('No data available')).toBeInTheDocument();
+      91 |   });
+
+      at printWarning (../../../node_modules/react-dom/cjs/react-dom.development.js:86:30)
+      at error (../../../node_modules/react-dom/cjs/react-dom.development.js:60:7)
+      at Object.render (../../../node_modules/react-dom/cjs/react-dom.development.js:29716:5)
+      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:101:25)
+      at act (../../../node_modules/react/cjs/react.development.js:2512:16)
+      at actWithWarning (../../../node_modules/react-dom/cjs/react-dom-test-utils.development.js:1740:10)
+      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:97:24)
+      at Object.<anonymous> (components/MetricChart.test.tsx:88:11)
+
+PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/components/KroResourceTable.test.tsx
 PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/components/KroOverviewCard.test.tsx
   ● Console
 
@@ -1424,25 +1643,182 @@ PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/
       at performWorkUntilDeadline (../../../node_modules/scheduler/cjs/scheduler.development.js:533:21)
       at Timeout.task [as _onTimeout] (../../../node_modules/jsdom/lib/jsdom/browser/Window.js:520:19)
 
-PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationProjectDetails.test.tsx (6.122 s)
-PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/router.test.ts
-PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/components/KroResourceTable.test.tsx
-PASS @terasky/backstage-plugin-vcf-operations plugins/vcf-operations/src/components/VCFOperationsExplorer.test.tsx (12.344 s)
 PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/CrossplaneV1OverviewCard.test.tsx
+PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationVSphereVMDetails.test.tsx
+PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/service/KubernetesService.test.ts
+PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/service/router.test.ts
 PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/components/AiRulesComponent/AiRulesComponent.test.tsx
-PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/services/VcfAutomationService.test.ts (13.567 s)
 PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/CrossplaneV2OverviewCard.test.tsx
-PASS @terasky/backstage-plugin-scaleops-frontend plugins/scaleops-frontend/src/components/ScaleOpsDashboard.test.tsx
-PASS @terasky/backstage-plugin-terraform-scaffolder plugins/terraform-scaffolder/src/plugin.test.ts
+PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationProjectOverview.test.tsx
+PASS @terasky/plugin-scaffolder-mcp-backend plugins/scaffolder-mcp-backend/src/actions.test.ts (6.34 s)
 PASS @terasky/backstage-plugin-spectrocloud plugins/spectrocloud/src/components/SpectroCloudClusterProfileCard.test.tsx
-PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationCCINamespaceDetails.test.tsx (5.196 s)
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/router.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/service/router.test.ts
 PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/client/SpectroCloudClient.test.ts
+PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/actions.test.ts
 PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/AiRulesService.test.ts
-PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/MCPService.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/router.test.ts (5.078 s)
-PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/supplier/SpectroCloudClusterSupplier.test.ts
-PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/service/router.test.ts
+(node:411432) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/service/EducatesService.test.ts
+PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationVMPowerManagement.test.tsx
+PASS @terasky/backstage-plugin-vcf-operations plugins/vcf-operations/src/components/VCFOperationsExplorer.test.tsx (5.096 s)
+  ● Console
+
+    console.error
+      Warning: `ReactDOMTestUtils.act` is deprecated in favor of `React.act`. Import `act` from `react` instead of `react-dom/test-utils`. See https://react.dev/warnings/react-dom-test-utils for more info.
+
+      66 |     ]);
+      67 |
+    > 68 |     render(
+         |           ^
+      69 |       <TestApiProvider apis={[[vcfOperationsApiRef, mockVcfOperationsApi]]}>
+      70 |         <VCFOperationsExplorer />
+      71 |       </TestApiProvider>,
+
+      at printWarning (../../../node_modules/react-dom/cjs/react-dom-test-utils.development.js:71:30)
+      at error (../../../node_modules/react-dom/cjs/react-dom-test-utils.development.js:45:7)
+      at actWithWarning (../../../node_modules/react-dom/cjs/react-dom-test-utils.development.js:1736:7)
+      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:97:24)
+      at Object.<anonymous> (components/VCFOperationsExplorer.test.tsx:68:11)
+
+    console.error
+      Warning: ReactDOM.render is no longer supported in React 18. Use createRoot instead. Until you switch to the new API, your app will behave as if it's running React 17. Learn more: https://reactjs.org/link/switch-to-createroot
+
+      66 |     ]);
+      67 |
+    > 68 |     render(
+         |           ^
+      69 |       <TestApiProvider apis={[[vcfOperationsApiRef, mockVcfOperationsApi]]}>
+      70 |         <VCFOperationsExplorer />
+      71 |       </TestApiProvider>,
+
+      at printWarning (../../../node_modules/react-dom/cjs/react-dom.development.js:86:30)
+      at error (../../../node_modules/react-dom/cjs/react-dom.development.js:60:7)
+      at Object.render (../../../node_modules/react-dom/cjs/react-dom.development.js:29716:5)
+      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:101:25)
+      at act (../../../node_modules/react/cjs/react.development.js:2512:16)
+      at actWithWarning (../../../node_modules/react-dom/cjs/react-dom-test-utils.development.js:1740:10)
+      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:97:24)
+      at Object.<anonymous> (components/VCFOperationsExplorer.test.tsx:68:11)
+
+    console.error
+      Warning: unmountComponentAtNode is deprecated and will be removed in the next major release. Switch to the createRoot API. Learn more: https://reactjs.org/link/switch-to-createroot
+
+      at printWarning (../../../node_modules/react-dom/cjs/react-dom.development.js:86:30)
+      at error (../../../node_modules/react-dom/cjs/react-dom.development.js:60:7)
+      at Object.unmountComponentAtNode (../../../node_modules/react-dom/cjs/react-dom.development.js:29754:7)
+      at unmountComponentAtNode (../../educates/node_modules/@testing-library/react/dist/pure.js:144:23)
+      at act (../../../node_modules/react/cjs/react.development.js:2512:16)
+      at actWithWarning (../../../node_modules/react-dom/cjs/react-dom-test-utils.development.js:1740:10)
+      at cleanupAtContainer (../../educates/node_modules/@testing-library/react/dist/pure.js:143:24)
+          at Set.forEach (<anonymous>)
+      at forEach (../../educates/node_modules/@testing-library/react/dist/pure.js:137:21)
+      at Object.<anonymous> (../../educates/node_modules/@testing-library/react/dist/index.js:33:23)
+
+    console.error
+      Warning: ReactDOM.render is no longer supported in React 18. Use createRoot instead. Until you switch to the new API, your app will behave as if it's running React 17. Learn more: https://reactjs.org/link/switch-to-createroot
+
+      80 |     mockVcfOperationsApi.getInstances.mockImplementation(() => new Promise(() => {}));
+      81 |
+    > 82 |     render(
+         |           ^
+      83 |       <TestApiProvider apis={[[vcfOperationsApiRef, mockVcfOperationsApi]]}>
+      84 |         <VCFOperationsExplorer />
+      85 |       </TestApiProvider>,
+
+      at printWarning (../../../node_modules/react-dom/cjs/react-dom.development.js:86:30)
+      at error (../../../node_modules/react-dom/cjs/react-dom.development.js:60:7)
+      at Object.render (../../../node_modules/react-dom/cjs/react-dom.development.js:29716:5)
+      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:101:25)
+      at act (../../../node_modules/react/cjs/react.development.js:2512:16)
+      at actWithWarning (../../../node_modules/react-dom/cjs/react-dom-test-utils.development.js:1740:10)
+      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:97:24)
+      at Object.<anonymous> (components/VCFOperationsExplorer.test.tsx:82:11)
+
+    console.error
+      Warning: ReactDOM.render is no longer supported in React 18. Use createRoot instead. Until you switch to the new API, your app will behave as if it's running React 17. Learn more: https://reactjs.org/link/switch-to-createroot
+
+      102 |     });
+      103 |
+    > 104 |     render(
+          |           ^
+      105 |       <TestApiProvider apis={[[vcfOperationsApiRef, mockVcfOperationsApi]]}>
+      106 |         <VCFOperationsExplorer />
+      107 |       </TestApiProvider>,
+
+      at printWarning (../../../node_modules/react-dom/cjs/react-dom.development.js:86:30)
+      at error (../../../node_modules/react-dom/cjs/react-dom.development.js:60:7)
+      at Object.render (../../../node_modules/react-dom/cjs/react-dom.development.js:29716:5)
+      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:101:25)
+      at act (../../../node_modules/react/cjs/react.development.js:2512:16)
+      at actWithWarning (../../../node_modules/react-dom/cjs/react-dom-test-utils.development.js:1740:10)
+      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:97:24)
+      at Object.<anonymous> (components/VCFOperationsExplorer.test.tsx:104:11)
+
+    console.error
+      Warning: ReactDOM.render is no longer supported in React 18. Use createRoot instead. Until you switch to the new API, your app will behave as if it's running React 17. Learn more: https://reactjs.org/link/switch-to-createroot
+
+      116 |     mockVcfOperationsApi.getInstances.mockRejectedValue(new Error('API Error'));
+      117 |
+    > 118 |     render(
+          |           ^
+      119 |       <TestApiProvider apis={[[vcfOperationsApiRef, mockVcfOperationsApi]]}>
+      120 |         <VCFOperationsExplorer />
+      121 |       </TestApiProvider>,
+
+      at printWarning (../../../node_modules/react-dom/cjs/react-dom.development.js:86:30)
+      at error (../../../node_modules/react-dom/cjs/react-dom.development.js:60:7)
+      at Object.render (../../../node_modules/react-dom/cjs/react-dom.development.js:29716:5)
+      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:101:25)
+      at act (../../../node_modules/react/cjs/react.development.js:2512:16)
+      at actWithWarning (../../../node_modules/react-dom/cjs/react-dom-test-utils.development.js:1740:10)
+      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:97:24)
+      at Object.<anonymous> (components/VCFOperationsExplorer.test.tsx:118:11)
+
+    console.error
+      Warning: ReactDOM.render is no longer supported in React 18. Use createRoot instead. Until you switch to the new API, your app will behave as if it's running React 17. Learn more: https://reactjs.org/link/switch-to-createroot
+
+      133 |     ]);
+      134 |
+    > 135 |     render(
+          |           ^
+      136 |       <TestApiProvider apis={[[vcfOperationsApiRef, mockVcfOperationsApi]]}>
+      137 |         <VCFOperationsExplorer />
+      138 |       </TestApiProvider>,
+
+      at printWarning (../../../node_modules/react-dom/cjs/react-dom.development.js:86:30)
+      at error (../../../node_modules/react-dom/cjs/react-dom.development.js:60:7)
+      at Object.render (../../../node_modules/react-dom/cjs/react-dom.development.js:29716:5)
+      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:101:25)
+      at act (../../../node_modules/react/cjs/react.development.js:2512:16)
+      at actWithWarning (../../../node_modules/react-dom/cjs/react-dom-test-utils.development.js:1740:10)
+      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:97:24)
+      at Object.<anonymous> (components/VCFOperationsExplorer.test.tsx:135:11)
+
+    console.error
+      Warning: ReactDOM.render is no longer supported in React 18. Use createRoot instead. Until you switch to the new API, your app will behave as if it's running React 17. Learn more: https://reactjs.org/link/switch-to-createroot
+
+      155 |     });
+      156 |
+    > 157 |     render(
+          |           ^
+      158 |       <TestApiProvider apis={[[vcfOperationsApiRef, mockVcfOperationsApi]]}>
+      159 |         <VCFOperationsExplorer />
+      160 |       </TestApiProvider>,
+
+      at printWarning (../../../node_modules/react-dom/cjs/react-dom.development.js:86:30)
+      at error (../../../node_modules/react-dom/cjs/react-dom.development.js:60:7)
+      at Object.render (../../../node_modules/react-dom/cjs/react-dom.development.js:29716:5)
+      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:101:25)
+      at act (../../../node_modules/react/cjs/react.development.js:2512:16)
+      at actWithWarning (../../../node_modules/react-dom/cjs/react-dom-test-utils.development.js:1740:10)
+      at render (../../educates/node_modules/@testing-library/react/dist/pure.js:97:24)
+      at Object.<anonymous> (components/VCFOperationsExplorer.test.tsx:157:11)
+
+PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/api/VcfAutomationClient.test.ts
+PASS @terasky/backstage-plugin-vcf-automation-ingestor plugins/vcf-automation-ingestor/src/provider/EntityProvider.test.ts
 PASS @terasky/backstage-plugin-educates plugins/educates/src/components/WorkshopCard.test.tsx
   ● Console
 
@@ -1872,233 +2248,14 @@ PASS @terasky/backstage-plugin-educates plugins/educates/src/components/Workshop
       at render (../node_modules/@testing-library/react/dist/pure.js:97:24)
       at Object.<anonymous> (components/WorkshopCard.test.tsx:166:13)
 
-PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/service/router.test.ts
-PASS @terasky/backstage-plugin-kubernetes-resources-frontend plugins/kubernetes-resources/src/components/KubernetesResourceGraph.test.tsx (7.424 s)
-  ● Console
-
-    console.error
-      Error: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)
-          at module.exports (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
-          at HTMLCanvasElementImpl.getContext (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jsdom/lib/jsdom/living/nodes/HTMLCanvasElement-impl.js:42:5)
-          at HTMLCanvasElement.getContext (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jsdom/lib/jsdom/living/generated/HTMLCanvasElement.js:131:58)
-          at createLinearGradient (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/common/Color.ts:133:27)
-          at Object.rs (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/common/Color.ts:247:32)
-          at i (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:284562)
-          at Object.3787 (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/renderer/dom/DomRendererRowFactory.ts:49:26)
-          at i (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:284562)
-          at Object.1296 (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/renderer/dom/DomRenderer.ts:20:31)
-          at i (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:284562)
-          at Object.3236 (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/Terminal.ts:45:1)
-          at i (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:284562)
-          at Disposable (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/public/Terminal.ts:23:31)
-          at /home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:289313
-          at /home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:289319
-          at /home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/webpack/universalModuleDefinition:8:39
-          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:325)
-          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
-          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
-          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
-          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
-          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/PodExecTerminal/PodExecTerminal.esm.js:16:16)
-          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
-          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
-          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
-          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
-          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/PodExecTerminal/PodExecTerminalDialog.esm.js:27:29)
-          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
-          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
-          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
-          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
-          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/Pods/PodDrawer/ContainerCard.esm.js:35:35)
-          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
-          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
-          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
-          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
-          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/Pods/PodDrawer/PodDrawer.esm.js:16:27)
-          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
-          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
-          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
-          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
-          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/DeploymentsAccordions/DeploymentsAccordions.esm.js:19:1)
-          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
-          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
-          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
-          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
-          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/Cluster/Cluster.esm.js:19:35)
-          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
-          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
-          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
-          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
-          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/index.esm.js:227:22)
-          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
-          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
-          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
-          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
-          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/plugins/kubernetes-resources/src/components/KubernetesResourceGraph.tsx:5087:26)
-          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
-          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
-          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
-          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
-          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/plugins/kubernetes-resources/src/components/KubernetesResourceGraph.test.tsx:5:73)
-          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
-          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
-          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
-          at jestAdapter (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:77:13)
-          at processTicksAndRejections (node:internal/process/task_queues:105:5)
-          at runTestInternal (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runner/build/runTest.js:367:16)
-          at runTest (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runner/build/runTest.js:444:34)
-          at Object.worker (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runner/build/testWorker.js:106:12) {
-        type: 'not implemented'
-      }
-
-
-
-      at VirtualConsole.<anonymous> (../../../node_modules/jest-environment-jsdom/build/index.js:63:23)
-      at module.exports (../../../node_modules/jsdom/lib/jsdom/browser/not-implemented.js:12:26)
-      at HTMLCanvasElementImpl.getContext (../../../node_modules/jsdom/lib/jsdom/living/nodes/HTMLCanvasElement-impl.js:42:5)
-      at HTMLCanvasElement.getContext (../../../node_modules/jsdom/lib/jsdom/living/generated/HTMLCanvasElement.js:131:58)
-      at createLinearGradient (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/common/Color.ts:133:27)
-      at Object.rs (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/common/Color.ts:247:32)
-      at i (../../../node_modules/@xterm/xterm/lib/xterm.js:1:284562)
-      at Object.3787 (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/renderer/dom/DomRendererRowFactory.ts:49:26)
-      at i (../../../node_modules/@xterm/xterm/lib/xterm.js:1:284562)
-      at Object.1296 (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/renderer/dom/DomRenderer.ts:20:31)
-      at i (../../../node_modules/@xterm/xterm/lib/xterm.js:1:284562)
-      at Object.3236 (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/Terminal.ts:45:1)
-      at i (../../../node_modules/@xterm/xterm/lib/xterm.js:1:284562)
-      at Disposable (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/public/Terminal.ts:23:31)
-      at ../../../node_modules/@xterm/xterm/lib/xterm.js:1:289313
-      at ../../../node_modules/@xterm/xterm/lib/xterm.js:1:289319
-      at ../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/webpack/universalModuleDefinition:8:39
-      at Object.<anonymous> (../../../node_modules/@xterm/xterm/lib/xterm.js:1:325)
-      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/PodExecTerminal/PodExecTerminal.esm.js:16:16)
-      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/PodExecTerminal/PodExecTerminalDialog.esm.js:27:29)
-      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/Pods/PodDrawer/ContainerCard.esm.js:35:35)
-      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/Pods/PodDrawer/PodDrawer.esm.js:16:27)
-      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/DeploymentsAccordions/DeploymentsAccordions.esm.js:19:1)
-      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/Cluster/Cluster.esm.js:19:35)
-      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/index.esm.js:227:22)
-      at Object.<anonymous> (components/KubernetesResourceGraph.tsx:5087:26)
-      at Object.<anonymous> (components/KubernetesResourceGraph.test.tsx:5:73)
-
-PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/plugin.test.ts
-PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/api/VcfAutomationClient.test.ts
-PASS @terasky/backstage-plugin-kubernetes-resources-frontend plugins/kubernetes-resources/src/components/KubernetesResourcesPage.test.tsx (6.317 s)
-  ● Console
-
-    console.error
-      Error: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)
-          at module.exports (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
-          at HTMLCanvasElementImpl.getContext (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jsdom/lib/jsdom/living/nodes/HTMLCanvasElement-impl.js:42:5)
-          at HTMLCanvasElement.getContext (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jsdom/lib/jsdom/living/generated/HTMLCanvasElement.js:131:58)
-          at createLinearGradient (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/common/Color.ts:133:27)
-          at Object.rs (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/common/Color.ts:247:32)
-          at i (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:284562)
-          at Object.3787 (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/renderer/dom/DomRendererRowFactory.ts:49:26)
-          at i (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:284562)
-          at Object.1296 (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/renderer/dom/DomRenderer.ts:20:31)
-          at i (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:284562)
-          at Object.3236 (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/Terminal.ts:45:1)
-          at i (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:284562)
-          at Disposable (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/public/Terminal.ts:23:31)
-          at /home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:289313
-          at /home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:289319
-          at /home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/webpack/universalModuleDefinition:8:39
-          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@xterm/xterm/lib/xterm.js:1:325)
-          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
-          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
-          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
-          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
-          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/PodExecTerminal/PodExecTerminal.esm.js:16:16)
-          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
-          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
-          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
-          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
-          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/PodExecTerminal/PodExecTerminalDialog.esm.js:27:29)
-          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
-          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
-          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
-          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
-          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/Pods/PodDrawer/ContainerCard.esm.js:35:35)
-          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
-          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
-          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
-          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
-          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/Pods/PodDrawer/PodDrawer.esm.js:16:27)
-          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
-          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
-          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
-          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
-          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/DeploymentsAccordions/DeploymentsAccordions.esm.js:19:1)
-          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
-          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
-          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
-          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
-          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/components/Cluster/Cluster.esm.js:19:35)
-          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
-          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
-          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
-          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
-          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/@backstage/plugin-kubernetes-react/dist/index.esm.js:227:22)
-          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
-          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
-          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
-          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
-          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/plugins/kubernetes-resources/src/components/KubernetesResourcesPage.tsx:4459:27)
-          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
-          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
-          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
-          at CachingJestRuntime.requireModuleOrMock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1048:21)
-          at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/plugins/kubernetes-resources/src/components/KubernetesResourcesPage.test.tsx:5:73)
-          at CachingJestRuntime._execModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1439:24)
-          at CachingJestRuntime._loadModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:1022:12)
-          at CachingJestRuntime.requireModule (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runtime/build/index.js:882:12)
-          at jestAdapter (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:77:13)
-          at processTicksAndRejections (node:internal/process/task_queues:105:5)
-          at runTestInternal (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runner/build/runTest.js:367:16)
-          at runTest (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runner/build/runTest.js:444:34)
-          at Object.worker (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-runner/build/testWorker.js:106:12) {
-        type: 'not implemented'
-      }
-
-
-
-      at VirtualConsole.<anonymous> (../../../node_modules/jest-environment-jsdom/build/index.js:63:23)
-      at module.exports (../../../node_modules/jsdom/lib/jsdom/browser/not-implemented.js:12:26)
-      at HTMLCanvasElementImpl.getContext (../../../node_modules/jsdom/lib/jsdom/living/nodes/HTMLCanvasElement-impl.js:42:5)
-      at HTMLCanvasElement.getContext (../../../node_modules/jsdom/lib/jsdom/living/generated/HTMLCanvasElement.js:131:58)
-      at createLinearGradient (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/common/Color.ts:133:27)
-      at Object.rs (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/common/Color.ts:247:32)
-      at i (../../../node_modules/@xterm/xterm/lib/xterm.js:1:284562)
-      at Object.3787 (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/renderer/dom/DomRendererRowFactory.ts:49:26)
-      at i (../../../node_modules/@xterm/xterm/lib/xterm.js:1:284562)
-      at Object.1296 (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/renderer/dom/DomRenderer.ts:20:31)
-      at i (../../../node_modules/@xterm/xterm/lib/xterm.js:1:284562)
-      at Object.3236 (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/Terminal.ts:45:1)
-      at i (../../../node_modules/@xterm/xterm/lib/xterm.js:1:284562)
-      at Disposable (../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/src/browser/public/Terminal.ts:23:31)
-      at ../../../node_modules/@xterm/xterm/lib/xterm.js:1:289313
-      at ../../../node_modules/@xterm/xterm/lib/xterm.js:1:289319
-      at ../../../node_modules/@xterm/xterm/lib/webpack:/@xterm/xterm/webpack/universalModuleDefinition:8:39
-      at Object.<anonymous> (../../../node_modules/@xterm/xterm/lib/xterm.js:1:325)
-      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/PodExecTerminal/PodExecTerminal.esm.js:16:16)
-      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/PodExecTerminal/PodExecTerminalDialog.esm.js:27:29)
-      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/Pods/PodDrawer/ContainerCard.esm.js:35:35)
-      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/Pods/PodDrawer/PodDrawer.esm.js:16:27)
-      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/DeploymentsAccordions/DeploymentsAccordions.esm.js:19:1)
-      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/components/Cluster/Cluster.esm.js:19:35)
-      at Object.<anonymous> (../../../node_modules/@backstage/plugin-kubernetes-react/dist/index.esm.js:227:22)
-      at Object.<anonymous> (components/KubernetesResourcesPage.tsx:4459:27)
-      at Object.<anonymous> (components/KubernetesResourcesPage.test.tsx:5:73)
-
-PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/service/router.test.ts
-PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/providers/EntityProvider.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/providers/SpectroCloudEntityProvider.test.ts
-PASS @terasky/backstage-plugin-vcf-automation-ingestor plugins/vcf-automation-ingestor/src/module.test.ts
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/service/router.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/supplier/SpectroCloudClusterSupplier.test.ts
+PASS @terasky/backstage-plugin-terraform-scaffolder plugins/terraform-scaffolder/src/plugin.test.ts
 PASS @terasky/backstage-plugin-educates plugins/educates/src/components/EducatesPage.test.tsx
+PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/router.test.ts
+PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/plugin.test.ts
 PASS @terasky/backstage-plugin-spectrocloud plugins/spectrocloud/src/helpers.test.ts
+PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/service/router.test.ts
 PASS @terasky/backstage-plugin-vcf-operations plugins/vcf-operations/src/components/NotImplementedMessage.test.tsx
   ● Console
 
@@ -2213,8 +2370,9 @@ PASS @terasky/backstage-plugin-vcf-operations plugins/vcf-operations/src/compone
       at render (../../educates/node_modules/@testing-library/react/dist/pure.js:97:24)
       at Object.<anonymous> (components/NotImplementedMessage.test.tsx:53:11)
 
-PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/service/KubernetesService.test.ts
+PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/plugin.test.ts
 PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/api/KyvernoApi.test.ts
 PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/hooks/useMCPServers.test.ts
   ● Console
 
@@ -2334,47 +2492,42 @@ PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/hooks/useMCP
       at Object.setLoading [as refetch] (hooks/useMCPServers.ts:36:7)
       at Object.<anonymous> (hooks/useMCPServers.test.ts:176:5)
 
-PASS @terasky/backstage-plugin-vcf-automation-ingestor plugins/vcf-automation-ingestor/src/provider/EntityProvider.test.ts
-PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/service/router.test.ts (5.335 s)
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/providers/SpectroCloudEntityProvider.test.ts
+PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/providers/EntityProvider.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/module.test.ts
+PASS @terasky/backstage-plugin-vcf-automation-ingestor plugins/vcf-automation-ingestor/src/module.test.ts
 PASS @terasky/backstage-plugin-catalog-mcp-backend plugins/catalog-mcp-backend/src/actions.test.ts
 PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/plugin.test.ts
 PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/components/isKroAvailable.test.tsx
-PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/components/VCFAutomationVMPowerManagement.test.tsx
+PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/service/KubernetesService.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-devpod plugins/devpod-plugin/src/hooks/useDevpod.test.tsx
 PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/plugin.test.ts
 PASS @terasky/backstage-plugin-educates plugins/educates/src/api/EducatesClient.test.ts
-PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/api/KyvernoApi.test.ts
-PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/api/KroApi.test.ts
-PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/module.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-educates plugins/educates/src/plugin.test.ts
-PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/plugin.test.ts
-PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/conditions.test.ts
 PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/rules.test.ts
+PASS @terasky/backstage-plugin-educates plugins/educates/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/api/KroApi.test.ts
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/conditions.test.ts
+PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/plugin.test.ts
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/client/SpectroCloudClient.test.ts
 PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/actions.test.ts
 PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-spectrocloud plugins/spectrocloud/src/components/PermissionGuards.test.tsx
 PASS @terasky/backstage-plugin-vcf-automation-common plugins/vcf-automation-common/src/index.test.ts
-PASS @terasky/backstage-plugin-devpod plugins/devpod-plugin/src/hooks/useDevpod.test.tsx
-PASS @terasky/plugin-scaffolder-mcp-backend plugins/scaffolder-mcp-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/permissions.test.ts
-PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/providers/KROEntityProvider.test.ts
 PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/providers/RGDDataProvider.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/module.test.ts
-PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/services/LoggerWrapper.test.ts
+PASS @terasky/plugin-scaffolder-mcp-backend plugins/scaffolder-mcp-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/permissions.test.ts
 PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/services/KubernetesResourceFetcher.test.ts
-PASS @terasky/backstage-plugin-vcf-operations plugins/vcf-operations/src/api/VcfOperationsClient.test.ts
+PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/providers/KROEntityProvider.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/module.test.ts
 PASS @terasky/backstage-plugin-spectrocloud-common plugins/spectrocloud-common/src/index.test.ts
-PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/providers/CRDDataProvider.test.ts
-PASS @terasky/backstage-plugin-devpod plugins/devpod-plugin/src/components/VisuallyHidden/VisuallyHidden.test.tsx
 PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/providers/KubernetesDataProvider.test.ts
+PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/providers/CRDDataProvider.test.ts
 PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/providers/XRDDataProvider.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/runPeriodically.test.ts
-PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/actions.test.ts
-PASS @terasky/backstage-plugin-crossplane-common plugins/crossplane-common/src/index.test.ts
+PASS @terasky/backstage-plugin-spectrocloud plugins/spectrocloud/src/components/PermissionGuards.test.tsx
+PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/services/LoggerWrapper.test.ts
 PASS @terasky/backstage-plugin-terraform-scaffolder plugins/terraform-scaffolder/src/api/TerraformScaffolderClient.test.ts
   ● Console
 
@@ -2385,7 +2538,7 @@ PASS @terasky/backstage-plugin-terraform-scaffolder plugins/terraform-scaffolder
           at new Promise (<anonymous>)
           at callAsyncCircusFn (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-circus/build/utils.js:231:10)
           at _callCircusTest (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-circus/build/run.js:316:40)
-          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at processTicksAndRejections (node:internal/process/task_queues:103:5)
           at _runTest (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-circus/build/run.js:252:3)
           at _runTestsForDescribeBlock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-circus/build/run.js:126:9)
           at _runTestsForDescribeBlock (/home/vrabbi/projects/backstage/backstage-plugins/node_modules/jest-circus/build/run.js:121:9)
@@ -2462,7 +2615,7 @@ PASS @terasky/backstage-plugin-terraform-scaffolder plugins/terraform-scaffolder
     console.error
       Error fetching module variables: Error: Failed to fetch variables.tf from https://github.com/org/terraform-module at version v1.0.0
           at TerraformScaffolderClient.getModuleVariables (/home/vrabbi/projects/backstage/backstage-plugins/plugins/terraform-scaffolder/src/api/TerraformScaffolderClient.ts:270:15)
-          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at processTicksAndRejections (node:internal/process/task_queues:103:5)
           at Object.<anonymous> (/home/vrabbi/projects/backstage/backstage-plugins/plugins/terraform-scaffolder/src/api/TerraformScaffolderClient.test.ts:246:7)
 
       281 |       return variables;
@@ -2476,26 +2629,29 @@ PASS @terasky/backstage-plugin-terraform-scaffolder plugins/terraform-scaffolder
       at TerraformScaffolderClient.error [as getModuleVariables] (api/TerraformScaffolderClient.ts:283:15)
       at Object.<anonymous> (api/TerraformScaffolderClient.test.ts:246:7)
 
-PASS @terasky/backstage-plugin-spectrocloud plugins/spectrocloud/src/api/SpectroCloudApi.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/runPeriodically.test.ts
+PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/actions.test.ts
+PASS @terasky/backstage-plugin-vcf-operations plugins/vcf-operations/src/api/VcfOperationsClient.test.ts
 PASS @terasky/backstage-plugin-kubernetes-resources-permissions-backend plugins/kubernetes-resources-permissions-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-crossplane-common plugins/crossplane-common/src/index.test.ts
 PASS @terasky/backstage-plugin-kro-common plugins/kro-common/src/index.test.ts
+PASS @terasky/backstage-plugin-spectrocloud plugins/spectrocloud/src/api/SpectroCloudApi.test.ts
+PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/plugin.test.ts
 PASS @terasky/backstage-plugin-vcf-operations-common plugins/vcf-operations-common/src/index.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/catalog-info-cleaner.test.ts
-PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-devpod plugins/devpod-plugin/src/components/VisuallyHidden/VisuallyHidden.test.tsx
 PASS @terasky/plugin-rbac-mcp-backend plugins/rbac-mcp-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/MCPService.test.ts
+PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/catalog-info-cleaner.test.ts
 PASS @terasky/backstage-plugin-vcf-operations plugins/vcf-operations/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/services/VcfAutomationService.test.ts (9.067 s)
 PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/service/router.test.ts
-PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/crd-templating.test.ts
 PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/module.test.ts
 PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/claim-templating.test.ts
-PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/service/EducatesService.test.ts
+PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/crd-templating.test.ts
+(node:411477) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
+(Use `node --trace-warnings ...` to show where the warning was created)
 PASS @terasky/backstage-plugin-devpod plugins/devpod-plugin/src/components/DevpodProvider/DevpodProvider.test.tsx
-PASS @terasky/backstage-plugin-spectrocloud plugins/spectrocloud/src/components/SpectroCloudClusterCard.test.tsx
-PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/client/SpectroCloudClient.test.ts
-PASS @terasky/plugin-rbac-mcp-backend plugins/rbac-mcp-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/CrossplaneV2ResourceGraph.test.tsx
 PASS @terasky/backstage-plugin-devpod plugins/devpod-plugin/src/components/DevpodComponent/DevpodComponent.test.tsx
   ● Console
 
@@ -2550,13 +2706,17 @@ PASS @terasky/backstage-plugin-devpod plugins/devpod-plugin/src/components/Devpo
       at renderRoot (../../../node_modules/@testing-library/react/dist/pure.js:271:10)
       at Object.<anonymous> (components/DevpodComponent/DevpodComponent.test.tsx:83:13)
 
-PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/client/SpectroCloudClient.test.ts
+PASS @terasky/backstage-plugin-spectrocloud plugins/spectrocloud/src/components/SpectroCloudClusterCard.test.tsx
+PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/actions.test.ts
+PASS @terasky/plugin-rbac-mcp-backend plugins/rbac-mcp-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/CrossplaneV2ResourceGraph.test.tsx
 PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/CrossplaneV1ResourceGraph.test.tsx
 A worker process has failed to exit gracefully and has been force exited. This is likely caused by tests leaking due to improper teardown. Try running with --detectOpenHandles to find leaks. Active timers can also cause this, ensure that .unref() was called on them.
 --------------------------------------------------------------------------|---------|----------|---------|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 File                                                                      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                                                                                                                                                                                                                                                                                                                                                                                              
 --------------------------------------------------------------------------|---------|----------|---------|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-All files                                                                 |   43.96 |    24.12 |   27.95 |   44.98 |                                                                                                                                                                                                                                                                                                                                                                                                                                
+All files                                                                 |   44.54 |     24.4 |    28.4 |   45.58 |                                                                                                                                                                                                                                                                                                                                                                                                                                
  packages/app/src                                                         |      88 |      100 |       0 |   86.36 |                                                                                                                                                                                                                                                                                                                                                                                                                                
   App.tsx                                                                 |     100 |      100 |     100 |     100 |                                                                                                                                                                                                                                                                                                                                                                                                                                
   index.tsx                                                               |       0 |      100 |     100 |       0 | 6                                                                                                                                                                                                                                                                                                                                                                                                                              
@@ -2769,11 +2929,11 @@ All files                                                                 |   43
   alpha.tsx                                                               |       0 |      100 |       0 |       0 | 5-32                                                                                                                                                                                                                                                                                                                                                                                                                           
   plugin.ts                                                               |   57.14 |      100 |       0 |   71.42 | 19,28                                                                                                                                                                                                                                                                                                                                                                                                                          
   routes.ts                                                               |     100 |      100 |     100 |     100 |                                                                                                                                                                                                                                                                                                                                                                                                                                
- plugins/scaleops-frontend/src/components                                 |   12.04 |        0 |    3.33 |   11.92 |                                                                                                                                                                                                                                                                                                                                                                                                                                
+ plugins/scaleops-frontend/src/components                                 |   12.65 |        0 |    3.33 |   11.92 |                                                                                                                                                                                                                                                                                                                                                                                                                                
   ScaleOpsDashboard.tsx                                                   |     9.4 |        0 |       0 |    9.43 | 63-67,72-73,77-78,85-90,181-399                                                                                                                                                                                                                                                                                                                                                                                                
-  ScaleopsCard.tsx                                                        |   18.36 |        0 |   16.66 |   17.77 | 43-116                                                                                                                                                                                                                                                                                                                                                                                                                         
- plugins/spectrocloud-backend/src                                         |   81.56 |    54.33 |   65.11 |   81.91 |                                                                                                                                                                                                                                                                                                                                                                                                                                
-  actions.ts                                                              |   82.08 |    56.81 |   55.17 |   82.67 | 53,115,127-130,174,192,203-207,238-244,259,271-274,315-323,340,351-354,435                                                                                                                                                                                                                                                                                                                                                     
+  ScaleopsCard.tsx                                                        |    20.4 |        0 |   16.66 |   17.77 | 43-116                                                                                                                                                                                                                                                                                                                                                                                                                         
+ plugins/spectrocloud-backend/src                                         |   79.18 |    51.18 |   60.46 |   79.78 |                                                                                                                                                                                                                                                                                                                                                                                                                                
+  actions.ts                                                              |   76.86 |    52.27 |   48.27 |   77.95 | 53,99-101,115,127-130,168-174,192,203-207,238-244,259,271-274,315-323,340,351-354,435                                                                                                                                                                                                                                                                                                                                          
   plugin.ts                                                               |   47.36 |      100 |       0 |   47.05 | 25-63                                                                                                                                                                                                                                                                                                                                                                                                                          
   router.ts                                                               |   85.71 |    48.71 |     100 |    85.5 | 128,135-136,164,169-170,180,198,203-204,214,236-237,247,265-266,276,294,299-300                                                                                                                                                                                                                                                                                                                                                
  plugins/spectrocloud-backend/src/client                                  |    96.5 |     86.2 |     100 |   96.47 |                                                                                                                                                                                                                                                                                                                                                                                                                                
@@ -2866,14 +3026,14 @@ All files                                                                 |   43
   routes.ts                                                               |     100 |      100 |     100 |     100 |                                                                                                                                                                                                                                                                                                                                                                                                                                
  plugins/vcf-operations/src/api                                           |   97.65 |    88.88 |     100 |     100 |                                                                                                                                                                                                                                                                                                                                                                                                                                
   VcfOperationsClient.ts                                                  |   97.65 |    88.88 |     100 |     100 | 248,290,318                                                                                                                                                                                                                                                                                                                                                                                                                    
- plugins/vcf-operations/src/components                                    |   14.48 |     4.37 |     7.5 |   14.11 |                                                                                                                                                                                                                                                                                                                                                                                                                                
+ plugins/vcf-operations/src/components                                    |   40.66 |    21.87 |      25 |   41.44 |                                                                                                                                                                                                                                                                                                                                                                                                                                
   MetricChart.tsx                                                         |   63.63 |       40 |   55.55 |   62.06 | 44-51,55-56,117-119                                                                                                                                                                                                                                                                                                                                                                                                            
   NotImplementedMessage.tsx                                               |      90 |      100 |      50 |     100 |                                                                                                                                                                                                                                                                                                                                                                                                                                
-  VCFOperationsExplorer.tsx                                               |    6.96 |        0 |       0 |    7.09 | 453-467,472,498,503-509,513-1409                                                                                                                                                                                                                                                                                                                                                                                               
+  VCFOperationsExplorer.tsx                                               |    36.7 |    19.44 |   20.28 |   37.83 | 454,457,460,464,503-509,528,536,545,594-599,606-611,622-623,641-665,672-727,734-756,762-800,806-835,841-863,869-876,882-889,899,915-943,947-972,980-981,987,992-997,1002,1006,1010-1011,1016-1030,1036-1038,1043-1047,1051-1058,1091,1176-1409                                                                                                                                                                                 
 --------------------------------------------------------------------------|---------|----------|---------|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Test Suites: 164 passed, 164 total
-Tests:       1422 passed, 1422 total
+Test Suites: 165 passed, 165 total
+Tests:       1452 passed, 1452 total
 Snapshots:   0 total
-Time:        20.606 s
+Time:        13.623 s
 Ran all test suites matching /plugins\//i in 42 projects.
