@@ -9,4 +9,3 @@ describe('VCFAutomationDeploymentDetails', () => {
     expect(typeof VCFAutomationDeploymentDetails).toBe('function');
   });
 });
-
