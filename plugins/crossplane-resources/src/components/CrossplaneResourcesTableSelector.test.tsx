@@ -1,4 +1,4 @@
-import { CrossplaneResourcesTableSelector } from './CrossplaneResourcesTableSelector';
+import CrossplaneResourcesTableSelector from './CrossplaneResourcesTableSelector';
 
 describe('CrossplaneResourcesTableSelector', () => {
   it('should be defined', () => {

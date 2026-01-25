@@ -1,4 +1,4 @@
-import { CrossplaneOverviewCardSelector } from './CrossplaneOverviewCardSelector';
+import CrossplaneOverviewCardSelector from './CrossplaneOverviewCardSelector';
 
 describe('CrossplaneOverviewCardSelector', () => {
   it('should be defined', () => {

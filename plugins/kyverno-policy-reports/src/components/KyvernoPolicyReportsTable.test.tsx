@@ -1,4 +1,4 @@
-import { KyvernoPolicyReportsTable } from './KyvernoPolicyReportsTable';
+import KyvernoPolicyReportsTable from './KyvernoPolicyReportsTable';
 
 describe('KyvernoPolicyReportsTable', () => {
   it('should be defined', () => {

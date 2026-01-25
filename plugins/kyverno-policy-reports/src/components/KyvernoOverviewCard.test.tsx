@@ -1,4 +1,4 @@
-import { KyvernoOverviewCard } from './KyvernoOverviewCard';
+import KyvernoOverviewCard from './KyvernoOverviewCard';
 
 describe('KyvernoOverviewCard', () => {
   it('should be defined', () => {

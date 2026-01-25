@@ -1,4 +1,4 @@
-import { CrossplaneResourceGraphSelector } from './CrossplaneResourceGraphSelector';
+import CrossplaneResourceGraphSelector from './CrossplaneResourceGraphSelector';
 
 describe('CrossplaneResourceGraphSelector', () => {
   it('should be defined', () => {
