@@ -253,6 +253,312 @@ describe('SpectroCloudClient', () => {
 
       expect(profiles).toEqual([]);
     });
+
+    it('should include ProjectUid header when projectUid is provided', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ items: [] }),
+      } as any);
+
+      await client.searchClusterProfilesByName(['profile-1'], 'project-1');
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            ProjectUid: 'project-1',
+          }),
+        }),
+      );
+    });
+  });
+
+  describe('getProject', () => {
+    it('should return project when API call succeeds', async () => {
+      const mockProject = {
+        metadata: { uid: 'project-1', name: 'Test Project' },
+        spec: { description: 'Test description' },
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockProject,
+      } as any);
+
+      const project = await client.getProject('project-1');
+
+      expect(project).toEqual(mockProject);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.spectrocloud.com/v1/projects/project-1',
+        expect.any(Object),
+      );
+    });
+
+    it('should return undefined when API call fails', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+        text: async () => 'Not Found',
+      } as any);
+
+      const project = await client.getProject('invalid-project');
+
+      expect(project).toBeUndefined();
+    });
+  });
+
+  describe('getAllClusterProfiles', () => {
+    it('should return all cluster profiles with pagination', async () => {
+      const page1 = {
+        items: [{ metadata: { uid: 'profile-1', name: 'Profile 1' } }],
+        listmeta: { continue: 'token1' },
+      };
+      const page2 = {
+        items: [{ metadata: { uid: 'profile-2', name: 'Profile 2' } }],
+        listmeta: {},
+      };
+
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => page1,
+        } as any)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => page2,
+        } as any);
+
+      const profiles = await client.getAllClusterProfiles();
+
+      expect(profiles).toHaveLength(2);
+      expect(profiles[0].metadata.uid).toBe('profile-1');
+    });
+
+    it('should return empty array when API call fails', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+        text: async () => 'Server Error',
+      } as any);
+
+      const profiles = await client.getAllClusterProfiles();
+
+      expect(profiles).toEqual([]);
+    });
+  });
+
+  describe('getProjectClusterProfiles', () => {
+    it('should return project cluster profiles', async () => {
+      const mockProfiles = {
+        items: [{ metadata: { uid: 'profile-1', name: 'Profile 1' } }],
+        listmeta: {},
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockProfiles,
+      } as any);
+
+      const profiles = await client.getProjectClusterProfiles('project-1');
+
+      expect(profiles).toHaveLength(1);
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            ProjectUid: 'project-1',
+          }),
+        }),
+      );
+    });
+
+    it('should handle pagination', async () => {
+      const page1 = {
+        items: [{ metadata: { uid: 'profile-1' } }],
+        listmeta: { continue: 'token1' },
+      };
+      const page2 = {
+        items: [{ metadata: { uid: 'profile-2' } }],
+        listmeta: {},
+      };
+
+      mockFetch
+        .mockResolvedValueOnce({ ok: true, json: async () => page1 } as any)
+        .mockResolvedValueOnce({ ok: true, json: async () => page2 } as any);
+
+      const profiles = await client.getProjectClusterProfiles('project-1');
+
+      expect(profiles).toHaveLength(2);
+    });
+
+    it('should return empty array when API call fails', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+        text: async () => 'Server Error',
+      } as any);
+
+      const profiles = await client.getProjectClusterProfiles('project-1');
+
+      expect(profiles).toEqual([]);
+    });
+  });
+
+  describe('getClusterProfile', () => {
+    it('should return cluster profile when API call succeeds', async () => {
+      const mockProfile = {
+        metadata: { uid: 'profile-1', name: 'Test Profile' },
+        spec: { type: 'cluster' },
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockProfile,
+      } as any);
+
+      const profile = await client.getClusterProfile('profile-1');
+
+      expect(profile).toEqual(mockProfile);
+    });
+
+    it('should include ProjectUid header when projectUid is provided', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({}),
+      } as any);
+
+      await client.getClusterProfile('profile-1', 'project-1');
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            ProjectUid: 'project-1',
+          }),
+        }),
+      );
+    });
+
+    it('should return undefined when API call fails', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+        text: async () => 'Not Found',
+      } as any);
+
+      const profile = await client.getClusterProfile('invalid-profile');
+
+      expect(profile).toBeUndefined();
+    });
+  });
+
+  describe('getClusterProfiles (for cluster)', () => {
+    it('should return cluster profiles with pack metadata', async () => {
+      const mockProfiles = {
+        profiles: [{ uid: 'profile-1', packs: [] }],
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockProfiles,
+      } as any);
+
+      const result = await client.getClusterProfiles('cluster-1');
+
+      expect(result).toEqual(mockProfiles);
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/spectroclusters/cluster-1/profiles'),
+        expect.any(Object),
+      );
+    });
+
+    it('should include ProjectUid header when provided', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ profiles: [] }),
+      } as any);
+
+      await client.getClusterProfiles('cluster-1', 'project-1');
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            ProjectUid: 'project-1',
+          }),
+        }),
+      );
+    });
+
+    it('should return empty profiles when API call fails', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+        text: async () => 'Server Error',
+      } as any);
+
+      const result = await client.getClusterProfiles('cluster-1');
+
+      expect(result).toEqual({ profiles: [] });
+    });
+  });
+
+  describe('getPackManifest', () => {
+    it('should return pack manifest when API call succeeds', async () => {
+      const mockManifest = {
+        metadata: { uid: 'manifest-1' },
+        spec: { content: 'manifest content' },
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockManifest,
+      } as any);
+
+      const manifest = await client.getPackManifest('cluster-1', 'manifest-1');
+
+      expect(manifest).toEqual(mockManifest);
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/pack/manifests/manifest-1'),
+        expect.any(Object),
+      );
+    });
+
+    it('should include ProjectUid header when provided', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({}),
+      } as any);
+
+      await client.getPackManifest('cluster-1', 'manifest-1', 'project-1');
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            ProjectUid: 'project-1',
+          }),
+        }),
+      );
+    });
+
+    it('should return null when API call fails', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+        text: async () => 'Not Found',
+      } as any);
+
+      const manifest = await client.getPackManifest('cluster-1', 'invalid-manifest');
+
+      expect(manifest).toBeNull();
+    });
   });
 });
 
