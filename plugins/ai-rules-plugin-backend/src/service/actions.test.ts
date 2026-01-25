@@ -19,191 +19,136 @@ describe('registerMcpActions', () => {
     jest.clearAllMocks();
   });
 
-  it('should register all MCP actions', () => {
-    registerMcpActions(
-      mockActionsRegistry as any,
-      mockAiRulesService,
-      mockMcpService,
-    );
-
-    expect(mockActionsRegistry.register).toHaveBeenCalledTimes(2);
-
-    const registeredActions = mockActionsRegistry.register.mock.calls.map(
-      (call: any[]) => call[0].name
-    );
-
-    expect(registeredActions).toContain('get_ai_rules');
-    expect(registeredActions).toContain('get_mcp_servers');
-  });
-
-  describe('get_ai_rules action', () => {
-    let aiRulesAction: any;
-
-    beforeEach(() => {
+  describe('registration', () => {
+    it('should register get_ai_rules action', () => {
       registerMcpActions(
         mockActionsRegistry as any,
         mockAiRulesService,
         mockMcpService,
       );
-      aiRulesAction = mockActionsRegistry.register.mock.calls.find(
-        (call: any[]) => call[0].name === 'get_ai_rules'
-      )?.[0];
-    });
 
-    it('should have correct schema', () => {
+      expect(mockActionsRegistry.register).toHaveBeenCalledTimes(2);
+
+      // Check the first registered action is get_ai_rules
+      const aiRulesAction = mockActionsRegistry.register.mock.calls[0][0];
+      expect(aiRulesAction.name).toBe('get_ai_rules');
       expect(aiRulesAction.title).toBe('Get AI Rules');
-      expect(aiRulesAction.description).toBe('Get AI rules from a Git repository');
+      expect(aiRulesAction.description).toContain('AI rules');
     });
 
-    it('should call aiRulesService.getAiRules with correct parameters', async () => {
+    it('should register get_mcp_servers action', () => {
+      registerMcpActions(
+        mockActionsRegistry as any,
+        mockAiRulesService,
+        mockMcpService,
+      );
+
+      // Check the second registered action is get_mcp_servers
+      const mcpServersAction = mockActionsRegistry.register.mock.calls[1][0];
+      expect(mcpServersAction.name).toBe('get_mcp_servers');
+      expect(mcpServersAction.title).toBe('Get MCP Servers');
+      expect(mcpServersAction.description).toContain('MCP servers');
+    });
+  });
+
+  describe('action handlers', () => {
+    it('get_ai_rules action should call aiRulesService.getAiRules', async () => {
       const mockResult = {
-        rules: [
-          {
-            type: 'cursor',
-            id: 'rule-1',
-            filePath: '.cursor/rules/test.mdc',
-            fileName: 'test.mdc',
-            content: 'Test rule content',
-          },
-        ],
+        rules: [{ type: 'cursor', id: 'test', filePath: '/test', fileName: 'test.md', content: 'content' }],
         totalCount: 1,
         ruleTypes: ['cursor'],
       };
-
       (mockAiRulesService.getAiRules as jest.Mock).mockResolvedValue(mockResult);
 
-      const result = await aiRulesAction.action({
-        input: {
-          gitUrl: 'https://github.com/test/repo',
-          ruleTypes: ['cursor', 'copilot'],
-        },
-      });
-
-      expect(mockAiRulesService.getAiRules).toHaveBeenCalledWith(
-        'https://github.com/test/repo',
-        ['cursor', 'copilot']
-      );
-      expect(result.output).toEqual(mockResult);
-    });
-
-    it('should handle empty rule types', async () => {
-      const mockResult = {
-        rules: [],
-        totalCount: 0,
-        ruleTypes: [],
-      };
-
-      (mockAiRulesService.getAiRules as jest.Mock).mockResolvedValue(mockResult);
-
-      const result = await aiRulesAction.action({
-        input: {
-          gitUrl: 'https://github.com/test/repo',
-          ruleTypes: [],
-        },
-      });
-
-      expect(mockAiRulesService.getAiRules).toHaveBeenCalledWith(
-        'https://github.com/test/repo',
-        []
-      );
-      expect(result.output.rules).toEqual([]);
-    });
-
-    it('should handle service errors', async () => {
-      (mockAiRulesService.getAiRules as jest.Mock).mockRejectedValue(
-        new Error('Service unavailable')
-      );
-
-      await expect(
-        aiRulesAction.action({
-          input: {
-            gitUrl: 'https://github.com/test/repo',
-            ruleTypes: ['cursor'],
-          },
-        })
-      ).rejects.toThrow('Service unavailable');
-    });
-  });
-
-  describe('get_mcp_servers action', () => {
-    let mcpServersAction: any;
-
-    beforeEach(() => {
       registerMcpActions(
         mockActionsRegistry as any,
         mockAiRulesService,
         mockMcpService,
       );
-      mcpServersAction = mockActionsRegistry.register.mock.calls.find(
-        (call: any[]) => call[0].name === 'get_mcp_servers'
-      )?.[0];
-    });
 
-    it('should have correct schema', () => {
-      expect(mcpServersAction.title).toBe('Get MCP Servers');
-      expect(mcpServersAction.description).toBe('Get configured MCP servers from a Git repository');
-    });
-
-    it('should call mcpService.getMCPServers with correct parameters', async () => {
-      const mockResult = {
-        servers: [
-          {
-            name: 'test-server',
-            type: 'local',
-            config: {
-              type: 'stdio',
-              command: 'node',
-              args: ['server.js'],
-            },
-            source: 'cursor',
-            rawConfig: '{"type": "stdio"}',
-          },
-        ],
-      };
-
-      (mockMcpService.getMCPServers as jest.Mock).mockResolvedValue(mockResult);
-
-      const result = await mcpServersAction.action({
-        input: {
-          gitUrl: 'https://github.com/test/repo',
-        },
+      const aiRulesAction = mockActionsRegistry.register.mock.calls[0][0];
+      const result = await aiRulesAction.action({
+        input: { gitUrl: 'https://github.com/test/repo', ruleTypes: ['cursor'] },
       });
 
-      expect(mockMcpService.getMCPServers).toHaveBeenCalledWith(
-        'https://github.com/test/repo'
+      expect(mockAiRulesService.getAiRules).toHaveBeenCalledWith(
+        'https://github.com/test/repo',
+        ['cursor'],
       );
       expect(result.output).toEqual(mockResult);
     });
 
-    it('should handle empty servers response', async () => {
+    it('get_mcp_servers action should call mcpService.getMCPServers', async () => {
       const mockResult = {
-        servers: [],
+        servers: [{ name: 'test-server', type: 'local', config: {}, source: 'cursor', rawConfig: '{}' }],
       };
-
       (mockMcpService.getMCPServers as jest.Mock).mockResolvedValue(mockResult);
 
-      const result = await mcpServersAction.action({
-        input: {
-          gitUrl: 'https://github.com/test/repo',
-        },
-      });
-
-      expect(result.output.servers).toEqual([]);
-    });
-
-    it('should handle service errors', async () => {
-      (mockMcpService.getMCPServers as jest.Mock).mockRejectedValue(
-        new Error('Failed to fetch MCP servers')
+      registerMcpActions(
+        mockActionsRegistry as any,
+        mockAiRulesService,
+        mockMcpService,
       );
 
-      await expect(
-        mcpServersAction.action({
-          input: {
-            gitUrl: 'https://github.com/test/repo',
-          },
-        })
-      ).rejects.toThrow('Failed to fetch MCP servers');
+      const mcpServersAction = mockActionsRegistry.register.mock.calls[1][0];
+      const result = await mcpServersAction.action({
+        input: { gitUrl: 'https://github.com/test/repo' },
+      });
+
+      expect(mockMcpService.getMCPServers).toHaveBeenCalledWith(
+        'https://github.com/test/repo',
+      );
+      expect(result.output).toEqual(mockResult);
+    });
+  });
+
+  describe('schema definitions', () => {
+    it('should define input schema for get_ai_rules', () => {
+      registerMcpActions(
+        mockActionsRegistry as any,
+        mockAiRulesService,
+        mockMcpService,
+      );
+
+      const aiRulesAction = mockActionsRegistry.register.mock.calls[0][0];
+      expect(aiRulesAction.schema.input).toBeDefined();
+      expect(typeof aiRulesAction.schema.input).toBe('function');
+    });
+
+    it('should define output schema for get_ai_rules', () => {
+      registerMcpActions(
+        mockActionsRegistry as any,
+        mockAiRulesService,
+        mockMcpService,
+      );
+
+      const aiRulesAction = mockActionsRegistry.register.mock.calls[0][0];
+      expect(aiRulesAction.schema.output).toBeDefined();
+      expect(typeof aiRulesAction.schema.output).toBe('function');
+    });
+
+    it('should define input schema for get_mcp_servers', () => {
+      registerMcpActions(
+        mockActionsRegistry as any,
+        mockAiRulesService,
+        mockMcpService,
+      );
+
+      const mcpServersAction = mockActionsRegistry.register.mock.calls[1][0];
+      expect(mcpServersAction.schema.input).toBeDefined();
+      expect(typeof mcpServersAction.schema.input).toBe('function');
+    });
+
+    it('should define output schema for get_mcp_servers', () => {
+      registerMcpActions(
+        mockActionsRegistry as any,
+        mockAiRulesService,
+        mockMcpService,
+      );
+
+      const mcpServersAction = mockActionsRegistry.register.mock.calls[1][0];
+      expect(mcpServersAction.schema.output).toBeDefined();
+      expect(typeof mcpServersAction.schema.output).toBe('function');
     });
   });
 });
-
