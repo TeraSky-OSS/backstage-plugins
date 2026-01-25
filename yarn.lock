@@ -14864,7 +14864,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-spectrocloud-cluster-provider@npm:^0.3.0, @terasky/backstage-plugin-spectrocloud-cluster-provider@workspace:plugins/spectrocloud-cluster-provider":
+"@terasky/backstage-plugin-spectrocloud-cluster-provider@npm:^0.4.0, @terasky/backstage-plugin-spectrocloud-cluster-provider@workspace:plugins/spectrocloud-cluster-provider":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-spectrocloud-cluster-provider@workspace:plugins/spectrocloud-cluster-provider"
   dependencies:
@@ -18226,7 +18226,7 @@ __metadata:
     "@terasky/backstage-plugin-kyverno-policy-reports-backend": "npm:^1.7.0"
     "@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils": "npm:^2.2.0"
     "@terasky/backstage-plugin-spectrocloud-backend": "npm:^0.1.0"
-    "@terasky/backstage-plugin-spectrocloud-cluster-provider": "npm:^0.3.0"
+    "@terasky/backstage-plugin-spectrocloud-cluster-provider": "npm:^0.4.0"
     "@terasky/backstage-plugin-spectrocloud-ingestor": "npm:^0.1.0"
     "@terasky/backstage-plugin-vcf-automation-backend": "npm:^1.9.0"
     "@terasky/backstage-plugin-vcf-automation-ingestor": "npm:^1.9.0"
