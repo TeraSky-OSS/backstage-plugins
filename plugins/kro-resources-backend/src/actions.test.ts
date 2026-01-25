@@ -158,6 +158,35 @@ describe('registerMcpActions', () => {
       );
       expect(result.output).toEqual(mockResult);
     });
+
+    it('should throw InputError when missing managed-by-location annotation', async () => {
+      mockCatalog.queryEntities.mockResolvedValue({
+        items: [{
+          metadata: {
+            name: 'test-entity',
+            annotations: {},
+          },
+        }],
+      });
+
+      await expect(
+        resourcesAction.action({
+          input: { backstageEntityName: 'test-entity' },
+          credentials: undefined,
+        })
+      ).rejects.toThrow('Entity is missing required annotation');
+    });
+
+    it('should wrap generic errors in InputError', async () => {
+      mockCatalog.queryEntities.mockRejectedValue(new Error('Database error'));
+
+      await expect(
+        resourcesAction.action({
+          input: { backstageEntityName: 'test-entity' },
+          credentials: undefined,
+        })
+      ).rejects.toThrow(InputError);
+    });
   });
 
   describe('get_kro_resource_events action', () => {
@@ -225,6 +254,88 @@ describe('registerMcpActions', () => {
       expect(mockService.getEvents).toHaveBeenCalled();
       expect(result.output.events).toEqual(mockEvents);
     });
+
+    it('should use RGD permission for ResourceGraphDefinition kind', async () => {
+      mockCatalog.queryEntities.mockResolvedValue({
+        items: [{
+          metadata: {
+            name: 'test-entity',
+            namespace: 'default',
+            annotations: {
+              'backstage.io/managed-by-location': 'cluster: test-cluster',
+              'terasky.backstage.io/kro-rgd-name': 'test-rgd',
+              'terasky.backstage.io/kro-rgd-id': 'rgd-123',
+              'terasky.backstage.io/kro-instance-uid': 'instance-123',
+              'terasky.backstage.io/kro-rgd-crd-name': 'tests.kro.run',
+            },
+          },
+        }],
+      });
+
+      const mockEvents: any[] = [];
+      (mockService.getEvents as jest.Mock).mockResolvedValue(mockEvents);
+
+      await eventsAction.action({
+        input: {
+          backstageEntityName: 'test-entity',
+          kubernetesNamespace: 'default',
+          kubernetesResourceName: 'test-rgd',
+          kubernetesResourceKind: 'ResourceGraphDefinition',
+        },
+        credentials: undefined,
+      });
+
+      expect(mockPermissions.authorize).toHaveBeenCalled();
+    });
+
+    it('should use Instance permission for Application kind', async () => {
+      mockCatalog.queryEntities.mockResolvedValue({
+        items: [{
+          metadata: {
+            name: 'test-entity',
+            namespace: 'default',
+            annotations: {
+              'backstage.io/managed-by-location': 'cluster: test-cluster',
+              'terasky.backstage.io/kro-rgd-name': 'test-rgd',
+              'terasky.backstage.io/kro-rgd-id': 'rgd-123',
+              'terasky.backstage.io/kro-instance-uid': 'instance-123',
+              'terasky.backstage.io/kro-rgd-crd-name': 'tests.kro.run',
+            },
+          },
+        }],
+      });
+
+      const mockEvents: any[] = [];
+      (mockService.getEvents as jest.Mock).mockResolvedValue(mockEvents);
+
+      await eventsAction.action({
+        input: {
+          backstageEntityName: 'test-entity',
+          kubernetesNamespace: 'default',
+          kubernetesResourceName: 'test-app',
+          kubernetesResourceKind: 'Application',
+        },
+        credentials: undefined,
+      });
+
+      expect(mockPermissions.authorize).toHaveBeenCalled();
+    });
+
+    it('should wrap generic errors in InputError', async () => {
+      mockCatalog.queryEntities.mockRejectedValue(new Error('Database error'));
+
+      await expect(
+        eventsAction.action({
+          input: {
+            backstageEntityName: 'test-entity',
+            kubernetesNamespace: 'default',
+            kubernetesResourceName: 'test-resource',
+            kubernetesResourceKind: 'Pod',
+          },
+          credentials: undefined,
+        })
+      ).rejects.toThrow(InputError);
+    });
   });
 
   describe('get_kro_resource_graph action', () => {
@@ -281,6 +392,17 @@ describe('registerMcpActions', () => {
 
       expect(mockService.getResourceGraph).toHaveBeenCalled();
       expect(result.output.resources).toEqual(mockResources);
+    });
+
+    it('should wrap generic errors in InputError', async () => {
+      mockCatalog.queryEntities.mockRejectedValue(new Error('Database error'));
+
+      await expect(
+        graphAction.action({
+          input: { backstageEntityName: 'test-entity' },
+          credentials: undefined,
+        })
+      ).rejects.toThrow(InputError);
     });
   });
 });

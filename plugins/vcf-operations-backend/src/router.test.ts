@@ -279,5 +279,266 @@ describe('createRouter', () => {
       expect(response.body.error).toContain('Permission check failed');
     });
   });
+
+  describe('error handling for service failures', () => {
+    beforeEach(() => {
+      // Reset permissions to allow
+      mockPermissions.authorize.mockResolvedValue([{ result: AuthorizeResult.ALLOW }]);
+    });
+
+    it('should return 500 when getInstances throws', async () => {
+      const { VcfOperationsService } = require('./services/VcfOperationsService');
+      VcfOperationsService.mockImplementation(() => ({
+        getInstances: jest.fn().mockImplementation(() => { throw new Error('Service error'); }),
+      }));
+
+      // Recreate router with new mock
+      const router = await createRouter({
+        logger: mockLogger,
+        config: mockConfig,
+        permissions: mockPermissions,
+        httpAuth: mockHttpAuth,
+      });
+      const testApp = express();
+      testApp.use(router);
+
+      const response = await request(testApp).get('/instances');
+      expect(response.status).toBe(500);
+      expect(response.body.error).toContain('Failed to get instances');
+    });
+
+    it('should return 500 when getResourceMetrics throws', async () => {
+      const { VcfOperationsService } = require('./services/VcfOperationsService');
+      VcfOperationsService.mockImplementation(() => ({
+        getResourceMetrics: jest.fn().mockRejectedValue(new Error('Metrics error')),
+      }));
+
+      const router = await createRouter({
+        logger: mockLogger,
+        config: mockConfig,
+        permissions: mockPermissions,
+        httpAuth: mockHttpAuth,
+      });
+      const testApp = express();
+      testApp.use(router);
+
+      const response = await request(testApp).get('/resources/res-123/metrics?statKeys=cpu');
+      expect(response.status).toBe(500);
+      expect(response.body.error).toContain('Failed to get resource metrics');
+    });
+
+    it('should return 500 when queryResourceMetrics throws', async () => {
+      const { VcfOperationsService } = require('./services/VcfOperationsService');
+      VcfOperationsService.mockImplementation(() => ({
+        queryResourceMetrics: jest.fn().mockRejectedValue(new Error('Query error')),
+      }));
+
+      const router = await createRouter({
+        logger: mockLogger,
+        config: mockConfig,
+        permissions: mockPermissions,
+        httpAuth: mockHttpAuth,
+      });
+      const testApp = express();
+      testApp.use(router);
+
+      const response = await request(testApp)
+        .post('/metrics/query')
+        .send({ resourceIds: ['res-1'], statKeys: ['cpu'] });
+      expect(response.status).toBe(500);
+      expect(response.body.error).toContain('Failed to query metrics');
+    });
+
+    it('should return 500 when getLatestResourceMetrics throws', async () => {
+      const { VcfOperationsService } = require('./services/VcfOperationsService');
+      VcfOperationsService.mockImplementation(() => ({
+        getLatestResourceMetrics: jest.fn().mockRejectedValue(new Error('Latest metrics error')),
+      }));
+
+      const router = await createRouter({
+        logger: mockLogger,
+        config: mockConfig,
+        permissions: mockPermissions,
+        httpAuth: mockHttpAuth,
+      });
+      const testApp = express();
+      testApp.use(router);
+
+      const response = await request(testApp)
+        .get('/metrics/latest?resourceIds=res-1&statKeys=cpu');
+      expect(response.status).toBe(500);
+      expect(response.body.error).toContain('Failed to get latest metrics');
+    });
+
+    it('should return 500 when findResourceByProperty throws', async () => {
+      const { VcfOperationsService } = require('./services/VcfOperationsService');
+      VcfOperationsService.mockImplementation(() => ({
+        findResourceByProperty: jest.fn().mockRejectedValue(new Error('Find error')),
+      }));
+
+      const router = await createRouter({
+        logger: mockLogger,
+        config: mockConfig,
+        permissions: mockPermissions,
+        httpAuth: mockHttpAuth,
+      });
+      const testApp = express();
+      testApp.use(router);
+
+      const response = await request(testApp)
+        .get('/resources/find-by-property?propertyKey=uuid&propertyValue=abc');
+      expect(response.status).toBe(500);
+      expect(response.body.error).toContain('Failed to find resource by property');
+    });
+
+    it('should return 500 when findResourceByName throws', async () => {
+      const { VcfOperationsService } = require('./services/VcfOperationsService');
+      VcfOperationsService.mockImplementation(() => ({
+        findResourceByName: jest.fn().mockRejectedValue(new Error('Find name error')),
+      }));
+
+      const router = await createRouter({
+        logger: mockLogger,
+        config: mockConfig,
+        permissions: mockPermissions,
+        httpAuth: mockHttpAuth,
+      });
+      const testApp = express();
+      testApp.use(router);
+
+      const response = await request(testApp)
+        .get('/resources/find-by-name?resourceName=test-vm');
+      expect(response.status).toBe(500);
+      expect(response.body.error).toContain('Failed to find resource by name');
+    });
+
+    it('should return 500 when queryResources throws', async () => {
+      const { VcfOperationsService } = require('./services/VcfOperationsService');
+      VcfOperationsService.mockImplementation(() => ({
+        queryResources: jest.fn().mockRejectedValue(new Error('Query resources error')),
+      }));
+
+      const router = await createRouter({
+        logger: mockLogger,
+        config: mockConfig,
+        permissions: mockPermissions,
+        httpAuth: mockHttpAuth,
+      });
+      const testApp = express();
+      testApp.use(router);
+
+      const response = await request(testApp)
+        .post('/resources/query')
+        .send({});
+      expect(response.status).toBe(500);
+      expect(response.body.error).toContain('Failed to query resources');
+    });
+
+    it('should return 500 when getAvailableMetrics throws', async () => {
+      const { VcfOperationsService } = require('./services/VcfOperationsService');
+      VcfOperationsService.mockImplementation(() => ({
+        getAvailableMetrics: jest.fn().mockRejectedValue(new Error('Available metrics error')),
+      }));
+
+      const router = await createRouter({
+        logger: mockLogger,
+        config: mockConfig,
+        permissions: mockPermissions,
+        httpAuth: mockHttpAuth,
+      });
+      const testApp = express();
+      testApp.use(router);
+
+      const response = await request(testApp)
+        .get('/resources/res-123/available-metrics');
+      expect(response.status).toBe(500);
+      expect(response.body.error).toContain('Failed to get available metrics');
+    });
+
+    it('should return 500 when getResourceDetails throws', async () => {
+      const { VcfOperationsService } = require('./services/VcfOperationsService');
+      VcfOperationsService.mockImplementation(() => ({
+        getResourceDetails: jest.fn().mockRejectedValue(new Error('Resource details error')),
+      }));
+
+      const router = await createRouter({
+        logger: mockLogger,
+        config: mockConfig,
+        permissions: mockPermissions,
+        httpAuth: mockHttpAuth,
+      });
+      const testApp = express();
+      testApp.use(router);
+
+      const response = await request(testApp)
+        .get('/resources/res-123');
+      expect(response.status).toBe(500);
+      expect(response.body.error).toContain('Failed to get resource details');
+    });
+
+    it('should return 500 when queryProjectResources throws', async () => {
+      const { VcfOperationsService } = require('./services/VcfOperationsService');
+      VcfOperationsService.mockImplementation(() => ({
+        queryProjectResources: jest.fn().mockRejectedValue(new Error('Query projects error')),
+      }));
+
+      const router = await createRouter({
+        logger: mockLogger,
+        config: mockConfig,
+        permissions: mockPermissions,
+        httpAuth: mockHttpAuth,
+      });
+      const testApp = express();
+      testApp.use(router);
+
+      const response = await request(testApp)
+        .post('/resources/query-projects')
+        .send({});
+      expect(response.status).toBe(500);
+      expect(response.body.error).toContain('Failed to query project resources');
+    });
+
+    it('should return 500 when searchResources throws', async () => {
+      const { VcfOperationsService } = require('./services/VcfOperationsService');
+      VcfOperationsService.mockImplementation(() => ({
+        searchResources: jest.fn().mockRejectedValue(new Error('Search error')),
+      }));
+
+      const router = await createRouter({
+        logger: mockLogger,
+        config: mockConfig,
+        permissions: mockPermissions,
+        httpAuth: mockHttpAuth,
+      });
+      const testApp = express();
+      testApp.use(router);
+
+      const response = await request(testApp)
+        .get('/resources');
+      expect(response.status).toBe(500);
+      expect(response.body.error).toContain('Failed to search resources');
+    });
+
+    it('should handle null resource from findResourceByName', async () => {
+      const { VcfOperationsService } = require('./services/VcfOperationsService');
+      VcfOperationsService.mockImplementation(() => ({
+        findResourceByName: jest.fn().mockResolvedValue(null),
+      }));
+
+      const router = await createRouter({
+        logger: mockLogger,
+        config: mockConfig,
+        permissions: mockPermissions,
+        httpAuth: mockHttpAuth,
+      });
+      const testApp = express();
+      testApp.use(router);
+
+      const response = await request(testApp)
+        .get('/resources/find-by-name?resourceName=non-existent');
+      expect(response.status).toBe(200);
+      expect(response.body).toBeNull();
+    });
+  });
 });
 

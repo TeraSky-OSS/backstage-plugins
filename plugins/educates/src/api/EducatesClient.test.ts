@@ -135,6 +135,114 @@ describe('EducatesClient', () => {
         const noLogoHtml = '<html><body>No logo</body></html>';
         expect(extractLogoFromHtml(noLogoHtml)).toBeUndefined();
       });
+
+      it('should handle errors in extractLogoFromHtml gracefully', () => {
+        const extractLogoFromHtml = (client as any).extractLogoFromHtml.bind(client);
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+        
+        // Pass null to trigger an error in the regex match
+        const result = extractLogoFromHtml(null as any);
+        expect(result).toBeUndefined();
+        
+        consoleSpy.mockRestore();
+      });
+    });
+
+    describe('getWorkshops error handling', () => {
+      it('should throw error when token fetch fails', async () => {
+        const mockWorkshopsResponse = {
+          portal: {
+            name: 'test-portal',
+            url: 'http://test-portal.example.com',
+          },
+          workshops: [],
+        };
+
+        mockFetchApi.fetch
+          .mockResolvedValueOnce({
+            ok: true,
+            json: () => Promise.resolve(mockWorkshopsResponse),
+          })
+          .mockResolvedValueOnce({
+            ok: false,
+            statusText: 'Unauthorized',
+          });
+
+        await expect(client.getWorkshops('test-portal')).rejects.toThrow('Failed to get access token');
+      });
+
+      it('should handle catalog HTML fetch failure gracefully', async () => {
+        const mockWorkshopsResponse = {
+          portal: {
+            name: 'test-portal',
+            url: 'http://test-portal.example.com',
+          },
+          workshops: [],
+        };
+
+        const mockTokenResponse = {
+          access_token: 'test-access-token',
+        };
+
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+
+        mockFetchApi.fetch
+          .mockResolvedValueOnce({
+            ok: true,
+            json: () => Promise.resolve(mockWorkshopsResponse),
+          })
+          .mockResolvedValueOnce({
+            ok: true,
+            json: () => Promise.resolve(mockTokenResponse),
+          })
+          .mockResolvedValueOnce({
+            ok: false,
+            statusText: 'Internal Server Error',
+          });
+
+        const result = await client.getWorkshops('test-portal');
+
+        // Should still return data, just without logo
+        expect(result.portal.name).toBe('test-portal');
+        expect(result.portal.logo).toBeUndefined();
+        
+        consoleSpy.mockRestore();
+      });
+
+      it('should handle catalog HTML fetch network error gracefully', async () => {
+        const mockWorkshopsResponse = {
+          portal: {
+            name: 'test-portal',
+            url: 'http://test-portal.example.com',
+          },
+          workshops: [],
+        };
+
+        const mockTokenResponse = {
+          access_token: 'test-access-token',
+        };
+
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+
+        mockFetchApi.fetch
+          .mockResolvedValueOnce({
+            ok: true,
+            json: () => Promise.resolve(mockWorkshopsResponse),
+          })
+          .mockResolvedValueOnce({
+            ok: true,
+            json: () => Promise.resolve(mockTokenResponse),
+          })
+          .mockRejectedValueOnce(new Error('Network error'));
+
+        const result = await client.getWorkshops('test-portal');
+
+        // Should still return data, just without logo
+        expect(result.portal.name).toBe('test-portal');
+        expect(result.portal.logo).toBeUndefined();
+        
+        consoleSpy.mockRestore();
+      });
     });
   });
 });

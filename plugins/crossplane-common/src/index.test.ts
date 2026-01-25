@@ -19,6 +19,25 @@ describe('crossplane-common', () => {
         const annotations = { 'terasky.backstage.io/test': 'value' };
         expect(getAnnotation(annotations, 'terasky.backstage.io', 'test')).toBe('value');
       });
+
+      it('should return undefined when annotations is undefined', () => {
+        expect(getAnnotation(undefined, 'terasky.backstage.io', 'test')).toBeUndefined();
+      });
+
+      it('should fallback to DEFAULT_ANNOTATION_PREFIX when custom prefix annotation not found', () => {
+        const annotations = { 'terasky.backstage.io/test': 'fallback-value' };
+        expect(getAnnotation(annotations, 'custom.prefix', 'test')).toBe('fallback-value');
+      });
+
+      it('should return undefined when neither custom nor default prefix annotation exists', () => {
+        const annotations = { 'other.prefix/test': 'value' };
+        expect(getAnnotation(annotations, 'custom.prefix', 'test')).toBeUndefined();
+      });
+
+      it('should not fallback when prefix is DEFAULT_ANNOTATION_PREFIX', () => {
+        const annotations = {};
+        expect(getAnnotation(annotations, DEFAULT_ANNOTATION_PREFIX, 'test')).toBeUndefined();
+      });
     });
 
     describe('hasCrossplaneResourceAnnotation', () => {
@@ -30,6 +49,25 @@ describe('crossplane-common', () => {
       it('should return false when crossplane-resource annotation does not exist', () => {
         const annotations = {};
         expect(hasCrossplaneResourceAnnotation(annotations)).toBe(false);
+      });
+
+      it('should return false when annotations is undefined', () => {
+        expect(hasCrossplaneResourceAnnotation(undefined)).toBe(false);
+      });
+
+      it('should fallback to DEFAULT_ANNOTATION_PREFIX when custom prefix annotation not found', () => {
+        const annotations = { 'terasky.backstage.io/crossplane-resource': 'true' };
+        expect(hasCrossplaneResourceAnnotation(annotations, 'custom.prefix')).toBe(true);
+      });
+
+      it('should return false when neither custom nor default prefix annotation exists', () => {
+        const annotations = { 'other.prefix/crossplane-resource': 'true' };
+        expect(hasCrossplaneResourceAnnotation(annotations, 'custom.prefix')).toBe(false);
+      });
+
+      it('should not fallback when prefix is DEFAULT_ANNOTATION_PREFIX', () => {
+        const annotations = {};
+        expect(hasCrossplaneResourceAnnotation(annotations, DEFAULT_ANNOTATION_PREFIX)).toBe(false);
       });
     });
   });

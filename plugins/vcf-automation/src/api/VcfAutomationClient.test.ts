@@ -347,6 +347,553 @@ describe('VcfAutomationApi', () => {
         );
       });
     });
+
+    describe('getGenericResourceDetails', () => {
+      it('should fetch generic resource details', async () => {
+        const mockResource = { id: 'res-1', name: 'test-resource' };
+
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve(mockResource),
+        });
+
+        const result = await client.getGenericResourceDetails('dep-1', 'res-1');
+
+        expect(global.fetch).toHaveBeenCalledWith(
+          'http://vcf-automation-backend/deployments/dep-1/resources/res-1',
+          expect.any(Object)
+        );
+        expect(result.name).toBe('test-resource');
+      });
+
+      it('should include instance in URL when provided', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve({}),
+        });
+
+        await client.getGenericResourceDetails('dep-1', 'res-1', 'test-instance');
+
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining('instance=test-instance'),
+          expect.any(Object)
+        );
+      });
+
+      it('should throw error on failure', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: false,
+          statusText: 'Not Found',
+        });
+
+        await expect(client.getGenericResourceDetails('dep-1', 'res-1')).rejects.toThrow(
+          'Failed to fetch resource details'
+        );
+      });
+    });
+
+    describe('getDeploymentDetails', () => {
+      it('should fetch deployment details', async () => {
+        const mockDeployment = { id: 'dep-1', name: 'test-deployment' };
+
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve(mockDeployment),
+        });
+
+        const result = await client.getDeploymentDetails('dep-1');
+
+        expect(global.fetch).toHaveBeenCalledWith(
+          'http://vcf-automation-backend/deployments/dep-1',
+          expect.any(Object)
+        );
+        expect(result.name).toBe('test-deployment');
+      });
+
+      it('should include instance in URL when provided', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve({}),
+        });
+
+        await client.getDeploymentDetails('dep-1', 'test-instance');
+
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining('instance=test-instance'),
+          expect.any(Object)
+        );
+      });
+
+      it('should throw error on failure', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: false,
+          statusText: 'Not Found',
+        });
+
+        await expect(client.getDeploymentDetails('dep-1')).rejects.toThrow(
+          'Failed to fetch deployment details'
+        );
+      });
+    });
+
+    describe('getDeploymentResources', () => {
+      it('should fetch deployment resources', async () => {
+        const mockResources = { content: [{ id: 'res-1' }] };
+
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve(mockResources),
+        });
+
+        const result = await client.getDeploymentResources('dep-1');
+
+        expect(global.fetch).toHaveBeenCalledWith(
+          'http://vcf-automation-backend/deployments/dep-1/resources',
+          expect.any(Object)
+        );
+        expect(result.content).toHaveLength(1);
+      });
+
+      it('should include instance in URL when provided', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve({}),
+        });
+
+        await client.getDeploymentResources('dep-1', 'test-instance');
+
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining('instance=test-instance'),
+          expect.any(Object)
+        );
+      });
+
+      it('should throw error on failure', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: false,
+          statusText: 'Not Found',
+        });
+
+        await expect(client.getDeploymentResources('dep-1')).rejects.toThrow(
+          'Failed to fetch deployment resources'
+        );
+      });
+    });
+
+    describe('getSupervisorResource', () => {
+      it('should fetch a single supervisor resource', async () => {
+        const mockResource = { id: 'sr-1', name: 'supervisor-resource-1' };
+
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve(mockResource),
+        });
+
+        const result = await client.getSupervisorResource('sr-1');
+
+        expect(global.fetch).toHaveBeenCalledWith(
+          'http://vcf-automation-backend/supervisor-resources/sr-1',
+          expect.any(Object)
+        );
+        expect(result.name).toBe('supervisor-resource-1');
+      });
+
+      it('should throw error on failure', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: false,
+          statusText: 'Not Found',
+        });
+
+        await expect(client.getSupervisorResource('sr-1')).rejects.toThrow(
+          'Failed to fetch supervisor resource'
+        );
+      });
+    });
+
+    describe('getSupervisorNamespaces', () => {
+      it('should fetch supervisor namespaces', async () => {
+        const mockNamespaces = { items: [{ id: 'ns-1' }] };
+
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve(mockNamespaces),
+        });
+
+        const result = await client.getSupervisorNamespaces();
+
+        expect(global.fetch).toHaveBeenCalledWith(
+          'http://vcf-automation-backend/supervisor-namespaces',
+          expect.any(Object)
+        );
+        expect(result.items).toHaveLength(1);
+      });
+
+      it('should include instance in URL when provided', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve({}),
+        });
+
+        await client.getSupervisorNamespaces('test-instance');
+
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining('instance=test-instance'),
+          expect.any(Object)
+        );
+      });
+
+      it('should throw error on failure', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: false,
+          statusText: 'Not Found',
+        });
+
+        await expect(client.getSupervisorNamespaces()).rejects.toThrow(
+          'Failed to fetch supervisor namespaces'
+        );
+      });
+    });
+
+    describe('getSupervisorNamespace', () => {
+      it('should fetch a single supervisor namespace', async () => {
+        const mockNamespace = { id: 'ns-1', name: 'namespace-1' };
+
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve(mockNamespace),
+        });
+
+        const result = await client.getSupervisorNamespace('ns-1');
+
+        expect(global.fetch).toHaveBeenCalledWith(
+          'http://vcf-automation-backend/supervisor-namespaces/ns-1',
+          expect.any(Object)
+        );
+        expect(result.name).toBe('namespace-1');
+      });
+
+      it('should include instance in URL when provided', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve({}),
+        });
+
+        await client.getSupervisorNamespace('ns-1', 'test-instance');
+
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining('instance=test-instance'),
+          expect.any(Object)
+        );
+      });
+
+      it('should throw error on failure', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: false,
+          statusText: 'Not Found',
+        });
+
+        await expect(client.getSupervisorNamespace('ns-1')).rejects.toThrow(
+          'Failed to fetch supervisor namespace'
+        );
+      });
+    });
+
+    describe('getVSphereVMDetails - error handling', () => {
+      it('should throw error on failure', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: false,
+          statusText: 'Not Found',
+        });
+
+        await expect(client.getVSphereVMDetails('dep-1', 'vm-1')).rejects.toThrow(
+          'Failed to fetch resource details'
+        );
+      });
+
+      it('should include instance in URL when provided', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve({}),
+        });
+
+        await client.getVSphereVMDetails('dep-1', 'vm-1', 'test-instance');
+
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining('instance=test-instance'),
+          expect.any(Object)
+        );
+      });
+    });
+
+    describe('getProjectDetails - error handling', () => {
+      it('should throw error on failure', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: false,
+          statusText: 'Not Found',
+        });
+
+        await expect(client.getProjectDetails('project-1')).rejects.toThrow(
+          'Failed to fetch project details'
+        );
+      });
+
+      it('should include instance in URL when provided', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve({}),
+        });
+
+        await client.getProjectDetails('project-1', 'test-instance');
+
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining('instance=test-instance'),
+          expect.any(Object)
+        );
+      });
+    });
+
+    describe('getProjects - error handling', () => {
+      it('should throw error on failure', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: false,
+          statusText: 'Server Error',
+        });
+
+        await expect(client.getProjects()).rejects.toThrow(
+          'Failed to fetch projects'
+        );
+      });
+
+      it('should include instance in URL when provided', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve({}),
+        });
+
+        await client.getProjects('test-instance');
+
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining('instance=test-instance'),
+          expect.any(Object)
+        );
+      });
+    });
+
+    describe('getDeployments - error handling', () => {
+      it('should throw error on failure', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: false,
+          statusText: 'Server Error',
+        });
+
+        await expect(client.getDeployments()).rejects.toThrow(
+          'Failed to fetch deployments'
+        );
+      });
+
+      it('should include instance in URL when provided', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve({}),
+        });
+
+        await client.getDeployments('test-instance');
+
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining('instance=test-instance'),
+          expect.any(Object)
+        );
+      });
+    });
+
+    describe('getSupervisorResources - error handling', () => {
+      it('should fetch without instance name', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve({}),
+        });
+
+        await client.getSupervisorResources();
+
+        expect(global.fetch).toHaveBeenCalledWith(
+          'http://vcf-automation-backend/supervisor-resources',
+          expect.any(Object)
+        );
+      });
+
+      it('should throw error on failure', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: false,
+          statusText: 'Server Error',
+        });
+
+        await expect(client.getSupervisorResources()).rejects.toThrow(
+          'Failed to fetch supervisor resources'
+        );
+      });
+    });
+
+    describe('checkVmPowerAction - error handling', () => {
+      it('should include instance in URL when provided', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve({}),
+        });
+
+        await client.checkVmPowerAction('vm-1', 'PowerOn', 'test-instance');
+
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining('instance=test-instance'),
+          expect.any(Object)
+        );
+      });
+
+      it('should throw error on failure', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: false,
+          statusText: 'Server Error',
+        });
+
+        await expect(client.checkVmPowerAction('vm-1', 'PowerOn')).rejects.toThrow(
+          'Failed to check VM power action'
+        );
+      });
+    });
+
+    describe('executeVmPowerAction - error handling', () => {
+      it('should include instance in URL when provided', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve({}),
+        });
+
+        await client.executeVmPowerAction('vm-1', 'PowerOff', 'test-instance');
+
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining('instance=test-instance'),
+          expect.any(Object)
+        );
+      });
+
+      it('should throw error on failure', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: false,
+          statusText: 'Server Error',
+        });
+
+        await expect(client.executeVmPowerAction('vm-1', 'PowerOff')).rejects.toThrow(
+          'Failed to execute VM power action'
+        );
+      });
+    });
+
+    describe('getStandaloneVmStatus - error handling', () => {
+      it('should include instance in URL when provided', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve({}),
+        });
+
+        await client.getStandaloneVmStatus('urn:123', 'ns', 'vm', 'test-instance');
+
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining('instance=test-instance'),
+          expect.any(Object)
+        );
+      });
+
+      it('should throw error on failure', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: false,
+          statusText: 'Server Error',
+        });
+
+        await expect(client.getStandaloneVmStatus('urn:123', 'ns', 'vm')).rejects.toThrow(
+          'Failed to get standalone VM status'
+        );
+      });
+    });
+
+    describe('executeStandaloneVmPowerAction - error handling', () => {
+      it('should include instance in URL when provided', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve({}),
+        });
+
+        await client.executeStandaloneVmPowerAction('urn:123', 'ns', 'vm', 'PoweredOn', {}, 'test-instance');
+
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining('instance=test-instance'),
+          expect.any(Object)
+        );
+      });
+
+      it('should throw error on failure', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: false,
+          statusText: 'Server Error',
+        });
+
+        await expect(client.executeStandaloneVmPowerAction('urn:123', 'ns', 'vm', 'PoweredOff', {})).rejects.toThrow(
+          'Failed to execute standalone VM power action'
+        );
+      });
+    });
+
+    describe('getSupervisorResourceManifest - error handling', () => {
+      it('should include instance in URL when provided', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve({}),
+        });
+
+        await client.getSupervisorResourceManifest('urn:123', 'ns', 'res', 'v1', 'Pod', 'test-instance');
+
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining('instance=test-instance'),
+          expect.any(Object)
+        );
+      });
+
+      it('should throw error on failure', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: false,
+          statusText: 'Server Error',
+        });
+
+        await expect(client.getSupervisorResourceManifest('urn:123', 'ns', 'res', 'v1', 'Pod')).rejects.toThrow(
+          'Failed to get supervisor resource manifest'
+        );
+      });
+    });
+
+    describe('updateSupervisorResourceManifest - error handling', () => {
+      it('should include instance in URL when provided', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve({}),
+        });
+
+        await client.updateSupervisorResourceManifest('urn:123', 'ns', 'res', 'v1', 'Pod', {}, 'test-instance');
+
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining('instance=test-instance'),
+          expect.any(Object)
+        );
+      });
+
+      it('should throw error on failure', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: false,
+          statusText: 'Server Error',
+        });
+
+        await expect(client.updateSupervisorResourceManifest('urn:123', 'ns', 'res', 'v1', 'Pod', {})).rejects.toThrow(
+          'Failed to update supervisor resource manifest'
+        );
+      });
+    });
   });
 });
 

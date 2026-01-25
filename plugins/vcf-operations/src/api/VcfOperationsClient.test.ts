@@ -125,6 +125,15 @@ describe('VcfOperationsApi', () => {
         expect(callUrl).toContain('rollUpType=AVG');
         expect(callUrl).toContain('instance=test-instance');
       });
+
+      it('should throw error on failure', async () => {
+        mockFetchApi.fetch.mockResolvedValue({
+          ok: false,
+          statusText: 'Internal Server Error',
+        });
+
+        await expect(client.getResourceMetrics('r1', ['cpu'])).rejects.toThrow('Failed to get resource metrics');
+      });
     });
 
     describe('queryResourceMetrics', () => {
@@ -150,6 +159,15 @@ describe('VcfOperationsApi', () => {
           })
         );
       });
+
+      it('should throw error on failure', async () => {
+        mockFetchApi.fetch.mockResolvedValue({
+          ok: false,
+          statusText: 'Bad Request',
+        });
+
+        await expect(client.queryResourceMetrics({ resourceIds: [], statKeys: [] })).rejects.toThrow('Failed to query metrics');
+      });
     });
 
     describe('getLatestResourceMetrics', () => {
@@ -171,6 +189,15 @@ describe('VcfOperationsApi', () => {
         expect(callUrl).toContain('statKeys=cpu');
         expect(callUrl).toContain('statKeys=memory');
       });
+
+      it('should throw error on failure', async () => {
+        mockFetchApi.fetch.mockResolvedValue({
+          ok: false,
+          statusText: 'Service Unavailable',
+        });
+
+        await expect(client.getLatestResourceMetrics(['r1'], ['cpu'])).rejects.toThrow('Failed to get latest metrics');
+      });
     });
 
     describe('getResourceDetails', () => {
@@ -189,6 +216,15 @@ describe('VcfOperationsApi', () => {
         );
         expect(result.identifier).toBe('r1');
       });
+
+      it('should throw error on failure', async () => {
+        mockFetchApi.fetch.mockResolvedValue({
+          ok: false,
+          statusText: 'Not Found',
+        });
+
+        await expect(client.getResourceDetails('not-found')).rejects.toThrow('Failed to get resource details');
+      });
     });
 
     describe('searchResources', () => {
@@ -205,6 +241,15 @@ describe('VcfOperationsApi', () => {
         expect(callUrl).toContain('adapterKind=VMWARE');
         expect(callUrl).toContain('resourceKind=VirtualMachine');
         expect(callUrl).toContain('instance=test-instance');
+      });
+
+      it('should throw error on failure', async () => {
+        mockFetchApi.fetch.mockResolvedValue({
+          ok: false,
+          statusText: 'Internal Server Error',
+        });
+
+        await expect(client.searchResources('test')).rejects.toThrow('Failed to search resources');
       });
     });
 
@@ -233,6 +278,15 @@ describe('VcfOperationsApi', () => {
             body: JSON.stringify(queryRequest),
           })
         );
+      });
+
+      it('should throw error on failure', async () => {
+        mockFetchApi.fetch.mockResolvedValue({
+          ok: false,
+          statusText: 'Bad Request',
+        });
+
+        await expect(client.queryResources({})).rejects.toThrow('Failed to query resources');
       });
     });
 
@@ -291,6 +345,41 @@ describe('VcfOperationsApi', () => {
           expect.stringContaining('resourceType=VirtualMachine')
         );
         expect(result?.identifier).toBe('r1');
+      });
+
+      it('should throw VcfOperationsApiError on failure with JSON error', async () => {
+        mockFetchApi.fetch.mockResolvedValue({
+          ok: false,
+          status: 404,
+          statusText: 'Not Found',
+          json: () => Promise.resolve({ error: 'Resource not found', details: { id: 'test' } }),
+        });
+
+        await expect(client.findResourceByName('not-found')).rejects.toThrow(VcfOperationsApiError);
+      });
+
+      it('should throw VcfOperationsApiError on failure with non-JSON response', async () => {
+        mockFetchApi.fetch.mockResolvedValue({
+          ok: false,
+          status: 500,
+          statusText: 'Internal Server Error',
+          json: () => Promise.reject(new Error('Not JSON')),
+        });
+
+        await expect(client.findResourceByName('test')).rejects.toThrow(VcfOperationsApiError);
+      });
+    });
+
+    describe('findResourceByProperty error handling', () => {
+      it('should throw VcfOperationsApiError with non-JSON response', async () => {
+        mockFetchApi.fetch.mockResolvedValue({
+          ok: false,
+          status: 500,
+          statusText: 'Internal Server Error',
+          json: () => Promise.reject(new Error('Not JSON')),
+        });
+
+        await expect(client.findResourceByProperty('key', 'value')).rejects.toThrow(VcfOperationsApiError);
       });
     });
   });
