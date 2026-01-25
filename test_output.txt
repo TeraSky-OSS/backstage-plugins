@@ -1,15 +1,18 @@
 PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/rules.test.ts
+PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/actions.test.ts
 PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/api/VcfAutomationClient.test.ts
 PASS @terasky/backstage-plugin-vcf-operations plugins/vcf-operations/src/api/VcfOperationsClient.test.ts
-PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/actions.test.ts
 PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/isCrossplaneAvailable.test.tsx
-PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-ingestor plugins/spectrocloud-ingestor/src/providers/SpectroCloudEntityProvider.test.ts
-PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/client/SpectroCloudClient.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/supplier/SpectroCloudClusterSupplier.test.ts
 PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/actions.test.ts
 PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/actions.test.ts
 PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/client/SpectroCloudClient.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-ingestor plugins/spectrocloud-ingestor/src/providers/SpectroCloudEntityProvider.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/providers/SpectroCloudEntityProvider.test.ts
 PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/actions.test.ts
 FAIL @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/providers/EntityProvider.test.ts
   ● KubernetesEntityProvider › run › should skip processing when components disabled
@@ -50,84 +53,83 @@ FAIL @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/s
 
       at Object.toHaveBeenCalled (providers/EntityProvider.test.ts:366:48)
 
-PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/supplier/SpectroCloudClusterSupplier.test.ts
 PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/client/SpectroCloudClient.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/providers/SpectroCloudEntityProvider.test.ts
-PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/services/VcfAutomationService.test.ts
 PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/service/KubernetesService.test.ts
 PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/service/KubernetesService.test.ts
 PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/service/KubernetesService.test.ts
 PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/permissions.test.ts
 PASS @terasky/backstage-plugin-spectrocloud-ingestor plugins/spectrocloud-ingestor/src/client/SpectroCloudClient.test.ts
 PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/conditions.test.ts
+PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/services/VcfAutomationService.test.ts
 PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/api/AiRulesClient.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/router.test.ts
-PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/service/router.test.ts
-PASS @terasky/backstage-plugin-kro-common plugins/kro-common/src/index.test.ts
 PASS @terasky/backstage-plugin-crossplane-common plugins/crossplane-common/src/index.test.ts
+PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/service/router.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/annotationUtils.test.ts
 PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/api/CrossplaneApi.test.ts
-PASS @terasky/backstage-plugin-educates plugins/educates/src/api/EducatesClient.test.ts
 PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/api/KroApi.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/router.test.ts
 PASS @terasky/backstage-plugin-educates-common plugins/educates-common/src/index.test.ts
 PASS @terasky/backstage-plugin-vcf-automation-common plugins/vcf-automation-common/src/index.test.ts
 PASS @terasky/backstage-plugin-kyverno-common plugins/kyverno-common/src/index.test.ts
-PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/AiRulesService.test.ts
-PASS @terasky/backstage-plugin-kubernetes-resources-common plugins/kubernetes-resources-common/src/index.test.ts
-PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/service/EducatesService.test.ts
-PASS @terasky/backstage-plugin-kubernetes-resources-frontend plugins/kubernetes-resources/src/plugin.test.ts
-PASS @terasky/backstage-plugin-spectrocloud plugins/spectrocloud/src/plugin.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/plugin.test.ts
-PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/plugin.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/service/router.test.ts
-PASS @terasky/backstage-plugin-kubernetes-resources-permissions-backend plugins/kubernetes-resources-permissions-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-entity-scaffolder-content plugins/entity-scaffolder-content/src/plugin.test.ts
-PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/service/router.test.ts
-PASS @terasky/backstage-plugin-devpod plugins/devpod-plugin/src/plugin.test.ts
-PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/service/router.test.ts
-PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/plugin.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-ingestor plugins/spectrocloud-ingestor/src/module.test.ts
-PASS @terasky/backstage-plugin-vcf-automation-ingestor plugins/vcf-automation-ingestor/src/module.test.ts
-PASS @terasky/backstage-plugin-scaleops-frontend plugins/scaleops-frontend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-educates plugins/educates/src/api/EducatesClient.test.ts
 PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/MCPService.test.ts
-PASS @terasky/backstage-plugin-educates plugins/educates/src/plugin.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kubernetes-resources-common plugins/kubernetes-resources-common/src/index.test.ts
+PASS @terasky/backstage-plugin-kubernetes-resources-frontend plugins/kubernetes-resources/src/plugin.test.ts
+PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/AiRulesService.test.ts
+PASS @terasky/backstage-plugin-kubernetes-resources-permissions-backend plugins/kubernetes-resources-permissions-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/plugin.test.ts
+PASS @terasky/backstage-plugin-entity-scaffolder-content plugins/entity-scaffolder-content/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kro-common plugins/kro-common/src/index.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-ingestor plugins/spectrocloud-ingestor/src/module.test.ts
+PASS @terasky/backstage-plugin-scaleops-frontend plugins/scaleops-frontend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-devpod plugins/devpod-plugin/src/plugin.test.ts
+PASS @terasky/backstage-plugin-vcf-automation-ingestor plugins/vcf-automation-ingestor/src/module.test.ts
 PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-catalog-mcp-backend plugins/catalog-mcp-backend/src/plugin.test.ts
 PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/service/router.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/annotationUtils.test.ts
-PASS @terasky/plugin-rbac-mcp-backend plugins/rbac-mcp-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/router.test.ts
+PASS @terasky/backstage-plugin-educates plugins/educates/src/plugin.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/service/router.test.ts
+PASS @terasky/backstage-plugin-catalog-mcp-backend plugins/catalog-mcp-backend/src/plugin.test.ts
 PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/plugin.test.ts
+PASS @terasky/plugin-rbac-mcp-backend plugins/rbac-mcp-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/service/router.test.ts
 PASS @terasky/plugin-scaffolder-mcp-backend plugins/scaffolder-mcp-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/plugin.test.ts
 PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/services/KubernetesResourceFetcher.test.ts
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/service/EducatesService.test.ts
+PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/service/router.test.ts
+PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/router.test.ts
+PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/plugin.test.ts
 PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/plugin.test.ts
 PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/module.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/plugin.test.ts
 PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/module.test.ts
+PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/plugin.test.ts
 PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/plugin.test.ts
-PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/plugin.test.ts
-PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/api/KyvernoApi.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-common plugins/spectrocloud-common/src/index.test.ts
+PASS @terasky/backstage-plugin-spectrocloud plugins/spectrocloud/src/plugin.test.ts
 PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/catalog-info-cleaner.test.ts
-PASS @terasky/backstage-plugin-vcf-operations-common plugins/vcf-operations-common/src/index.test.ts
-PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/claim-templating.test.ts
-PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/plugin.test.ts
 PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/crd-templating.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/api/KyvernoApi.test.ts
+PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-vcf-operations-common plugins/vcf-operations-common/src/index.test.ts
 PASS @terasky/backstage-plugin-vcf-operations plugins/vcf-operations/src/plugin.test.ts
+PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/claim-templating.test.ts
 PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/components/isKroAvailable.test.tsx
+PASS @terasky/backstage-plugin-spectrocloud-common plugins/spectrocloud-common/src/index.test.ts
 PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/module.test.ts
-PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/actions.test.ts
 PASS @terasky/backstage-plugin-vcf-automation-ingestor plugins/vcf-automation-ingestor/src/provider/EntityProvider.test.ts
-PASS @terasky/backstage-plugin-catalog-mcp-backend plugins/catalog-mcp-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/actions.test.ts
 PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/services/VcfOperationsService.test.ts
 PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/service/ScaleOpsService.test.ts
 PASS @terasky/backstage-plugin-app-module-global-signin-page plugins/app-module-global-signin-page/src/module.test.tsx
-PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/router.test.ts
+PASS @terasky/backstage-plugin-catalog-mcp-backend plugins/catalog-mcp-backend/src/actions.test.ts
+PASS @terasky/plugin-scaffolder-mcp-backend plugins/scaffolder-mcp-backend/src/actions.test.ts
 PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/router.test.ts
+PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/router.test.ts
+PASS @terasky/backstage-plugin-gitops-manifest-updater plugins/gitops-manifest-updater/src/plugin.test.ts
 PASS @terasky/backstage-plugin-educates plugins/educates/src/components/WorkshopCard.test.tsx
   ● Console
 
@@ -557,10 +559,9 @@ PASS @terasky/backstage-plugin-educates plugins/educates/src/components/Workshop
       at render (../node_modules/@testing-library/react/dist/pure.js:97:24)
       at Object.<anonymous> (components/WorkshopCard.test.tsx:166:13)
 
-PASS @terasky/backstage-plugin-gitops-manifest-updater plugins/gitops-manifest-updater/src/plugin.test.ts
-PASS @terasky/backstage-plugin-terraform-scaffolder plugins/terraform-scaffolder/src/plugin.test.ts
 PASS app packages/app/src/App.test.tsx
-FAIL @terasky/plugin-rbac-mcp-backend plugins/rbac-mcp-backend/src/actions.test.ts (8.906 s)
+PASS @terasky/backstage-plugin-terraform-scaffolder plugins/terraform-scaffolder/src/plugin.test.ts
+FAIL @terasky/plugin-rbac-mcp-backend plugins/rbac-mcp-backend/src/actions.test.ts (8.864 s)
   ● registerMcpActions › get_role_details action › should throw error when role not found
 
     thrown: "Exceeded timeout of 5000 ms for a test.
@@ -578,76 +579,11 @@ FAIL @terasky/plugin-rbac-mcp-backend plugins/rbac-mcp-backend/src/actions.test.
       at describe (actions.test.ts:94:3)
       at Object.describe (actions.test.ts:20:1)
 
-  ● registerMcpActions › list_conditional_rules action › should list conditional rules
-
-    TypeError: plugins.reduce is not a function
-
-      872 |       }
-      873 |
-    > 874 |       const totalRules = plugins.reduce(
-          |                                  ^
-      875 |         (sum: number, p: any) => sum + (p.rules?.length || 0),
-      876 |         0
-      877 |       );
-
-      at Object.reduce (actions.ts:874:34)
-      at Object.<anonymous> (actions.test.ts:168:22)
-
-FAIL @terasky/plugin-scaffolder-mcp-backend plugins/scaffolder-mcp-backend/src/actions.test.ts (13.915 s)
-  ● registerMcpActions › list_software_template_actions action › should list all scaffolder actions
-
-    TypeError: Cannot read properties of undefined (reading 'filter')
-
-      398 |
-      399 |       // Apply filter if provided
-    > 400 |       if (input.filter) {
-          |                 ^
-      401 |         const filterLower = input.filter.toLowerCase();
-      402 |         filteredActions = filteredActions.filter(
-      403 |           (action: { id: string; description?: string }) =>
-
-      at Object.filter (actions.ts:400:17)
-      at Object.<anonymous> (actions.test.ts:186:22)
-
-  ● registerMcpActions › list_software_template_extensions action › should handle empty extensions list
-
-    thrown: "Exceeded timeout of 5000 ms for a test.
-    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
-
-      237 |     });
-      238 |
-    > 239 |     it('should handle empty extensions list', async () => {
-          |     ^
-      240 |       server.use(
-      241 |         rest.get('http://scaffolder-backend/v2/extensions', (_req, res, ctx) => {
-      242 |           return res(ctx.json([]));
-
-      at it (actions.test.ts:239:5)
-      at describe (actions.test.ts:224:3)
-      at Object.describe (actions.test.ts:23:1)
-
-  ● registerMcpActions › get_software_template_extension_details action › should throw error when extension not found
-
-    thrown: "Exceeded timeout of 5000 ms for a test.
-    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
-
-      266 |     });
-      267 |
-    > 268 |     it('should throw error when extension not found', async () => {
-          |     ^
-      269 |       server.use(
-      270 |         rest.get('http://scaffolder-backend/v2/extensions', (_req, res, ctx) => {
-      271 |           return res(ctx.json([]));
-
-      at it (actions.test.ts:268:5)
-      at describe (actions.test.ts:253:3)
-      at Object.describe (actions.test.ts:23:1)
-
 A worker process has failed to exit gracefully and has been force exited. This is likely caused by tests leaking due to improper teardown. Try running with --detectOpenHandles to find leaks. Active timers can also cause this, ensure that .unref() was called on them.
 --------------------------------------------------------------------------|---------|----------|---------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 File                                                                      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                                                                                                                                         
 --------------------------------------------------------------------------|---------|----------|---------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-All files                                                                 |   24.22 |    11.33 |   17.23 |   24.36 |                                                                                                                                                                           
+All files                                                                 |   24.04 |    11.21 |      17 |   24.16 |                                                                                                                                                                           
  packages/app/src                                                         |      88 |      100 |       0 |   86.36 |                                                                                                                                                                           
   App.tsx                                                                 |     100 |      100 |     100 |     100 |                                                                                                                                                                           
   index.tsx                                                               |       0 |      100 |     100 |       0 | 6                                                                                                                                                                         
@@ -835,8 +771,8 @@ All files                                                                 |   24
   KyvernoCrossplanePolicyReportsTable.tsx                                 |       0 |        0 |       0 |       0 | 26-267                                                                                                                                                                    
   KyvernoOverviewCard.tsx                                                 |       0 |        0 |       0 |       0 | 15-165                                                                                                                                                                    
   KyvernoPolicyReportsTable.tsx                                           |       0 |        0 |       0 |       0 | 25-270                                                                                                                                                                    
- plugins/rbac-mcp-backend/src                                             |   19.78 |    12.62 |   14.54 |   19.85 |                                                                                                                                                                           
-  actions.ts                                                              |   18.47 |    12.62 |   15.09 |   18.81 | 9-29,50-52,126-134,198,206,223-279,301-310,356-357,366,395-549,568-691,709-783,804-813,861-862,871,875-881,900-1030,1053-1113,1135-1358                                   
+ plugins/rbac-mcp-backend/src                                             |   13.07 |     6.79 |    7.27 |   12.99 |                                                                                                                                                                           
+  actions.ts                                                              |   11.59 |     6.79 |    7.54 |    11.8 | 9-29,50-52,126-134,198,206,223-279,301-376,395-549,568-691,709-783,804-881,900-1030,1053-1113,1135-1358                                                                   
   plugin.ts                                                               |   71.42 |      100 |       0 |   66.66 | 16-24                                                                                                                                                                     
  plugins/scaffolder-backend-module-terasky-utils/src                      |   63.63 |      100 |       0 |      60 |                                                                                                                                                                           
   module.ts                                                               |   63.63 |      100 |       0 |      60 | 13-21                                                                                                                                                                     
@@ -844,8 +780,8 @@ All files                                                                 |   24
   catalog-info-cleaner.ts                                                 |   33.33 |        0 |      80 |   33.33 | 20-65                                                                                                                                                                     
   claim-templating.ts                                                     |   23.75 |        0 |      65 |   24.35 | 9-33,59-185                                                                                                                                                               
   crd-templating.ts                                                       |   26.08 |        0 |   66.66 |   26.08 | 9-33,59-177                                                                                                                                                               
- plugins/scaffolder-mcp-backend/src                                       |    36.7 |    21.73 |   31.42 |   36.36 |                                                                                                                                                                           
-  actions.ts                                                              |   34.66 |    21.73 |   33.33 |   34.69 | 57-59,81-89,108-110,152-160,187-189,209-326,346-355,387-388,401-409,426-434,471-472,486,505-514,548-605,622-630,671-722                                                   
+ plugins/scaffolder-mcp-backend/src                                       |   32.27 |    15.94 |   25.71 |   31.81 |                                                                                                                                                                           
+  actions.ts                                                              |      30 |    15.94 |   27.27 |   29.93 | 57-59,81-89,108-110,152-160,187-189,209-326,346-355,387-388,401-404,426-434,471-472,486,505-605,622-722                                                                   
   plugin.ts                                                               |      75 |      100 |       0 |   71.42 | 17-26                                                                                                                                                                     
  plugins/scaleops-backend/src                                             |   64.85 |    44.66 |   52.27 |   64.82 |                                                                                                                                                                           
   actions.ts                                                              |   65.07 |    44.66 |   54.76 |   65.24 | 19-22,136,147-151,190,195,222-273,284-288,330,335,342,375-380,403,426-429,440-445,515,520,528,548-552,565,592,607,625-626,646-649,660-664,698,703,711,731-735,752,793-796 
@@ -999,7 +935,7 @@ FAIL plugins/kubernetes-ingestor/src/providers/EntityProvider.test.ts
 
       at Object.toHaveBeenCalled (providers/EntityProvider.test.ts:366:48)
 
-FAIL plugins/rbac-mcp-backend/src/actions.test.ts (8.906 s)
+FAIL plugins/rbac-mcp-backend/src/actions.test.ts (8.864 s)
   ● registerMcpActions › get_role_details action › should throw error when role not found
 
     thrown: "Exceeded timeout of 5000 ms for a test.
@@ -1017,74 +953,9 @@ FAIL plugins/rbac-mcp-backend/src/actions.test.ts (8.906 s)
       at describe (actions.test.ts:94:3)
       at Object.describe (actions.test.ts:20:1)
 
-  ● registerMcpActions › list_conditional_rules action › should list conditional rules
 
-    TypeError: plugins.reduce is not a function
-
-      872 |       }
-      873 |
-    > 874 |       const totalRules = plugins.reduce(
-          |                                  ^
-      875 |         (sum: number, p: any) => sum + (p.rules?.length || 0),
-      876 |         0
-      877 |       );
-
-      at Object.reduce (actions.ts:874:34)
-      at Object.<anonymous> (actions.test.ts:168:22)
-
-FAIL plugins/scaffolder-mcp-backend/src/actions.test.ts (13.915 s)
-  ● registerMcpActions › list_software_template_actions action › should list all scaffolder actions
-
-    TypeError: Cannot read properties of undefined (reading 'filter')
-
-      398 |
-      399 |       // Apply filter if provided
-    > 400 |       if (input.filter) {
-          |                 ^
-      401 |         const filterLower = input.filter.toLowerCase();
-      402 |         filteredActions = filteredActions.filter(
-      403 |           (action: { id: string; description?: string }) =>
-
-      at Object.filter (actions.ts:400:17)
-      at Object.<anonymous> (actions.test.ts:186:22)
-
-  ● registerMcpActions › list_software_template_extensions action › should handle empty extensions list
-
-    thrown: "Exceeded timeout of 5000 ms for a test.
-    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
-
-      237 |     });
-      238 |
-    > 239 |     it('should handle empty extensions list', async () => {
-          |     ^
-      240 |       server.use(
-      241 |         rest.get('http://scaffolder-backend/v2/extensions', (_req, res, ctx) => {
-      242 |           return res(ctx.json([]));
-
-      at it (actions.test.ts:239:5)
-      at describe (actions.test.ts:224:3)
-      at Object.describe (actions.test.ts:23:1)
-
-  ● registerMcpActions › get_software_template_extension_details action › should throw error when extension not found
-
-    thrown: "Exceeded timeout of 5000 ms for a test.
-    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
-
-      266 |     });
-      267 |
-    > 268 |     it('should throw error when extension not found', async () => {
-          |     ^
-      269 |       server.use(
-      270 |         rest.get('http://scaffolder-backend/v2/extensions', (_req, res, ctx) => {
-      271 |           return res(ctx.json([]));
-
-      at it (actions.test.ts:268:5)
-      at describe (actions.test.ts:253:3)
-      at Object.describe (actions.test.ts:23:1)
-
-
-Test Suites: 3 failed, 95 passed, 98 total
-Tests:       7 failed, 698 passed, 705 total
+Test Suites: 2 failed, 96 passed, 98 total
+Tests:       3 failed, 702 passed, 705 total
 Snapshots:   0 total
-Time:        16.483 s
+Time:        11.516 s
 Ran all test suites matching /plugins\//i in 42 projects.
