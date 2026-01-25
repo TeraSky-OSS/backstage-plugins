@@ -1,0 +1,86 @@
+{
+  "name": "@terasky/backstage-plugin-spectrocloud",
+  "version": "0.1.0",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TeraSky-OSS/backstage-plugins.git",
+    "directory": "plugins/spectrocloud"
+  },
+  "homepage": "https://terasky.com",
+  "backstage": {
+    "role": "frontend-plugin",
+    "pluginId": "spectrocloud",
+    "pluginPackages": [
+      "@terasky/backstage-plugin-spectrocloud"
+    ]
+  },
+  "configSchema": "config.d.ts",
+  "sideEffects": false,
+  "scripts": {
+    "start": "backstage-cli package start",
+    "build": "backstage-cli package build",
+    "lint": "backstage-cli package lint",
+    "test": "backstage-cli package test",
+    "clean": "backstage-cli package clean",
+    "prepack": "backstage-cli package prepack",
+    "postpack": "backstage-cli package postpack"
+  },
+  "dependencies": {
+    "@backstage/catalog-model": "^1.7.6",
+    "@backstage/core-components": "^0.18.5",
+    "@backstage/core-plugin-api": "^1.12.1",
+    "@backstage/frontend-plugin-api": "^0.13.3",
+    "@backstage/plugin-catalog-react": "^1.21.5",
+    "@backstage/plugin-permission-react": "^0.4.39",
+    "@backstage/theme": "^0.7.1",
+    "@material-ui/core": "^4.12.4",
+    "@material-ui/icons": "^4.11.3",
+    "@material-ui/lab": "^4.0.0-alpha.61",
+    "@terasky/backstage-plugin-spectrocloud-common": "^0.1.0",
+    "file-saver": "^2.0.5",
+    "react-syntax-highlighter": "^15.6.1",
+    "react-use": "^17.6.0"
+  },
+  "peerDependencies": {
+    "react": "^16.13.1 || ^17.0.0 || ^18.0.0"
+  },
+  "devDependencies": {
+    "@backstage/cli": "^0.35.2",
+    "@backstage/core-app-api": "^1.19.3",
+    "@backstage/dev-utils": "^1.1.19",
+    "@backstage/test-utils": "^1.7.14",
+    "@testing-library/jest-dom": "^6.0.0",
+    "@testing-library/react": "^14.0.0",
+    "@testing-library/user-event": "^14.0.0",
+    "@types/file-saver": "^2",
+    "@types/react-syntax-highlighter": "^15",
+    "msw": "^1.0.0",
+    "react": "^18.3.1",
+    "typescript": "^5.8.3"
+  },
+  "files": [
+    "dist",
+    "config.d.ts"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./alpha": "./src/alpha.tsx",
+    "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "alpha": [
+        "src/alpha.tsx"
+      ],
+      "package.json": [
+        "package.json"
+      ]
+    }
+  }
+}

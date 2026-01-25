@@ -1,10 +1,10 @@
-# backstage-plugin-spectrocloud-cluster-provider
+# spectrocloud-cluster-provider
 
-Welcome to the backstage-plugin-spectrocloud-cluster-provider backend plugin!
+Welcome to the SpectroCloud Kubernetes cluster provider plugin!
 
 [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-spectrocloud-cluster-provider/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-spectrocloud-cluster-provider)
 
-The `@terasky/backstage-plugin-spectrocloud-cluster-provider` backend plugin for Backstage is a Kubernetes cluster supplier that automatically discovers and configures clusters from SpectroCloud Palette. It works seamlessly alongside existing cluster suppliers (config, catalog, gke, localKubectlProxy) and automatically sets up secure read-only access using service accounts with minimal RBAC permissions. The plugin creates a `backstage-system` namespace in each cluster with a `backstage-sa` service account that has only get, list, and watch permissions across the cluster.
+The `spectrocloud-cluster-provider` plugin for Backstage is a Kubernetes cluster supplier that automatically discovers and configures clusters from SpectroCloud Palette. It works alongside existing cluster suppliers (config, catalog, gke, localKubectlProxy) and automatically sets up secure read-only access using service accounts with minimal RBAC permissions.
 
 For detailed docs go to https://terasky-oss.github.io/backstage-plugins/plugins/spectrocloud-cluster-provider/overview
 

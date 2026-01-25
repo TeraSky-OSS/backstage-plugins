@@ -15,7 +15,7 @@ import { SpectroCloudClusterSupplier } from './supplier/SpectroCloudClusterSuppl
  * It uses the factory pattern to get the OOTB combined supplier (which handles config, catalog, 
  * gke, localKubectlProxy, etc.) and wraps it to add SpectroCloud cluster discovery.
  * 
- * Configuration is read from the 'spectrocloud' config section (not kubernetes.clusterLocatorMethods)
+ * Configuration is read from the 'spectrocloud.environments' config section (not kubernetes.clusterLocatorMethods)
  * to avoid conflicts with the default Kubernetes plugin processing.
  *
  * @public
@@ -31,16 +31,23 @@ export const kubernetesModuleSpectroCloudClusterSupplier = createBackendModule({
         config: coreServices.rootConfig,
       },
       async init({ clusterSupplier: clusterSupplierExtPoint, logger, config }) {
-        // Check for SpectroCloud configuration (array of instances)
-        const spectroConfigs = config.getOptionalConfigArray('spectrocloud');
+        // Check for SpectroCloud configuration (object with environments array)
+        const spectroCloudConfig = config.getOptionalConfig('spectrocloud');
         
-        // If no SpectroCloud config, don't register anything - let default plugin handle it
-        if (!spectroConfigs || spectroConfigs.length === 0) {
+        if (!spectroCloudConfig) {
           logger.info('No SpectroCloud configuration found, using only default suppliers');
           return;
         }
 
-        logger.info(`Found ${spectroConfigs.length} SpectroCloud instance(s) configured`);
+        const spectroEnvironments = spectroCloudConfig.getOptionalConfigArray('environments');
+        
+        // If no environments configured, don't register anything - let default plugin handle it
+        if (!spectroEnvironments || spectroEnvironments.length === 0) {
+          logger.info('No SpectroCloud environments configured, using only default suppliers');
+          return;
+        }
+
+        logger.info(`Found ${spectroEnvironments.length} SpectroCloud environment(s) configured`);
 
         // Use factory pattern to extend the default cluster supplier
         clusterSupplierExtPoint.addClusterSupplier(async ({ getDefault }) => {
@@ -49,16 +56,16 @@ export const kubernetesModuleSpectroCloudClusterSupplier = createBackendModule({
             const defaultSupplier = await getDefault();
             logger.info('✓ Loaded default Kubernetes cluster suppliers');
 
-            // Create SpectroCloud suppliers for each instance
+            // Create SpectroCloud suppliers for each environment
             const spectroSuppliers: Array<{ supplier: SpectroCloudClusterSupplier; name: string }> = [];
             
-            for (let i = 0; i < spectroConfigs.length; i++) {
-              const instanceConfig = spectroConfigs[i];
+            for (let i = 0; i < spectroEnvironments.length; i++) {
+              const instanceConfig = spectroEnvironments[i];
               const configuredName = instanceConfig.getOptionalString('name');
               const instanceName = configuredName || `${instanceConfig.getString('tenant')}@${instanceConfig.getString('url')}`;
               
               try {
-                logger.info(`Creating SpectroCloud cluster supplier for instance: ${instanceName}${configuredName ? ' (name: ' + configuredName + ')' : ''}`);
+                logger.info(`Creating SpectroCloud cluster supplier for environment: ${instanceName}${configuredName ? ' (name: ' + configuredName + ')' : ''}`);
                 const spectroSupplier = SpectroCloudClusterSupplier.fromConfig(instanceConfig, logger);
                 spectroSuppliers.push({ supplier: spectroSupplier, name: instanceName });
                 logger.info(`✓ Created SpectroCloud cluster supplier for ${instanceName}`);
