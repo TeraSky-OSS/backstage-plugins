@@ -1,6 +1,42 @@
 import { Entity } from '@backstage/catalog-model';
 
-// Import the filter functions by testing the exports
+// Replicate the filter functions from alpha.tsx for testing
+const isVCFDeployment = (entity: Entity) => {
+  return entity.spec?.type === 'vcf-automation-deployment';
+};
+
+const isVCFVSphereVM = (entity: Entity) => {
+  const typeValue = entity.spec?.type;
+  if (typeof typeValue === 'string') {
+    return typeValue.toLowerCase() === 'cloud.vsphere.machine';
+  }
+  return false;
+};
+
+const isVCFProject = (entity: Entity) => {
+  return entity.spec?.type === 'vcf-automation-project';
+};
+
+const isVCFGenericResource = (entity: Entity) => {
+  return (entity.metadata.tags?.includes('vcf-automation-resource') && entity.kind === 'Resource') || false;
+};
+
+const isVCFCCINamespace = (entity: Entity) => {
+  const typeValue = entity.spec?.type;
+  if (typeof typeValue === 'string') {
+    return typeValue.toLowerCase() === 'cci.supervisor.namespace';
+  }
+  return false;
+};
+
+const isVCFCCIResource = (entity: Entity) => {
+  const typeValue = entity.spec?.type;
+  if (typeof typeValue === 'string') {
+    return typeValue.toLowerCase() === 'cci.supervisor.resource';
+  }
+  return false;
+};
+
 describe('vcf-automation alpha exports', () => {
   // Test entity filter functions
   describe('entity filters', () => {
@@ -12,7 +48,7 @@ describe('vcf-automation alpha exports', () => {
           metadata: { name: 'test' },
           spec: { type: 'vcf-automation-deployment' },
         };
-        expect(entity.spec?.type).toBe('vcf-automation-deployment');
+        expect(isVCFDeployment(entity)).toBe(true);
       });
 
       it('should return false for other types', () => {
@@ -22,7 +58,7 @@ describe('vcf-automation alpha exports', () => {
           metadata: { name: 'test' },
           spec: { type: 'other-type' },
         };
-        expect(entity.spec?.type).not.toBe('vcf-automation-deployment');
+        expect(isVCFDeployment(entity)).toBe(false);
       });
     });
 
@@ -34,8 +70,7 @@ describe('vcf-automation alpha exports', () => {
           metadata: { name: 'test' },
           spec: { type: 'Cloud.vSphere.Machine' },
         };
-        const typeValue = entity.spec?.type;
-        expect(typeof typeValue === 'string' && typeValue.toLowerCase() === 'cloud.vsphere.machine').toBe(true);
+        expect(isVCFVSphereVM(entity)).toBe(true);
       });
 
       it('should return true for lowercase cloud.vsphere.machine', () => {
@@ -45,8 +80,7 @@ describe('vcf-automation alpha exports', () => {
           metadata: { name: 'test' },
           spec: { type: 'cloud.vsphere.machine' },
         };
-        const typeValue = entity.spec?.type;
-        expect(typeof typeValue === 'string' && typeValue.toLowerCase() === 'cloud.vsphere.machine').toBe(true);
+        expect(isVCFVSphereVM(entity)).toBe(true);
       });
 
       it('should return false for non-string type', () => {
@@ -56,8 +90,7 @@ describe('vcf-automation alpha exports', () => {
           metadata: { name: 'test' },
           spec: { type: 123 as any },
         };
-        const typeValue = entity.spec?.type;
-        expect(typeof typeValue === 'string').toBe(false);
+        expect(isVCFVSphereVM(entity)).toBe(false);
       });
     });
 
@@ -69,7 +102,17 @@ describe('vcf-automation alpha exports', () => {
           metadata: { name: 'test' },
           spec: { type: 'vcf-automation-project' },
         };
-        expect(entity.spec?.type).toBe('vcf-automation-project');
+        expect(isVCFProject(entity)).toBe(true);
+      });
+
+      it('should return false for other types', () => {
+        const entity: Entity = {
+          apiVersion: 'backstage.io/v1alpha1',
+          kind: 'Component',
+          metadata: { name: 'test' },
+          spec: { type: 'other-type' },
+        };
+        expect(isVCFProject(entity)).toBe(false);
       });
     });
 
@@ -83,7 +126,7 @@ describe('vcf-automation alpha exports', () => {
             tags: ['vcf-automation-resource'],
           },
         };
-        expect(entity.metadata.tags?.includes('vcf-automation-resource') && entity.kind === 'Resource').toBe(true);
+        expect(isVCFGenericResource(entity)).toBe(true);
       });
 
       it('should return false for non-Resource kind', () => {
@@ -95,7 +138,7 @@ describe('vcf-automation alpha exports', () => {
             tags: ['vcf-automation-resource'],
           },
         };
-        expect(entity.kind === 'Resource').toBe(false);
+        expect(isVCFGenericResource(entity)).toBe(false);
       });
 
       it('should return false without vcf-automation-resource tag', () => {
@@ -107,7 +150,7 @@ describe('vcf-automation alpha exports', () => {
             tags: ['other-tag'],
           },
         };
-        expect(entity.metadata.tags?.includes('vcf-automation-resource')).toBe(false);
+        expect(isVCFGenericResource(entity)).toBe(false);
       });
     });
 
@@ -119,8 +162,7 @@ describe('vcf-automation alpha exports', () => {
           metadata: { name: 'test' },
           spec: { type: 'cci.supervisor.namespace' },
         };
-        const typeValue = entity.spec?.type;
-        expect(typeof typeValue === 'string' && typeValue.toLowerCase() === 'cci.supervisor.namespace').toBe(true);
+        expect(isVCFCCINamespace(entity)).toBe(true);
       });
 
       it('should handle uppercase CCI.Supervisor.Namespace', () => {
@@ -130,8 +172,17 @@ describe('vcf-automation alpha exports', () => {
           metadata: { name: 'test' },
           spec: { type: 'CCI.Supervisor.Namespace' },
         };
-        const typeValue = entity.spec?.type;
-        expect(typeof typeValue === 'string' && typeValue.toLowerCase() === 'cci.supervisor.namespace').toBe(true);
+        expect(isVCFCCINamespace(entity)).toBe(true);
+      });
+
+      it('should return false for non-string type', () => {
+        const entity: Entity = {
+          apiVersion: 'backstage.io/v1alpha1',
+          kind: 'Component',
+          metadata: { name: 'test' },
+          spec: { type: 123 as any },
+        };
+        expect(isVCFCCINamespace(entity)).toBe(false);
       });
     });
 
@@ -143,8 +194,17 @@ describe('vcf-automation alpha exports', () => {
           metadata: { name: 'test' },
           spec: { type: 'cci.supervisor.resource' },
         };
-        const typeValue = entity.spec?.type;
-        expect(typeof typeValue === 'string' && typeValue.toLowerCase() === 'cci.supervisor.resource').toBe(true);
+        expect(isVCFCCIResource(entity)).toBe(true);
+      });
+
+      it('should return false for non-string type', () => {
+        const entity: Entity = {
+          apiVersion: 'backstage.io/v1alpha1',
+          kind: 'Component',
+          metadata: { name: 'test' },
+          spec: { type: 456 as any },
+        };
+        expect(isVCFCCIResource(entity)).toBe(false);
       });
     });
   });
