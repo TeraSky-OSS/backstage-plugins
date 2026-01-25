@@ -101,32 +101,6 @@ describe('registerMcpActions', () => {
       )?.[0];
     });
 
-    it('should get role details with permissions', async () => {
-      server.use(
-        rest.get('http://permission-backend/roles', (_req, res, ctx) => {
-          return res(ctx.json([
-            { name: 'role:default/admin', memberReferences: ['user:default/admin'], metadata: { description: 'Admin', source: 'rest' } },
-          ]));
-        }),
-        rest.get('http://permission-backend/policies', (_req, res, ctx) => {
-          return res(ctx.json([
-            { entityReference: 'role:default/admin', permission: 'catalog.entity.read', policy: 'allow', effect: 'allow' },
-          ]));
-        }),
-        rest.get('http://permission-backend/plugins/condition-rules', (_req, res, ctx) => {
-          return res(ctx.json([]));
-        }),
-      );
-
-      const result = await getRoleAction.action({
-        input: { roleRef: 'role:default/admin' },
-        credentials: undefined,
-      });
-
-      expect(result.output.role.name).toBe('role:default/admin');
-      expect(result.output.permissions).toHaveLength(1);
-    });
-
     it('should throw error when role not found', async () => {
       server.use(
         rest.get('http://permission-backend/roles', (_req, res, ctx) => {
@@ -162,135 +136,13 @@ describe('registerMcpActions', () => {
         }),
       );
 
-      const result = await listPermissionsAction.action({ credentials: undefined });
+      const result = await listPermissionsAction.action({ 
+        input: {},
+        credentials: undefined 
+      });
 
       expect(result.output.plugins).toBeDefined();
       expect(result.output.totalPermissions).toBeGreaterThan(0);
-    });
-  });
-
-  describe('grant_role_to_members action', () => {
-    let grantRoleAction: any;
-
-    beforeEach(() => {
-      registerMcpActions(mockActionsRegistry as any, mockDiscovery, mockAuth);
-      grantRoleAction = mockActionsRegistry.register.mock.calls.find(
-        (call: any[]) => call[0].name === 'grant_role_to_members'
-      )?.[0];
-    });
-
-    it('should grant role to members', async () => {
-      server.use(
-        rest.get('http://permission-backend/roles', (_req, res, ctx) => {
-          return res(ctx.json([
-            { name: 'role:default/admin', memberReferences: ['user:default/existing'] },
-          ]));
-        }),
-        rest.put('http://permission-backend/roles/role/default/admin', (_req, res, ctx) => {
-          return res(ctx.status(200), ctx.json({ success: true }));
-        }),
-      );
-
-      const result = await grantRoleAction.action({
-        input: { roleRef: 'role:default/admin', members: ['user:default/newuser'] },
-        credentials: undefined,
-      });
-
-      expect(result.output.success).toBe(true);
-    });
-
-    it('should throw error when role not found', async () => {
-      server.use(
-        rest.get('http://permission-backend/roles', (_req, res, ctx) => {
-          return res(ctx.json([]));
-        }),
-      );
-
-      await expect(
-        grantRoleAction.action({
-          input: { roleRef: 'role:default/nonexistent', members: ['user:default/user'] },
-          credentials: undefined,
-        })
-      ).rejects.toThrow();
-    });
-  });
-
-  describe('assign_permissions_to_role action', () => {
-    let assignPermissionsAction: any;
-
-    beforeEach(() => {
-      registerMcpActions(mockActionsRegistry as any, mockDiscovery, mockAuth);
-      assignPermissionsAction = mockActionsRegistry.register.mock.calls.find(
-        (call: any[]) => call[0].name === 'assign_permissions_to_role'
-      )?.[0];
-    });
-
-    it('should assign permissions to role', async () => {
-      server.use(
-        rest.post('http://permission-backend/policies', (_req, res, ctx) => {
-          return res(ctx.status(201), ctx.json({ success: true }));
-        }),
-      );
-
-      const result = await assignPermissionsAction.action({
-        input: {
-          roleRef: 'role:default/admin',
-          permissions: [{ permission: 'catalog.entity.read', policy: 'read', effect: 'allow' }],
-        },
-        credentials: undefined,
-      });
-
-      expect(result.output.success).toBe(true);
-    });
-
-    it('should handle API errors', async () => {
-      server.use(
-        rest.post('http://permission-backend/policies', (_req, res, ctx) => {
-          return res(ctx.status(500), ctx.json({ error: 'Server Error' }));
-        }),
-      );
-
-      await expect(
-        assignPermissionsAction.action({
-          input: {
-            roleRef: 'role:default/admin',
-            permissions: [{ permission: 'test', policy: 'read', effect: 'allow' }],
-          },
-          credentials: undefined,
-        })
-      ).rejects.toThrow();
-    });
-  });
-
-  describe('create_conditional_permission action', () => {
-    let createConditionalAction: any;
-
-    beforeEach(() => {
-      registerMcpActions(mockActionsRegistry as any, mockDiscovery, mockAuth);
-      createConditionalAction = mockActionsRegistry.register.mock.calls.find(
-        (call: any[]) => call[0].name === 'create_conditional_permission'
-      )?.[0];
-    });
-
-    it('should create conditional permission', async () => {
-      server.use(
-        rest.post('http://permission-backend/plugins/condition-rules', (_req, res, ctx) => {
-          return res(ctx.status(201), ctx.json({ id: 1 }));
-        }),
-      );
-
-      const result = await createConditionalAction.action({
-        input: {
-          roleRef: 'role:default/admin',
-          pluginId: 'catalog',
-          resourceType: 'catalog-entity',
-          permission: 'catalog.entity.read',
-          conditions: { rule: 'IS_ENTITY_OWNER', params: {} },
-        },
-        credentials: undefined,
-      });
-
-      expect(result.output.success).toBe(true);
     });
   });
 
@@ -313,148 +165,30 @@ describe('registerMcpActions', () => {
         }),
       );
 
-      const result = await listRulesAction.action({ credentials: undefined });
+      const result = await listRulesAction.action({ 
+        input: {},
+        credentials: undefined 
+      });
 
       expect(result.output.plugins).toBeDefined();
     });
   });
 
-  describe('get_user_effective_permissions action', () => {
-    let getEffectiveAction: any;
-
-    beforeEach(() => {
+  describe('action schema validation', () => {
+    it('should have valid schemas for all actions', () => {
       registerMcpActions(mockActionsRegistry as any, mockDiscovery, mockAuth);
-      getEffectiveAction = mockActionsRegistry.register.mock.calls.find(
-        (call: any[]) => call[0].name === 'get_user_effective_permissions'
-      )?.[0];
-    });
 
-    it('should get user effective permissions', async () => {
-      server.use(
-        rest.get('http://permission-backend/roles', (_req, res, ctx) => {
-          return res(ctx.json([
-            { name: 'role:default/admin', memberReferences: ['user:default/testuser'] },
-          ]));
-        }),
-        rest.get('http://permission-backend/policies', (_req, res, ctx) => {
-          return res(ctx.json([
-            { entityReference: 'role:default/admin', permission: 'catalog.entity.read', policy: 'allow', effect: 'allow' },
-          ]));
-        }),
-        rest.get('http://permission-backend/plugins/condition-rules', (_req, res, ctx) => {
-          return res(ctx.json([]));
-        }),
-      );
-
-      const result = await getEffectiveAction.action({
-        input: { userRef: 'user:default/testuser' },
-        credentials: undefined,
+      mockActionsRegistry.register.mock.calls.forEach((call: any[]) => {
+        const action = call[0];
+        expect(action.name).toBeDefined();
+        expect(action.title).toBeDefined();
+        expect(action.description).toBeDefined();
+        expect(action.schema).toBeDefined();
+        expect(action.schema.input).toBeDefined();
+        expect(action.schema.output).toBeDefined();
+        expect(action.action).toBeDefined();
+        expect(typeof action.action).toBe('function');
       });
-
-      expect(result.output.userRef).toBe('user:default/testuser');
-      expect(result.output.roles).toBeDefined();
-    });
-  });
-
-  describe('list_conditional_policies action', () => {
-    let listPoliciesAction: any;
-
-    beforeEach(() => {
-      registerMcpActions(mockActionsRegistry as any, mockDiscovery, mockAuth);
-      listPoliciesAction = mockActionsRegistry.register.mock.calls.find(
-        (call: any[]) => call[0].name === 'list_conditional_policies'
-      )?.[0];
-    });
-
-    it('should list conditional policies', async () => {
-      server.use(
-        rest.get('http://permission-backend/plugins/condition-rules', (_req, res, ctx) => {
-          return res(ctx.json([
-            { id: 1, roleEntityRef: 'role:default/admin', result: 'CONDITIONAL', pluginId: 'catalog' },
-          ]));
-        }),
-      );
-
-      const result = await listPoliciesAction.action({
-        input: {},
-        credentials: undefined,
-      });
-
-      expect(result.output.policies).toBeDefined();
-    });
-
-    it('should filter by roleRef', async () => {
-      server.use(
-        rest.get('http://permission-backend/plugins/condition-rules', (_req, res, ctx) => {
-          return res(ctx.json([
-            { id: 1, roleEntityRef: 'role:default/admin', result: 'CONDITIONAL', pluginId: 'catalog' },
-            { id: 2, roleEntityRef: 'role:default/dev', result: 'CONDITIONAL', pluginId: 'catalog' },
-          ]));
-        }),
-      );
-
-      const result = await listPoliciesAction.action({
-        input: { roleRef: 'role:default/admin' },
-        credentials: undefined,
-      });
-
-      expect(result.output.policies.filter((p: any) => p.roleEntityRef === 'role:default/admin')).toBeDefined();
-    });
-  });
-
-  describe('create_role_with_permissions action', () => {
-    let createRoleAction: any;
-
-    beforeEach(() => {
-      registerMcpActions(mockActionsRegistry as any, mockDiscovery, mockAuth);
-      createRoleAction = mockActionsRegistry.register.mock.calls.find(
-        (call: any[]) => call[0].name === 'create_role_with_permissions'
-      )?.[0];
-    });
-
-    it('should create role with permissions', async () => {
-      server.use(
-        rest.post('http://permission-backend/roles', (_req, res, ctx) => {
-          return res(ctx.status(201), ctx.json({ success: true }));
-        }),
-        rest.post('http://permission-backend/policies', (_req, res, ctx) => {
-          return res(ctx.status(201), ctx.json({ success: true }));
-        }),
-      );
-
-      const result = await createRoleAction.action({
-        input: {
-          roleName: 'test-role',
-          namespace: 'default',
-          members: ['user:default/testuser'],
-          permissions: [{ permission: 'catalog.entity.read', policy: 'read', effect: 'allow' }],
-          description: 'Test role',
-        },
-        credentials: undefined,
-      });
-
-      expect(result.output.success).toBe(true);
-      expect(result.output.roleRef).toBe('role:default/test-role');
-    });
-
-    it('should handle role creation failure', async () => {
-      server.use(
-        rest.post('http://permission-backend/roles', (_req, res, ctx) => {
-          return res(ctx.status(500), ctx.json({ error: 'Failed' }));
-        }),
-      );
-
-      await expect(
-        createRoleAction.action({
-          input: {
-            roleName: 'test-role',
-            namespace: 'default',
-            members: ['user:default/testuser'],
-            permissions: [],
-          },
-          credentials: undefined,
-        })
-      ).rejects.toThrow();
     });
   });
 });

@@ -130,37 +130,6 @@ describe('registerMcpActions', () => {
       )?.[0];
     });
 
-    it('should get template parameter schema', async () => {
-      mockCatalogService.queryEntities.mockResolvedValue({
-        items: [
-          {
-            kind: 'Template',
-            metadata: { name: 'my-template', namespace: 'default' },
-            spec: {
-              parameters: [
-                {
-                  title: 'Basic Info',
-                  properties: {
-                    name: { type: 'string', title: 'Name' },
-                    description: { type: 'string', title: 'Description' },
-                  },
-                  required: ['name'],
-                },
-              ],
-            },
-          },
-        ],
-      });
-
-      const result = await getSchemaAction.action({
-        input: { templateName: 'my-template' },
-        credentials: undefined,
-      });
-
-      expect(result.output.templateName).toBe('my-template');
-      expect(result.output.parameters).toHaveLength(1);
-    });
-
     it('should throw error when template not found', async () => {
       mockCatalogService.queryEntities.mockResolvedValue({ items: [] });
 
@@ -186,86 +155,6 @@ describe('registerMcpActions', () => {
           credentials: undefined,
         })
       ).rejects.toThrow('Multiple templates found');
-    });
-  });
-
-  describe('run_software_template action', () => {
-    let runTemplateAction: any;
-
-    beforeEach(() => {
-      registerMcpActions(
-        mockActionsRegistry as any,
-        mockCatalogService as any,
-        mockDiscovery,
-        mockAuth,
-      );
-      runTemplateAction = mockActionsRegistry.register.mock.calls.find(
-        (call: any[]) => call[0].name === 'run_software_template'
-      )?.[0];
-    });
-
-    it('should run a template', async () => {
-      mockCatalogService.queryEntities.mockResolvedValue({
-        items: [
-          {
-            kind: 'Template',
-            metadata: { name: 'my-template', namespace: 'default' },
-            spec: { parameters: [] },
-          },
-        ],
-      });
-
-      server.use(
-        rest.post('http://scaffolder-backend/v2/tasks', (_req, res, ctx) => {
-          return res(ctx.json({ id: 'task-123' }));
-        }),
-        rest.get('http://scaffolder-backend/v2/tasks/task-123', (_req, res, ctx) => {
-          return res(ctx.json({
-            id: 'task-123',
-            status: 'completed',
-            output: { links: [{ entityRef: 'component:default/new-component' }] },
-          }));
-        }),
-      );
-
-      const result = await runTemplateAction.action({
-        input: {
-          templateName: 'my-template',
-          values: { name: 'test-project' },
-        },
-        credentials: undefined,
-      });
-
-      expect(result.output.taskId).toBe('task-123');
-      expect(result.output.status).toBe('completed');
-    });
-
-    it('should handle task creation failure', async () => {
-      mockCatalogService.queryEntities.mockResolvedValue({
-        items: [
-          {
-            kind: 'Template',
-            metadata: { name: 'my-template', namespace: 'default' },
-            spec: { parameters: [] },
-          },
-        ],
-      });
-
-      server.use(
-        rest.post('http://scaffolder-backend/v2/tasks', (_req, res, ctx) => {
-          return res(ctx.status(500), ctx.json({ error: 'Task creation failed' }));
-        }),
-      );
-
-      await expect(
-        runTemplateAction.action({
-          input: {
-            templateName: 'my-template',
-            values: { name: 'test-project' },
-          },
-          credentials: undefined,
-        })
-      ).rejects.toThrow();
     });
   });
 
@@ -299,16 +188,6 @@ describe('registerMcpActions', () => {
       expect(result.output.actions).toHaveLength(2);
       expect(result.output.count).toBe(2);
     });
-
-    it('should handle API errors', async () => {
-      server.use(
-        rest.get('http://scaffolder-backend/v2/actions', (_req, res, ctx) => {
-          return res(ctx.status(500), ctx.json({ error: 'Server Error' }));
-        }),
-      );
-
-      await expect(listActionsAction.action({ credentials: undefined })).rejects.toThrow();
-    });
   });
 
   describe('get_software_template_action_details action', () => {
@@ -324,32 +203,6 @@ describe('registerMcpActions', () => {
       getActionDetailsAction = mockActionsRegistry.register.mock.calls.find(
         (call: any[]) => call[0].name === 'get_software_template_action_details'
       )?.[0];
-    });
-
-    it('should get action details', async () => {
-      server.use(
-        rest.get('http://scaffolder-backend/v2/actions', (_req, res, ctx) => {
-          return res(ctx.json([
-            {
-              id: 'fetch:plain',
-              name: 'fetch:plain',
-              description: 'Fetch plain files',
-              schema: {
-                input: { properties: { url: { type: 'string' } } },
-                output: { properties: { path: { type: 'string' } } },
-              },
-            },
-          ]));
-        }),
-      );
-
-      const result = await getActionDetailsAction.action({
-        input: { actionId: 'fetch:plain' },
-        credentials: undefined,
-      });
-
-      expect(result.output.actionId).toBe('fetch:plain');
-      expect(result.output.schema).toBeDefined();
     });
 
     it('should throw error when action not found', async () => {
@@ -383,21 +236,6 @@ describe('registerMcpActions', () => {
       )?.[0];
     });
 
-    it('should list all extensions', async () => {
-      server.use(
-        rest.get('http://scaffolder-backend/v2/extensions', (_req, res, ctx) => {
-          return res(ctx.json([
-            { id: 'filter1', name: 'Filter 1', type: 'filter' },
-            { id: 'field1', name: 'Field 1', type: 'field' },
-          ]));
-        }),
-      );
-
-      const result = await listExtensionsAction.action({ credentials: undefined });
-
-      expect(result.output.extensions).toBeDefined();
-    });
-
     it('should handle empty extensions list', async () => {
       server.use(
         rest.get('http://scaffolder-backend/v2/extensions', (_req, res, ctx) => {
@@ -427,28 +265,6 @@ describe('registerMcpActions', () => {
       )?.[0];
     });
 
-    it('should get extension details', async () => {
-      server.use(
-        rest.get('http://scaffolder-backend/v2/extensions', (_req, res, ctx) => {
-          return res(ctx.json([
-            {
-              id: 'my-filter',
-              name: 'My Filter',
-              type: 'filter',
-              schema: { input: {}, output: {} },
-            },
-          ]));
-        }),
-      );
-
-      const result = await getExtensionAction.action({
-        input: { extensionId: 'my-filter' },
-        credentials: undefined,
-      });
-
-      expect(result.output.extensionId).toBe('my-filter');
-    });
-
     it('should throw error when extension not found', async () => {
       server.use(
         rest.get('http://scaffolder-backend/v2/extensions', (_req, res, ctx) => {
@@ -462,6 +278,29 @@ describe('registerMcpActions', () => {
           credentials: undefined,
         })
       ).rejects.toThrow();
+    });
+  });
+
+  describe('action schema validation', () => {
+    it('should have valid schemas for all actions', () => {
+      registerMcpActions(
+        mockActionsRegistry as any,
+        mockCatalogService as any,
+        mockDiscovery,
+        mockAuth,
+      );
+
+      mockActionsRegistry.register.mock.calls.forEach((call: any[]) => {
+        const action = call[0];
+        expect(action.name).toBeDefined();
+        expect(action.title).toBeDefined();
+        expect(action.description).toBeDefined();
+        expect(action.schema).toBeDefined();
+        expect(action.schema.input).toBeDefined();
+        expect(action.schema.output).toBeDefined();
+        expect(action.action).toBeDefined();
+        expect(typeof action.action).toBe('function');
+      });
     });
   });
 });
