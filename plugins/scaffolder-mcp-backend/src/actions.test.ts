@@ -81,11 +81,11 @@ describe('registerMcpActions', () => {
         items: [
           {
             kind: 'Template',
-            metadata: { name: 'template-1', title: 'Template 1', description: 'First template', tags: ['java'] },
+            metadata: { name: 'template-1', title: 'Template 1', description: 'First template', tags: ['java'], namespace: 'default' },
           },
           {
             kind: 'Template',
-            metadata: { name: 'template-2', title: 'Template 2', tags: ['python', 'backend'] },
+            metadata: { name: 'template-2', title: 'Template 2', tags: ['python', 'backend'], namespace: 'default' },
           },
         ],
       });
@@ -96,6 +96,7 @@ describe('registerMcpActions', () => {
       expect(result.output.count).toBe(2);
       expect(result.output.templates[0].name).toBe('template-1');
       expect(result.output.templates[0].tags).toContain('java');
+      expect(result.output.templates[0].entityRef).toBe('template:default/template-1');
     });
 
     it('should handle templates without tags', async () => {
@@ -103,7 +104,7 @@ describe('registerMcpActions', () => {
         items: [
           {
             kind: 'Template',
-            metadata: { name: 'template-1' },
+            metadata: { name: 'template-1', namespace: 'default' },
           },
         ],
       });
@@ -112,6 +113,30 @@ describe('registerMcpActions', () => {
 
       expect(result.output.templates[0].tags).toEqual([]);
       expect(result.output.templates[0].title).toBe('template-1');
+    });
+
+    it('should handle templates without title', async () => {
+      mockCatalogService.queryEntities.mockResolvedValue({
+        items: [
+          {
+            kind: 'Template',
+            metadata: { name: 'no-title-template', namespace: 'default' },
+          },
+        ],
+      });
+
+      const result = await listTemplatesAction.action({ credentials: undefined });
+
+      expect(result.output.templates[0].title).toBe('no-title-template');
+    });
+
+    it('should handle empty templates list', async () => {
+      mockCatalogService.queryEntities.mockResolvedValue({ items: [] });
+
+      const result = await listTemplatesAction.action({ credentials: undefined });
+
+      expect(result.output.templates).toHaveLength(0);
+      expect(result.output.count).toBe(0);
     });
   });
 
@@ -130,15 +155,100 @@ describe('registerMcpActions', () => {
       )?.[0];
     });
 
+    it('should get template parameter schema', async () => {
+      mockCatalogService.queryEntities.mockResolvedValue({
+        items: [
+          {
+            kind: 'Template',
+            metadata: { name: 'my-template', title: 'My Template', description: 'A test template', namespace: 'default' },
+            spec: {
+              parameters: [
+                { title: 'Step 1', properties: { name: { type: 'string' } }, required: ['name'] },
+              ],
+            },
+          },
+        ],
+      });
+
+      const result = await getSchemaAction.action({
+        input: { templateNameOrRef: 'my-template' },
+        credentials: undefined,
+      });
+
+      expect(result.output.templateName).toBe('my-template');
+      expect(result.output.templateTitle).toBe('My Template');
+      expect(result.output.parameters).toHaveLength(1);
+      expect(result.output.entityRef).toBe('template:default/my-template');
+    });
+
+    it('should handle full entity ref', async () => {
+      mockCatalogService.queryEntities.mockResolvedValue({
+        items: [
+          {
+            kind: 'Template',
+            metadata: { name: 'my-template', namespace: 'custom' },
+            spec: { parameters: [] },
+          },
+        ],
+      });
+
+      const result = await getSchemaAction.action({
+        input: { templateNameOrRef: 'template:custom/my-template' },
+        credentials: undefined,
+      });
+
+      expect(result.output.entityRef).toBe('template:custom/my-template');
+    });
+
+    it('should handle parameters as single object', async () => {
+      mockCatalogService.queryEntities.mockResolvedValue({
+        items: [
+          {
+            kind: 'Template',
+            metadata: { name: 'my-template', namespace: 'default' },
+            spec: {
+              parameters: { title: 'Single Step', properties: { name: { type: 'string' } } },
+            },
+          },
+        ],
+      });
+
+      const result = await getSchemaAction.action({
+        input: { templateNameOrRef: 'my-template' },
+        credentials: undefined,
+      });
+
+      expect(result.output.parameters).toHaveLength(1);
+    });
+
+    it('should handle template without parameters', async () => {
+      mockCatalogService.queryEntities.mockResolvedValue({
+        items: [
+          {
+            kind: 'Template',
+            metadata: { name: 'my-template', namespace: 'default' },
+            spec: {},
+          },
+        ],
+      });
+
+      const result = await getSchemaAction.action({
+        input: { templateNameOrRef: 'my-template' },
+        credentials: undefined,
+      });
+
+      expect(result.output.parameters).toEqual([]);
+    });
+
     it('should throw error when template not found', async () => {
       mockCatalogService.queryEntities.mockResolvedValue({ items: [] });
 
       await expect(
         getSchemaAction.action({
-          input: { templateName: 'nonexistent' },
+          input: { templateNameOrRef: 'nonexistent' },
           credentials: undefined,
         })
-      ).rejects.toThrow();
+      ).rejects.toThrow('No template found');
     });
 
     it('should throw error when multiple templates found', async () => {
@@ -151,10 +261,183 @@ describe('registerMcpActions', () => {
 
       await expect(
         getSchemaAction.action({
-          input: { templateName: 'my-template' },
+          input: { templateNameOrRef: 'my-template' },
           credentials: undefined,
         })
       ).rejects.toThrow('Multiple templates found');
+    });
+
+    it('should throw error if entity is not a template', async () => {
+      mockCatalogService.queryEntities.mockResolvedValue({
+        items: [
+          { kind: 'Component', metadata: { name: 'my-component', namespace: 'default' } },
+        ],
+      });
+
+      await expect(
+        getSchemaAction.action({
+          input: { templateNameOrRef: 'my-component' },
+          credentials: undefined,
+        })
+      ).rejects.toThrow('is not a Template');
+    });
+  });
+
+  describe('run_software_template action', () => {
+    let runTemplateAction: any;
+
+    beforeEach(() => {
+      registerMcpActions(
+        mockActionsRegistry as any,
+        mockCatalogService as any,
+        mockDiscovery,
+        mockAuth,
+      );
+      runTemplateAction = mockActionsRegistry.register.mock.calls.find(
+        (call: any[]) => call[0].name === 'run_software_template'
+      )?.[0];
+    });
+
+    it('should run template successfully', async () => {
+      mockCatalogService.queryEntities.mockResolvedValue({
+        items: [
+          {
+            kind: 'Template',
+            metadata: { name: 'my-template', namespace: 'default' },
+            spec: { parameters: [] },
+          },
+        ],
+      });
+
+      server.use(
+        rest.post('http://scaffolder-backend/v2/tasks', (_req, res, ctx) => {
+          return res(ctx.json({ id: 'task-123' }));
+        }),
+        rest.get('http://scaffolder-backend/v2/tasks/task-123', (_req, res, ctx) => {
+          return res(ctx.json({ status: 'completed', output: { repoUrl: 'https://github.com/test/repo' } }));
+        }),
+      );
+
+      const result = await runTemplateAction.action({
+        input: {
+          templateNameOrRef: 'my-template',
+          parameters: { name: 'test-project' },
+        },
+        credentials: undefined,
+      });
+
+      expect(result.output.taskId).toBe('task-123');
+      expect(result.output.status).toBe('completed');
+      expect(result.output.output.repoUrl).toBe('https://github.com/test/repo');
+    });
+
+    it('should handle template execution failure', async () => {
+      mockCatalogService.queryEntities.mockResolvedValue({
+        items: [
+          {
+            kind: 'Template',
+            metadata: { name: 'my-template', namespace: 'default' },
+            spec: { parameters: [] },
+          },
+        ],
+      });
+
+      server.use(
+        rest.post('http://scaffolder-backend/v2/tasks', (_req, res, ctx) => {
+          return res(ctx.status(400), ctx.text('Invalid parameters'));
+        }),
+      );
+
+      await expect(
+        runTemplateAction.action({
+          input: { templateNameOrRef: 'my-template', parameters: {} },
+          credentials: undefined,
+        })
+      ).rejects.toThrow('Failed to execute template');
+    });
+
+    it('should handle task failed status', async () => {
+      mockCatalogService.queryEntities.mockResolvedValue({
+        items: [
+          {
+            kind: 'Template',
+            metadata: { name: 'my-template', namespace: 'default' },
+            spec: { parameters: [] },
+          },
+        ],
+      });
+
+      server.use(
+        rest.post('http://scaffolder-backend/v2/tasks', (_req, res, ctx) => {
+          return res(ctx.json({ id: 'task-123' }));
+        }),
+        rest.get('http://scaffolder-backend/v2/tasks/task-123', (_req, res, ctx) => {
+          return res(ctx.json({ status: 'failed', error: { message: 'Step failed' } }));
+        }),
+      );
+
+      await expect(
+        runTemplateAction.action({
+          input: { templateNameOrRef: 'my-template', parameters: {} },
+          credentials: undefined,
+        })
+      ).rejects.toThrow('Template execution failed');
+    });
+
+    it('should handle task cancelled status', async () => {
+      mockCatalogService.queryEntities.mockResolvedValue({
+        items: [
+          {
+            kind: 'Template',
+            metadata: { name: 'my-template', namespace: 'default' },
+            spec: { parameters: [] },
+          },
+        ],
+      });
+
+      server.use(
+        rest.post('http://scaffolder-backend/v2/tasks', (_req, res, ctx) => {
+          return res(ctx.json({ id: 'task-123' }));
+        }),
+        rest.get('http://scaffolder-backend/v2/tasks/task-123', (_req, res, ctx) => {
+          return res(ctx.json({ status: 'cancelled' }));
+        }),
+      );
+
+      await expect(
+        runTemplateAction.action({
+          input: { templateNameOrRef: 'my-template', parameters: {} },
+          credentials: undefined,
+        })
+      ).rejects.toThrow('Template execution was cancelled');
+    });
+
+    it('should handle task status fetch error', async () => {
+      mockCatalogService.queryEntities.mockResolvedValue({
+        items: [
+          {
+            kind: 'Template',
+            metadata: { name: 'my-template', namespace: 'default' },
+            spec: { parameters: [] },
+          },
+        ],
+      });
+
+      server.use(
+        rest.post('http://scaffolder-backend/v2/tasks', (_req, res, ctx) => {
+          return res(ctx.json({ id: 'task-123' }));
+        }),
+        rest.get('http://scaffolder-backend/v2/tasks/task-123', (_req, res, ctx) => {
+          return res(ctx.status(500), ctx.text('Server error'));
+        }),
+      );
+
+      await expect(
+        runTemplateAction.action({
+          input: { templateNameOrRef: 'my-template', parameters: {} },
+          credentials: undefined,
+        })
+      ).rejects.toThrow('Failed to fetch task status');
     });
   });
 
@@ -177,19 +460,70 @@ describe('registerMcpActions', () => {
       server.use(
         rest.get('http://scaffolder-backend/v2/actions', (_req, res, ctx) => {
           return res(ctx.json([
-            { id: 'fetch:plain', name: 'fetch:plain', description: 'Fetch plain files' },
-            { id: 'publish:github', name: 'publish:github', description: 'Publish to GitHub' },
+            { id: 'fetch:plain', description: 'Fetch plain files' },
+            { id: 'publish:github', description: 'Publish to GitHub' },
           ]));
         }),
       );
 
-      const result = await listActionsAction.action({ 
+      const result = await listActionsAction.action({
         input: {},
-        credentials: undefined 
+        credentials: undefined,
       });
 
       expect(result.output.actions).toHaveLength(2);
       expect(result.output.count).toBe(2);
+    });
+
+    it('should filter actions by string', async () => {
+      server.use(
+        rest.get('http://scaffolder-backend/v2/actions', (_req, res, ctx) => {
+          return res(ctx.json([
+            { id: 'fetch:plain', description: 'Fetch plain files' },
+            { id: 'publish:github', description: 'Publish to GitHub' },
+            { id: 'publish:gitlab', description: 'Publish to GitLab' },
+          ]));
+        }),
+      );
+
+      const result = await listActionsAction.action({
+        input: { filter: 'publish' },
+        credentials: undefined,
+      });
+
+      expect(result.output.actions).toHaveLength(2);
+      expect(result.output.actions.every((a: any) => a.id.includes('publish'))).toBe(true);
+    });
+
+    it('should filter actions by description', async () => {
+      server.use(
+        rest.get('http://scaffolder-backend/v2/actions', (_req, res, ctx) => {
+          return res(ctx.json([
+            { id: 'fetch:plain', description: 'Fetch plain files' },
+            { id: 'publish:github', description: 'Publish to GitHub' },
+          ]));
+        }),
+      );
+
+      const result = await listActionsAction.action({
+        input: { filter: 'github' },
+        credentials: undefined,
+      });
+
+      expect(result.output.actions).toHaveLength(1);
+      expect(result.output.actions[0].id).toBe('publish:github');
+    });
+
+    it('should handle API errors', async () => {
+      server.use(
+        rest.get('http://scaffolder-backend/v2/actions', (_req, res, ctx) => {
+          return res(ctx.status(500), ctx.text('Server error'));
+        }),
+      );
+
+      await expect(
+        listActionsAction.action({ input: {}, credentials: undefined })
+      ).rejects.toThrow('Failed to fetch actions');
     });
   });
 
@@ -208,6 +542,49 @@ describe('registerMcpActions', () => {
       )?.[0];
     });
 
+    it('should get action details', async () => {
+      server.use(
+        rest.get('http://scaffolder-backend/v2/actions', (_req, res, ctx) => {
+          return res(ctx.json([
+            {
+              id: 'fetch:plain',
+              description: 'Fetch plain files',
+              schema: { input: { type: 'object' }, output: { type: 'object' } },
+              examples: [{ title: 'Example', description: 'An example' }],
+            },
+          ]));
+        }),
+      );
+
+      const result = await getActionDetailsAction.action({
+        input: { actionId: 'fetch:plain' },
+        credentials: undefined,
+      });
+
+      expect(result.output.id).toBe('fetch:plain');
+      expect(result.output.description).toBe('Fetch plain files');
+      expect(result.output.schema).toBeDefined();
+      expect(result.output.examples).toHaveLength(1);
+    });
+
+    it('should handle action without schema', async () => {
+      server.use(
+        rest.get('http://scaffolder-backend/v2/actions', (_req, res, ctx) => {
+          return res(ctx.json([
+            { id: 'fetch:plain', description: 'Fetch plain files' },
+          ]));
+        }),
+      );
+
+      const result = await getActionDetailsAction.action({
+        input: { actionId: 'fetch:plain' },
+        credentials: undefined,
+      });
+
+      expect(result.output.schema).toEqual({});
+      expect(result.output.examples).toEqual([]);
+    });
+
     it('should throw error when action not found', async () => {
       server.use(
         rest.get('http://scaffolder-backend/v2/actions', (_req, res, ctx) => {
@@ -220,37 +597,262 @@ describe('registerMcpActions', () => {
           input: { actionId: 'nonexistent' },
           credentials: undefined,
         })
-      ).rejects.toThrow();
+      ).rejects.toThrow('No action found');
+    });
+
+    it('should handle API errors', async () => {
+      server.use(
+        rest.get('http://scaffolder-backend/v2/actions', (_req, res, ctx) => {
+          return res(ctx.status(500), ctx.text('Server error'));
+        }),
+      );
+
+      await expect(
+        getActionDetailsAction.action({
+          input: { actionId: 'fetch:plain' },
+          credentials: undefined,
+        })
+      ).rejects.toThrow('Failed to fetch actions');
     });
   });
 
   describe('list_software_template_extensions action', () => {
-    it('should be registered', () => {
+    let listExtensionsAction: any;
+
+    beforeEach(() => {
       registerMcpActions(
         mockActionsRegistry as any,
         mockCatalogService as any,
         mockDiscovery,
         mockAuth,
       );
-      const listExtensionsAction = mockActionsRegistry.register.mock.calls.find(
+      listExtensionsAction = mockActionsRegistry.register.mock.calls.find(
         (call: any[]) => call[0].name === 'list_software_template_extensions'
       )?.[0];
-      expect(listExtensionsAction).toBeDefined();
+    });
+
+    it('should list all extensions', async () => {
+      server.use(
+        rest.get('http://scaffolder-backend/v2/templating-extensions', (_req, res, ctx) => {
+          return res(ctx.json({
+            filters: {
+              parseRepoUrl: { description: 'Parse repository URL' },
+              parseEntityRef: { description: 'Parse entity reference' },
+            },
+            globals: {
+              functions: {
+                uuid: { description: 'Generate UUID' },
+              },
+              values: {
+                timestamp: { description: 'Current timestamp', value: '2025-01-01' },
+              },
+            },
+          }));
+        }),
+      );
+
+      const result = await listExtensionsAction.action({
+        input: {},
+        credentials: undefined,
+      });
+
+      expect(result.output.extensions).toHaveLength(4);
+      expect(result.output.count).toBe(4);
+      expect(result.output.extensions.filter((e: any) => e.type === 'filter')).toHaveLength(2);
+      expect(result.output.extensions.filter((e: any) => e.type === 'function')).toHaveLength(1);
+      expect(result.output.extensions.filter((e: any) => e.type === 'value')).toHaveLength(1);
+    });
+
+    it('should filter extensions by name', async () => {
+      server.use(
+        rest.get('http://scaffolder-backend/v2/templating-extensions', (_req, res, ctx) => {
+          return res(ctx.json({
+            filters: {
+              parseRepoUrl: { description: 'Parse repository URL' },
+              parseEntityRef: { description: 'Parse entity reference' },
+            },
+          }));
+        }),
+      );
+
+      const result = await listExtensionsAction.action({
+        input: { filter: 'repo' },
+        credentials: undefined,
+      });
+
+      expect(result.output.extensions).toHaveLength(1);
+      expect(result.output.extensions[0].name).toBe('parseRepoUrl');
+    });
+
+    it('should filter extensions by description', async () => {
+      server.use(
+        rest.get('http://scaffolder-backend/v2/templating-extensions', (_req, res, ctx) => {
+          return res(ctx.json({
+            filters: {
+              parseRepoUrl: { description: 'Parse repository URL' },
+              parseEntityRef: { description: 'Parse entity reference' },
+            },
+          }));
+        }),
+      );
+
+      const result = await listExtensionsAction.action({
+        input: { filter: 'entity' },
+        credentials: undefined,
+      });
+
+      expect(result.output.extensions).toHaveLength(1);
+      expect(result.output.extensions[0].name).toBe('parseEntityRef');
+    });
+
+    it('should handle empty response', async () => {
+      server.use(
+        rest.get('http://scaffolder-backend/v2/templating-extensions', (_req, res, ctx) => {
+          return res(ctx.json({}));
+        }),
+      );
+
+      const result = await listExtensionsAction.action({
+        input: {},
+        credentials: undefined,
+      });
+
+      expect(result.output.extensions).toHaveLength(0);
+      expect(result.output.count).toBe(0);
+    });
+
+    it('should handle API errors', async () => {
+      server.use(
+        rest.get('http://scaffolder-backend/v2/templating-extensions', (_req, res, ctx) => {
+          return res(ctx.status(500), ctx.text('Server error'));
+        }),
+      );
+
+      await expect(
+        listExtensionsAction.action({ input: {}, credentials: undefined })
+      ).rejects.toThrow('Failed to fetch template extensions');
     });
   });
 
   describe('get_software_template_extension_details action', () => {
-    it('should be registered', () => {
+    let getExtensionAction: any;
+
+    beforeEach(() => {
       registerMcpActions(
         mockActionsRegistry as any,
         mockCatalogService as any,
         mockDiscovery,
         mockAuth,
       );
-      const getExtensionAction = mockActionsRegistry.register.mock.calls.find(
+      getExtensionAction = mockActionsRegistry.register.mock.calls.find(
         (call: any[]) => call[0].name === 'get_software_template_extension_details'
       )?.[0];
-      expect(getExtensionAction).toBeDefined();
+    });
+
+    it('should get filter extension details', async () => {
+      server.use(
+        rest.get('http://scaffolder-backend/v2/templating-extensions', (_req, res, ctx) => {
+          return res(ctx.json({
+            filters: {
+              parseRepoUrl: {
+                description: 'Parse repository URL',
+                schema: { type: 'object' },
+                examples: [{ title: 'Example' }],
+              },
+            },
+          }));
+        }),
+      );
+
+      const result = await getExtensionAction.action({
+        input: { extensionName: 'parseRepoUrl' },
+        credentials: undefined,
+      });
+
+      expect(result.output.name).toBe('parseRepoUrl');
+      expect(result.output.type).toBe('filter');
+      expect(result.output.description).toBe('Parse repository URL');
+    });
+
+    it('should get function extension details', async () => {
+      server.use(
+        rest.get('http://scaffolder-backend/v2/templating-extensions', (_req, res, ctx) => {
+          return res(ctx.json({
+            globals: {
+              functions: {
+                uuid: {
+                  description: 'Generate UUID',
+                  schema: { type: 'string' },
+                },
+              },
+            },
+          }));
+        }),
+      );
+
+      const result = await getExtensionAction.action({
+        input: { extensionName: 'uuid' },
+        credentials: undefined,
+      });
+
+      expect(result.output.name).toBe('uuid');
+      expect(result.output.type).toBe('function');
+    });
+
+    it('should get value extension details', async () => {
+      server.use(
+        rest.get('http://scaffolder-backend/v2/templating-extensions', (_req, res, ctx) => {
+          return res(ctx.json({
+            globals: {
+              values: {
+                timestamp: {
+                  description: 'Current timestamp',
+                  value: '2025-01-01',
+                },
+              },
+            },
+          }));
+        }),
+      );
+
+      const result = await getExtensionAction.action({
+        input: { extensionName: 'timestamp' },
+        credentials: undefined,
+      });
+
+      expect(result.output.name).toBe('timestamp');
+      expect(result.output.type).toBe('value');
+      expect(result.output.value).toBe('2025-01-01');
+    });
+
+    it('should throw error when extension not found', async () => {
+      server.use(
+        rest.get('http://scaffolder-backend/v2/templating-extensions', (_req, res, ctx) => {
+          return res(ctx.json({ filters: {} }));
+        }),
+      );
+
+      await expect(
+        getExtensionAction.action({
+          input: { extensionName: 'nonexistent' },
+          credentials: undefined,
+        })
+      ).rejects.toThrow('No template extension found');
+    });
+
+    it('should handle API errors', async () => {
+      server.use(
+        rest.get('http://scaffolder-backend/v2/templating-extensions', (_req, res, ctx) => {
+          return res(ctx.status(500), ctx.text('Server error'));
+        }),
+      );
+
+      await expect(
+        getExtensionAction.action({
+          input: { extensionName: 'parseRepoUrl' },
+          credentials: undefined,
+        })
+      ).rejects.toThrow('Failed to fetch template extensions');
     });
   });
 

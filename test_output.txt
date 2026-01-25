@@ -4,113 +4,95 @@ PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/api/Vcf
 PASS @terasky/backstage-plugin-vcf-operations plugins/vcf-operations/src/api/VcfOperationsClient.test.ts
 PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/isCrossplaneAvailable.test.tsx
 PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/actions.test.ts
 PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/supplier/SpectroCloudClusterSupplier.test.ts
-PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/actions.test.ts
 PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/client/SpectroCloudClient.test.ts
-PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/providers/SpectroCloudEntityProvider.test.ts
 PASS @terasky/backstage-plugin-spectrocloud-ingestor plugins/spectrocloud-ingestor/src/providers/SpectroCloudEntityProvider.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/providers/SpectroCloudEntityProvider.test.ts
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/MCPService.test.ts
+PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/actions.test.ts
 PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/AiRulesService.test.ts
-FAIL @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/providers/EntityProvider.test.ts
-  ● KubernetesEntityProvider › run › should skip processing when components disabled
-
-    expect(jest.fn()).not.toHaveBeenCalled()
-
-    Expected number of calls: 0
-    Received number of calls: 1
-
-    1: {"entities": [], "type": "full"}
-
-      213 |
-      214 |       await provider.connect(mockConnection as any);
-    > 215 |       expect(mockConnection.applyMutation).not.toHaveBeenCalled();
-          |                                                ^
-      216 |     });
-      217 |   });
-      218 | });
-
-      at Object.toHaveBeenCalled (providers/EntityProvider.test.ts:215:48)
-
-PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/conditions.test.ts
-PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/service/KubernetesService.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/client/SpectroCloudClient.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/actions.test.ts
 PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/permissions.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/service/KubernetesService.test.ts
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/conditions.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/client/SpectroCloudClient.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/service/KubernetesService.test.ts
 PASS @terasky/backstage-plugin-spectrocloud-ingestor plugins/spectrocloud-ingestor/src/client/SpectroCloudClient.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/service/KubernetesService.test.ts
 PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/service/KubernetesService.test.ts
 PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/services/VcfAutomationService.test.ts
-PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/service/router.test.ts
 PASS @terasky/backstage-plugin-crossplane-common plugins/crossplane-common/src/index.test.ts
-PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/api/AiRulesClient.test.ts
-PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/api/KroApi.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/api/CrossplaneApi.test.ts
 PASS @terasky/backstage-plugin-educates plugins/educates/src/api/EducatesClient.test.ts
-PASS @terasky/backstage-plugin-kyverno-common plugins/kyverno-common/src/index.test.ts
+PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/service/router.test.ts
 PASS @terasky/backstage-plugin-educates-common plugins/educates-common/src/index.test.ts
+PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/api/AiRulesClient.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/api/CrossplaneApi.test.ts
+PASS @terasky/backstage-plugin-kyverno-common plugins/kyverno-common/src/index.test.ts
 PASS @terasky/backstage-plugin-vcf-automation-common plugins/vcf-automation-common/src/index.test.ts
-PASS @terasky/backstage-plugin-kro-common plugins/kro-common/src/index.test.ts
-PASS @terasky/backstage-plugin-kubernetes-resources-common plugins/kubernetes-resources-common/src/index.test.ts
-PASS @terasky/backstage-plugin-kubernetes-resources-frontend plugins/kubernetes-resources/src/plugin.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/plugin.test.ts
-PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/MCPService.test.ts
-PASS @terasky/backstage-plugin-spectrocloud plugins/spectrocloud/src/plugin.test.ts
-PASS @terasky/backstage-plugin-devpod plugins/devpod-plugin/src/plugin.test.ts
-PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/service/EducatesService.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/annotationUtils.test.ts
+PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/api/KroApi.test.ts
 PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/router.test.ts
-PASS @terasky/backstage-plugin-kubernetes-resources-permissions-backend plugins/kubernetes-resources-permissions-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kubernetes-resources-common plugins/kubernetes-resources-common/src/index.test.ts
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/service/EducatesService.test.ts
+PASS @terasky/backstage-plugin-kro-common plugins/kro-common/src/index.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/plugin.test.ts
 PASS @terasky/backstage-plugin-scaleops-frontend plugins/scaleops-frontend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/annotationUtils.test.ts
+PASS @terasky/backstage-plugin-devpod plugins/devpod-plugin/src/plugin.test.ts
+PASS @terasky/backstage-plugin-spectrocloud plugins/spectrocloud/src/plugin.test.ts
 PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kubernetes-resources-permissions-backend plugins/kubernetes-resources-permissions-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-educates plugins/educates/src/plugin.test.ts
 PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/plugin.test.ts
 PASS @terasky/backstage-plugin-spectrocloud-ingestor plugins/spectrocloud-ingestor/src/module.test.ts
-PASS @terasky/backstage-plugin-educates plugins/educates/src/plugin.test.ts
-PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/service/router.test.ts
-PASS @terasky/backstage-plugin-entity-scaffolder-content plugins/entity-scaffolder-content/src/plugin.test.ts
-PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/service/router.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-catalog-mcp-backend plugins/catalog-mcp-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/plugin.test.ts
-PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/plugin.test.ts
-PASS @terasky/plugin-scaffolder-mcp-backend plugins/scaffolder-mcp-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/service/router.test.ts
-PASS @terasky/plugin-rbac-mcp-backend plugins/rbac-mcp-backend/src/plugin.test.ts
 PASS @terasky/backstage-plugin-vcf-automation-ingestor plugins/vcf-automation-ingestor/src/module.test.ts
+PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/plugin.test.ts
+PASS @terasky/backstage-plugin-entity-scaffolder-content plugins/entity-scaffolder-content/src/plugin.test.ts
+PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-catalog-mcp-backend plugins/catalog-mcp-backend/src/plugin.test.ts
+PASS @terasky/plugin-rbac-mcp-backend plugins/rbac-mcp-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/plugin.test.ts
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/service/router.test.ts
+PASS @terasky/plugin-scaffolder-mcp-backend plugins/scaffolder-mcp-backend/src/plugin.test.ts
 PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/service/router.test.ts
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/plugin.test.ts
 PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/router.test.ts
 PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/services/KubernetesResourceFetcher.test.ts
 PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/plugin.test.ts
 PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/module.test.ts
-PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/module.test.ts
-PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/plugin.test.ts
-PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/plugin.test.ts
 PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/service/router.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-common plugins/spectrocloud-common/src/index.test.ts
-PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/api/KyvernoApi.test.ts
-PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-vcf-operations-common plugins/vcf-operations-common/src/index.test.ts
+PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/module.test.ts
+PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/service/router.test.ts
+PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kubernetes-resources-frontend plugins/kubernetes-resources/src/plugin.test.ts
+PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/router.test.ts
 PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/crd-templating.test.ts
-PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/catalog-info-cleaner.test.ts
+PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/api/KyvernoApi.test.ts
+PASS @terasky/backstage-plugin-vcf-operations-common plugins/vcf-operations-common/src/index.test.ts
 PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/claim-templating.test.ts
-PASS @terasky/backstage-plugin-vcf-operations plugins/vcf-operations/src/plugin.test.ts
+PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/catalog-info-cleaner.test.ts
+PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/plugin.test.ts
 PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/components/isKroAvailable.test.tsx
+PASS @terasky/backstage-plugin-vcf-operations plugins/vcf-operations/src/plugin.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-common plugins/spectrocloud-common/src/index.test.ts
 PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/module.test.ts
-PASS @terasky/backstage-plugin-vcf-automation-ingestor plugins/vcf-automation-ingestor/src/provider/EntityProvider.test.ts
 PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-vcf-automation-ingestor plugins/vcf-automation-ingestor/src/provider/EntityProvider.test.ts
+PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/providers/EntityProvider.test.ts
+PASS @terasky/backstage-plugin-catalog-mcp-backend plugins/catalog-mcp-backend/src/actions.test.ts
 PASS @terasky/plugin-rbac-mcp-backend plugins/rbac-mcp-backend/src/actions.test.ts
 PASS @terasky/plugin-scaffolder-mcp-backend plugins/scaffolder-mcp-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/service/ScaleOpsService.test.ts
-PASS @terasky/backstage-plugin-catalog-mcp-backend plugins/catalog-mcp-backend/src/actions.test.ts
 PASS @terasky/backstage-plugin-app-module-global-signin-page plugins/app-module-global-signin-page/src/module.test.tsx
+PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/service/ScaleOpsService.test.ts
 PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/services/VcfOperationsService.test.ts
 PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/router.test.ts
 PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/router.test.ts
+PASS @terasky/backstage-plugin-gitops-manifest-updater plugins/gitops-manifest-updater/src/plugin.test.ts
 PASS @terasky/backstage-plugin-educates plugins/educates/src/components/WorkshopCard.test.tsx
   ● Console
 
@@ -540,14 +522,13 @@ PASS @terasky/backstage-plugin-educates plugins/educates/src/components/Workshop
       at render (../node_modules/@testing-library/react/dist/pure.js:97:24)
       at Object.<anonymous> (components/WorkshopCard.test.tsx:166:13)
 
-PASS @terasky/backstage-plugin-gitops-manifest-updater plugins/gitops-manifest-updater/src/plugin.test.ts
 PASS @terasky/backstage-plugin-terraform-scaffolder plugins/terraform-scaffolder/src/plugin.test.ts
 PASS app packages/app/src/App.test.tsx
 A worker process has failed to exit gracefully and has been force exited. This is likely caused by tests leaking due to improper teardown. Try running with --detectOpenHandles to find leaks. Active timers can also cause this, ensure that .unref() was called on them.
 --------------------------------------------------------------------------|---------|----------|---------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 File                                                                      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                                                                                                                                         
 --------------------------------------------------------------------------|---------|----------|---------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-All files                                                                 |   23.93 |    11.17 |   16.92 |   24.04 |                                                                                                                                                                           
+All files                                                                 |   23.92 |    11.13 |   16.92 |   24.04 |                                                                                                                                                                           
  packages/app/src                                                         |      88 |      100 |       0 |   86.36 |                                                                                                                                                                           
   App.tsx                                                                 |     100 |      100 |     100 |     100 |                                                                                                                                                                           
   index.tsx                                                               |       0 |      100 |     100 |       0 | 6                                                                                                                                                                         
@@ -688,9 +669,9 @@ All files                                                                 |   23
   isKroAvailable.tsx                                                      |   68.42 |    39.28 |      50 |   73.33 | 37-41,45-49                                                                                                                                                               
  plugins/kubernetes-ingestor/src                                          |   27.27 |        0 |       0 |    23.8 |                                                                                                                                                                           
   module.ts                                                               |   27.27 |        0 |       0 |    23.8 | 15-91                                                                                                                                                                     
- plugins/kubernetes-ingestor/src/providers                                |    6.49 |      1.5 |    7.93 |    6.63 |                                                                                                                                                                           
+ plugins/kubernetes-ingestor/src/providers                                |    6.42 |     1.22 |    7.93 |    6.56 |                                                                                                                                                                           
   CRDDataProvider.ts                                                      |       0 |        0 |       0 |       0 | 5-143                                                                                                                                                                     
-  EntityProvider.ts                                                       |    6.69 |     1.48 |   11.53 |    6.61 | 34-42,69-97,109,118-1930,1959-1977,2027,2033-2042,2051-2099,2104,2116-2804                                                                                                
+  EntityProvider.ts                                                       |    6.55 |     1.04 |   11.53 |    6.46 | 34-42,69-97,109,118-1930,1959-1977,2027,2033-2042,2051-2099,2104-2804                                                                                                     
   KROEntityProvider.ts                                                    |       0 |        0 |       0 |       0 | 18-798                                                                                                                                                                    
   KubernetesDataProvider.ts                                               |   11.93 |        4 |   11.11 |    12.2 | 15,28,38-405,415,425-523                                                                                                                                                  
   RGDDataProvider.ts                                                      |       0 |        0 |       0 |       0 | 6-168                                                                                                                                                                     
@@ -860,30 +841,8 @@ All files                                                                 |   23
   VCFOperationsExplorer.tsx                                               |       0 |        0 |       0 |       0 | 29-1409                                                                                                                                                                   
 --------------------------------------------------------------------------|---------|----------|---------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Summary of all failing tests
-FAIL plugins/kubernetes-ingestor/src/providers/EntityProvider.test.ts
-  ● KubernetesEntityProvider › run › should skip processing when components disabled
-
-    expect(jest.fn()).not.toHaveBeenCalled()
-
-    Expected number of calls: 0
-    Received number of calls: 1
-
-    1: {"entities": [], "type": "full"}
-
-      213 |
-      214 |       await provider.connect(mockConnection as any);
-    > 215 |       expect(mockConnection.applyMutation).not.toHaveBeenCalled();
-          |                                                ^
-      216 |     });
-      217 |   });
-      218 | });
-
-      at Object.toHaveBeenCalled (providers/EntityProvider.test.ts:215:48)
-
-
-Test Suites: 1 failed, 97 passed, 98 total
-Tests:       1 failed, 704 passed, 705 total
+Test Suites: 98 passed, 98 total
+Tests:       705 passed, 705 total
 Snapshots:   0 total
-Time:        10.157 s
+Time:        10.478 s
 Ran all test suites matching /plugins\//i in 42 projects.

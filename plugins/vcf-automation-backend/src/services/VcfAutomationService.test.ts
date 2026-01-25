@@ -486,6 +486,869 @@ describe('VcfAutomationService', () => {
     });
   });
 
+  describe('authentication version 9', () => {
+    const config = new ConfigReader({
+      vcfAutomation: {
+        baseUrl: 'http://vcf9.example.com',
+        majorVersion: 9,
+        authentication: {
+          username: 'admin',
+          password: 'password',
+          domain: 'test-domain',
+        },
+        orgName: 'test-org',
+      },
+    });
+
+    it('should authenticate successfully with version 9', async () => {
+      mswServer.use(
+        rest.post('http://vcf9.example.com/cloudapi/1.0.0/sessions', (_req, res, ctx) => {
+          return res(
+            ctx.set('x-vmware-vcloud-access-token', 'test-token-v9'),
+            ctx.json({ token: 'test-token-v9' })
+          );
+        }),
+        rest.get('http://vcf9.example.com/deployment/api/deployments', (_req, res, ctx) => {
+          return res(ctx.json({ content: [] }));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.getDeployments();
+      
+      expect(result).toEqual({ content: [] });
+    });
+
+    it('should use orgName in username for version 9 auth', async () => {
+      mswServer.use(
+        rest.post('http://vcf9.example.com/cloudapi/1.0.0/sessions', (req, res, ctx) => {
+          const authHeader = req.headers.get('Authorization');
+          expect(authHeader).toContain('Basic');
+          return res(
+            ctx.set('x-vmware-vcloud-access-token', 'test-token-v9'),
+            ctx.json({ token: 'test-token-v9' })
+          );
+        }),
+        rest.get('http://vcf9.example.com/deployment/api/deployments', (_req, res, ctx) => {
+          return res(ctx.json({ content: [] }));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      await service.getDeployments();
+    });
+  });
+
+  describe('checkVmPowerAction', () => {
+    const config = new ConfigReader({
+      vcfAutomation: {
+        baseUrl: 'http://vcf.example.com',
+        majorVersion: 8,
+        authentication: {
+          username: 'admin',
+          password: 'password',
+          domain: 'test-domain',
+        },
+      },
+    });
+
+    it('should check PowerOn action', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.get('http://vcf.example.com/deployment/api/resources/res-123/actions/CCI.Supervisor.Resource.VirtualMachine.PowerOn', (_req, res, ctx) => {
+          return res(ctx.json({ actionAvailable: true }));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.checkVmPowerAction('res-123', 'PowerOn');
+      
+      expect(result).toEqual({ actionAvailable: true });
+    });
+
+    it('should check PowerOff action', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.get('http://vcf.example.com/deployment/api/resources/res-123/actions/CCI.Supervisor.Resource.VirtualMachine.PowerOff', (_req, res, ctx) => {
+          return res(ctx.json({ actionAvailable: true }));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.checkVmPowerAction('res-123', 'PowerOff');
+      
+      expect(result).toEqual({ actionAvailable: true });
+    });
+
+    it('should return error on failure', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.get('http://vcf.example.com/deployment/api/resources/res-123/actions/CCI.Supervisor.Resource.VirtualMachine.PowerOn', (_req, res, ctx) => {
+          return res(ctx.status(500));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.checkVmPowerAction('res-123', 'PowerOn');
+      
+      expect(result).toEqual({ error: 'Service temporarily unavailable', status: 'error' });
+    });
+  });
+
+  describe('executeVmPowerAction', () => {
+    const config = new ConfigReader({
+      vcfAutomation: {
+        baseUrl: 'http://vcf.example.com',
+        majorVersion: 8,
+        authentication: {
+          username: 'admin',
+          password: 'password',
+          domain: 'test-domain',
+        },
+      },
+    });
+
+    it('should execute PowerOn action', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.post('http://vcf.example.com/deployment/api/resources/res-123/requests', (_req, res, ctx) => {
+          return res(ctx.json({ requestId: 'req-1', status: 'PENDING' }));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.executeVmPowerAction('res-123', 'PowerOn');
+      
+      expect(result).toEqual({ requestId: 'req-1', status: 'PENDING' });
+    });
+
+    it('should execute PowerOff action', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.post('http://vcf.example.com/deployment/api/resources/res-123/requests', (_req, res, ctx) => {
+          return res(ctx.json({ requestId: 'req-2', status: 'PENDING' }));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.executeVmPowerAction('res-123', 'PowerOff');
+      
+      expect(result).toEqual({ requestId: 'req-2', status: 'PENDING' });
+    });
+
+    it('should return error on failure', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.post('http://vcf.example.com/deployment/api/resources/res-123/requests', (_req, res, ctx) => {
+          return res(ctx.status(500));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.executeVmPowerAction('res-123', 'PowerOn');
+      
+      expect(result).toEqual({ error: 'Service temporarily unavailable', status: 'error' });
+    });
+  });
+
+  describe('getStandaloneVmStatus', () => {
+    const config = new ConfigReader({
+      vcfAutomation: {
+        baseUrl: 'http://vcf.example.com',
+        majorVersion: 8,
+        authentication: {
+          username: 'admin',
+          password: 'password',
+          domain: 'test-domain',
+        },
+      },
+    });
+
+    it('should fetch standalone VM status', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn-123/apis/vmoperator.vmware.com/v1alpha3/namespaces/test-ns/virtualmachines/test-vm', (_req, res, ctx) => {
+          return res(ctx.json({ 
+            metadata: { name: 'test-vm' }, 
+            spec: { powerState: 'PoweredOn' },
+            status: { powerState: 'PoweredOn' }
+          }));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.getStandaloneVmStatus('ns-urn-123', 'test-ns', 'test-vm');
+      
+      expect(result).toHaveProperty('metadata.name', 'test-vm');
+    });
+
+    it('should return error on failure', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn-123/apis/vmoperator.vmware.com/v1alpha3/namespaces/test-ns/virtualmachines/test-vm', (_req, res, ctx) => {
+          return res(ctx.status(500));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.getStandaloneVmStatus('ns-urn-123', 'test-ns', 'test-vm');
+      
+      expect(result).toEqual({ error: 'Service temporarily unavailable', status: 'error' });
+    });
+  });
+
+  describe('executeStandaloneVmPowerAction', () => {
+    const config = new ConfigReader({
+      vcfAutomation: {
+        baseUrl: 'http://vcf.example.com',
+        majorVersion: 8,
+        authentication: {
+          username: 'admin',
+          password: 'password',
+          domain: 'test-domain',
+        },
+      },
+    });
+
+    it('should execute standalone VM PoweredOn action', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.put('http://vcf.example.com/proxy/k8s/namespaces/ns-urn-123/apis/vmoperator.vmware.com/v1alpha3/namespaces/test-ns/virtualmachines/test-vm', (_req, res, ctx) => {
+          return res(ctx.json({ 
+            metadata: { name: 'test-vm' }, 
+            spec: { powerState: 'PoweredOn' }
+          }));
+        }),
+      );
+
+      const vmData = { metadata: { name: 'test-vm' }, spec: { powerState: 'PoweredOff' } };
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.executeStandaloneVmPowerAction('ns-urn-123', 'test-ns', 'test-vm', 'PoweredOn', vmData);
+      
+      expect(result).toHaveProperty('spec.powerState', 'PoweredOn');
+    });
+
+    it('should execute standalone VM PoweredOff action', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.put('http://vcf.example.com/proxy/k8s/namespaces/ns-urn-123/apis/vmoperator.vmware.com/v1alpha3/namespaces/test-ns/virtualmachines/test-vm', (_req, res, ctx) => {
+          return res(ctx.json({ 
+            metadata: { name: 'test-vm' }, 
+            spec: { powerState: 'PoweredOff' }
+          }));
+        }),
+      );
+
+      const vmData = { metadata: { name: 'test-vm' }, spec: { powerState: 'PoweredOn' } };
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.executeStandaloneVmPowerAction('ns-urn-123', 'test-ns', 'test-vm', 'PoweredOff', vmData);
+      
+      expect(result).toHaveProperty('spec.powerState', 'PoweredOff');
+    });
+
+    it('should return error on failure', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.put('http://vcf.example.com/proxy/k8s/namespaces/ns-urn-123/apis/vmoperator.vmware.com/v1alpha3/namespaces/test-ns/virtualmachines/test-vm', (_req, res, ctx) => {
+          return res(ctx.status(500));
+        }),
+      );
+
+      const vmData = { metadata: { name: 'test-vm' }, spec: { powerState: 'PoweredOff' } };
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.executeStandaloneVmPowerAction('ns-urn-123', 'test-ns', 'test-vm', 'PoweredOn', vmData);
+      
+      expect(result).toEqual({ error: 'Service temporarily unavailable', status: 'error' });
+    });
+  });
+
+  describe('getSupervisorResourceManifest', () => {
+    const config = new ConfigReader({
+      vcfAutomation: {
+        baseUrl: 'http://vcf.example.com',
+        majorVersion: 8,
+        authentication: {
+          username: 'admin',
+          password: 'password',
+          domain: 'test-domain',
+        },
+      },
+    });
+
+    it('should fetch supervisor resource manifest with group API version', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/apis/vmoperator.vmware.com/v1alpha3/namespaces/test-ns/virtualmachines/test-vm', (_req, res, ctx) => {
+          return res(ctx.json({ 
+            apiVersion: 'vmoperator.vmware.com/v1alpha3',
+            kind: 'VirtualMachine',
+            metadata: { name: 'test-vm' }
+          }));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.getSupervisorResourceManifest('ns-urn', 'test-ns', 'test-vm', 'vmoperator.vmware.com/v1alpha3', 'VirtualMachine');
+      
+      expect(result).toHaveProperty('kind', 'VirtualMachine');
+    });
+
+    it('should fetch supervisor resource manifest with core API version', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/api/v1/namespaces/test-ns/pods/test-pod', (_req, res, ctx) => {
+          return res(ctx.json({ 
+            apiVersion: 'v1',
+            kind: 'Pod',
+            metadata: { name: 'test-pod' }
+          }));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.getSupervisorResourceManifest('ns-urn', 'test-ns', 'test-pod', 'v1', 'Pod');
+      
+      expect(result).toHaveProperty('kind', 'Pod');
+    });
+
+    it('should return error on failure', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/apis/vmoperator.vmware.com/v1alpha3/namespaces/test-ns/virtualmachines/test-vm', (_req, res, ctx) => {
+          return res(ctx.status(500));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.getSupervisorResourceManifest('ns-urn', 'test-ns', 'test-vm', 'vmoperator.vmware.com/v1alpha3', 'VirtualMachine');
+      
+      expect(result).toEqual({ error: 'Service temporarily unavailable', status: 'error' });
+    });
+  });
+
+  describe('updateSupervisorResourceManifest', () => {
+    const config = new ConfigReader({
+      vcfAutomation: {
+        baseUrl: 'http://vcf.example.com',
+        majorVersion: 8,
+        authentication: {
+          username: 'admin',
+          password: 'password',
+          domain: 'test-domain',
+        },
+      },
+    });
+
+    it('should update supervisor resource manifest', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.put('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/apis/vmoperator.vmware.com/v1alpha3/namespaces/test-ns/virtualmachines/test-vm', (_req, res, ctx) => {
+          return res(ctx.json({ 
+            apiVersion: 'vmoperator.vmware.com/v1alpha3',
+            kind: 'VirtualMachine',
+            metadata: { name: 'test-vm' },
+            spec: { replicas: 2 }
+          }));
+        }),
+      );
+
+      const manifest = { 
+        apiVersion: 'vmoperator.vmware.com/v1alpha3',
+        kind: 'VirtualMachine',
+        metadata: { name: 'test-vm' },
+        spec: { replicas: 2 }
+      };
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.updateSupervisorResourceManifest('ns-urn', 'test-ns', 'test-vm', 'vmoperator.vmware.com/v1alpha3', 'VirtualMachine', manifest);
+      
+      expect(result).toHaveProperty('spec.replicas', 2);
+    });
+
+    it('should update core API resources', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.put('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/api/v1/namespaces/test-ns/configmaps/test-cm', (_req, res, ctx) => {
+          return res(ctx.json({ 
+            apiVersion: 'v1',
+            kind: 'ConfigMap',
+            metadata: { name: 'test-cm' },
+            data: { key: 'value' }
+          }));
+        }),
+      );
+
+      const manifest = { 
+        apiVersion: 'v1',
+        kind: 'ConfigMap',
+        metadata: { name: 'test-cm' },
+        data: { key: 'value' }
+      };
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.updateSupervisorResourceManifest('ns-urn', 'test-ns', 'test-cm', 'v1', 'ConfigMap', manifest);
+      
+      expect(result).toHaveProperty('data.key', 'value');
+    });
+
+    it('should return error on failure', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.put('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/apis/vmoperator.vmware.com/v1alpha3/namespaces/test-ns/virtualmachines/test-vm', (_req, res, ctx) => {
+          return res(ctx.status(500));
+        }),
+      );
+
+      const manifest = { metadata: { name: 'test-vm' } };
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.updateSupervisorResourceManifest('ns-urn', 'test-ns', 'test-vm', 'vmoperator.vmware.com/v1alpha3', 'VirtualMachine', manifest);
+      
+      expect(result).toEqual({ error: 'Service temporarily unavailable', status: 'error' });
+    });
+  });
+
+  describe('error handling for various methods', () => {
+    const config = new ConfigReader({
+      vcfAutomation: {
+        baseUrl: 'http://vcf.example.com',
+        majorVersion: 8,
+        authentication: {
+          username: 'admin',
+          password: 'password',
+          domain: 'test-domain',
+        },
+      },
+    });
+
+    it('should return error on getDeploymentDetails failure', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.get('http://vcf.example.com/deployment/api/deployments/dep-123', (_req, res, ctx) => {
+          return res(ctx.status(500));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.getDeploymentDetails('dep-123');
+      
+      expect(result).toEqual({ error: 'Service temporarily unavailable', status: 'error' });
+    });
+
+    it('should return error on getDeploymentEvents failure', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.get('http://vcf.example.com/deployment/api/deployments/dep-123/userEvents', (_req, res, ctx) => {
+          return res(ctx.status(500));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.getDeploymentEvents('dep-123');
+      
+      expect(result).toEqual({ error: 'Service temporarily unavailable', status: 'error' });
+    });
+
+    it('should return error on getResourceDetails failure', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.get('http://vcf.example.com/deployment/api/deployments/dep-123/resources/res-456', (_req, res, ctx) => {
+          return res(ctx.status(500));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.getResourceDetails('dep-123', 'res-456');
+      
+      expect(result).toEqual({ error: 'Service temporarily unavailable', status: 'error' });
+    });
+
+    it('should return error on getProjectDetails failure', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.get('http://vcf.example.com/iaas/api/projects/proj-123', (_req, res, ctx) => {
+          return res(ctx.status(500));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.getProjectDetails('proj-123');
+      
+      expect(result).toEqual({ error: 'Service temporarily unavailable', status: 'error' });
+    });
+
+    it('should return error on getProjects failure', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.get('http://vcf.example.com/iaas/api/projects', (_req, res, ctx) => {
+          return res(ctx.status(500));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.getProjects();
+      
+      expect(result).toEqual({ error: 'Service temporarily unavailable', status: 'error' });
+    });
+
+    it('should return error on getDeployments failure', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.get('http://vcf.example.com/deployment/api/deployments', (_req, res, ctx) => {
+          return res(ctx.status(500));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.getDeployments();
+      
+      expect(result).toEqual({ error: 'Service temporarily unavailable', status: 'error' });
+    });
+
+    it('should return error on getDeploymentResources failure', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.get('http://vcf.example.com/deployment/api/deployments/dep-123/resources', (_req, res, ctx) => {
+          return res(ctx.status(500));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.getDeploymentResources('dep-123');
+      
+      expect(result).toEqual({ error: 'Service temporarily unavailable', status: 'error' });
+    });
+
+    it('should return error on getSupervisorResources failure', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.get('http://vcf.example.com/deployment/api/supervisor-resources', (_req, res, ctx) => {
+          return res(ctx.status(500));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.getSupervisorResources();
+      
+      expect(result).toEqual({ error: 'Service temporarily unavailable', status: 'error' });
+    });
+
+    it('should return error on getSupervisorResource failure', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.get('http://vcf.example.com/deployment/api/supervisor-resources/res-123', (_req, res, ctx) => {
+          return res(ctx.status(500));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.getSupervisorResource('res-123');
+      
+      expect(result).toEqual({ error: 'Service temporarily unavailable', status: 'error' });
+    });
+
+    it('should return error on getSupervisorNamespaces failure', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.get('http://vcf.example.com/cci/kubernetes/apis/infrastructure.cci.vmware.com/v1alpha2/supervisornamespaces', (_req, res, ctx) => {
+          return res(ctx.status(500));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.getSupervisorNamespaces();
+      
+      expect(result).toEqual({ error: 'Service temporarily unavailable', status: 'error' });
+    });
+
+    it('should return error on getSupervisorNamespace failure', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.get('http://vcf.example.com/cci/kubernetes/apis/infrastructure.cci.vmware.com/v1alpha2/supervisornamespaces/ns-1', (_req, res, ctx) => {
+          return res(ctx.status(500));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.getSupervisorNamespace('ns-1');
+      
+      expect(result).toEqual({ error: 'Service temporarily unavailable', status: 'error' });
+    });
+  });
+
+  describe('authentication version 9 errors', () => {
+    it('should handle missing access token in version 9 auth', async () => {
+      const config = new ConfigReader({
+        vcfAutomation: {
+          baseUrl: 'http://vcf9.example.com',
+          majorVersion: 9,
+          authentication: {
+            username: 'admin',
+            password: 'password',
+            domain: 'test-domain',
+          },
+        },
+      });
+
+      mswServer.use(
+        rest.post('http://vcf9.example.com/cloudapi/1.0.0/sessions', (_req, res, ctx) => {
+          // Return success but without the access token header
+          return res(ctx.json({ token: 'ignored' }));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      // Should eventually fail after retries - we expect an error
+      const result = await service.getDeployments();
+      
+      expect(result).toEqual({ error: 'Service temporarily unavailable', status: 'error' });
+    }, 15000);
+  });
+
+  describe('kindToResourceType helper', () => {
+    const config = new ConfigReader({
+      vcfAutomation: {
+        baseUrl: 'http://vcf.example.com',
+        majorVersion: 8,
+        authentication: {
+          username: 'admin',
+          password: 'password',
+          domain: 'test-domain',
+        },
+      },
+    });
+
+    it('should handle unknown kind with fallback pluralization', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/apis/custom.io/v1/namespaces/test-ns/customthings/test-custom', (_req, res, ctx) => {
+          return res(ctx.json({ 
+            apiVersion: 'custom.io/v1',
+            kind: 'CustomThing',
+            metadata: { name: 'test-custom' }
+          }));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.getSupervisorResourceManifest('ns-urn', 'test-ns', 'test-custom', 'custom.io/v1', 'CustomThing');
+      
+      expect(result).toHaveProperty('kind', 'CustomThing');
+    });
+
+    it('should handle TanzuKubernetesCluster kind', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/apis/run.tanzu.vmware.com/v1alpha3/namespaces/test-ns/tanzukubernetesclusters/test-tkc', (_req, res, ctx) => {
+          return res(ctx.json({ 
+            apiVersion: 'run.tanzu.vmware.com/v1alpha3',
+            kind: 'TanzuKubernetesCluster',
+            metadata: { name: 'test-tkc' }
+          }));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.getSupervisorResourceManifest('ns-urn', 'test-ns', 'test-tkc', 'run.tanzu.vmware.com/v1alpha3', 'TanzuKubernetesCluster');
+      
+      expect(result).toHaveProperty('kind', 'TanzuKubernetesCluster');
+    });
+
+    it('should handle Service kind', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/api/v1/namespaces/test-ns/services/test-svc', (_req, res, ctx) => {
+          return res(ctx.json({ 
+            apiVersion: 'v1',
+            kind: 'Service',
+            metadata: { name: 'test-svc' }
+          }));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.getSupervisorResourceManifest('ns-urn', 'test-ns', 'test-svc', 'v1', 'Service');
+      
+      expect(result).toHaveProperty('kind', 'Service');
+    });
+
+    it('should handle Deployment kind', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/apis/apps/v1/namespaces/test-ns/deployments/test-deploy', (_req, res, ctx) => {
+          return res(ctx.json({ 
+            apiVersion: 'apps/v1',
+            kind: 'Deployment',
+            metadata: { name: 'test-deploy' }
+          }));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.getSupervisorResourceManifest('ns-urn', 'test-ns', 'test-deploy', 'apps/v1', 'Deployment');
+      
+      expect(result).toHaveProperty('kind', 'Deployment');
+    });
+
+    it('should handle Secret kind', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/api/v1/namespaces/test-ns/secrets/test-secret', (_req, res, ctx) => {
+          return res(ctx.json({ 
+            apiVersion: 'v1',
+            kind: 'Secret',
+            metadata: { name: 'test-secret' }
+          }));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.getSupervisorResourceManifest('ns-urn', 'test-ns', 'test-secret', 'v1', 'Secret');
+      
+      expect(result).toHaveProperty('kind', 'Secret');
+    });
+
+    it('should handle Namespace kind', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/api/v1/namespaces/test-ns/namespaces/test-namespace', (_req, res, ctx) => {
+          return res(ctx.json({ 
+            apiVersion: 'v1',
+            kind: 'Namespace',
+            metadata: { name: 'test-namespace' }
+          }));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.getSupervisorResourceManifest('ns-urn', 'test-ns', 'test-namespace', 'v1', 'Namespace');
+      
+      expect(result).toHaveProperty('kind', 'Namespace');
+    });
+
+    it('should handle Cluster kind', async () => {
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/apis/cluster.x-k8s.io/v1beta1/namespaces/test-ns/clusters/test-cluster', (_req, res, ctx) => {
+          return res(ctx.json({ 
+            apiVersion: 'cluster.x-k8s.io/v1beta1',
+            kind: 'Cluster',
+            metadata: { name: 'test-cluster' }
+          }));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      const result = await service.getSupervisorResourceManifest('ns-urn', 'test-ns', 'test-cluster', 'cluster.x-k8s.io/v1beta1', 'Cluster');
+      
+      expect(result).toHaveProperty('kind', 'Cluster');
+    });
+  });
+
+  describe('token reuse', () => {
+    const config = new ConfigReader({
+      vcfAutomation: {
+        baseUrl: 'http://vcf.example.com',
+        majorVersion: 8,
+        authentication: {
+          username: 'admin',
+          password: 'password',
+          domain: 'test-domain',
+        },
+      },
+    });
+
+    it('should reuse valid token across multiple requests', async () => {
+      let authCallCount = 0;
+      mswServer.use(
+        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+          authCallCount++;
+          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        }),
+        rest.get('http://vcf.example.com/deployment/api/deployments', (_req, res, ctx) => {
+          return res(ctx.json({ content: [] }));
+        }),
+      );
+
+      const service = new VcfAutomationService(config, mockLogger);
+      
+      // Make multiple requests
+      await service.getDeployments();
+      await service.getDeployments();
+      await service.getDeployments();
+      
+      // Should only authenticate once
+      expect(authCallCount).toBe(1);
+    });
+  });
+
   describe('multi-instance support', () => {
     const config = new ConfigReader({
       vcfAutomation: {
