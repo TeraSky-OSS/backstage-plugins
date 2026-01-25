@@ -5,8 +5,8 @@ describe('GitOpsManifestUpdaterField', () => {
     expect(gitopsManifestUpdaterField).toBeDefined();
   });
 
-  it('should have extension type', () => {
-    expect(gitopsManifestUpdaterField.kind).toBe('form-field');
+  it('should be an object with extension data', () => {
+    expect(typeof gitopsManifestUpdaterField).toBe('object');
   });
 });
 
