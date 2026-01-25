@@ -1,414 +1,49 @@
 PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/actions.test.ts
 PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/actions.test.ts
 PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/rules.test.ts
-FAIL @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/api/KyvernoApi.test.ts
-  ● KyvernoApi › KyvernoApiClient › getPolicy › should fetch cluster policy
-
-    expect(jest.fn()).toHaveBeenCalledWith(...expected)
-
-    Expected: StringContaining "http://kyverno-backend/policy"
-    Received: "http://kyverno-backend/policy?clusterName=test-cluster&policyName=test-policy", {}
-
-    Number of calls: 1
-
-       97 |         });
-       98 |
-    >  99 |         expect(mockFetchApi.fetch).toHaveBeenCalledWith(
-          |                                    ^
-      100 |           expect.stringContaining('http://kyverno-backend/policy')
-      101 |         );
-      102 |         expect(result.kind).toBe('ClusterPolicy');
-
-      at Object.toHaveBeenCalledWith (api/KyvernoApi.test.ts:99:36)
-
-  ● KyvernoApi › KyvernoApiClient › getPolicy › should include namespace in request when provided
-
-    expect(jest.fn()).toHaveBeenCalledWith(...expected)
-
-    Expected: StringContaining "namespace=default"
-    Received: "http://kyverno-backend/policy?clusterName=test-cluster&policyName=test-policy&namespace=default", {}
-
-    Number of calls: 1
-
-      115 |         });
-      116 |
-    > 117 |         expect(mockFetchApi.fetch).toHaveBeenCalledWith(
-          |                                    ^
-      118 |           expect.stringContaining('namespace=default')
-      119 |         );
-      120 |       });
-
-      at Object.toHaveBeenCalledWith (api/KyvernoApi.test.ts:117:36)
-
 PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/api/VcfAutomationClient.test.ts
-PASS @terasky/backstage-plugin-educates plugins/educates/src/api/EducatesClient.test.ts
 PASS @terasky/backstage-plugin-vcf-operations plugins/vcf-operations/src/api/VcfOperationsClient.test.ts
-PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/api/AiRulesClient.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/api/CrossplaneApi.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/plugin.test.ts
+PASS @terasky/backstage-plugin-educates plugins/educates/src/api/EducatesClient.test.ts
 PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/api/KroApi.test.ts
-PASS @terasky/backstage-plugin-crossplane-common plugins/crossplane-common/src/index.test.ts
-FAIL @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/claim-templating.test.ts
-  ● createCrossplaneClaimAction › should create an action with correct id
-
-    expect(received).toBe(expected) // Object.is equality
-
-    Expected: "terasky:crossplane:claim:template"
-    Received: "terasky:claim-template"
-
-       7 |   it('should create an action with correct id', () => {
-       8 |     const action = createCrossplaneClaimAction({ config: mockConfig });
-    >  9 |     expect(action.id).toBe('terasky:crossplane:claim:template');
-         |                       ^
-      10 |   });
-      11 |
-      12 |   it('should have correct schema', () => {
-
-      at Object.toBe (actions/claim-templating.test.ts:9:23)
-
-  ● createCrossplaneClaimAction › handler › should process claim template
-
-    TypeError: Cannot read properties of undefined (reading 'undefined')
-
-      64 |         config.getOptionalString('kubernetesIngestor.annotationPrefix') ||
-      65 |         'terasky.backstage.io';
-    > 66 |       if (input.parameters[input.nameParam] === 'foo') {
-         |                           ^
-      67 |         throw new Error(`myParameter cannot be 'foo'`);
-      68 |       }
-      69 |
-
-      at Object.handler (actions/claim-templating.ts:66:27)
-      at Object.handler (actions/claim-templating.test.ts:51:20)
-
-FAIL @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/crd-templating.test.ts
-  ● createCrdTemplateAction › should create an action with correct id
-
-    expect(received).toBe(expected) // Object.is equality
-
-    Expected: "terasky:crd:template"
-    Received: "terasky:crd-template"
-
-       7 |   it('should create an action with correct id', () => {
-       8 |     const action = createCrdTemplateAction({ config: mockConfig });
-    >  9 |     expect(action.id).toBe('terasky:crd:template');
-         |                       ^
-      10 |   });
-      11 |
-      12 |   it('should have correct schema', () => {
-
-      at Object.toBe (actions/crd-templating.test.ts:9:23)
-
-  ● createCrdTemplateAction › handler › should process CRD template
-
-    TypeError: Cannot read properties of undefined (reading 'forEach')
-
-      68 |       // Remove excluded parameters
-      69 |       const filteredParameters = { ...input.parameters };
-    > 70 |       input.excludeParams.forEach((param: string) => {
-         |                           ^
-      71 |         delete filteredParameters[param];
-      72 |       });
-      73 |
-
-      at Object.forEach (actions/crd-templating.ts:70:27)
-      at Object.handler (actions/crd-templating.test.ts:51:20)
-
-PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/service/EducatesService.test.ts
-PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/supplier/SpectroCloudClusterSupplier.test.ts
-PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/api/CrossplaneApi.test.ts
+PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/api/AiRulesClient.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/client/SpectroCloudClient.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/actions.test.ts
 PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/actions.test.ts
 PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/MCPService.test.ts
-PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/conditions.test.ts
-PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/permissions.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/service/EducatesService.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/supplier/SpectroCloudClusterSupplier.test.ts
 PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/AiRulesService.test.ts
-(node:72405) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
-(Use `node --trace-warnings ...` to show where the warning was created)
-FAIL @terasky/backstage-plugin-vcf-automation-ingestor plugins/vcf-automation-ingestor/src/provider/EntityProvider.test.ts
-  ● VcfAutomationEntityProvider › constructor › should throw error when no instances configured
-
-    expect(received).toThrow(expected)
-
-    Expected substring: "No VCF Automation instances configured"
-    Received message:   "Failed to initialize VCF Automation provider: Invalid configuration"
-
-          259 |         error: error instanceof Error ? error.message : String(error),
-          260 |       });
-        > 261 |       throw new Error('Failed to initialize VCF Automation provider: Invalid configuration');
-              |             ^
-          262 |     }
-          263 |
-          264 |     if (instances.length === 0) {
-
-      at new VcfAutomationEntityProvider (provider/EntityProvider.ts:261:13)
-      at provider/EntityProvider.test.ts:97:9
-      at Object.<anonymous> (../../../node_modules/expect/build/toThrowMatchers.js:74:11)
-      at Object.throwingMatcher [as toThrow] (../../../node_modules/expect/build/index.js:320:21)
-      at Object.toThrow (provider/EntityProvider.test.ts:102:10)
-      at Object.toThrow (provider/EntityProvider.test.ts:102:10)
-
-  ● VcfAutomationEntityProvider › connect › should schedule refresh task and trigger initial refresh
-
-    TypeError: Cannot read properties of undefined (reading 'post')
-
-      142 |       // Setup MSW handlers for authentication and fetching
-      143 |       server.use(
-    > 144 |         rest.post('https://vcf.example.com/csp/gateway/am/api/login', (req, res, ctx) => {
-          |              ^
-      145 |           return res(ctx.json({ cspAuthToken: 'test-token' }));
-      146 |         }),
-      147 |         rest.get('https://vcf.example.com/deployment/api/deployments', (req, res, ctx) => {
-
-      at Object.post (provider/EntityProvider.test.ts:144:14)
-
-  ● VcfAutomationEntityProvider › authentication › should authenticate with version 8 API
-
-    TypeError: Cannot read properties of undefined (reading 'post')
-
-      185 |
-      186 |       server.use(
-    > 187 |         rest.post('https://vcf.example.com/csp/gateway/am/api/login', (req, res, ctx) => {
-          |              ^
-      188 |           return res(ctx.json({ cspAuthToken: 'v8-token' }));
-      189 |         }),
-      190 |         rest.get('https://vcf.example.com/deployment/api/deployments', (req, res, ctx) => {
-
-      at Object.post (provider/EntityProvider.test.ts:187:14)
-
-  ● VcfAutomationEntityProvider › authentication › should authenticate with version 9+ API
-
-    TypeError: Cannot read properties of undefined (reading 'post')
-
-      223 |
-      224 |       server.use(
-    > 225 |         rest.post('https://vcf.example.com/cloudapi/1.0.0/sessions', (req, res, ctx) => {
-          |              ^
-      226 |           return res(
-      227 |             ctx.set('x-vmware-vcloud-access-token', 'v9-token'),
-      228 |             ctx.json({})
-
-      at Object.post (provider/EntityProvider.test.ts:225:14)
-
-  ● VcfAutomationEntityProvider › entity transformation › should transform deployments into entities
-
-    TypeError: Cannot read properties of undefined (reading 'post')
-
-      298 |
-      299 |       server.use(
-    > 300 |         rest.post('https://vcf.example.com/csp/gateway/am/api/login', (req, res, ctx) => {
-          |              ^
-      301 |           return res(ctx.json({ cspAuthToken: 'test-token' }));
-      302 |         }),
-      303 |         rest.get('https://vcf.example.com/deployment/api/deployments', (req, res, ctx) => {
-
-      at Object.post (provider/EntityProvider.test.ts:300:14)
-
-PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/service/router.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/client/SpectroCloudClient.test.ts
-FAIL @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/service/router.test.ts
-  ● kro-resources router › GET /resources › should return 403 when unauthorized
-
-    expect(received).toBe(expected) // Object.is equality
-
-    Expected: 403
-    Received: 200
-
-      91 |         });
-      92 |
-    > 93 |       expect(response.status).toBe(403);
-         |                               ^
-      94 |     });
-      95 |   });
-      96 |
-
-      at Object.toBe (service/router.test.ts:93:31)
-
-  ● kro-resources router › GET /graph › should return 403 when unauthorized
-
-    expect(received).toBe(expected) // Object.is equality
-
-    Expected: 403
-    Received: 200
-
-      154 |         });
-      155 |
-    > 156 |       expect(response.status).toBe(403);
-          |                               ^
-      157 |     });
-      158 |   });
-      159 | });
-
-      at Object.toBe (service/router.test.ts:156:31)
-
-(node:72345) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
+PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/providers/SpectroCloudEntityProvider.test.ts
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/permissions.test.ts
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/conditions.test.ts
+(node:82393) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
 (Use `node --trace-warnings ...` to show where the warning was created)
 PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/service/KubernetesService.test.ts
 PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/service/KubernetesService.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/service/router.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/service/KubernetesService.test.ts
+(node:82473) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
+(Use `node --trace-warnings ...` to show where the warning was created)
 PASS @terasky/backstage-plugin-spectrocloud-ingestor plugins/spectrocloud-ingestor/src/client/SpectroCloudClient.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/client/SpectroCloudClient.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/service/router.test.ts
+PASS @terasky/backstage-plugin-crossplane-common plugins/crossplane-common/src/index.test.ts
 PASS @terasky/backstage-plugin-educates-common plugins/educates-common/src/index.test.ts
-FAIL @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/catalog-info-cleaner.test.ts
-  ● createCatalogInfoCleanerAction › should create an action with correct id
-
-    expect(received).toBe(expected) // Object.is equality
-
-    Expected: "terasky:catalog-info:cleaner"
-    Received: "terasky:catalog-info-cleaner"
-
-      4 |   it('should create an action with correct id', () => {
-      5 |     const action = createCatalogInfoCleanerAction();
-    > 6 |     expect(action.id).toBe('terasky:catalog-info:cleaner');
-        |                       ^
-      7 |   });
-      8 |
-      9 |   it('should have correct schema', () => {
-
-      at Object.toBe (actions/catalog-info-cleaner.test.ts:6:23)
-
-PASS @terasky/backstage-plugin-kro-common plugins/kro-common/src/index.test.ts
-PASS @terasky/backstage-plugin-kubernetes-resources-common plugins/kubernetes-resources-common/src/index.test.ts
 PASS @terasky/backstage-plugin-vcf-automation-common plugins/vcf-automation-common/src/index.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/annotationUtils.test.ts
-FAIL @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/service/ScaleOpsService.test.ts
-  ● Console
-
-    console.warn
-      [MSW] Warning: captured a request without a matching request handler:
-      
-        • POST http://scaleops.example.com/api/v1/dashboard/byNamespace
-      
-      If you still wish to intercept this unhandled request, please create a request handler for it.
-      Read more: https://mswjs.io/docs/getting-started/mocks
-
-      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
-      at warn (../node_modules/msw/lib/node/index.js:1391:18)
-      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
-      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
-      at ../node_modules/msw/lib/node/index.js:1503:25
-
-    console.warn
-      [MSW] Warning: captured a request without a matching request handler:
-      
-        • POST http://scaleops.example.com/detailedCostReport/getWorkloads
-      
-      If you still wish to intercept this unhandled request, please create a request handler for it.
-      Read more: https://mswjs.io/docs/getting-started/mocks
-
-      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
-      at warn (../node_modules/msw/lib/node/index.js:1391:18)
-      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
-      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
-      at ../node_modules/msw/lib/node/index.js:1503:25
-
-    console.warn
-      [MSW] Warning: captured a request without a matching request handler:
-      
-        • GET http://scaleops.example.com/api/v1/networkCost/networkCostEnabled
-      
-      If you still wish to intercept this unhandled request, please create a request handler for it.
-      Read more: https://mswjs.io/docs/getting-started/mocks
-
-      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
-      at warn (../node_modules/msw/lib/node/index.js:1391:18)
-      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
-      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
-      at ../node_modules/msw/lib/node/index.js:1503:25
-
-    console.warn
-      [MSW] Warning: captured a request without a matching request handler:
-      
-        • GET http://scaleops.example.com/api/v1/workload-network
-      
-      If you still wish to intercept this unhandled request, please create a request handler for it.
-      Read more: https://mswjs.io/docs/getting-started/mocks
-
-      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
-      at warn (../node_modules/msw/lib/node/index.js:1391:18)
-      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
-      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
-      at ../node_modules/msw/lib/node/index.js:1503:25
-
-    console.warn
-      [MSW] Warning: captured a request without a matching request handler:
-      
-        • GET http://scaleops.example.com/api/v1/policies
-      
-      If you still wish to intercept this unhandled request, please create a request handler for it.
-      Read more: https://mswjs.io/docs/getting-started/mocks
-
-      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
-      at warn (../node_modules/msw/lib/node/index.js:1391:18)
-      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
-      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
-      at ../node_modules/msw/lib/node/index.js:1503:25
-
-    console.warn
-      [MSW] Warning: captured a request without a matching request handler:
-      
-        • POST http://scaleops.example.com/api/v1/dashboard/byNamespace
-      
-      If you still wish to intercept this unhandled request, please create a request handler for it.
-      Read more: https://mswjs.io/docs/getting-started/mocks
-
-      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
-      at warn (../node_modules/msw/lib/node/index.js:1391:18)
-      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
-      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
-      at ../node_modules/msw/lib/node/index.js:1503:25
-
-  ● ScaleOpsService › getWorkloadsByLabels › should fetch workloads with labels
-
-    FetchError: request to http://scaleops.example.com/api/v1/dashboard/byNamespace?multiCluster=true&logicalLabel=AND failed, reason: getaddrinfo ENOTFOUND scaleops.example.com
-
-      at NodeClientRequest.<anonymous> (../../../node_modules/node-fetch/lib/index.js:1501:11)
-      at NodeClientRequest.Object.<anonymous>.NodeClientRequest.emit (../../../node_modules/@mswjs/interceptors/src/interceptors/ClientRequest/NodeClientRequest.ts:299:22)
-
-  ● ScaleOpsService › getWorkloadCostDetails › should fetch cost details for workload
-
-    FetchError: request to http://scaleops.example.com/detailedCostReport/getWorkloads?multiCluster=true&range=7d failed, reason: getaddrinfo ENOTFOUND scaleops.example.com
-
-      at NodeClientRequest.<anonymous> (../../../node_modules/node-fetch/lib/index.js:1501:11)
-      at NodeClientRequest.Object.<anonymous>.NodeClientRequest.emit (../../../node_modules/@mswjs/interceptors/src/interceptors/ClientRequest/NodeClientRequest.ts:299:22)
-
-  ● ScaleOpsService › checkNetworkCostEnabled › should check if network cost is enabled
-
-    FetchError: request to http://scaleops.example.com/api/v1/networkCost/networkCostEnabled?multiCluster=true failed, reason: getaddrinfo ENOTFOUND scaleops.example.com
-
-      at NodeClientRequest.<anonymous> (../../../node_modules/node-fetch/lib/index.js:1501:11)
-      at NodeClientRequest.Object.<anonymous>.NodeClientRequest.emit (../../../node_modules/@mswjs/interceptors/src/interceptors/ClientRequest/NodeClientRequest.ts:299:22)
-
-  ● ScaleOpsService › getWorkloadNetworkUsage › should fetch network usage for workload
-
-    FetchError: request to http://scaleops.example.com/api/v1/workload-network?name=test-workload&namespace=default&workloadType=Deployment&from=1769256937122&to=1769343337122 failed, reason: getaddrinfo ENOTFOUND scaleops.example.com
-
-      at NodeClientRequest.<anonymous> (../../../node_modules/node-fetch/lib/index.js:1501:11)
-      at NodeClientRequest.Object.<anonymous>.NodeClientRequest.emit (../../../node_modules/@mswjs/interceptors/src/interceptors/ClientRequest/NodeClientRequest.ts:299:22)
-
-  ● ScaleOpsService › getPolicyByName › should fetch policy by name
-
-    FetchError: request to http://scaleops.example.com/api/v1/policies failed, reason: getaddrinfo ENOTFOUND scaleops.example.com
-
-      at NodeClientRequest.<anonymous> (../../../node_modules/node-fetch/lib/index.js:1501:11)
-      at NodeClientRequest.Object.<anonymous>.NodeClientRequest.emit (../../../node_modules/@mswjs/interceptors/src/interceptors/ClientRequest/NodeClientRequest.ts:299:22)
-
-  ● ScaleOpsService › authentication caching › should cache authentication token
-
-    FetchError: request to http://scaleops.example.com/api/v1/dashboard/byNamespace?multiCluster=true&logicalLabel=AND failed, reason: getaddrinfo ENOTFOUND scaleops.example.com
-
-      at NodeClientRequest.<anonymous> (../../../node_modules/node-fetch/lib/index.js:1501:11)
-      at NodeClientRequest.Object.<anonymous>.NodeClientRequest.emit (../../../node_modules/@mswjs/interceptors/src/interceptors/ClientRequest/NodeClientRequest.ts:299:22)
-
-PASS @terasky/backstage-plugin-kubernetes-resources-permissions-backend plugins/kubernetes-resources-permissions-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-kyverno-common plugins/kyverno-common/src/index.test.ts
-PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kubernetes-resources-common plugins/kubernetes-resources-common/src/index.test.ts
+PASS @terasky/backstage-plugin-kro-common plugins/kro-common/src/index.test.ts
 PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/service/router.test.ts
   ● Console
 
     console.warn
       [MSW] Warning: captured a request without a matching request handler:
       
-        • GET http://127.0.0.1:45821/health
+        • GET http://127.0.0.1:45325/health
       
       If you still wish to intercept this unhandled request, please create a request handler for it.
       Read more: https://mswjs.io/docs/getting-started/mocks
@@ -422,7 +57,7 @@ PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/ser
     console.warn
       [MSW] Warning: captured a request without a matching request handler:
       
-        • GET http://127.0.0.1:44945/api/workloads
+        • GET http://127.0.0.1:46155/api/workloads
       
       If you still wish to intercept this unhandled request, please create a request handler for it.
       Read more: https://mswjs.io/docs/getting-started/mocks
@@ -436,7 +71,7 @@ PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/ser
     console.warn
       [MSW] Warning: captured a request without a matching request handler:
       
-        • POST http://127.0.0.1:46025/api/workloads/query
+        • POST http://127.0.0.1:44877/api/workloads/query
       
       If you still wish to intercept this unhandled request, please create a request handler for it.
       Read more: https://mswjs.io/docs/getting-started/mocks
@@ -450,7 +85,7 @@ PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/ser
     console.warn
       [MSW] Warning: captured a request without a matching request handler:
       
-        • GET http://127.0.0.1:44929/api/error-endpoint
+        • GET http://127.0.0.1:46203/api/error-endpoint
       
       If you still wish to intercept this unhandled request, please create a request handler for it.
       Read more: https://mswjs.io/docs/getting-started/mocks
@@ -464,49 +99,7 @@ PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/ser
     console.warn
       [MSW] Warning: captured a request without a matching request handler:
       
-        • GET http://127.0.0.1:45095/api/workloads
-      
-      If you still wish to intercept this unhandled request, please create a request handler for it.
-      Read more: https://mswjs.io/docs/getting-started/mocks
-
-      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
-      at warn (../node_modules/msw/lib/node/index.js:1391:18)
-      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
-      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
-      at ../node_modules/msw/lib/node/index.js:1503:25
-
-    console.warn
-      [MSW] Warning: captured a request without a matching request handler:
-      
-        • GET http://scaleops.example.com/workloads
-      
-      If you still wish to intercept this unhandled request, please create a request handler for it.
-      Read more: https://mswjs.io/docs/getting-started/mocks
-
-      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
-      at warn (../node_modules/msw/lib/node/index.js:1391:18)
-      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
-      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
-      at ../node_modules/msw/lib/node/index.js:1503:25
-
-    console.warn
-      [MSW] Warning: captured a request without a matching request handler:
-      
-        • GET http://127.0.0.1:45983/api/workloads
-      
-      If you still wish to intercept this unhandled request, please create a request handler for it.
-      Read more: https://mswjs.io/docs/getting-started/mocks
-
-      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
-      at warn (../node_modules/msw/lib/node/index.js:1391:18)
-      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
-      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
-      at ../node_modules/msw/lib/node/index.js:1503:25
-
-    console.warn
-      [MSW] Warning: captured a request without a matching request handler:
-      
-        • GET http://127.0.0.1:44711/api/workloads
+        • GET http://127.0.0.1:45321/api/workloads
       
       If you still wish to intercept this unhandled request, please create a request handler for it.
       Read more: https://mswjs.io/docs/getting-started/mocks
@@ -531,105 +124,99 @@ PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/ser
       at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
       at ../node_modules/msw/lib/node/index.js:1503:25
 
-PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/plugin.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-ingestor plugins/spectrocloud-ingestor/src/module.test.ts
-PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-vcf-automation-ingestor plugins/vcf-automation-ingestor/src/module.test.ts
-PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/plugin.test.ts
-FAIL @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/services/KubernetesResourceFetcher.test.ts
-  ● KubernetesResourceFetcher › fetchResource › should fetch a kubernetes resource
+    console.warn
+      [MSW] Warning: captured a request without a matching request handler:
+      
+        • GET http://127.0.0.1:45537/api/workloads
+      
+      If you still wish to intercept this unhandled request, please create a request handler for it.
+      Read more: https://mswjs.io/docs/getting-started/mocks
 
-    TypeError: _KubernetesResourceFetcher.KubernetesResourceFetcher is not a constructor
+      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
+      at warn (../node_modules/msw/lib/node/index.js:1391:18)
+      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
+      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
+      at ../node_modules/msw/lib/node/index.js:1503:25
 
-      22 |     mockAuth.getPluginRequestToken.mockResolvedValue({ token: 'test-token' });
-      23 |
-    > 24 |     fetcher = new KubernetesResourceFetcher(
-         |               ^
-      25 |       mockLogger,
-      26 |       mockDiscovery,
-      27 |       mockAuth,
+    console.warn
+      [MSW] Warning: captured a request without a matching request handler:
+      
+        • GET http://127.0.0.1:46409/api/workloads
+      
+      If you still wish to intercept this unhandled request, please create a request handler for it.
+      Read more: https://mswjs.io/docs/getting-started/mocks
 
-      at Object.<anonymous> (services/KubernetesResourceFetcher.test.ts:24:15)
+      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
+      at warn (../node_modules/msw/lib/node/index.js:1391:18)
+      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
+      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
+      at ../node_modules/msw/lib/node/index.js:1503:25
 
-  ● KubernetesResourceFetcher › fetchResource › should throw error on failed fetch
+    console.warn
+      [MSW] Warning: captured a request without a matching request handler:
+      
+        • GET http://scaleops.example.com/workloads
+      
+      If you still wish to intercept this unhandled request, please create a request handler for it.
+      Read more: https://mswjs.io/docs/getting-started/mocks
 
-    TypeError: _KubernetesResourceFetcher.KubernetesResourceFetcher is not a constructor
+      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
+      at warn (../node_modules/msw/lib/node/index.js:1391:18)
+      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
+      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
+      at ../node_modules/msw/lib/node/index.js:1503:25
 
-      22 |     mockAuth.getPluginRequestToken.mockResolvedValue({ token: 'test-token' });
-      23 |
-    > 24 |     fetcher = new KubernetesResourceFetcher(
-         |               ^
-      25 |       mockLogger,
-      26 |       mockDiscovery,
-      27 |       mockAuth,
-
-      at Object.<anonymous> (services/KubernetesResourceFetcher.test.ts:24:15)
-
-  ● KubernetesResourceFetcher › listResources › should list kubernetes resources
-
-    TypeError: _KubernetesResourceFetcher.KubernetesResourceFetcher is not a constructor
-
-      22 |     mockAuth.getPluginRequestToken.mockResolvedValue({ token: 'test-token' });
-      23 |
-    > 24 |     fetcher = new KubernetesResourceFetcher(
-         |               ^
-      25 |       mockLogger,
-      26 |       mockDiscovery,
-      27 |       mockAuth,
-
-      at Object.<anonymous> (services/KubernetesResourceFetcher.test.ts:24:15)
-
-PASS @terasky/backstage-plugin-catalog-mcp-backend plugins/catalog-mcp-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/plugin.test.ts
-PASS @terasky/plugin-rbac-mcp-backend plugins/rbac-mcp-backend/src/plugin.test.ts
-PASS @terasky/plugin-scaffolder-mcp-backend plugins/scaffolder-mcp-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-kubernetes-resources-frontend plugins/kubernetes-resources/src/plugin.test.ts
-PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/module.test.ts
-FAIL @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/providers/EntityProvider.test.ts
-  ● EntityProvider › constructor › should create provider instance
-
-    TypeError: _EntityProvider.EntityProvider is not a constructor
-
-      37 |   describe('constructor', () => {
-      38 |     it('should create provider instance', () => {
-    > 39 |       const provider = new EntityProvider(
-         |                        ^
-      40 |         mockConfig,
-      41 |         mockLogger,
-      42 |         mockDiscovery,
-
-      at Object.<anonymous> (providers/EntityProvider.test.ts:39:24)
-
-  ● EntityProvider › getProviderName › should return provider name
-
-    TypeError: _EntityProvider.EntityProvider is not a constructor
-
-      52 |   describe('getProviderName', () => {
-      53 |     it('should return provider name', () => {
-    > 54 |       const provider = new EntityProvider(
-         |                        ^
-      55 |         mockConfig,
-      56 |         mockLogger,
-      57 |         mockDiscovery,
-
-      at Object.<anonymous> (providers/EntityProvider.test.ts:54:24)
-
-  ● EntityProvider › connect › should set connection and schedule task
-
-    TypeError: _EntityProvider.EntityProvider is not a constructor
-
-      68 |   describe('connect', () => {
-      69 |     it('should set connection and schedule task', async () => {
-    > 70 |       const provider = new EntityProvider(
-         |                        ^
-      71 |         mockConfig,
-      72 |         mockLogger,
-      73 |         mockDiscovery,
-
-      at Object.<anonymous> (providers/EntityProvider.test.ts:70:24)
-
-PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/plugin.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/annotationUtils.test.ts
 PASS @terasky/backstage-plugin-spectrocloud plugins/spectrocloud/src/plugin.test.ts
+PASS @terasky/backstage-plugin-scaleops-frontend plugins/scaleops-frontend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kubernetes-resources-permissions-backend plugins/kubernetes-resources-permissions-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-devpod plugins/devpod-plugin/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kyverno-common plugins/kyverno-common/src/index.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-ingestor plugins/spectrocloud-ingestor/src/module.test.ts
+PASS @terasky/backstage-plugin-vcf-automation-ingestor plugins/vcf-automation-ingestor/src/module.test.ts
+PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/services/KubernetesResourceFetcher.test.ts
+PASS @terasky/plugin-scaffolder-mcp-backend plugins/scaffolder-mcp-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/plugin.test.ts
+PASS @terasky/backstage-plugin-entity-scaffolder-content plugins/entity-scaffolder-content/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kubernetes-resources-frontend plugins/kubernetes-resources/src/plugin.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/router.test.ts
+PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/plugin.test.ts
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/service/router.test.ts
+PASS @terasky/backstage-plugin-catalog-mcp-backend plugins/catalog-mcp-backend/src/plugin.test.ts
+PASS @terasky/plugin-rbac-mcp-backend plugins/rbac-mcp-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-educates plugins/educates/src/plugin.test.ts
+PASS @terasky/plugin-rbac-mcp-backend plugins/rbac-mcp-backend/src/plugin.test.ts
+FAIL @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/providers/EntityProvider.test.ts
+  ● KubernetesEntityProvider › connect › should set connection and schedule task
+
+    TypeError: this.taskRunner.run is not a function
+
+      1984 |   async connect(connection: EntityProviderConnection): Promise<void> {
+      1985 |     this.connection = connection;
+    > 1986 |     await this.taskRunner.run({
+           |                           ^
+      1987 |       id: this.getProviderName(),
+      1988 |       fn: async () => {
+      1989 |         await this.run();
+
+      at KubernetesEntityProvider.run [as connect] (providers/EntityProvider.ts:1986:27)
+      at Object.connect (providers/EntityProvider.test.ts:93:22)
+
+PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/router.test.ts
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/plugin.test.ts
+PASS @terasky/plugin-scaffolder-mcp-backend plugins/scaffolder-mcp-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/module.test.ts
+PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/service/router.test.ts
+PASS @terasky/backstage-plugin-vcf-operations-common plugins/vcf-operations-common/src/index.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-common plugins/spectrocloud-common/src/index.test.ts
+PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/plugin.test.ts
 PASS @terasky/backstage-plugin-catalog-mcp-backend plugins/catalog-mcp-backend/src/actions.test.ts
   ● Console
 
@@ -671,43 +258,28 @@ PASS @terasky/backstage-plugin-catalog-mcp-backend plugins/catalog-mcp-backend/s
 
       at Object.log [as action] (actions.ts:77:15)
 
-PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-scaleops-frontend plugins/scaleops-frontend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-devpod plugins/devpod-plugin/src/plugin.test.ts
-PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/router.test.ts
+PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/plugin.test.ts
 PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/module.test.ts
 PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/plugin.test.ts
-PASS @terasky/backstage-plugin-entity-scaffolder-content plugins/entity-scaffolder-content/src/plugin.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-common plugins/spectrocloud-common/src/index.test.ts
-PASS @terasky/backstage-plugin-vcf-operations-common plugins/vcf-operations-common/src/index.test.ts
-PASS @terasky/plugin-scaffolder-mcp-backend plugins/scaffolder-mcp-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/plugin.test.ts
-PASS @terasky/backstage-plugin-educates plugins/educates/src/plugin.test.ts
 PASS @terasky/backstage-plugin-vcf-operations plugins/vcf-operations/src/plugin.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/plugin.test.ts
-PASS @terasky/plugin-rbac-mcp-backend plugins/rbac-mcp-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/catalog-info-cleaner.test.ts
+PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/crd-templating.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/api/KyvernoApi.test.ts
+PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/claim-templating.test.ts
+PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/plugin.test.ts
+PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/service/ScaleOpsService.test.ts
+PASS @terasky/backstage-plugin-vcf-automation-ingestor plugins/vcf-automation-ingestor/src/provider/EntityProvider.test.ts
 PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/module.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/providers/SpectroCloudEntityProvider.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/actions.test.ts
 PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/client/SpectroCloudClient.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/actions.test.ts
-PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/router.test.ts
-PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/service/router.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/service/KubernetesService.test.ts
-PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/service/router.test.ts
 PASS @terasky/backstage-plugin-app-module-global-signin-page plugins/app-module-global-signin-page/src/module.test.tsx
 PASS @terasky/backstage-plugin-gitops-manifest-updater plugins/gitops-manifest-updater/src/plugin.test.ts
-PASS app packages/app/src/App.test.tsx
 PASS @terasky/backstage-plugin-terraform-scaffolder plugins/terraform-scaffolder/src/plugin.test.ts
+PASS app packages/app/src/App.test.tsx
 A worker process has failed to exit gracefully and has been force exited. This is likely caused by tests leaking due to improper teardown. Try running with --detectOpenHandles to find leaks. Active timers can also cause this, ensure that .unref() was called on them.
 --------------------------------------------------------------------------|---------|----------|---------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 File                                                                      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                                                                                                                                         
 --------------------------------------------------------------------------|---------|----------|---------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-All files                                                                 |   18.47 |     8.12 |   12.62 |   18.33 |                                                                                                                                                                           
+All files                                                                 |   18.25 |     7.97 |   12.47 |   18.09 |                                                                                                                                                                           
  packages/app/src                                                         |      88 |      100 |       0 |   86.36 |                                                                                                                                                                           
   App.tsx                                                                 |     100 |      100 |     100 |     100 |                                                                                                                                                                           
   index.tsx                                                               |       0 |      100 |     100 |       0 | 6                                                                                                                                                                         
@@ -848,17 +420,17 @@ All files                                                                 |   18
   isKroAvailable.tsx                                                      |       0 |        0 |       0 |       0 | 6-49                                                                                                                                                                      
  plugins/kubernetes-ingestor/src                                          |   27.27 |        0 |       0 |    23.8 |                                                                                                                                                                           
   module.ts                                                               |   27.27 |        0 |       0 |    23.8 | 15-91                                                                                                                                                                     
- plugins/kubernetes-ingestor/src/providers                                |    1.01 |        0 |       0 |    1.07 |                                                                                                                                                                           
+ plugins/kubernetes-ingestor/src/providers                                |    1.62 |        0 |    1.58 |    1.71 |                                                                                                                                                                           
   CRDDataProvider.ts                                                      |       0 |        0 |       0 |       0 | 5-143                                                                                                                                                                     
-  EntityProvider.ts                                                       |     0.8 |        0 |       0 |    0.84 | 34-2804                                                                                                                                                                   
+  EntityProvider.ts                                                       |       2 |        0 |    3.84 |     2.1 | 34-1930,1959-1977,1989-2804                                                                                                                                               
   KROEntityProvider.ts                                                    |       0 |        0 |       0 |       0 | 18-798                                                                                                                                                                    
   KubernetesDataProvider.ts                                               |    0.56 |        0 |       0 |    0.58 | 7-523                                                                                                                                                                     
   RGDDataProvider.ts                                                      |       0 |        0 |       0 |       0 | 6-168                                                                                                                                                                     
   RGDTemplateEntityProvider.ts                                            |    1.29 |        0 |       0 |     1.4 | 13-809                                                                                                                                                                    
   XRDDataProvider.ts                                                      |       0 |        0 |       0 |       0 | 5-236                                                                                                                                                                     
   index.ts                                                                |   46.15 |      100 |     100 |     100 |                                                                                                                                                                           
- plugins/kubernetes-ingestor/src/services                                 |    5.26 |        0 |       0 |    5.55 |                                                                                                                                                                           
-  KubernetesResourceFetcher.ts                                            |    2.17 |        0 |       0 |    2.22 | 7-122                                                                                                                                                                     
+ plugins/kubernetes-ingestor/src/services                                 |   10.52 |        0 |    8.33 |   11.11 |                                                                                                                                                                           
+  KubernetesResourceFetcher.ts                                            |    8.69 |        0 |   16.66 |    8.88 | 14-122                                                                                                                                                                    
   LoggerWrapper.ts                                                        |       0 |      100 |       0 |       0 | 3-23                                                                                                                                                                      
   index.ts                                                                |      50 |      100 |     100 |     100 |                                                                                                                                                                           
  plugins/kubernetes-resources-common/src                                  |     100 |      100 |     100 |     100 |                                                                                                                                                                           
@@ -900,18 +472,18 @@ All files                                                                 |   18
   plugin.ts                                                               |   71.42 |      100 |       0 |   66.66 | 16-24                                                                                                                                                                     
  plugins/scaffolder-backend-module-terasky-utils/src                      |   63.63 |      100 |       0 |      60 |                                                                                                                                                                           
   module.ts                                                               |   63.63 |      100 |       0 |      60 | 13-21                                                                                                                                                                     
- plugins/scaffolder-backend-module-terasky-utils/src/actions              |   31.25 |      3.7 |   72.09 |    31.6 |                                                                                                                                                                           
+ plugins/scaffolder-backend-module-terasky-utils/src/actions              |   26.13 |        0 |   67.44 |   26.43 |                                                                                                                                                                           
   catalog-info-cleaner.ts                                                 |   33.33 |        0 |      80 |   33.33 | 20-65                                                                                                                                                                     
-  claim-templating.ts                                                     |   28.75 |     3.92 |      70 |   29.48 | 9-33,67-185                                                                                                                                                               
-  crd-templating.ts                                                       |   33.33 |     3.84 |   72.22 |   33.33 | 9-33,71-177                                                                                                                                                               
+  claim-templating.ts                                                     |   23.75 |        0 |      65 |   24.35 | 9-33,59-185                                                                                                                                                               
+  crd-templating.ts                                                       |   26.08 |        0 |   66.66 |   26.08 | 9-33,59-177                                                                                                                                                               
  plugins/scaffolder-mcp-backend/src                                       |   10.12 |        0 |    2.85 |    9.74 |                                                                                                                                                                           
   actions.ts                                                              |    6.66 |        0 |    3.03 |     6.8 | 23-89,108-135,152-189,209-326,346-409,426-486,505-605,622-722                                                                                                             
   plugin.ts                                                               |      75 |      100 |       0 |   71.42 | 17-26                                                                                                                                                                     
  plugins/scaleops-backend/src                                             |   64.85 |    44.66 |   52.27 |   64.82 |                                                                                                                                                                           
   actions.ts                                                              |   65.07 |    44.66 |   54.76 |   65.24 | 19-22,136,147-151,190,195,222-273,284-288,330,335,342,375-380,403,426-429,440-445,515,520,528,548-552,565,592,607,625-626,646-649,660-664,698,703,711,731-735,752,793-796 
   plugin.ts                                                               |   61.53 |      100 |       0 |   58.33 | 18-44                                                                                                                                                                     
- plugins/scaleops-backend/src/service                                     |   77.09 |       62 |   92.85 |   77.69 |                                                                                                                                                                           
-  ScaleOpsService.ts                                                      |   68.05 |       50 |      90 |   69.01 | 39-40,44-45,91,117-121,151-155,172-176,201-205,228-237                                                                                                                    
+ plugins/scaleops-backend/src/service                                     |   50.38 |       44 |      50 |   50.76 |                                                                                                                                                                           
+  ScaleOpsService.ts                                                      |   19.44 |       20 |      30 |   19.71 | 38-237                                                                                                                                                                    
   router.ts                                                               |   88.13 |       80 |     100 |   88.13 | 34-35,61-62,86-89                                                                                                                                                         
  plugins/scaleops-frontend/src                                            |    42.3 |      100 |       0 |   43.75 |                                                                                                                                                                           
   alpha.tsx                                                               |       0 |      100 |       0 |       0 | 5-32                                                                                                                                                                      
@@ -1021,375 +593,25 @@ All files                                                                 |   18
 --------------------------------------------------------------------------|---------|----------|---------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Summary of all failing tests
-FAIL plugins/kyverno-policy-reports/src/api/KyvernoApi.test.ts
-  ● KyvernoApi › KyvernoApiClient › getPolicy › should fetch cluster policy
-
-    expect(jest.fn()).toHaveBeenCalledWith(...expected)
-
-    Expected: StringContaining "http://kyverno-backend/policy"
-    Received: "http://kyverno-backend/policy?clusterName=test-cluster&policyName=test-policy", {}
-
-    Number of calls: 1
-
-       97 |         });
-       98 |
-    >  99 |         expect(mockFetchApi.fetch).toHaveBeenCalledWith(
-          |                                    ^
-      100 |           expect.stringContaining('http://kyverno-backend/policy')
-      101 |         );
-      102 |         expect(result.kind).toBe('ClusterPolicy');
-
-      at Object.toHaveBeenCalledWith (api/KyvernoApi.test.ts:99:36)
-
-  ● KyvernoApi › KyvernoApiClient › getPolicy › should include namespace in request when provided
-
-    expect(jest.fn()).toHaveBeenCalledWith(...expected)
-
-    Expected: StringContaining "namespace=default"
-    Received: "http://kyverno-backend/policy?clusterName=test-cluster&policyName=test-policy&namespace=default", {}
-
-    Number of calls: 1
-
-      115 |         });
-      116 |
-    > 117 |         expect(mockFetchApi.fetch).toHaveBeenCalledWith(
-          |                                    ^
-      118 |           expect.stringContaining('namespace=default')
-      119 |         );
-      120 |       });
-
-      at Object.toHaveBeenCalledWith (api/KyvernoApi.test.ts:117:36)
-
-FAIL plugins/scaffolder-backend-module-terasky-utils/src/actions/claim-templating.test.ts
-  ● createCrossplaneClaimAction › should create an action with correct id
-
-    expect(received).toBe(expected) // Object.is equality
-
-    Expected: "terasky:crossplane:claim:template"
-    Received: "terasky:claim-template"
-
-       7 |   it('should create an action with correct id', () => {
-       8 |     const action = createCrossplaneClaimAction({ config: mockConfig });
-    >  9 |     expect(action.id).toBe('terasky:crossplane:claim:template');
-         |                       ^
-      10 |   });
-      11 |
-      12 |   it('should have correct schema', () => {
-
-      at Object.toBe (actions/claim-templating.test.ts:9:23)
-
-  ● createCrossplaneClaimAction › handler › should process claim template
-
-    TypeError: Cannot read properties of undefined (reading 'undefined')
-
-      64 |         config.getOptionalString('kubernetesIngestor.annotationPrefix') ||
-      65 |         'terasky.backstage.io';
-    > 66 |       if (input.parameters[input.nameParam] === 'foo') {
-         |                           ^
-      67 |         throw new Error(`myParameter cannot be 'foo'`);
-      68 |       }
-      69 |
-
-      at Object.handler (actions/claim-templating.ts:66:27)
-      at Object.handler (actions/claim-templating.test.ts:51:20)
-
-FAIL plugins/scaffolder-backend-module-terasky-utils/src/actions/crd-templating.test.ts
-  ● createCrdTemplateAction › should create an action with correct id
-
-    expect(received).toBe(expected) // Object.is equality
-
-    Expected: "terasky:crd:template"
-    Received: "terasky:crd-template"
-
-       7 |   it('should create an action with correct id', () => {
-       8 |     const action = createCrdTemplateAction({ config: mockConfig });
-    >  9 |     expect(action.id).toBe('terasky:crd:template');
-         |                       ^
-      10 |   });
-      11 |
-      12 |   it('should have correct schema', () => {
-
-      at Object.toBe (actions/crd-templating.test.ts:9:23)
-
-  ● createCrdTemplateAction › handler › should process CRD template
-
-    TypeError: Cannot read properties of undefined (reading 'forEach')
-
-      68 |       // Remove excluded parameters
-      69 |       const filteredParameters = { ...input.parameters };
-    > 70 |       input.excludeParams.forEach((param: string) => {
-         |                           ^
-      71 |         delete filteredParameters[param];
-      72 |       });
-      73 |
-
-      at Object.forEach (actions/crd-templating.ts:70:27)
-      at Object.handler (actions/crd-templating.test.ts:51:20)
-
-FAIL plugins/vcf-automation-ingestor/src/provider/EntityProvider.test.ts
-  ● VcfAutomationEntityProvider › constructor › should throw error when no instances configured
-
-    expect(received).toThrow(expected)
-
-    Expected substring: "No VCF Automation instances configured"
-    Received message:   "Failed to initialize VCF Automation provider: Invalid configuration"
-
-          259 |         error: error instanceof Error ? error.message : String(error),
-          260 |       });
-        > 261 |       throw new Error('Failed to initialize VCF Automation provider: Invalid configuration');
-              |             ^
-          262 |     }
-          263 |
-          264 |     if (instances.length === 0) {
-
-      at new VcfAutomationEntityProvider (provider/EntityProvider.ts:261:13)
-      at provider/EntityProvider.test.ts:97:9
-      at Object.<anonymous> (../../../node_modules/expect/build/toThrowMatchers.js:74:11)
-      at Object.throwingMatcher [as toThrow] (../../../node_modules/expect/build/index.js:320:21)
-      at Object.toThrow (provider/EntityProvider.test.ts:102:10)
-      at Object.toThrow (provider/EntityProvider.test.ts:102:10)
-
-  ● VcfAutomationEntityProvider › connect › should schedule refresh task and trigger initial refresh
-
-    TypeError: Cannot read properties of undefined (reading 'post')
-
-      142 |       // Setup MSW handlers for authentication and fetching
-      143 |       server.use(
-    > 144 |         rest.post('https://vcf.example.com/csp/gateway/am/api/login', (req, res, ctx) => {
-          |              ^
-      145 |           return res(ctx.json({ cspAuthToken: 'test-token' }));
-      146 |         }),
-      147 |         rest.get('https://vcf.example.com/deployment/api/deployments', (req, res, ctx) => {
-
-      at Object.post (provider/EntityProvider.test.ts:144:14)
-
-  ● VcfAutomationEntityProvider › authentication › should authenticate with version 8 API
-
-    TypeError: Cannot read properties of undefined (reading 'post')
-
-      185 |
-      186 |       server.use(
-    > 187 |         rest.post('https://vcf.example.com/csp/gateway/am/api/login', (req, res, ctx) => {
-          |              ^
-      188 |           return res(ctx.json({ cspAuthToken: 'v8-token' }));
-      189 |         }),
-      190 |         rest.get('https://vcf.example.com/deployment/api/deployments', (req, res, ctx) => {
-
-      at Object.post (provider/EntityProvider.test.ts:187:14)
-
-  ● VcfAutomationEntityProvider › authentication › should authenticate with version 9+ API
-
-    TypeError: Cannot read properties of undefined (reading 'post')
-
-      223 |
-      224 |       server.use(
-    > 225 |         rest.post('https://vcf.example.com/cloudapi/1.0.0/sessions', (req, res, ctx) => {
-          |              ^
-      226 |           return res(
-      227 |             ctx.set('x-vmware-vcloud-access-token', 'v9-token'),
-      228 |             ctx.json({})
-
-      at Object.post (provider/EntityProvider.test.ts:225:14)
-
-  ● VcfAutomationEntityProvider › entity transformation › should transform deployments into entities
-
-    TypeError: Cannot read properties of undefined (reading 'post')
-
-      298 |
-      299 |       server.use(
-    > 300 |         rest.post('https://vcf.example.com/csp/gateway/am/api/login', (req, res, ctx) => {
-          |              ^
-      301 |           return res(ctx.json({ cspAuthToken: 'test-token' }));
-      302 |         }),
-      303 |         rest.get('https://vcf.example.com/deployment/api/deployments', (req, res, ctx) => {
-
-      at Object.post (provider/EntityProvider.test.ts:300:14)
-
-FAIL plugins/kro-resources-backend/src/service/router.test.ts
-  ● kro-resources router › GET /resources › should return 403 when unauthorized
-
-    expect(received).toBe(expected) // Object.is equality
-
-    Expected: 403
-    Received: 200
-
-      91 |         });
-      92 |
-    > 93 |       expect(response.status).toBe(403);
-         |                               ^
-      94 |     });
-      95 |   });
-      96 |
-
-      at Object.toBe (service/router.test.ts:93:31)
-
-  ● kro-resources router › GET /graph › should return 403 when unauthorized
-
-    expect(received).toBe(expected) // Object.is equality
-
-    Expected: 403
-    Received: 200
-
-      154 |         });
-      155 |
-    > 156 |       expect(response.status).toBe(403);
-          |                               ^
-      157 |     });
-      158 |   });
-      159 | });
-
-      at Object.toBe (service/router.test.ts:156:31)
-
-FAIL plugins/scaffolder-backend-module-terasky-utils/src/actions/catalog-info-cleaner.test.ts
-  ● createCatalogInfoCleanerAction › should create an action with correct id
-
-    expect(received).toBe(expected) // Object.is equality
-
-    Expected: "terasky:catalog-info:cleaner"
-    Received: "terasky:catalog-info-cleaner"
-
-      4 |   it('should create an action with correct id', () => {
-      5 |     const action = createCatalogInfoCleanerAction();
-    > 6 |     expect(action.id).toBe('terasky:catalog-info:cleaner');
-        |                       ^
-      7 |   });
-      8 |
-      9 |   it('should have correct schema', () => {
-
-      at Object.toBe (actions/catalog-info-cleaner.test.ts:6:23)
-
-FAIL plugins/scaleops-backend/src/service/ScaleOpsService.test.ts
-  ● ScaleOpsService › getWorkloadsByLabels › should fetch workloads with labels
-
-    FetchError: request to http://scaleops.example.com/api/v1/dashboard/byNamespace?multiCluster=true&logicalLabel=AND failed, reason: getaddrinfo ENOTFOUND scaleops.example.com
-
-      at NodeClientRequest.<anonymous> (../../../node_modules/node-fetch/lib/index.js:1501:11)
-      at NodeClientRequest.Object.<anonymous>.NodeClientRequest.emit (../../../node_modules/@mswjs/interceptors/src/interceptors/ClientRequest/NodeClientRequest.ts:299:22)
-
-  ● ScaleOpsService › getWorkloadCostDetails › should fetch cost details for workload
-
-    FetchError: request to http://scaleops.example.com/detailedCostReport/getWorkloads?multiCluster=true&range=7d failed, reason: getaddrinfo ENOTFOUND scaleops.example.com
-
-      at NodeClientRequest.<anonymous> (../../../node_modules/node-fetch/lib/index.js:1501:11)
-      at NodeClientRequest.Object.<anonymous>.NodeClientRequest.emit (../../../node_modules/@mswjs/interceptors/src/interceptors/ClientRequest/NodeClientRequest.ts:299:22)
-
-  ● ScaleOpsService › checkNetworkCostEnabled › should check if network cost is enabled
-
-    FetchError: request to http://scaleops.example.com/api/v1/networkCost/networkCostEnabled?multiCluster=true failed, reason: getaddrinfo ENOTFOUND scaleops.example.com
-
-      at NodeClientRequest.<anonymous> (../../../node_modules/node-fetch/lib/index.js:1501:11)
-      at NodeClientRequest.Object.<anonymous>.NodeClientRequest.emit (../../../node_modules/@mswjs/interceptors/src/interceptors/ClientRequest/NodeClientRequest.ts:299:22)
-
-  ● ScaleOpsService › getWorkloadNetworkUsage › should fetch network usage for workload
-
-    FetchError: request to http://scaleops.example.com/api/v1/workload-network?name=test-workload&namespace=default&workloadType=Deployment&from=1769256937122&to=1769343337122 failed, reason: getaddrinfo ENOTFOUND scaleops.example.com
-
-      at NodeClientRequest.<anonymous> (../../../node_modules/node-fetch/lib/index.js:1501:11)
-      at NodeClientRequest.Object.<anonymous>.NodeClientRequest.emit (../../../node_modules/@mswjs/interceptors/src/interceptors/ClientRequest/NodeClientRequest.ts:299:22)
-
-  ● ScaleOpsService › getPolicyByName › should fetch policy by name
-
-    FetchError: request to http://scaleops.example.com/api/v1/policies failed, reason: getaddrinfo ENOTFOUND scaleops.example.com
-
-      at NodeClientRequest.<anonymous> (../../../node_modules/node-fetch/lib/index.js:1501:11)
-      at NodeClientRequest.Object.<anonymous>.NodeClientRequest.emit (../../../node_modules/@mswjs/interceptors/src/interceptors/ClientRequest/NodeClientRequest.ts:299:22)
-
-  ● ScaleOpsService › authentication caching › should cache authentication token
-
-    FetchError: request to http://scaleops.example.com/api/v1/dashboard/byNamespace?multiCluster=true&logicalLabel=AND failed, reason: getaddrinfo ENOTFOUND scaleops.example.com
-
-      at NodeClientRequest.<anonymous> (../../../node_modules/node-fetch/lib/index.js:1501:11)
-      at NodeClientRequest.Object.<anonymous>.NodeClientRequest.emit (../../../node_modules/@mswjs/interceptors/src/interceptors/ClientRequest/NodeClientRequest.ts:299:22)
-
-FAIL plugins/kubernetes-ingestor/src/services/KubernetesResourceFetcher.test.ts
-  ● KubernetesResourceFetcher › fetchResource › should fetch a kubernetes resource
-
-    TypeError: _KubernetesResourceFetcher.KubernetesResourceFetcher is not a constructor
-
-      22 |     mockAuth.getPluginRequestToken.mockResolvedValue({ token: 'test-token' });
-      23 |
-    > 24 |     fetcher = new KubernetesResourceFetcher(
-         |               ^
-      25 |       mockLogger,
-      26 |       mockDiscovery,
-      27 |       mockAuth,
-
-      at Object.<anonymous> (services/KubernetesResourceFetcher.test.ts:24:15)
-
-  ● KubernetesResourceFetcher › fetchResource › should throw error on failed fetch
-
-    TypeError: _KubernetesResourceFetcher.KubernetesResourceFetcher is not a constructor
-
-      22 |     mockAuth.getPluginRequestToken.mockResolvedValue({ token: 'test-token' });
-      23 |
-    > 24 |     fetcher = new KubernetesResourceFetcher(
-         |               ^
-      25 |       mockLogger,
-      26 |       mockDiscovery,
-      27 |       mockAuth,
-
-      at Object.<anonymous> (services/KubernetesResourceFetcher.test.ts:24:15)
-
-  ● KubernetesResourceFetcher › listResources › should list kubernetes resources
-
-    TypeError: _KubernetesResourceFetcher.KubernetesResourceFetcher is not a constructor
-
-      22 |     mockAuth.getPluginRequestToken.mockResolvedValue({ token: 'test-token' });
-      23 |
-    > 24 |     fetcher = new KubernetesResourceFetcher(
-         |               ^
-      25 |       mockLogger,
-      26 |       mockDiscovery,
-      27 |       mockAuth,
-
-      at Object.<anonymous> (services/KubernetesResourceFetcher.test.ts:24:15)
-
 FAIL plugins/kubernetes-ingestor/src/providers/EntityProvider.test.ts
-  ● EntityProvider › constructor › should create provider instance
+  ● KubernetesEntityProvider › connect › should set connection and schedule task
 
-    TypeError: _EntityProvider.EntityProvider is not a constructor
+    TypeError: this.taskRunner.run is not a function
 
-      37 |   describe('constructor', () => {
-      38 |     it('should create provider instance', () => {
-    > 39 |       const provider = new EntityProvider(
-         |                        ^
-      40 |         mockConfig,
-      41 |         mockLogger,
-      42 |         mockDiscovery,
+      1984 |   async connect(connection: EntityProviderConnection): Promise<void> {
+      1985 |     this.connection = connection;
+    > 1986 |     await this.taskRunner.run({
+           |                           ^
+      1987 |       id: this.getProviderName(),
+      1988 |       fn: async () => {
+      1989 |         await this.run();
 
-      at Object.<anonymous> (providers/EntityProvider.test.ts:39:24)
-
-  ● EntityProvider › getProviderName › should return provider name
-
-    TypeError: _EntityProvider.EntityProvider is not a constructor
-
-      52 |   describe('getProviderName', () => {
-      53 |     it('should return provider name', () => {
-    > 54 |       const provider = new EntityProvider(
-         |                        ^
-      55 |         mockConfig,
-      56 |         mockLogger,
-      57 |         mockDiscovery,
-
-      at Object.<anonymous> (providers/EntityProvider.test.ts:54:24)
-
-  ● EntityProvider › connect › should set connection and schedule task
-
-    TypeError: _EntityProvider.EntityProvider is not a constructor
-
-      68 |   describe('connect', () => {
-      69 |     it('should set connection and schedule task', async () => {
-    > 70 |       const provider = new EntityProvider(
-         |                        ^
-      71 |         mockConfig,
-      72 |         mockLogger,
-      73 |         mockDiscovery,
-
-      at Object.<anonymous> (providers/EntityProvider.test.ts:70:24)
+      at KubernetesEntityProvider.run [as connect] (providers/EntityProvider.ts:1986:27)
+      at Object.connect (providers/EntityProvider.test.ts:93:22)
 
 
-Test Suites: 9 failed, 81 passed, 90 total
-Tests:       26 failed, 476 passed, 502 total
+Test Suites: 1 failed, 89 passed, 90 total
+Tests:       1 failed, 486 passed, 487 total
 Snapshots:   0 total
-Time:        9.859 s
+Time:        8.179 s
 Ran all test suites matching /plugins\//i in 42 projects.

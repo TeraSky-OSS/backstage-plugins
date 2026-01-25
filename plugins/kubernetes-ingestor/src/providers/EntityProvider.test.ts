@@ -4,13 +4,11 @@ import { ConfigReader } from '@backstage/config';
 
 describe('KubernetesEntityProvider', () => {
   const mockLogger = mockServices.logger.mock();
-  const mockDiscovery = mockServices.discovery.mock();
-  const mockScheduler = mockServices.scheduler.mock();
-  const mockAuth = mockServices.auth.mock();
 
   const mockConfig = new ConfigReader({
     kubernetesIngestor: {
       components: {
+        enabled: true,
         taskRunner: { frequency: 60, timeout: 600 },
       },
       annotationPrefix: 'terasky.backstage.io',
@@ -27,21 +25,33 @@ describe('KubernetesEntityProvider', () => {
     },
   });
 
+  const mockResourceFetcher = {
+    fetchResource: jest.fn(),
+    fetchClusters: jest.fn().mockResolvedValue([]),
+    fetchAllNamespaces: jest.fn().mockResolvedValue([]),
+    fetchAllNamespacesAllClusters: jest.fn().mockResolvedValue([]),
+    fetchAllCRDs: jest.fn().mockResolvedValue([]),
+    fetchAllCRDsAllClusters: jest.fn().mockResolvedValue([]),
+    fetchAllCustomResourcesOfType: jest.fn().mockResolvedValue([]),
+    fetchKubernetesResource: jest.fn().mockResolvedValue(undefined),
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
-    mockDiscovery.getBaseUrl.mockResolvedValue('http://kubernetes-backend');
-    mockAuth.getOwnServiceCredentials.mockResolvedValue({ principal: { type: 'service' } });
-    mockAuth.getPluginRequestToken.mockResolvedValue({ token: 'test-token' });
   });
 
   describe('constructor', () => {
     it('should create provider instance', () => {
+      const mockTaskRunner = {
+        run: jest.fn(),
+      };
+
+      // Constructor order: taskRunner, logger, config, resourceFetcher
       const provider = new KubernetesEntityProvider(
-        mockConfig,
+        mockTaskRunner as any,
         mockLogger,
-        mockDiscovery,
-        mockScheduler as any,
-        mockAuth,
+        mockConfig,
+        mockResourceFetcher as any,
       );
 
       expect(provider).toBeDefined();
@@ -51,41 +61,42 @@ describe('KubernetesEntityProvider', () => {
 
   describe('getProviderName', () => {
     it('should return provider name', () => {
+      const mockTaskRunner = {
+        run: jest.fn(),
+      };
+
       const provider = new KubernetesEntityProvider(
-        mockConfig,
+        mockTaskRunner as any,
         mockLogger,
-        mockDiscovery,
-        mockScheduler as any,
-        mockAuth,
+        mockConfig,
+        mockResourceFetcher as any,
       );
 
       const name = provider.getProviderName();
-      expect(typeof name).toBe('string');
-      expect(name.length).toBeGreaterThan(0);
+      expect(name).toBe('KubernetesEntityProvider');
     });
   });
 
   describe('connect', () => {
     it('should set connection and schedule task', async () => {
+      const mockTaskRunner = {
+        run: jest.fn().mockResolvedValue(undefined),
+      };
+
       const provider = new KubernetesEntityProvider(
-        mockConfig,
+        mockTaskRunner as any,
         mockLogger,
-        mockDiscovery,
-        mockScheduler as any,
-        mockAuth,
+        mockConfig,
+        mockResourceFetcher as any,
       );
 
       const mockConnection = {
         applyMutation: jest.fn(),
       };
 
-      mockScheduler.createScheduledTaskRunner.mockReturnValue({
-        run: jest.fn(),
-      });
-
       await provider.connect(mockConnection as any);
 
-      expect(mockScheduler.createScheduledTaskRunner).toHaveBeenCalled();
+      expect(mockTaskRunner.run).toHaveBeenCalled();
     });
   });
 });
