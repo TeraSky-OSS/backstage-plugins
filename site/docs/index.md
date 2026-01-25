@@ -10,7 +10,7 @@ Welcome to our comprehensive collection of Backstage plugins! We've created thes
 3. [KRO Suite](./plugins/kro/overview.md) [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-kro-resources-frontend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-kro-resources-frontend) - Complete KRO integration for Kubernetes resource orchestration.
 4. [Kyverno Policy Reports](./plugins/kyverno/overview.md) [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-kyverno-policy-reports/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-kyverno-policy-reports) - Policy compliance monitoring for Kubernetes.
 5. [Kubernetes Resources](./plugins/kubernetes/overview.md) [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-kubernetes-resources-frontend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-kubernetes-resources-frontend) - Visual graph representation of Kubernetes resources and their dependencies with simple Backstage permission and RBAC management.
-6. [SpectroCloud Cluster Provider](./plugins/spectrocloud-cluster-provider/overview.md) [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-spectrocloud-cluster-provider/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-spectrocloud-cluster-provider) - Kubernetes cluster supplier that automatically discovers and configures clusters from SpectroCloud Palette with secure read-only RBAC setup.
+6. [SpectroCloud Suite](./plugins/spectrocloud/overview.md) [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-spectrocloud/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-spectrocloud) - Complete SpectroCloud Palette integration with catalog ingestion, frontend visualization, Kubernetes cluster discovery, and MCP actions for AI agents.
 
 ### Infrastructure As Code
 1. [GitOps Manifest Updater](./plugins/gitops-manifest-updater/overview.md) [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-gitops-manifest-updater/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-gitops-manifest-updater) - Update GitOps manifests and create PRs with ease.
@@ -42,8 +42,6 @@ Welcome to our comprehensive collection of Backstage plugins! We've created thes
     * Catalog info cleaning  
 2. [Entity Scaffolder Plugin](./plugins/entity-scaffolder/frontend/about.md) [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-entity-scaffolder-content/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-entity-scaffolder-content) - Embbed scaffolder templates in component pages.
 3. [Global Sign-In Page](./plugins/signin-page/overview.md) [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-app-module-global-signin-page/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-app-module-global-signin-page) - Configuration-driven sign-in page supporting all core authentication providers through YAML config.
-
-
 
 
 

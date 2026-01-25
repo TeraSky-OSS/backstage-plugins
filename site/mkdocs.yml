@@ -49,12 +49,24 @@ nav:
               - About: plugins/kubernetes/frontend/about.md
               - Install: plugins/kubernetes/frontend/install.md
               - Configure: plugins/kubernetes/frontend/configure.md
-      - SpectroCloud Cluster Provider:
-          - Overview: plugins/spectrocloud-cluster-provider/overview.md
+      - SpectroCloud:
+          - Overview: plugins/spectrocloud/overview.md
+          - Frontend:
+              - About: plugins/spectrocloud/frontend/about.md
+              - Install: plugins/spectrocloud/frontend/install.md
+              - Configure: plugins/spectrocloud/frontend/configure.md
           - Backend:
-              - About: plugins/spectrocloud-cluster-provider/backend/about.md
-              - Install: plugins/spectrocloud-cluster-provider/backend/install.md
-              - Configure: plugins/spectrocloud-cluster-provider/backend/configure.md
+              - About: plugins/spectrocloud/backend/about.md
+              - Install: plugins/spectrocloud/backend/install.md
+              - Configure: plugins/spectrocloud/backend/configure.md
+          - Ingestor:
+              - About: plugins/spectrocloud/ingestor/about.md
+              - Install: plugins/spectrocloud/ingestor/install.md
+              - Configure: plugins/spectrocloud/ingestor/configure.md
+          - Cluster Provider:
+              - About: plugins/spectrocloud/cluster-provider/about.md
+              - Install: plugins/spectrocloud/cluster-provider/install.md
+              - Configure: plugins/spectrocloud/cluster-provider/configure.md
   - IaC GitOps:
       - GitOps Manifest Updater:
           - Overview: plugins/gitops-manifest-updater/overview.md
