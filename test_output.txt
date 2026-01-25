@@ -1,0 +1,1395 @@
+PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/actions.test.ts
+PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/rules.test.ts
+FAIL @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/api/KyvernoApi.test.ts
+  ● KyvernoApi › KyvernoApiClient › getPolicy › should fetch cluster policy
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: StringContaining "http://kyverno-backend/policy"
+    Received: "http://kyverno-backend/policy?clusterName=test-cluster&policyName=test-policy", {}
+
+    Number of calls: 1
+
+       97 |         });
+       98 |
+    >  99 |         expect(mockFetchApi.fetch).toHaveBeenCalledWith(
+          |                                    ^
+      100 |           expect.stringContaining('http://kyverno-backend/policy')
+      101 |         );
+      102 |         expect(result.kind).toBe('ClusterPolicy');
+
+      at Object.toHaveBeenCalledWith (api/KyvernoApi.test.ts:99:36)
+
+  ● KyvernoApi › KyvernoApiClient › getPolicy › should include namespace in request when provided
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: StringContaining "namespace=default"
+    Received: "http://kyverno-backend/policy?clusterName=test-cluster&policyName=test-policy&namespace=default", {}
+
+    Number of calls: 1
+
+      115 |         });
+      116 |
+    > 117 |         expect(mockFetchApi.fetch).toHaveBeenCalledWith(
+          |                                    ^
+      118 |           expect.stringContaining('namespace=default')
+      119 |         );
+      120 |       });
+
+      at Object.toHaveBeenCalledWith (api/KyvernoApi.test.ts:117:36)
+
+PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/api/VcfAutomationClient.test.ts
+PASS @terasky/backstage-plugin-educates plugins/educates/src/api/EducatesClient.test.ts
+PASS @terasky/backstage-plugin-vcf-operations plugins/vcf-operations/src/api/VcfOperationsClient.test.ts
+PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/api/AiRulesClient.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/api/CrossplaneApi.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/api/KroApi.test.ts
+PASS @terasky/backstage-plugin-crossplane-common plugins/crossplane-common/src/index.test.ts
+FAIL @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/claim-templating.test.ts
+  ● createCrossplaneClaimAction › should create an action with correct id
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "terasky:crossplane:claim:template"
+    Received: "terasky:claim-template"
+
+       7 |   it('should create an action with correct id', () => {
+       8 |     const action = createCrossplaneClaimAction({ config: mockConfig });
+    >  9 |     expect(action.id).toBe('terasky:crossplane:claim:template');
+         |                       ^
+      10 |   });
+      11 |
+      12 |   it('should have correct schema', () => {
+
+      at Object.toBe (actions/claim-templating.test.ts:9:23)
+
+  ● createCrossplaneClaimAction › handler › should process claim template
+
+    TypeError: Cannot read properties of undefined (reading 'undefined')
+
+      64 |         config.getOptionalString('kubernetesIngestor.annotationPrefix') ||
+      65 |         'terasky.backstage.io';
+    > 66 |       if (input.parameters[input.nameParam] === 'foo') {
+         |                           ^
+      67 |         throw new Error(`myParameter cannot be 'foo'`);
+      68 |       }
+      69 |
+
+      at Object.handler (actions/claim-templating.ts:66:27)
+      at Object.handler (actions/claim-templating.test.ts:51:20)
+
+FAIL @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/crd-templating.test.ts
+  ● createCrdTemplateAction › should create an action with correct id
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "terasky:crd:template"
+    Received: "terasky:crd-template"
+
+       7 |   it('should create an action with correct id', () => {
+       8 |     const action = createCrdTemplateAction({ config: mockConfig });
+    >  9 |     expect(action.id).toBe('terasky:crd:template');
+         |                       ^
+      10 |   });
+      11 |
+      12 |   it('should have correct schema', () => {
+
+      at Object.toBe (actions/crd-templating.test.ts:9:23)
+
+  ● createCrdTemplateAction › handler › should process CRD template
+
+    TypeError: Cannot read properties of undefined (reading 'forEach')
+
+      68 |       // Remove excluded parameters
+      69 |       const filteredParameters = { ...input.parameters };
+    > 70 |       input.excludeParams.forEach((param: string) => {
+         |                           ^
+      71 |         delete filteredParameters[param];
+      72 |       });
+      73 |
+
+      at Object.forEach (actions/crd-templating.ts:70:27)
+      at Object.handler (actions/crd-templating.test.ts:51:20)
+
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/service/EducatesService.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/supplier/SpectroCloudClusterSupplier.test.ts
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/MCPService.test.ts
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/conditions.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/permissions.test.ts
+PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/AiRulesService.test.ts
+(node:72405) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
+(Use `node --trace-warnings ...` to show where the warning was created)
+FAIL @terasky/backstage-plugin-vcf-automation-ingestor plugins/vcf-automation-ingestor/src/provider/EntityProvider.test.ts
+  ● VcfAutomationEntityProvider › constructor › should throw error when no instances configured
+
+    expect(received).toThrow(expected)
+
+    Expected substring: "No VCF Automation instances configured"
+    Received message:   "Failed to initialize VCF Automation provider: Invalid configuration"
+
+          259 |         error: error instanceof Error ? error.message : String(error),
+          260 |       });
+        > 261 |       throw new Error('Failed to initialize VCF Automation provider: Invalid configuration');
+              |             ^
+          262 |     }
+          263 |
+          264 |     if (instances.length === 0) {
+
+      at new VcfAutomationEntityProvider (provider/EntityProvider.ts:261:13)
+      at provider/EntityProvider.test.ts:97:9
+      at Object.<anonymous> (../../../node_modules/expect/build/toThrowMatchers.js:74:11)
+      at Object.throwingMatcher [as toThrow] (../../../node_modules/expect/build/index.js:320:21)
+      at Object.toThrow (provider/EntityProvider.test.ts:102:10)
+      at Object.toThrow (provider/EntityProvider.test.ts:102:10)
+
+  ● VcfAutomationEntityProvider › connect › should schedule refresh task and trigger initial refresh
+
+    TypeError: Cannot read properties of undefined (reading 'post')
+
+      142 |       // Setup MSW handlers for authentication and fetching
+      143 |       server.use(
+    > 144 |         rest.post('https://vcf.example.com/csp/gateway/am/api/login', (req, res, ctx) => {
+          |              ^
+      145 |           return res(ctx.json({ cspAuthToken: 'test-token' }));
+      146 |         }),
+      147 |         rest.get('https://vcf.example.com/deployment/api/deployments', (req, res, ctx) => {
+
+      at Object.post (provider/EntityProvider.test.ts:144:14)
+
+  ● VcfAutomationEntityProvider › authentication › should authenticate with version 8 API
+
+    TypeError: Cannot read properties of undefined (reading 'post')
+
+      185 |
+      186 |       server.use(
+    > 187 |         rest.post('https://vcf.example.com/csp/gateway/am/api/login', (req, res, ctx) => {
+          |              ^
+      188 |           return res(ctx.json({ cspAuthToken: 'v8-token' }));
+      189 |         }),
+      190 |         rest.get('https://vcf.example.com/deployment/api/deployments', (req, res, ctx) => {
+
+      at Object.post (provider/EntityProvider.test.ts:187:14)
+
+  ● VcfAutomationEntityProvider › authentication › should authenticate with version 9+ API
+
+    TypeError: Cannot read properties of undefined (reading 'post')
+
+      223 |
+      224 |       server.use(
+    > 225 |         rest.post('https://vcf.example.com/cloudapi/1.0.0/sessions', (req, res, ctx) => {
+          |              ^
+      226 |           return res(
+      227 |             ctx.set('x-vmware-vcloud-access-token', 'v9-token'),
+      228 |             ctx.json({})
+
+      at Object.post (provider/EntityProvider.test.ts:225:14)
+
+  ● VcfAutomationEntityProvider › entity transformation › should transform deployments into entities
+
+    TypeError: Cannot read properties of undefined (reading 'post')
+
+      298 |
+      299 |       server.use(
+    > 300 |         rest.post('https://vcf.example.com/csp/gateway/am/api/login', (req, res, ctx) => {
+          |              ^
+      301 |           return res(ctx.json({ cspAuthToken: 'test-token' }));
+      302 |         }),
+      303 |         rest.get('https://vcf.example.com/deployment/api/deployments', (req, res, ctx) => {
+
+      at Object.post (provider/EntityProvider.test.ts:300:14)
+
+PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/service/router.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/client/SpectroCloudClient.test.ts
+FAIL @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/service/router.test.ts
+  ● kro-resources router › GET /resources › should return 403 when unauthorized
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 403
+    Received: 200
+
+      91 |         });
+      92 |
+    > 93 |       expect(response.status).toBe(403);
+         |                               ^
+      94 |     });
+      95 |   });
+      96 |
+
+      at Object.toBe (service/router.test.ts:93:31)
+
+  ● kro-resources router › GET /graph › should return 403 when unauthorized
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 403
+    Received: 200
+
+      154 |         });
+      155 |
+    > 156 |       expect(response.status).toBe(403);
+          |                               ^
+      157 |     });
+      158 |   });
+      159 | });
+
+      at Object.toBe (service/router.test.ts:156:31)
+
+(node:72345) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/service/KubernetesService.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/service/KubernetesService.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-ingestor plugins/spectrocloud-ingestor/src/client/SpectroCloudClient.test.ts
+PASS @terasky/backstage-plugin-educates-common plugins/educates-common/src/index.test.ts
+FAIL @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/actions/catalog-info-cleaner.test.ts
+  ● createCatalogInfoCleanerAction › should create an action with correct id
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "terasky:catalog-info:cleaner"
+    Received: "terasky:catalog-info-cleaner"
+
+      4 |   it('should create an action with correct id', () => {
+      5 |     const action = createCatalogInfoCleanerAction();
+    > 6 |     expect(action.id).toBe('terasky:catalog-info:cleaner');
+        |                       ^
+      7 |   });
+      8 |
+      9 |   it('should have correct schema', () => {
+
+      at Object.toBe (actions/catalog-info-cleaner.test.ts:6:23)
+
+PASS @terasky/backstage-plugin-kro-common plugins/kro-common/src/index.test.ts
+PASS @terasky/backstage-plugin-kubernetes-resources-common plugins/kubernetes-resources-common/src/index.test.ts
+PASS @terasky/backstage-plugin-vcf-automation-common plugins/vcf-automation-common/src/index.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-frontend plugins/crossplane-resources/src/components/annotationUtils.test.ts
+FAIL @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/service/ScaleOpsService.test.ts
+  ● Console
+
+    console.warn
+      [MSW] Warning: captured a request without a matching request handler:
+      
+        • POST http://scaleops.example.com/api/v1/dashboard/byNamespace
+      
+      If you still wish to intercept this unhandled request, please create a request handler for it.
+      Read more: https://mswjs.io/docs/getting-started/mocks
+
+      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
+      at warn (../node_modules/msw/lib/node/index.js:1391:18)
+      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
+      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
+      at ../node_modules/msw/lib/node/index.js:1503:25
+
+    console.warn
+      [MSW] Warning: captured a request without a matching request handler:
+      
+        • POST http://scaleops.example.com/detailedCostReport/getWorkloads
+      
+      If you still wish to intercept this unhandled request, please create a request handler for it.
+      Read more: https://mswjs.io/docs/getting-started/mocks
+
+      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
+      at warn (../node_modules/msw/lib/node/index.js:1391:18)
+      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
+      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
+      at ../node_modules/msw/lib/node/index.js:1503:25
+
+    console.warn
+      [MSW] Warning: captured a request without a matching request handler:
+      
+        • GET http://scaleops.example.com/api/v1/networkCost/networkCostEnabled
+      
+      If you still wish to intercept this unhandled request, please create a request handler for it.
+      Read more: https://mswjs.io/docs/getting-started/mocks
+
+      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
+      at warn (../node_modules/msw/lib/node/index.js:1391:18)
+      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
+      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
+      at ../node_modules/msw/lib/node/index.js:1503:25
+
+    console.warn
+      [MSW] Warning: captured a request without a matching request handler:
+      
+        • GET http://scaleops.example.com/api/v1/workload-network
+      
+      If you still wish to intercept this unhandled request, please create a request handler for it.
+      Read more: https://mswjs.io/docs/getting-started/mocks
+
+      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
+      at warn (../node_modules/msw/lib/node/index.js:1391:18)
+      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
+      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
+      at ../node_modules/msw/lib/node/index.js:1503:25
+
+    console.warn
+      [MSW] Warning: captured a request without a matching request handler:
+      
+        • GET http://scaleops.example.com/api/v1/policies
+      
+      If you still wish to intercept this unhandled request, please create a request handler for it.
+      Read more: https://mswjs.io/docs/getting-started/mocks
+
+      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
+      at warn (../node_modules/msw/lib/node/index.js:1391:18)
+      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
+      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
+      at ../node_modules/msw/lib/node/index.js:1503:25
+
+    console.warn
+      [MSW] Warning: captured a request without a matching request handler:
+      
+        • POST http://scaleops.example.com/api/v1/dashboard/byNamespace
+      
+      If you still wish to intercept this unhandled request, please create a request handler for it.
+      Read more: https://mswjs.io/docs/getting-started/mocks
+
+      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
+      at warn (../node_modules/msw/lib/node/index.js:1391:18)
+      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
+      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
+      at ../node_modules/msw/lib/node/index.js:1503:25
+
+  ● ScaleOpsService › getWorkloadsByLabels › should fetch workloads with labels
+
+    FetchError: request to http://scaleops.example.com/api/v1/dashboard/byNamespace?multiCluster=true&logicalLabel=AND failed, reason: getaddrinfo ENOTFOUND scaleops.example.com
+
+      at NodeClientRequest.<anonymous> (../../../node_modules/node-fetch/lib/index.js:1501:11)
+      at NodeClientRequest.Object.<anonymous>.NodeClientRequest.emit (../../../node_modules/@mswjs/interceptors/src/interceptors/ClientRequest/NodeClientRequest.ts:299:22)
+
+  ● ScaleOpsService › getWorkloadCostDetails › should fetch cost details for workload
+
+    FetchError: request to http://scaleops.example.com/detailedCostReport/getWorkloads?multiCluster=true&range=7d failed, reason: getaddrinfo ENOTFOUND scaleops.example.com
+
+      at NodeClientRequest.<anonymous> (../../../node_modules/node-fetch/lib/index.js:1501:11)
+      at NodeClientRequest.Object.<anonymous>.NodeClientRequest.emit (../../../node_modules/@mswjs/interceptors/src/interceptors/ClientRequest/NodeClientRequest.ts:299:22)
+
+  ● ScaleOpsService › checkNetworkCostEnabled › should check if network cost is enabled
+
+    FetchError: request to http://scaleops.example.com/api/v1/networkCost/networkCostEnabled?multiCluster=true failed, reason: getaddrinfo ENOTFOUND scaleops.example.com
+
+      at NodeClientRequest.<anonymous> (../../../node_modules/node-fetch/lib/index.js:1501:11)
+      at NodeClientRequest.Object.<anonymous>.NodeClientRequest.emit (../../../node_modules/@mswjs/interceptors/src/interceptors/ClientRequest/NodeClientRequest.ts:299:22)
+
+  ● ScaleOpsService › getWorkloadNetworkUsage › should fetch network usage for workload
+
+    FetchError: request to http://scaleops.example.com/api/v1/workload-network?name=test-workload&namespace=default&workloadType=Deployment&from=1769256937122&to=1769343337122 failed, reason: getaddrinfo ENOTFOUND scaleops.example.com
+
+      at NodeClientRequest.<anonymous> (../../../node_modules/node-fetch/lib/index.js:1501:11)
+      at NodeClientRequest.Object.<anonymous>.NodeClientRequest.emit (../../../node_modules/@mswjs/interceptors/src/interceptors/ClientRequest/NodeClientRequest.ts:299:22)
+
+  ● ScaleOpsService › getPolicyByName › should fetch policy by name
+
+    FetchError: request to http://scaleops.example.com/api/v1/policies failed, reason: getaddrinfo ENOTFOUND scaleops.example.com
+
+      at NodeClientRequest.<anonymous> (../../../node_modules/node-fetch/lib/index.js:1501:11)
+      at NodeClientRequest.Object.<anonymous>.NodeClientRequest.emit (../../../node_modules/@mswjs/interceptors/src/interceptors/ClientRequest/NodeClientRequest.ts:299:22)
+
+  ● ScaleOpsService › authentication caching › should cache authentication token
+
+    FetchError: request to http://scaleops.example.com/api/v1/dashboard/byNamespace?multiCluster=true&logicalLabel=AND failed, reason: getaddrinfo ENOTFOUND scaleops.example.com
+
+      at NodeClientRequest.<anonymous> (../../../node_modules/node-fetch/lib/index.js:1501:11)
+      at NodeClientRequest.Object.<anonymous>.NodeClientRequest.emit (../../../node_modules/@mswjs/interceptors/src/interceptors/ClientRequest/NodeClientRequest.ts:299:22)
+
+PASS @terasky/backstage-plugin-kubernetes-resources-permissions-backend plugins/kubernetes-resources-permissions-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kyverno-common plugins/kyverno-common/src/index.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports plugins/kyverno-policy-reports/src/plugin.test.ts
+PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/service/router.test.ts
+  ● Console
+
+    console.warn
+      [MSW] Warning: captured a request without a matching request handler:
+      
+        • GET http://127.0.0.1:45821/health
+      
+      If you still wish to intercept this unhandled request, please create a request handler for it.
+      Read more: https://mswjs.io/docs/getting-started/mocks
+
+      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
+      at warn (../node_modules/msw/lib/node/index.js:1391:18)
+      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
+      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
+      at ../node_modules/msw/lib/node/index.js:1503:25
+
+    console.warn
+      [MSW] Warning: captured a request without a matching request handler:
+      
+        • GET http://127.0.0.1:44945/api/workloads
+      
+      If you still wish to intercept this unhandled request, please create a request handler for it.
+      Read more: https://mswjs.io/docs/getting-started/mocks
+
+      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
+      at warn (../node_modules/msw/lib/node/index.js:1391:18)
+      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
+      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
+      at ../node_modules/msw/lib/node/index.js:1503:25
+
+    console.warn
+      [MSW] Warning: captured a request without a matching request handler:
+      
+        • POST http://127.0.0.1:46025/api/workloads/query
+      
+      If you still wish to intercept this unhandled request, please create a request handler for it.
+      Read more: https://mswjs.io/docs/getting-started/mocks
+
+      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
+      at warn (../node_modules/msw/lib/node/index.js:1391:18)
+      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
+      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
+      at ../node_modules/msw/lib/node/index.js:1503:25
+
+    console.warn
+      [MSW] Warning: captured a request without a matching request handler:
+      
+        • GET http://127.0.0.1:44929/api/error-endpoint
+      
+      If you still wish to intercept this unhandled request, please create a request handler for it.
+      Read more: https://mswjs.io/docs/getting-started/mocks
+
+      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
+      at warn (../node_modules/msw/lib/node/index.js:1391:18)
+      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
+      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
+      at ../node_modules/msw/lib/node/index.js:1503:25
+
+    console.warn
+      [MSW] Warning: captured a request without a matching request handler:
+      
+        • GET http://127.0.0.1:45095/api/workloads
+      
+      If you still wish to intercept this unhandled request, please create a request handler for it.
+      Read more: https://mswjs.io/docs/getting-started/mocks
+
+      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
+      at warn (../node_modules/msw/lib/node/index.js:1391:18)
+      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
+      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
+      at ../node_modules/msw/lib/node/index.js:1503:25
+
+    console.warn
+      [MSW] Warning: captured a request without a matching request handler:
+      
+        • GET http://scaleops.example.com/workloads
+      
+      If you still wish to intercept this unhandled request, please create a request handler for it.
+      Read more: https://mswjs.io/docs/getting-started/mocks
+
+      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
+      at warn (../node_modules/msw/lib/node/index.js:1391:18)
+      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
+      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
+      at ../node_modules/msw/lib/node/index.js:1503:25
+
+    console.warn
+      [MSW] Warning: captured a request without a matching request handler:
+      
+        • GET http://127.0.0.1:45983/api/workloads
+      
+      If you still wish to intercept this unhandled request, please create a request handler for it.
+      Read more: https://mswjs.io/docs/getting-started/mocks
+
+      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
+      at warn (../node_modules/msw/lib/node/index.js:1391:18)
+      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
+      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
+      at ../node_modules/msw/lib/node/index.js:1503:25
+
+    console.warn
+      [MSW] Warning: captured a request without a matching request handler:
+      
+        • GET http://127.0.0.1:44711/api/workloads
+      
+      If you still wish to intercept this unhandled request, please create a request handler for it.
+      Read more: https://mswjs.io/docs/getting-started/mocks
+
+      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
+      at warn (../node_modules/msw/lib/node/index.js:1391:18)
+      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
+      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
+      at ../node_modules/msw/lib/node/index.js:1503:25
+
+    console.warn
+      [MSW] Warning: captured a request without a matching request handler:
+      
+        • GET http://scaleops.example.com/workloads
+      
+      If you still wish to intercept this unhandled request, please create a request handler for it.
+      Read more: https://mswjs.io/docs/getting-started/mocks
+
+      at Object.warn (../node_modules/msw/lib/node/index.js:55:11)
+      at warn (../node_modules/msw/lib/node/index.js:1391:18)
+      at applyStrategy (../node_modules/msw/lib/node/index.js:1412:3)
+      at onUnhandledRequest (../node_modules/msw/lib/node/index.js:1444:5)
+      at ../node_modules/msw/lib/node/index.js:1503:25
+
+PASS @terasky/backstage-plugin-ai-rules plugins/ai-rules-plugin/src/plugin.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-ingestor plugins/spectrocloud-ingestor/src/module.test.ts
+PASS @terasky/backstage-plugin-kyverno-policy-reports-backend plugins/kyverno-policy-reports-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-vcf-automation-ingestor plugins/vcf-automation-ingestor/src/module.test.ts
+PASS @terasky/backstage-plugin-kro-resources-frontend plugins/kro-resources/src/plugin.test.ts
+FAIL @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/services/KubernetesResourceFetcher.test.ts
+  ● KubernetesResourceFetcher › fetchResource › should fetch a kubernetes resource
+
+    TypeError: _KubernetesResourceFetcher.KubernetesResourceFetcher is not a constructor
+
+      22 |     mockAuth.getPluginRequestToken.mockResolvedValue({ token: 'test-token' });
+      23 |
+    > 24 |     fetcher = new KubernetesResourceFetcher(
+         |               ^
+      25 |       mockLogger,
+      26 |       mockDiscovery,
+      27 |       mockAuth,
+
+      at Object.<anonymous> (services/KubernetesResourceFetcher.test.ts:24:15)
+
+  ● KubernetesResourceFetcher › fetchResource › should throw error on failed fetch
+
+    TypeError: _KubernetesResourceFetcher.KubernetesResourceFetcher is not a constructor
+
+      22 |     mockAuth.getPluginRequestToken.mockResolvedValue({ token: 'test-token' });
+      23 |
+    > 24 |     fetcher = new KubernetesResourceFetcher(
+         |               ^
+      25 |       mockLogger,
+      26 |       mockDiscovery,
+      27 |       mockAuth,
+
+      at Object.<anonymous> (services/KubernetesResourceFetcher.test.ts:24:15)
+
+  ● KubernetesResourceFetcher › listResources › should list kubernetes resources
+
+    TypeError: _KubernetesResourceFetcher.KubernetesResourceFetcher is not a constructor
+
+      22 |     mockAuth.getPluginRequestToken.mockResolvedValue({ token: 'test-token' });
+      23 |
+    > 24 |     fetcher = new KubernetesResourceFetcher(
+         |               ^
+      25 |       mockLogger,
+      26 |       mockDiscovery,
+      27 |       mockAuth,
+
+      at Object.<anonymous> (services/KubernetesResourceFetcher.test.ts:24:15)
+
+PASS @terasky/backstage-plugin-catalog-mcp-backend plugins/catalog-mcp-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-vcf-automation-backend plugins/vcf-automation-backend/src/plugin.test.ts
+PASS @terasky/plugin-rbac-mcp-backend plugins/rbac-mcp-backend/src/plugin.test.ts
+PASS @terasky/plugin-scaffolder-mcp-backend plugins/scaffolder-mcp-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kubernetes-resources-frontend plugins/kubernetes-resources/src/plugin.test.ts
+PASS @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/module.test.ts
+FAIL @terasky/backstage-plugin-kubernetes-ingestor plugins/kubernetes-ingestor/src/providers/EntityProvider.test.ts
+  ● EntityProvider › constructor › should create provider instance
+
+    TypeError: _EntityProvider.EntityProvider is not a constructor
+
+      37 |   describe('constructor', () => {
+      38 |     it('should create provider instance', () => {
+    > 39 |       const provider = new EntityProvider(
+         |                        ^
+      40 |         mockConfig,
+      41 |         mockLogger,
+      42 |         mockDiscovery,
+
+      at Object.<anonymous> (providers/EntityProvider.test.ts:39:24)
+
+  ● EntityProvider › getProviderName › should return provider name
+
+    TypeError: _EntityProvider.EntityProvider is not a constructor
+
+      52 |   describe('getProviderName', () => {
+      53 |     it('should return provider name', () => {
+    > 54 |       const provider = new EntityProvider(
+         |                        ^
+      55 |         mockConfig,
+      56 |         mockLogger,
+      57 |         mockDiscovery,
+
+      at Object.<anonymous> (providers/EntityProvider.test.ts:54:24)
+
+  ● EntityProvider › connect › should set connection and schedule task
+
+    TypeError: _EntityProvider.EntityProvider is not a constructor
+
+      68 |   describe('connect', () => {
+      69 |     it('should set connection and schedule task', async () => {
+    > 70 |       const provider = new EntityProvider(
+         |                        ^
+      71 |         mockConfig,
+      72 |         mockLogger,
+      73 |         mockDiscovery,
+
+      at Object.<anonymous> (providers/EntityProvider.test.ts:70:24)
+
+PASS @terasky/backstage-plugin-kro-resources-backend plugins/kro-resources-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-spectrocloud plugins/spectrocloud/src/plugin.test.ts
+PASS @terasky/backstage-plugin-catalog-mcp-backend plugins/catalog-mcp-backend/src/actions.test.ts
+  ● Console
+
+    console.log
+      [CATALOG MCP] Fetching entities by owner: http://catalog-backend/entities/by-query?filter=spec.owner=user%3Adefault%2Ftest-user
+
+      at Object.log [as action] (actions.ts:77:15)
+
+    console.log
+      [CATALOG MCP] Fetching entities by owner: http://catalog-backend/entities/by-query?filter=spec.owner=user%3Adefault%2Ftest-user
+
+      at Object.log [as action] (actions.ts:77:15)
+
+    console.error
+      [CATALOG MCP] API Error: {
+        "context": "Failed to fetch entities by owner",
+        "status": 500,
+        "statusText": "Internal Server Error",
+        "url": "http://catalog-backend/entities/by-query?filter=spec.owner=user%3Adefault%2Ftest-user",
+        "details": {
+          "error": "Internal Server Error"
+        }
+      }
+
+      25 |   };
+      26 |
+    > 27 |   console.error('[CATALOG MCP] API Error:', JSON.stringify(errorMessage, null, 2));
+         |           ^
+      28 |
+      29 |   throw new InputError(
+      30 |     `${context}: HTTP ${response.status} ${response.statusText}. ` +
+
+      at error (actions.ts:27:11)
+      at Object.action (actions.ts:86:9)
+      at Object.<anonymous> (actions.test.ts:84:7)
+
+    console.log
+      [CATALOG MCP] Fetching entities by owner: http://catalog-backend/entities/by-query?filter=spec.owner=user%3Adefault%2Fnon-existent
+
+      at Object.log [as action] (actions.ts:77:15)
+
+PASS @terasky/backstage-plugin-scaleops-backend plugins/scaleops-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-scaleops-frontend plugins/scaleops-frontend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-devpod plugins/devpod-plugin/src/plugin.test.ts
+PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/service/router.test.ts
+PASS @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils plugins/scaffolder-backend-module-terasky-utils/src/module.test.ts
+PASS @terasky/backstage-plugin-ai-rules-backend plugins/ai-rules-plugin-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-vcf-automation plugins/vcf-automation/src/plugin.test.ts
+PASS @terasky/backstage-plugin-entity-scaffolder-content plugins/entity-scaffolder-content/src/plugin.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-common plugins/spectrocloud-common/src/index.test.ts
+PASS @terasky/backstage-plugin-vcf-operations-common plugins/vcf-operations-common/src/index.test.ts
+PASS @terasky/plugin-scaffolder-mcp-backend plugins/scaffolder-mcp-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/plugin.test.ts
+PASS @terasky/backstage-plugin-educates plugins/educates/src/plugin.test.ts
+PASS @terasky/backstage-plugin-vcf-operations plugins/vcf-operations/src/plugin.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/plugin.test.ts
+PASS @terasky/plugin-rbac-mcp-backend plugins/rbac-mcp-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-cluster-provider plugins/spectrocloud-cluster-provider/src/module.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/providers/SpectroCloudEntityProvider.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-vcf-operations-backend plugins/vcf-operations-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/client/SpectroCloudClient.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/actions.test.ts
+PASS @terasky/backstage-plugin-spectrocloud-backend plugins/spectrocloud-backend/src/router.test.ts
+PASS @terasky/backstage-plugin-educates-backend plugins/educates-backend/src/service/router.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/service/KubernetesService.test.ts
+PASS @terasky/backstage-plugin-crossplane-resources-backend plugins/crossplane-resources-backend/src/service/router.test.ts
+PASS @terasky/backstage-plugin-app-module-global-signin-page plugins/app-module-global-signin-page/src/module.test.tsx
+PASS @terasky/backstage-plugin-gitops-manifest-updater plugins/gitops-manifest-updater/src/plugin.test.ts
+PASS app packages/app/src/App.test.tsx
+PASS @terasky/backstage-plugin-terraform-scaffolder plugins/terraform-scaffolder/src/plugin.test.ts
+A worker process has failed to exit gracefully and has been force exited. This is likely caused by tests leaking due to improper teardown. Try running with --detectOpenHandles to find leaks. Active timers can also cause this, ensure that .unref() was called on them.
+--------------------------------------------------------------------------|---------|----------|---------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+File                                                                      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                                                                                                                                         
+--------------------------------------------------------------------------|---------|----------|---------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+All files                                                                 |   18.47 |     8.12 |   12.62 |   18.33 |                                                                                                                                                                           
+ packages/app/src                                                         |      88 |      100 |       0 |   86.36 |                                                                                                                                                                           
+  App.tsx                                                                 |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+  index.tsx                                                               |       0 |      100 |     100 |       0 | 6                                                                                                                                                                         
+  theme.ts                                                                |   84.61 |      100 |       0 |   81.81 | 358,373                                                                                                                                                                   
+ packages/app/src/modules/nav                                             |   87.17 |        0 |       0 |   94.11 |                                                                                                                                                                           
+  LogoFull.tsx                                                            |      75 |      100 |       0 |     100 |                                                                                                                                                                           
+  LogoIcon.tsx                                                            |      75 |      100 |       0 |     100 |                                                                                                                                                                           
+  Sidebar.tsx                                                             |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+  SidebarLogo.tsx                                                         |   66.66 |        0 |       0 |      75 | 26-27                                                                                                                                                                     
+  index.ts                                                                |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+ packages/app/src/modules/rootRedirect                                    |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+  index.tsx                                                               |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+ plugins/ai-rules-plugin-backend/src                                      |   57.14 |      100 |       0 |   53.84 |                                                                                                                                                                           
+  plugin.ts                                                               |   57.14 |      100 |       0 |   53.84 | 19-60                                                                                                                                                                     
+ plugins/ai-rules-plugin-backend/src/service                              |   71.42 |    48.54 |   83.78 |   71.57 |                                                                                                                                                                           
+  AiRulesService.ts                                                       |   63.68 |    47.76 |   89.47 |   63.82 | 71,108-125,141-158,188-203,233,280-281,289,305-328,347-356,361-365,380-381,403-404,433-443                                                                                
+  MCPService.ts                                                           |   91.37 |    45.45 |     100 |   91.37 | 103-109                                                                                                                                                                   
+  actions.ts                                                              |   63.63 |      100 |   42.85 |   63.63 | 16-20,58-61                                                                                                                                                               
+  router.ts                                                               |   80.95 |    57.14 |     100 |   80.95 | 53-57,81-85                                                                                                                                                               
+ plugins/ai-rules-plugin/src                                              |      35 |      100 |       0 |    40.9 |                                                                                                                                                                           
+  alpha.tsx                                                               |       0 |      100 |       0 |       0 | 12-53                                                                                                                                                                     
+  plugin.ts                                                               |    42.3 |      100 |       0 |   53.84 | 16-17,26-27,36-37                                                                                                                                                         
+  routes.ts                                                               |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+  types.ts                                                                |       0 |      100 |       0 |       0 | 1                                                                                                                                                                         
+ plugins/ai-rules-plugin/src/api                                          |   95.23 |       50 |     100 |   95.23 |                                                                                                                                                                           
+  AiRulesClient.ts                                                        |     100 |       50 |     100 |     100 | 33-34                                                                                                                                                                     
+  types.ts                                                                |       0 |      100 |     100 |       0 | 6                                                                                                                                                                         
+ plugins/ai-rules-plugin/src/components/AiInstructionsComponent           |       0 |        0 |       0 |       0 |                                                                                                                                                                           
+  AiInstructionsComponent.tsx                                             |       0 |        0 |       0 |       0 | 18-64                                                                                                                                                                     
+ plugins/ai-rules-plugin/src/components/AiRulesComponent                  |       0 |        0 |       0 |       0 |                                                                                                                                                                           
+  AiRulesComponent.tsx                                                    |       0 |        0 |       0 |       0 | 14-584                                                                                                                                                                    
+ plugins/ai-rules-plugin/src/components/MCPServersComponent               |       0 |        0 |       0 |       0 |                                                                                                                                                                           
+  MCPServersComponent.tsx                                                 |       0 |        0 |       0 |       0 | 21-262                                                                                                                                                                    
+ plugins/ai-rules-plugin/src/hooks                                        |       0 |        0 |       0 |       0 |                                                                                                                                                                           
+  useAiRules.ts                                                           |       0 |        0 |       0 |       0 | 6-161                                                                                                                                                                     
+  useMCPServers.ts                                                        |       0 |        0 |       0 |       0 | 8-44                                                                                                                                                                      
+ plugins/app-module-global-signin-page/src                                |    40.9 |        0 |       0 |   38.09 |                                                                                                                                                                           
+  module.tsx                                                              |    40.9 |        0 |       0 |   38.09 | 92-120                                                                                                                                                                    
+ plugins/catalog-mcp-backend/src                                          |      29 |     12.9 |      15 |   28.28 |                                                                                                                                                                           
+  actions.ts                                                              |    25.8 |     12.9 |   16.66 |    25.8 | 15,51-59,110-166,185-236,254-301,320-385                                                                                                                                  
+  plugin.ts                                                               |   71.42 |      100 |       0 |   66.66 | 16-24                                                                                                                                                                     
+ plugins/crossplane-common/src                                            |   71.42 |    55.55 |     100 |     100 |                                                                                                                                                                           
+  index.ts                                                                |    72.5 |    55.55 |     100 |     100 | 12-13,22                                                                                                                                                                  
+  types.ts                                                                |      50 |      100 |     100 |     100 |                                                                                                                                                                           
+ plugins/crossplane-resources-backend/src                                 |   61.11 |       55 |      50 |      62 |                                                                                                                                                                           
+  actions.ts                                                              |   61.22 |       55 |   57.14 |    62.5 | 65-137,158-163,219,232,268,279-287,333-342,349,360-365,406,425,449                                                                                                        
+  plugin.ts                                                               |      60 |      100 |       0 |   57.14 | 19-66                                                                                                                                                                     
+ plugins/crossplane-resources-backend/src/service                         |   48.07 |    41.66 |   81.81 |    47.5 |                                                                                                                                                                           
+  KubernetesService.ts                                                    |   38.86 |       25 |   69.23 |   39.03 | 76,82,101,129-233,306-392,401-402,435-617,625-626                                                                                                                         
+  router.ts                                                               |   85.71 |    91.66 |     100 |   84.61 | 41-42,61-62,94-95,145-146                                                                                                                                                 
+ plugins/crossplane-resources/src                                         |   41.26 |      100 |       0 |   48.38 |                                                                                                                                                                           
+  alpha.tsx                                                               |       0 |      100 |       0 |       0 | 11-51                                                                                                                                                                     
+  plugin.ts                                                               |   45.09 |      100 |       0 |   56.52 | 21,31,40,49,59,68,77,87,96,105                                                                                                                                            
+  routes.ts                                                               |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+ plugins/crossplane-resources/src/api                                     |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+  CrossplaneApi.ts                                                        |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+ plugins/crossplane-resources/src/components                              |    0.18 |     0.12 |    0.21 |    0.14 |                                                                                                                                                                           
+  CrossplaneOverviewCardSelector.tsx                                      |       0 |        0 |       0 |       0 | 7-18                                                                                                                                                                      
+  CrossplaneResourceGraphSelector.tsx                                     |       0 |        0 |       0 |       0 | 7-18                                                                                                                                                                      
+  CrossplaneResourcesTableSelector.tsx                                    |       0 |        0 |       0 |       0 | 7-18                                                                                                                                                                      
+  CrossplaneV1OverviewCard.tsx                                            |       0 |        0 |       0 |       0 | 29-172                                                                                                                                                                    
+  CrossplaneV1ResourceGraph.tsx                                           |       0 |        0 |       0 |       0 | 39-1063                                                                                                                                                                   
+  CrossplaneV1ResourceTable.tsx                                           |       0 |        0 |       0 |       0 | 60-2096                                                                                                                                                                   
+  CrossplaneV2OverviewCard.tsx                                            |       0 |        0 |       0 |       0 | 14-140                                                                                                                                                                    
+  CrossplaneV2ResourceGraph.tsx                                           |       0 |        0 |       0 |       0 | 39-1060                                                                                                                                                                   
+  CrossplaneV2ResourceTable.tsx                                           |       0 |        0 |       0 |       0 | 45-1893                                                                                                                                                                   
+  annotationUtils.ts                                                      |   57.14 |      100 |     100 |      75 | 13                                                                                                                                                                        
+  isCrossplaneAvailable.tsx                                               |       0 |        0 |       0 |       0 | 7-52                                                                                                                                                                      
+ plugins/devpod-plugin/src                                                |      50 |      100 |       0 |   58.33 |                                                                                                                                                                           
+  alpha.tsx                                                               |       0 |      100 |       0 |       0 | 8-15                                                                                                                                                                      
+  plugin.ts                                                               |   57.14 |      100 |       0 |   71.42 | 15,24                                                                                                                                                                     
+  routes.ts                                                               |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+  types.ts                                                                |       0 |      100 |       0 |       0 | 1                                                                                                                                                                         
+ plugins/devpod-plugin/src/components/DevpodComponent                     |       0 |        0 |       0 |       0 |                                                                                                                                                                           
+  DevpodComponent.tsx                                                     |       0 |        0 |       0 |       0 | 11-67                                                                                                                                                                     
+ plugins/devpod-plugin/src/components/DevpodProvider                      |       0 |        0 |       0 |       0 |                                                                                                                                                                           
+  DevpodProvider.tsx                                                      |       0 |        0 |       0 |       0 | 6-27                                                                                                                                                                      
+ plugins/devpod-plugin/src/components/VisuallyHidden                      |       0 |        0 |       0 |       0 |                                                                                                                                                                           
+  VisuallyHidden.tsx                                                      |       0 |        0 |       0 |       0 | 4-52                                                                                                                                                                      
+ plugins/devpod-plugin/src/hooks                                          |       0 |        0 |       0 |       0 |                                                                                                                                                                           
+  useDevpod.ts                                                            |       0 |        0 |       0 |       0 | 7-45                                                                                                                                                                      
+ plugins/educates-backend/src                                             |   80.58 |       80 |      48 |   78.65 |                                                                                                                                                                           
+  actions.ts                                                              |   84.44 |       75 |   45.45 |   84.09 | 23-24,53-56,107-111,170                                                                                                                                                   
+  conditions.ts                                                           |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+  plugin.ts                                                               |   42.85 |      100 |       0 |    42.1 | 23-83                                                                                                                                                                     
+  rules.ts                                                                |      96 |      100 |    87.5 |   94.44 | 90                                                                                                                                                                        
+ plugins/educates-backend/src/service                                     |   55.62 |    44.44 |   86.36 |   53.57 |                                                                                                                                                                           
+  EducatesService.ts                                                      |      96 |    71.42 |     100 |   95.55 | 111,133                                                                                                                                                                   
+  router.ts                                                               |   35.64 |    27.27 |      75 |   33.68 | 43-56,67-99,111-129,141-209                                                                                                                                               
+ plugins/educates-common/src                                              |   88.23 |      100 |     100 |     100 |                                                                                                                                                                           
+  index.ts                                                                |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+  permissions.ts                                                          |   86.66 |      100 |     100 |     100 |                                                                                                                                                                           
+ plugins/educates/src                                                     |   43.47 |      100 |       0 |   41.17 |                                                                                                                                                                           
+  alpha.tsx                                                               |       0 |      100 |       0 |       0 | 13-49                                                                                                                                                                     
+  plugin.ts                                                               |   63.63 |      100 |       0 |   71.42 | 20,32                                                                                                                                                                     
+  routes.ts                                                               |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+ plugins/educates/src/api                                                 |   85.36 |    66.66 |     100 |      85 |                                                                                                                                                                           
+  EducatesClient.ts                                                       |   85.36 |    66.66 |     100 |      85 | 36,42-43,52-53,75                                                                                                                                                         
+ plugins/educates/src/components                                          |       0 |        0 |       0 |       0 |                                                                                                                                                                           
+  EducatesPage.tsx                                                        |       0 |        0 |       0 |       0 | 26-265                                                                                                                                                                    
+  TrainingPortalHeader.tsx                                                |       0 |        0 |       0 |       0 | 8-116                                                                                                                                                                     
+  WorkshopCard.tsx                                                        |       0 |        0 |       0 |       0 | 24-142                                                                                                                                                                    
+ plugins/entity-scaffolder-content/src                                    |   42.85 |        0 |       0 |   35.29 |                                                                                                                                                                           
+  alpha.tsx                                                               |       0 |        0 |       0 |       0 | 9-79                                                                                                                                                                      
+  plugin.ts                                                               |   66.66 |      100 |       0 |   66.66 | 21-22                                                                                                                                                                     
+  routes.ts                                                               |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+ plugins/entity-scaffolder-content/src/components                         |       0 |        0 |       0 |       0 |                                                                                                                                                                           
+  EntityScaffolderContent.tsx                                             |       0 |        0 |       0 |       0 | 42-75                                                                                                                                                                     
+  TemplateListProvider.tsx                                                |       0 |      100 |       0 |       0 | 8-20                                                                                                                                                                      
+ plugins/gitops-manifest-updater/src                                      |   57.14 |        0 |       0 |   54.54 |                                                                                                                                                                           
+  alpha.tsx                                                               |       0 |      100 |       0 |       0 | 5-14                                                                                                                                                                      
+  plugin.ts                                                               |      80 |        0 |       0 |      75 | 19-20                                                                                                                                                                     
+ plugins/gitops-manifest-updater/src/components                           |       0 |        0 |       0 |       0 |                                                                                                                                                                           
+  GitOpsManifestUpdaterField.tsx                                          |       0 |        0 |       0 |       0 | 11-17                                                                                                                                                                     
+ plugins/gitops-manifest-updater/src/components/GitOpsManifestUpdaterForm |    7.24 |        0 |     3.7 |    6.52 |                                                                                                                                                                           
+  GitOpsManifestUpdaterForm.tsx                                           |    4.61 |        0 |       0 |    4.54 | 64-125,145-268,304-450,483-640,659-1029                                                                                                                                   
+  GitOpsManifestUpdaterSchema.ts                                          |   85.71 |      100 |     100 |     100 |                                                                                                                                                                           
+  index.ts                                                                |      80 |      100 |     100 |     100 |                                                                                                                                                                           
+ plugins/kro-common/src                                                   |      75 |      100 |     100 |     100 |                                                                                                                                                                           
+  index.ts                                                                |   76.92 |      100 |     100 |     100 |                                                                                                                                                                           
+  types.ts                                                                |      50 |      100 |     100 |     100 |                                                                                                                                                                           
+ plugins/kro-resources-backend/src                                        |      75 |    71.42 |   31.25 |   74.72 |                                                                                                                                                                           
+  actions.ts                                                              |   77.92 |    71.42 |   35.71 |   77.92 | 42,81-103,148,159-167,196-200,237,248-254,294                                                                                                                             
+  plugin.ts                                                               |      60 |      100 |       0 |   57.14 | 20-57                                                                                                                                                                     
+ plugins/kro-resources-backend/src/service                                |   76.77 |       50 |   94.44 |   76.31 |                                                                                                                                                                           
+  KubernetesService.ts                                                    |   76.66 |    42.62 |    92.3 |   75.86 | 146-170,221,243-244,253-286,292-293                                                                                                                                       
+  router.ts                                                               |   76.92 |    62.85 |     100 |   76.92 | 55-56,71-72,90-91,96,101-102,114-115,132-133,147-148                                                                                                                      
+ plugins/kro-resources/src                                                |   42.42 |      100 |       0 |   47.36 |                                                                                                                                                                           
+  alpha.tsx                                                               |       0 |      100 |       0 |       0 | 12-53                                                                                                                                                                     
+  plugin.ts                                                               |   52.38 |      100 |       0 |   63.63 | 21,30,39,48                                                                                                                                                               
+  routes.ts                                                               |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+ plugins/kro-resources/src/api                                            |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+  KroApi.ts                                                               |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+ plugins/kro-resources/src/components                                     |       0 |        0 |       0 |       0 |                                                                                                                                                                           
+  KroOverviewCard.tsx                                                     |       0 |        0 |       0 |       0 | 13-146                                                                                                                                                                    
+  KroResourceGraph.tsx                                                    |       0 |        0 |       0 |       0 | 37-1130                                                                                                                                                                   
+  KroResourceTable.tsx                                                    |       0 |        0 |       0 |       0 | 49-1513                                                                                                                                                                   
+  isKroAvailable.tsx                                                      |       0 |        0 |       0 |       0 | 6-49                                                                                                                                                                      
+ plugins/kubernetes-ingestor/src                                          |   27.27 |        0 |       0 |    23.8 |                                                                                                                                                                           
+  module.ts                                                               |   27.27 |        0 |       0 |    23.8 | 15-91                                                                                                                                                                     
+ plugins/kubernetes-ingestor/src/providers                                |    1.01 |        0 |       0 |    1.07 |                                                                                                                                                                           
+  CRDDataProvider.ts                                                      |       0 |        0 |       0 |       0 | 5-143                                                                                                                                                                     
+  EntityProvider.ts                                                       |     0.8 |        0 |       0 |    0.84 | 34-2804                                                                                                                                                                   
+  KROEntityProvider.ts                                                    |       0 |        0 |       0 |       0 | 18-798                                                                                                                                                                    
+  KubernetesDataProvider.ts                                               |    0.56 |        0 |       0 |    0.58 | 7-523                                                                                                                                                                     
+  RGDDataProvider.ts                                                      |       0 |        0 |       0 |       0 | 6-168                                                                                                                                                                     
+  RGDTemplateEntityProvider.ts                                            |    1.29 |        0 |       0 |     1.4 | 13-809                                                                                                                                                                    
+  XRDDataProvider.ts                                                      |       0 |        0 |       0 |       0 | 5-236                                                                                                                                                                     
+  index.ts                                                                |   46.15 |      100 |     100 |     100 |                                                                                                                                                                           
+ plugins/kubernetes-ingestor/src/services                                 |    5.26 |        0 |       0 |    5.55 |                                                                                                                                                                           
+  KubernetesResourceFetcher.ts                                            |    2.17 |        0 |       0 |    2.22 | 7-122                                                                                                                                                                     
+  LoggerWrapper.ts                                                        |       0 |      100 |       0 |       0 | 3-23                                                                                                                                                                      
+  index.ts                                                                |      50 |      100 |     100 |     100 |                                                                                                                                                                           
+ plugins/kubernetes-resources-common/src                                  |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+  index.ts                                                                |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+ plugins/kubernetes-resources-permissions-backend/src                     |   55.55 |      100 |       0 |      50 |                                                                                                                                                                           
+  plugin.ts                                                               |   55.55 |      100 |       0 |      50 | 16-37                                                                                                                                                                     
+ plugins/kubernetes-resources-permissions-backend/src/service             |   18.18 |      100 |       0 |   18.18 |                                                                                                                                                                           
+  router.ts                                                               |   18.18 |      100 |       0 |   18.18 | 10-22                                                                                                                                                                     
+ plugins/kubernetes-resources/src                                         |   45.83 |      100 |       0 |      50 |                                                                                                                                                                           
+  alpha.tsx                                                               |       0 |      100 |       0 |       0 | 6-32                                                                                                                                                                      
+  plugin.ts                                                               |   57.14 |      100 |       0 |   71.42 | 19,28                                                                                                                                                                     
+  routes.ts                                                               |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+ plugins/kubernetes-resources/src/components                              |       0 |        0 |       0 |       0 |                                                                                                                                                                           
+  KubernetesResourceGraph.tsx                                             |       0 |        0 |       0 |       0 | 27-384                                                                                                                                                                    
+  KubernetesResourcesPage.tsx                                             |       0 |        0 |       0 |       0 | 56-446                                                                                                                                                                    
+  isKubernetesResourcesAvailable.tsx                                      |       0 |        0 |       0 |       0 | 8-12                                                                                                                                                                      
+ plugins/kyverno-common/src                                               |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+  index.ts                                                                |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+ plugins/kyverno-policy-reports-backend/src                               |   81.25 |    83.33 |   33.33 |      80 |                                                                                                                                                                           
+  actions.ts                                                              |   86.04 |    83.33 |      40 |   86.04 | 20-28,97-102,143-152                                                                                                                                                      
+  permissions.ts                                                          |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+  plugin.ts                                                               |   57.14 |      100 |       0 |   53.84 | 19-57                                                                                                                                                                     
+ plugins/kyverno-policy-reports-backend/src/service                       |    93.7 |    84.31 |     100 |   94.92 |                                                                                                                                                                           
+  KubernetesService.ts                                                    |   93.45 |    83.72 |     100 |   95.09 | 101,136,173,202,224                                                                                                                                                       
+  router.ts                                                               |   94.44 |     87.5 |     100 |   94.44 | 72-73                                                                                                                                                                     
+ plugins/kyverno-policy-reports/src                                       |   32.65 |        0 |       0 |   32.25 |                                                                                                                                                                           
+  alpha.tsx                                                               |       0 |        0 |       0 |       0 | 7-73                                                                                                                                                                      
+  plugin.ts                                                               |      50 |      100 |       0 |   61.53 | 21,30,39,48,57                                                                                                                                                            
+  routes.ts                                                               |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+ plugins/kyverno-policy-reports/src/api                                   |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+  KyvernoApi.ts                                                           |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+ plugins/kyverno-policy-reports/src/components                            |       0 |        0 |       0 |       0 |                                                                                                                                                                           
+  KyvernoCrossplaneOverviewCard.tsx                                       |       0 |        0 |       0 |       0 | 15-159                                                                                                                                                                    
+  KyvernoCrossplanePolicyReportsTable.tsx                                 |       0 |        0 |       0 |       0 | 26-267                                                                                                                                                                    
+  KyvernoOverviewCard.tsx                                                 |       0 |        0 |       0 |       0 | 15-165                                                                                                                                                                    
+  KyvernoPolicyReportsTable.tsx                                           |       0 |        0 |       0 |       0 | 25-270                                                                                                                                                                    
+ plugins/rbac-mcp-backend/src                                             |       6 |        0 |    1.81 |    5.77 |                                                                                                                                                                           
+  actions.ts                                                              |    4.34 |        0 |    1.88 |    4.42 | 9-29,50-106,126-279,301-376,395-549,568-691,709-783,804-881,900-1030,1053-1113,1135-1358                                                                                  
+  plugin.ts                                                               |   71.42 |      100 |       0 |   66.66 | 16-24                                                                                                                                                                     
+ plugins/scaffolder-backend-module-terasky-utils/src                      |   63.63 |      100 |       0 |      60 |                                                                                                                                                                           
+  module.ts                                                               |   63.63 |      100 |       0 |      60 | 13-21                                                                                                                                                                     
+ plugins/scaffolder-backend-module-terasky-utils/src/actions              |   31.25 |      3.7 |   72.09 |    31.6 |                                                                                                                                                                           
+  catalog-info-cleaner.ts                                                 |   33.33 |        0 |      80 |   33.33 | 20-65                                                                                                                                                                     
+  claim-templating.ts                                                     |   28.75 |     3.92 |      70 |   29.48 | 9-33,67-185                                                                                                                                                               
+  crd-templating.ts                                                       |   33.33 |     3.84 |   72.22 |   33.33 | 9-33,71-177                                                                                                                                                               
+ plugins/scaffolder-mcp-backend/src                                       |   10.12 |        0 |    2.85 |    9.74 |                                                                                                                                                                           
+  actions.ts                                                              |    6.66 |        0 |    3.03 |     6.8 | 23-89,108-135,152-189,209-326,346-409,426-486,505-605,622-722                                                                                                             
+  plugin.ts                                                               |      75 |      100 |       0 |   71.42 | 17-26                                                                                                                                                                     
+ plugins/scaleops-backend/src                                             |   64.85 |    44.66 |   52.27 |   64.82 |                                                                                                                                                                           
+  actions.ts                                                              |   65.07 |    44.66 |   54.76 |   65.24 | 19-22,136,147-151,190,195,222-273,284-288,330,335,342,375-380,403,426-429,440-445,515,520,528,548-552,565,592,607,625-626,646-649,660-664,698,703,711,731-735,752,793-796 
+  plugin.ts                                                               |   61.53 |      100 |       0 |   58.33 | 18-44                                                                                                                                                                     
+ plugins/scaleops-backend/src/service                                     |   77.09 |       62 |   92.85 |   77.69 |                                                                                                                                                                           
+  ScaleOpsService.ts                                                      |   68.05 |       50 |      90 |   69.01 | 39-40,44-45,91,117-121,151-155,172-176,201-205,228-237                                                                                                                    
+  router.ts                                                               |   88.13 |       80 |     100 |   88.13 | 34-35,61-62,86-89                                                                                                                                                         
+ plugins/scaleops-frontend/src                                            |    42.3 |      100 |       0 |   43.75 |                                                                                                                                                                           
+  alpha.tsx                                                               |       0 |      100 |       0 |       0 | 5-32                                                                                                                                                                      
+  plugin.ts                                                               |   57.14 |      100 |       0 |   71.42 | 19,28                                                                                                                                                                     
+  routes.ts                                                               |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+ plugins/scaleops-frontend/src/components                                 |       0 |        0 |       0 |       0 |                                                                                                                                                                           
+  ScaleOpsDashboard.tsx                                                   |       0 |        0 |       0 |       0 | 62-399                                                                                                                                                                    
+  ScaleopsCard.tsx                                                        |       0 |        0 |       0 |       0 | 26-135                                                                                                                                                                    
+ plugins/spectrocloud-backend/src                                         |    48.8 |    35.43 |   44.18 |   49.29 |                                                                                                                                                                           
+  actions.ts                                                              |   55.22 |     37.5 |   37.93 |    55.9 | 53,99-101,115,127-130,168-174,192,203-207,229-244,259,271-274,302-323,340,351-354,381-421,435                                                                             
+  plugin.ts                                                               |   47.36 |      100 |       0 |   47.05 | 25-63                                                                                                                                                                     
+  router.ts                                                               |   42.85 |    30.76 |   66.66 |   43.47 | 59-68,87-96,109,124-136,146,160-170,180,194-204,214,225-237,246-266,275-300                                                                                               
+ plugins/spectrocloud-backend/src/client                                  |   47.55 |    44.82 |    62.5 |   47.18 |                                                                                                                                                                           
+  SpectroCloudClient.ts                                                   |   47.55 |    44.82 |    62.5 |   47.18 | 216-346,360,405,424-458                                                                                                                                                   
+ plugins/spectrocloud-backend/src/providers                               |    14.9 |     12.5 |   21.42 |   15.04 |                                                                                                                                                                           
+  SpectroCloudEntityProvider.ts                                           |    14.9 |     12.5 |   21.42 |   15.04 | 114,130-143,151,164-651                                                                                                                                                   
+ plugins/spectrocloud-cluster-provider/src                                |    8.69 |        0 |       0 |    7.57 |                                                                                                                                                                           
+  module.ts                                                               |    9.37 |        0 |       0 |    8.19 | 27-141                                                                                                                                                                    
+  runPeriodically.ts                                                      |       0 |      100 |       0 |       0 | 8-16                                                                                                                                                                      
+ plugins/spectrocloud-cluster-provider/src/client                         |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+  SpectroCloudClient.ts                                                   |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+ plugins/spectrocloud-cluster-provider/src/supplier                       |   20.76 |    30.76 |   41.66 |   19.84 |                                                                                                                                                                           
+  SpectroCloudClusterSupplier.ts                                          |   20.76 |    30.76 |   41.66 |   19.84 | 112-188,196-198,211-385                                                                                                                                                   
+ plugins/spectrocloud-common/src                                          |     100 |    85.71 |     100 |     100 |                                                                                                                                                                           
+  index.ts                                                                |     100 |    85.71 |     100 |     100 | 21,30                                                                                                                                                                     
+ plugins/spectrocloud-ingestor/src                                        |   21.42 |        0 |       0 |   19.23 |                                                                                                                                                                           
+  module.ts                                                               |   21.42 |        0 |       0 |   19.23 | 22-75                                                                                                                                                                     
+ plugins/spectrocloud-ingestor/src/client                                 |   91.89 |     90.9 |     100 |   91.89 |                                                                                                                                                                           
+  SpectroCloudClient.ts                                                   |   91.89 |     90.9 |     100 |   91.89 | 217,237-238,253-254,285-286,301-302                                                                                                                                       
+ plugins/spectrocloud-ingestor/src/providers                              |    0.44 |        0 |       0 |    0.48 |                                                                                                                                                                           
+  SpectroCloudEntityProvider.ts                                           |    0.44 |        0 |       0 |    0.48 | 31-535                                                                                                                                                                    
+ plugins/spectrocloud/src                                                 |   32.43 |      100 |       0 |   29.62 |                                                                                                                                                                           
+  alpha.tsx                                                               |       0 |      100 |       0 |       0 | 14-60                                                                                                                                                                     
+  helpers.ts                                                              |       0 |      100 |       0 |       0 | 6-14                                                                                                                                                                      
+  plugin.ts                                                               |   56.25 |      100 |       0 |   66.66 | 20,33,46                                                                                                                                                                  
+  routes.ts                                                               |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+ plugins/spectrocloud/src/api                                             |    7.57 |        0 |       0 |    5.66 |                                                                                                                                                                           
+  SpectroCloudApi.ts                                                      |    4.76 |        0 |       0 |    3.84 | 168-300                                                                                                                                                                   
+  index.ts                                                                |   66.66 |      100 |     100 |     100 |                                                                                                                                                                           
+ plugins/spectrocloud/src/components                                      |       0 |        0 |       0 |       0 |                                                                                                                                                                           
+  PermissionGuards.tsx                                                    |       0 |        0 |       0 |       0 | 20-209                                                                                                                                                                    
+  SpectroCloudClusterCard.tsx                                             |       0 |        0 |       0 |       0 | 64-827                                                                                                                                                                    
+  SpectroCloudClusterProfileCard.tsx                                      |       0 |        0 |       0 |       0 | 37-398                                                                                                                                                                    
+ plugins/terraform-scaffolder/src                                         |      45 |        0 |       0 |   41.17 |                                                                                                                                                                           
+  alpha.tsx                                                               |       0 |      100 |       0 |       0 | 8-31                                                                                                                                                                      
+  plugin.ts                                                               |   69.23 |        0 |       0 |   63.63 | 68-72                                                                                                                                                                     
+ plugins/terraform-scaffolder/src/api                                     |    1.03 |        0 |       0 |     1.1 |                                                                                                                                                                           
+  TerraformScaffolderApi.ts                                               |   66.66 |      100 |     100 |     100 |                                                                                                                                                                           
+  TerraformScaffolderClient.ts                                            |       0 |        0 |       0 |       0 | 12-440                                                                                                                                                                    
+  index.ts                                                                |       0 |      100 |     100 |       0 | 4                                                                                                                                                                         
+ plugins/terraform-scaffolder/src/components                              |   10.92 |        0 |       0 |   10.71 |                                                                                                                                                                           
+  FormField.tsx                                                           |       0 |        0 |       0 |       0 | 11-22                                                                                                                                                                     
+  TerraformModuleForm.tsx                                                 |    11.6 |        0 |       0 |   11.42 | 37-185,192-346                                                                                                                                                            
+  TerraformModuleSchema.ts                                                |       0 |      100 |     100 |       0 | 3                                                                                                                                                                         
+ plugins/vcf-automation-backend/src                                       |   14.72 |     4.39 |    9.37 |   14.63 |                                                                                                                                                                           
+  actions.ts                                                              |   20.37 |      5.4 |   14.28 |   20.88 | 12-13,47-50,75,86-90,109,120-142,153-176,187-209,220-257,268-392,408-432,443-465,476-499,510-544,555-593                                                                  
+  plugin.ts                                                               |   57.14 |      100 |       0 |   53.84 | 17-49                                                                                                                                                                     
+  router.ts                                                               |    1.72 |        0 |       0 |    1.72 | 11-190                                                                                                                                                                    
+ plugins/vcf-automation-backend/src/services                              |    0.61 |        0 |       0 |    0.62 |                                                                                                                                                                           
+  VcfAutomationService.ts                                                 |    0.61 |        0 |       0 |    0.62 | 29-548                                                                                                                                                                    
+ plugins/vcf-automation-common/src                                        |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+  index.ts                                                                |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+ plugins/vcf-automation-ingestor/src                                      |   41.66 |        0 |       0 |   36.36 |                                                                                                                                                                           
+  module.ts                                                               |   41.66 |        0 |       0 |   36.36 | 16-33                                                                                                                                                                     
+ plugins/vcf-automation-ingestor/src/provider                             |    4.98 |      9.6 |    8.82 |    5.12 |                                                                                                                                                                           
+  EntityProvider.ts                                                       |    4.98 |      9.6 |    8.82 |    5.12 | 265,277-1483                                                                                                                                                              
+ plugins/vcf-automation/src                                               |   17.39 |        0 |       0 |   26.19 |                                                                                                                                                                           
+  alpha.tsx                                                               |       0 |        0 |       0 |       0 | 7-193                                                                                                                                                                     
+  plugin.ts                                                               |   26.47 |      100 |       0 |   56.66 | 23,38,47,56,65,74,83,92,101,110,119,128,137                                                                                                                               
+  routes.ts                                                               |   66.66 |      100 |     100 |     100 |                                                                                                                                                                           
+ plugins/vcf-automation/src/api                                           |   60.83 |    25.92 |      70 |   60.56 |                                                                                                                                                                           
+  VcfAutomationClient.ts                                                  |   60.71 |    25.92 |      70 |   60.43 | 192,198-238,251,266,281,287-298,312,318-362,377,394,411,432,447,455,469,482                                                                                               
+  index.ts                                                                |   66.66 |      100 |     100 |   66.66 | 2                                                                                                                                                                         
+ plugins/vcf-automation/src/components                                    |       0 |        0 |       0 |       0 |                                                                                                                                                                           
+  VCFAutomationCCINamespaceDetails.tsx                                    |       0 |        0 |       0 |       0 | 14-144                                                                                                                                                                    
+  VCFAutomationCCINamespaceOverview.tsx                                   |       0 |        0 |       0 |       0 | 18-247                                                                                                                                                                    
+  VCFAutomationCCIResourceDetails.tsx                                     |       0 |        0 |       0 |       0 | 44-989                                                                                                                                                                    
+  VCFAutomationCCIResourceOverview.tsx                                    |       0 |        0 |       0 |       0 | 42-838                                                                                                                                                                    
+  VCFAutomationDeploymentDetails.tsx                                      |       0 |        0 |       0 |       0 | 40-192                                                                                                                                                                    
+  VCFAutomationDeploymentOverview.tsx                                     |       0 |        0 |       0 |       0 | 14-59                                                                                                                                                                     
+  VCFAutomationGenericResourceDetails.tsx                                 |       0 |        0 |       0 |       0 | 12-64                                                                                                                                                                     
+  VCFAutomationGenericResourceOverview.tsx                                |       0 |        0 |       0 |       0 | 12-52                                                                                                                                                                     
+  VCFAutomationProjectDetails.tsx                                         |       0 |        0 |       0 |       0 | 32-216                                                                                                                                                                    
+  VCFAutomationProjectOverview.tsx                                        |       0 |        0 |       0 |       0 | 15-102                                                                                                                                                                    
+  VCFAutomationResourceOverview.tsx                                       |       0 |        0 |       0 |       0 | 17-94                                                                                                                                                                     
+  VCFAutomationVMPowerManagement.tsx                                      |       0 |        0 |       0 |       0 | 26-253                                                                                                                                                                    
+  VCFAutomationVSphereVMDetails.tsx                                       |       0 |        0 |       0 |       0 | 15-47                                                                                                                                                                     
+  VCFAutomationVSphereVMOverview.tsx                                      |       0 |        0 |       0 |       0 | 17-94                                                                                                                                                                     
+ plugins/vcf-operations-backend/src                                       |   15.46 |     7.43 |    7.31 |   15.78 |                                                                                                                                                                           
+  actions.ts                                                              |    28.7 |    16.07 |      12 |    28.7 | 20-21,50,61-69,120-162,173-203,214-244,255-292,303-338,349-384                                                                                                            
+  plugin.ts                                                               |   57.14 |      100 |       0 |   53.84 | 18-55                                                                                                                                                                     
+  router.ts                                                               |    2.56 |        0 |       0 |    2.75 | 15-357                                                                                                                                                                    
+ plugins/vcf-operations-backend/src/services                              |     0.4 |        0 |       0 |    0.43 |                                                                                                                                                                           
+  VcfOperationsService.ts                                                 |     0.4 |        0 |       0 |    0.43 | 90-710                                                                                                                                                                    
+ plugins/vcf-operations-common/src                                        |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+  index.ts                                                                |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+ plugins/vcf-operations/src                                               |   35.71 |      100 |       0 |    42.1 |                                                                                                                                                                           
+  alpha.tsx                                                               |       0 |      100 |       0 |       0 | 7-40                                                                                                                                                                      
+  plugin.ts                                                               |   43.75 |      100 |       0 |   66.66 | 25,37,47                                                                                                                                                                  
+  routes.ts                                                               |     100 |      100 |     100 |     100 |                                                                                                                                                                           
+ plugins/vcf-operations/src/api                                           |    87.5 |    59.25 |     100 |   88.07 |                                                                                                                                                                           
+  VcfOperationsClient.ts                                                  |    87.5 |    59.25 |     100 |   88.07 | 193,217,239,254,278,302,364-377                                                                                                                                           
+ plugins/vcf-operations/src/components                                    |       0 |        0 |       0 |       0 |                                                                                                                                                                           
+  MetricChart.tsx                                                         |       0 |        0 |       0 |       0 | 26-119                                                                                                                                                                    
+  NotImplementedMessage.tsx                                               |       0 |        0 |       0 |       0 | 15-45                                                                                                                                                                     
+  VCFOperationsExplorer.tsx                                               |       0 |        0 |       0 |       0 | 29-1409                                                                                                                                                                   
+--------------------------------------------------------------------------|---------|----------|---------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Summary of all failing tests
+FAIL plugins/kyverno-policy-reports/src/api/KyvernoApi.test.ts
+  ● KyvernoApi › KyvernoApiClient › getPolicy › should fetch cluster policy
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: StringContaining "http://kyverno-backend/policy"
+    Received: "http://kyverno-backend/policy?clusterName=test-cluster&policyName=test-policy", {}
+
+    Number of calls: 1
+
+       97 |         });
+       98 |
+    >  99 |         expect(mockFetchApi.fetch).toHaveBeenCalledWith(
+          |                                    ^
+      100 |           expect.stringContaining('http://kyverno-backend/policy')
+      101 |         );
+      102 |         expect(result.kind).toBe('ClusterPolicy');
+
+      at Object.toHaveBeenCalledWith (api/KyvernoApi.test.ts:99:36)
+
+  ● KyvernoApi › KyvernoApiClient › getPolicy › should include namespace in request when provided
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: StringContaining "namespace=default"
+    Received: "http://kyverno-backend/policy?clusterName=test-cluster&policyName=test-policy&namespace=default", {}
+
+    Number of calls: 1
+
+      115 |         });
+      116 |
+    > 117 |         expect(mockFetchApi.fetch).toHaveBeenCalledWith(
+          |                                    ^
+      118 |           expect.stringContaining('namespace=default')
+      119 |         );
+      120 |       });
+
+      at Object.toHaveBeenCalledWith (api/KyvernoApi.test.ts:117:36)
+
+FAIL plugins/scaffolder-backend-module-terasky-utils/src/actions/claim-templating.test.ts
+  ● createCrossplaneClaimAction › should create an action with correct id
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "terasky:crossplane:claim:template"
+    Received: "terasky:claim-template"
+
+       7 |   it('should create an action with correct id', () => {
+       8 |     const action = createCrossplaneClaimAction({ config: mockConfig });
+    >  9 |     expect(action.id).toBe('terasky:crossplane:claim:template');
+         |                       ^
+      10 |   });
+      11 |
+      12 |   it('should have correct schema', () => {
+
+      at Object.toBe (actions/claim-templating.test.ts:9:23)
+
+  ● createCrossplaneClaimAction › handler › should process claim template
+
+    TypeError: Cannot read properties of undefined (reading 'undefined')
+
+      64 |         config.getOptionalString('kubernetesIngestor.annotationPrefix') ||
+      65 |         'terasky.backstage.io';
+    > 66 |       if (input.parameters[input.nameParam] === 'foo') {
+         |                           ^
+      67 |         throw new Error(`myParameter cannot be 'foo'`);
+      68 |       }
+      69 |
+
+      at Object.handler (actions/claim-templating.ts:66:27)
+      at Object.handler (actions/claim-templating.test.ts:51:20)
+
+FAIL plugins/scaffolder-backend-module-terasky-utils/src/actions/crd-templating.test.ts
+  ● createCrdTemplateAction › should create an action with correct id
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "terasky:crd:template"
+    Received: "terasky:crd-template"
+
+       7 |   it('should create an action with correct id', () => {
+       8 |     const action = createCrdTemplateAction({ config: mockConfig });
+    >  9 |     expect(action.id).toBe('terasky:crd:template');
+         |                       ^
+      10 |   });
+      11 |
+      12 |   it('should have correct schema', () => {
+
+      at Object.toBe (actions/crd-templating.test.ts:9:23)
+
+  ● createCrdTemplateAction › handler › should process CRD template
+
+    TypeError: Cannot read properties of undefined (reading 'forEach')
+
+      68 |       // Remove excluded parameters
+      69 |       const filteredParameters = { ...input.parameters };
+    > 70 |       input.excludeParams.forEach((param: string) => {
+         |                           ^
+      71 |         delete filteredParameters[param];
+      72 |       });
+      73 |
+
+      at Object.forEach (actions/crd-templating.ts:70:27)
+      at Object.handler (actions/crd-templating.test.ts:51:20)
+
+FAIL plugins/vcf-automation-ingestor/src/provider/EntityProvider.test.ts
+  ● VcfAutomationEntityProvider › constructor › should throw error when no instances configured
+
+    expect(received).toThrow(expected)
+
+    Expected substring: "No VCF Automation instances configured"
+    Received message:   "Failed to initialize VCF Automation provider: Invalid configuration"
+
+          259 |         error: error instanceof Error ? error.message : String(error),
+          260 |       });
+        > 261 |       throw new Error('Failed to initialize VCF Automation provider: Invalid configuration');
+              |             ^
+          262 |     }
+          263 |
+          264 |     if (instances.length === 0) {
+
+      at new VcfAutomationEntityProvider (provider/EntityProvider.ts:261:13)
+      at provider/EntityProvider.test.ts:97:9
+      at Object.<anonymous> (../../../node_modules/expect/build/toThrowMatchers.js:74:11)
+      at Object.throwingMatcher [as toThrow] (../../../node_modules/expect/build/index.js:320:21)
+      at Object.toThrow (provider/EntityProvider.test.ts:102:10)
+      at Object.toThrow (provider/EntityProvider.test.ts:102:10)
+
+  ● VcfAutomationEntityProvider › connect › should schedule refresh task and trigger initial refresh
+
+    TypeError: Cannot read properties of undefined (reading 'post')
+
+      142 |       // Setup MSW handlers for authentication and fetching
+      143 |       server.use(
+    > 144 |         rest.post('https://vcf.example.com/csp/gateway/am/api/login', (req, res, ctx) => {
+          |              ^
+      145 |           return res(ctx.json({ cspAuthToken: 'test-token' }));
+      146 |         }),
+      147 |         rest.get('https://vcf.example.com/deployment/api/deployments', (req, res, ctx) => {
+
+      at Object.post (provider/EntityProvider.test.ts:144:14)
+
+  ● VcfAutomationEntityProvider › authentication › should authenticate with version 8 API
+
+    TypeError: Cannot read properties of undefined (reading 'post')
+
+      185 |
+      186 |       server.use(
+    > 187 |         rest.post('https://vcf.example.com/csp/gateway/am/api/login', (req, res, ctx) => {
+          |              ^
+      188 |           return res(ctx.json({ cspAuthToken: 'v8-token' }));
+      189 |         }),
+      190 |         rest.get('https://vcf.example.com/deployment/api/deployments', (req, res, ctx) => {
+
+      at Object.post (provider/EntityProvider.test.ts:187:14)
+
+  ● VcfAutomationEntityProvider › authentication › should authenticate with version 9+ API
+
+    TypeError: Cannot read properties of undefined (reading 'post')
+
+      223 |
+      224 |       server.use(
+    > 225 |         rest.post('https://vcf.example.com/cloudapi/1.0.0/sessions', (req, res, ctx) => {
+          |              ^
+      226 |           return res(
+      227 |             ctx.set('x-vmware-vcloud-access-token', 'v9-token'),
+      228 |             ctx.json({})
+
+      at Object.post (provider/EntityProvider.test.ts:225:14)
+
+  ● VcfAutomationEntityProvider › entity transformation › should transform deployments into entities
+
+    TypeError: Cannot read properties of undefined (reading 'post')
+
+      298 |
+      299 |       server.use(
+    > 300 |         rest.post('https://vcf.example.com/csp/gateway/am/api/login', (req, res, ctx) => {
+          |              ^
+      301 |           return res(ctx.json({ cspAuthToken: 'test-token' }));
+      302 |         }),
+      303 |         rest.get('https://vcf.example.com/deployment/api/deployments', (req, res, ctx) => {
+
+      at Object.post (provider/EntityProvider.test.ts:300:14)
+
+FAIL plugins/kro-resources-backend/src/service/router.test.ts
+  ● kro-resources router › GET /resources › should return 403 when unauthorized
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 403
+    Received: 200
+
+      91 |         });
+      92 |
+    > 93 |       expect(response.status).toBe(403);
+         |                               ^
+      94 |     });
+      95 |   });
+      96 |
+
+      at Object.toBe (service/router.test.ts:93:31)
+
+  ● kro-resources router › GET /graph › should return 403 when unauthorized
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 403
+    Received: 200
+
+      154 |         });
+      155 |
+    > 156 |       expect(response.status).toBe(403);
+          |                               ^
+      157 |     });
+      158 |   });
+      159 | });
+
+      at Object.toBe (service/router.test.ts:156:31)
+
+FAIL plugins/scaffolder-backend-module-terasky-utils/src/actions/catalog-info-cleaner.test.ts
+  ● createCatalogInfoCleanerAction › should create an action with correct id
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "terasky:catalog-info:cleaner"
+    Received: "terasky:catalog-info-cleaner"
+
+      4 |   it('should create an action with correct id', () => {
+      5 |     const action = createCatalogInfoCleanerAction();
+    > 6 |     expect(action.id).toBe('terasky:catalog-info:cleaner');
+        |                       ^
+      7 |   });
+      8 |
+      9 |   it('should have correct schema', () => {
+
+      at Object.toBe (actions/catalog-info-cleaner.test.ts:6:23)
+
+FAIL plugins/scaleops-backend/src/service/ScaleOpsService.test.ts
+  ● ScaleOpsService › getWorkloadsByLabels › should fetch workloads with labels
+
+    FetchError: request to http://scaleops.example.com/api/v1/dashboard/byNamespace?multiCluster=true&logicalLabel=AND failed, reason: getaddrinfo ENOTFOUND scaleops.example.com
+
+      at NodeClientRequest.<anonymous> (../../../node_modules/node-fetch/lib/index.js:1501:11)
+      at NodeClientRequest.Object.<anonymous>.NodeClientRequest.emit (../../../node_modules/@mswjs/interceptors/src/interceptors/ClientRequest/NodeClientRequest.ts:299:22)
+
+  ● ScaleOpsService › getWorkloadCostDetails › should fetch cost details for workload
+
+    FetchError: request to http://scaleops.example.com/detailedCostReport/getWorkloads?multiCluster=true&range=7d failed, reason: getaddrinfo ENOTFOUND scaleops.example.com
+
+      at NodeClientRequest.<anonymous> (../../../node_modules/node-fetch/lib/index.js:1501:11)
+      at NodeClientRequest.Object.<anonymous>.NodeClientRequest.emit (../../../node_modules/@mswjs/interceptors/src/interceptors/ClientRequest/NodeClientRequest.ts:299:22)
+
+  ● ScaleOpsService › checkNetworkCostEnabled › should check if network cost is enabled
+
+    FetchError: request to http://scaleops.example.com/api/v1/networkCost/networkCostEnabled?multiCluster=true failed, reason: getaddrinfo ENOTFOUND scaleops.example.com
+
+      at NodeClientRequest.<anonymous> (../../../node_modules/node-fetch/lib/index.js:1501:11)
+      at NodeClientRequest.Object.<anonymous>.NodeClientRequest.emit (../../../node_modules/@mswjs/interceptors/src/interceptors/ClientRequest/NodeClientRequest.ts:299:22)
+
+  ● ScaleOpsService › getWorkloadNetworkUsage › should fetch network usage for workload
+
+    FetchError: request to http://scaleops.example.com/api/v1/workload-network?name=test-workload&namespace=default&workloadType=Deployment&from=1769256937122&to=1769343337122 failed, reason: getaddrinfo ENOTFOUND scaleops.example.com
+
+      at NodeClientRequest.<anonymous> (../../../node_modules/node-fetch/lib/index.js:1501:11)
+      at NodeClientRequest.Object.<anonymous>.NodeClientRequest.emit (../../../node_modules/@mswjs/interceptors/src/interceptors/ClientRequest/NodeClientRequest.ts:299:22)
+
+  ● ScaleOpsService › getPolicyByName › should fetch policy by name
+
+    FetchError: request to http://scaleops.example.com/api/v1/policies failed, reason: getaddrinfo ENOTFOUND scaleops.example.com
+
+      at NodeClientRequest.<anonymous> (../../../node_modules/node-fetch/lib/index.js:1501:11)
+      at NodeClientRequest.Object.<anonymous>.NodeClientRequest.emit (../../../node_modules/@mswjs/interceptors/src/interceptors/ClientRequest/NodeClientRequest.ts:299:22)
+
+  ● ScaleOpsService › authentication caching › should cache authentication token
+
+    FetchError: request to http://scaleops.example.com/api/v1/dashboard/byNamespace?multiCluster=true&logicalLabel=AND failed, reason: getaddrinfo ENOTFOUND scaleops.example.com
+
+      at NodeClientRequest.<anonymous> (../../../node_modules/node-fetch/lib/index.js:1501:11)
+      at NodeClientRequest.Object.<anonymous>.NodeClientRequest.emit (../../../node_modules/@mswjs/interceptors/src/interceptors/ClientRequest/NodeClientRequest.ts:299:22)
+
+FAIL plugins/kubernetes-ingestor/src/services/KubernetesResourceFetcher.test.ts
+  ● KubernetesResourceFetcher › fetchResource › should fetch a kubernetes resource
+
+    TypeError: _KubernetesResourceFetcher.KubernetesResourceFetcher is not a constructor
+
+      22 |     mockAuth.getPluginRequestToken.mockResolvedValue({ token: 'test-token' });
+      23 |
+    > 24 |     fetcher = new KubernetesResourceFetcher(
+         |               ^
+      25 |       mockLogger,
+      26 |       mockDiscovery,
+      27 |       mockAuth,
+
+      at Object.<anonymous> (services/KubernetesResourceFetcher.test.ts:24:15)
+
+  ● KubernetesResourceFetcher › fetchResource › should throw error on failed fetch
+
+    TypeError: _KubernetesResourceFetcher.KubernetesResourceFetcher is not a constructor
+
+      22 |     mockAuth.getPluginRequestToken.mockResolvedValue({ token: 'test-token' });
+      23 |
+    > 24 |     fetcher = new KubernetesResourceFetcher(
+         |               ^
+      25 |       mockLogger,
+      26 |       mockDiscovery,
+      27 |       mockAuth,
+
+      at Object.<anonymous> (services/KubernetesResourceFetcher.test.ts:24:15)
+
+  ● KubernetesResourceFetcher › listResources › should list kubernetes resources
+
+    TypeError: _KubernetesResourceFetcher.KubernetesResourceFetcher is not a constructor
+
+      22 |     mockAuth.getPluginRequestToken.mockResolvedValue({ token: 'test-token' });
+      23 |
+    > 24 |     fetcher = new KubernetesResourceFetcher(
+         |               ^
+      25 |       mockLogger,
+      26 |       mockDiscovery,
+      27 |       mockAuth,
+
+      at Object.<anonymous> (services/KubernetesResourceFetcher.test.ts:24:15)
+
+FAIL plugins/kubernetes-ingestor/src/providers/EntityProvider.test.ts
+  ● EntityProvider › constructor › should create provider instance
+
+    TypeError: _EntityProvider.EntityProvider is not a constructor
+
+      37 |   describe('constructor', () => {
+      38 |     it('should create provider instance', () => {
+    > 39 |       const provider = new EntityProvider(
+         |                        ^
+      40 |         mockConfig,
+      41 |         mockLogger,
+      42 |         mockDiscovery,
+
+      at Object.<anonymous> (providers/EntityProvider.test.ts:39:24)
+
+  ● EntityProvider › getProviderName › should return provider name
+
+    TypeError: _EntityProvider.EntityProvider is not a constructor
+
+      52 |   describe('getProviderName', () => {
+      53 |     it('should return provider name', () => {
+    > 54 |       const provider = new EntityProvider(
+         |                        ^
+      55 |         mockConfig,
+      56 |         mockLogger,
+      57 |         mockDiscovery,
+
+      at Object.<anonymous> (providers/EntityProvider.test.ts:54:24)
+
+  ● EntityProvider › connect › should set connection and schedule task
+
+    TypeError: _EntityProvider.EntityProvider is not a constructor
+
+      68 |   describe('connect', () => {
+      69 |     it('should set connection and schedule task', async () => {
+    > 70 |       const provider = new EntityProvider(
+         |                        ^
+      71 |         mockConfig,
+      72 |         mockLogger,
+      73 |         mockDiscovery,
+
+      at Object.<anonymous> (providers/EntityProvider.test.ts:70:24)
+
+
+Test Suites: 9 failed, 81 passed, 90 total
+Tests:       26 failed, 476 passed, 502 total
+Snapshots:   0 total
+Time:        9.859 s
+Ran all test suites matching /plugins\//i in 42 projects.

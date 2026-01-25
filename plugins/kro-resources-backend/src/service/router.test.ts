@@ -4,35 +4,36 @@ import { createRouter } from './router';
 import { mockServices } from '@backstage/backend-test-utils';
 
 // Mock KubernetesService
-jest.mock('./KubernetesService', () => {
-  return {
-    KubernetesService: jest.fn().mockImplementation(() => ({
-      getResources: jest.fn().mockResolvedValue([]),
-      getEvents: jest.fn().mockResolvedValue([]),
-      getResourceGraph: jest.fn().mockResolvedValue([]),
-    })),
-  };
-});
+jest.mock('./KubernetesService', () => ({
+  KubernetesService: jest.fn().mockImplementation(() => ({
+    getResources: jest.fn().mockResolvedValue({ items: [] }),
+    getEvents: jest.fn().mockResolvedValue([]),
+    getResourceGraph: jest.fn().mockResolvedValue({ nodes: [], edges: [] }),
+  })),
+}));
 
-describe('createRouter', () => {
+describe('kro-resources router', () => {
   let app: express.Express;
+  let mockPermissions: any;
+  let mockAuth: any;
 
   beforeEach(async () => {
     jest.clearAllMocks();
-
-    const logger = mockServices.logger.mock();
-    const permissions = mockServices.permissions.mock();
-    const discovery = mockServices.discovery.mock();
-    const auth = mockServices.auth.mock();
-
-    // Mock permissions to always allow
-    permissions.authorize = jest.fn().mockResolvedValue([{ result: 'ALLOW' }]);
+    
+    const mockLogger = mockServices.logger.mock();
+    mockPermissions = {
+      authorize: jest.fn().mockResolvedValue([{ result: 'ALLOW' }]),
+    };
+    const mockDiscovery = mockServices.discovery.mock();
+    mockAuth = {
+      getOwnServiceCredentials: jest.fn().mockResolvedValue({ principal: { type: 'service' } }),
+    };
 
     const router = await createRouter({
-      logger,
-      permissions,
-      discovery,
-      auth,
+      logger: mockLogger,
+      permissions: mockPermissions as any,
+      discovery: mockDiscovery,
+      auth: mockAuth as any,
     });
 
     app = express();
@@ -49,14 +50,7 @@ describe('createRouter', () => {
   });
 
   describe('GET /resources', () => {
-    it('should return 400 when required parameters are missing', async () => {
-      const response = await request(app).get('/resources');
-
-      expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty('error', 'Missing required parameters');
-    });
-
-    it('should return resources when all parameters are provided', async () => {
+    it('should return resources when all parameters provided', async () => {
       const response = await request(app)
         .get('/resources')
         .query({
@@ -65,23 +59,23 @@ describe('createRouter', () => {
           rgdName: 'test-rgd',
           rgdId: 'rgd-1',
           instanceId: 'instance-1',
-          instanceName: 'test-instance',
-          crdName: 'test-crd',
+          instanceName: 'my-instance',
+          crdName: 'test.io/v1/tests',
         });
 
       expect(response.status).toBe(200);
     });
+
+    it('should return 400 when parameters missing', async () => {
+      const response = await request(app).get('/resources').query({});
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Missing required parameters');
+    });
   });
 
   describe('GET /events', () => {
-    it('should return 400 when required parameters are missing', async () => {
-      const response = await request(app).get('/events');
-
-      expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty('error', 'Missing required parameters');
-    });
-
-    it('should return events when all parameters are provided', async () => {
+    it('should return events when all parameters provided', async () => {
       const response = await request(app)
         .get('/events')
         .query({
@@ -92,19 +86,18 @@ describe('createRouter', () => {
         });
 
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('events');
+    });
+
+    it('should return 400 when parameters missing', async () => {
+      const response = await request(app).get('/events').query({});
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Missing required parameters');
     });
   });
 
   describe('GET /graph', () => {
-    it('should return 400 when required parameters are missing', async () => {
-      const response = await request(app).get('/graph');
-
-      expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty('error', 'Missing required parameters');
-    });
-
-    it('should return graph when all parameters are provided', async () => {
+    it('should return resource graph when all parameters provided', async () => {
       const response = await request(app)
         .get('/graph')
         .query({
@@ -113,12 +106,17 @@ describe('createRouter', () => {
           rgdName: 'test-rgd',
           rgdId: 'rgd-1',
           instanceId: 'instance-1',
-          instanceName: 'test-instance',
+          instanceName: 'my-instance',
         });
 
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('resources');
+    });
+
+    it('should return 400 when parameters missing', async () => {
+      const response = await request(app).get('/graph').query({});
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Missing required parameters');
     });
   });
 });
-

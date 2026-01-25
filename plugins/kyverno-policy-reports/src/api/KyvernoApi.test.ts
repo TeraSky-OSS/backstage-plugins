@@ -96,9 +96,11 @@ describe('KyvernoApi', () => {
           policyName: 'test-policy',
         });
 
-        expect(mockFetchApi.fetch).toHaveBeenCalledWith(
-          expect.stringContaining('http://kyverno-backend/policy')
-        );
+        expect(mockFetchApi.fetch).toHaveBeenCalled();
+        const callUrl = mockFetchApi.fetch.mock.calls[0][0];
+        expect(callUrl).toContain('http://kyverno-backend/policy');
+        expect(callUrl).toContain('clusterName=test-cluster');
+        expect(callUrl).toContain('policyName=test-policy');
         expect(result.kind).toBe('ClusterPolicy');
       });
 
@@ -114,9 +116,8 @@ describe('KyvernoApi', () => {
           namespace: 'default',
         });
 
-        expect(mockFetchApi.fetch).toHaveBeenCalledWith(
-          expect.stringContaining('namespace=default')
-        );
+        const callUrl = mockFetchApi.fetch.mock.calls[0][0];
+        expect(callUrl).toContain('namespace=default');
       });
     });
 
@@ -160,4 +161,3 @@ describe('KyvernoApi', () => {
     });
   });
 });
-

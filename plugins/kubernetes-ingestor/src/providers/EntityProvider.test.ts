@@ -1,8 +1,8 @@
-import { EntityProvider } from './EntityProvider';
+import { KubernetesEntityProvider } from './EntityProvider';
 import { mockServices } from '@backstage/backend-test-utils';
 import { ConfigReader } from '@backstage/config';
 
-describe('EntityProvider', () => {
+describe('KubernetesEntityProvider', () => {
   const mockLogger = mockServices.logger.mock();
   const mockDiscovery = mockServices.discovery.mock();
   const mockScheduler = mockServices.scheduler.mock();
@@ -36,7 +36,7 @@ describe('EntityProvider', () => {
 
   describe('constructor', () => {
     it('should create provider instance', () => {
-      const provider = new EntityProvider(
+      const provider = new KubernetesEntityProvider(
         mockConfig,
         mockLogger,
         mockDiscovery,
@@ -51,7 +51,7 @@ describe('EntityProvider', () => {
 
   describe('getProviderName', () => {
     it('should return provider name', () => {
-      const provider = new EntityProvider(
+      const provider = new KubernetesEntityProvider(
         mockConfig,
         mockLogger,
         mockDiscovery,
@@ -67,7 +67,7 @@ describe('EntityProvider', () => {
 
   describe('connect', () => {
     it('should set connection and schedule task', async () => {
-      const provider = new EntityProvider(
+      const provider = new KubernetesEntityProvider(
         mockConfig,
         mockLogger,
         mockDiscovery,
@@ -89,4 +89,3 @@ describe('EntityProvider', () => {
     });
   });
 });
-
