@@ -55,6 +55,7 @@
     "@terasky/backstage-plugin-kubernetes-resources-frontend": "^0.9.2",
     "@terasky/backstage-plugin-kyverno-policy-reports": "^1.10.0",
     "@terasky/backstage-plugin-scaleops-frontend": "^2.0.1",
+    "@terasky/backstage-plugin-spectrocloud": "^0.1.0",
     "@terasky/backstage-plugin-terraform-scaffolder": "^0.7.0",
     "@terasky/backstage-plugin-vcf-automation": "^1.9.0",
     "@terasky/backstage-plugin-vcf-operations": "^0.7.0",

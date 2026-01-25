@@ -80,4 +80,8 @@ backend.add(import('@terasky/plugin-scaffolder-mcp-backend'));
 backend.add(import('@terasky/plugin-rbac-mcp-backend'));
 backend.add(import('@terasky/backstage-plugin-catalog-mcp-backend'));
 backend.add(import('@terasky/backstage-plugin-spectrocloud-cluster-provider'));
+// SpectroCloud ingestor (catalog entity ingestion)
+backend.add(import('@terasky/backstage-plugin-spectrocloud-ingestor'));
+// SpectroCloud backend (HTTP API + MCP actions)
+backend.add(import('@terasky/backstage-plugin-spectrocloud-backend'));
 backend.start();
