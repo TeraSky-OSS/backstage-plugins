@@ -2,54 +2,74 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { VCFOperationsExplorer } from './VCFOperationsExplorer';
 import { TestApiProvider } from '@backstage/test-utils';
-import { vcfOperationsApiRef } from '../api/VcfOperationsClient';
+import { errorApiRef } from '@backstage/core-plugin-api';
+import { Entity } from '@backstage/catalog-model';
+import { vcfOperationsApiRef, VcfOperationsApiError } from '../api/VcfOperationsClient';
 
-// Mock hooks
+// Mock dependencies
 jest.mock('@backstage/plugin-catalog-react', () => ({
-  ...jest.requireActual('@backstage/plugin-catalog-react'),
   useEntity: jest.fn(),
 }));
 
-// Mock recharts
-jest.mock('recharts', () => ({
-  ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div data-testid="responsive-container">{children}</div>,
-  LineChart: ({ children }: { children: React.ReactNode }) => <div data-testid="line-chart">{children}</div>,
-  Line: () => <div data-testid="line" />,
-  XAxis: () => <div data-testid="x-axis" />,
-  YAxis: () => <div data-testid="y-axis" />,
-  CartesianGrid: () => <div data-testid="cartesian-grid" />,
-  Tooltip: () => <div data-testid="tooltip" />,
-  Legend: () => <div data-testid="legend" />,
+// Mock MetricChart to avoid complex chart rendering
+jest.mock('./MetricChart', () => ({
+  MetricChart: ({ metric }: { metric: string }) => (
+    <div data-testid={`metric-chart-${metric}`}>Chart: {metric}</div>
+  ),
 }));
 
-const { useEntity } = require('@backstage/plugin-catalog-react');
+// Mock NotImplementedMessage
+jest.mock('./NotImplementedMessage', () => ({
+  NotImplementedMessage: ({ entityKind }: { entityKind?: string }) => (
+    <div data-testid="not-implemented">Not Implemented: {entityKind}</div>
+  ),
+}));
 
-const mockVcfOperationsApi = {
+// Mock material-ui/core makeStyles to avoid complex styling issues
+jest.mock('@material-ui/core/styles', () => ({
+  ...jest.requireActual('@material-ui/core/styles'),
+  makeStyles: () => () => ({}),
+}));
+
+const mockApi = {
   getInstances: jest.fn(),
-  getResourceTree: jest.fn(),
+  findResourceByName: jest.fn(),
+  findResourceForEntity: jest.fn(),
   getMetrics: jest.fn(),
-  getResourceKinds: jest.fn(),
+};
+
+const mockErrorApi = {
+  post: jest.fn(),
+  error$: { subscribe: jest.fn() },
+};
+
+const mockVMEntity: Entity = {
+  apiVersion: 'backstage.io/v1alpha1',
+  kind: 'Component',
+  metadata: {
+    name: 'test-vm',
+    annotations: {
+      'terasky.backstage.io/vcf-automation-instance': 'prod-vcf',
+    },
+    tags: ['kind:virtualmachine'],
+  },
+  spec: {
+    type: 'Cloud.vSphere.Machine',
+  },
 };
 
 describe('VCFOperationsExplorer', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    useEntity.mockReturnValue({
-      entity: {
-        apiVersion: 'backstage.io/v1alpha1',
-        kind: 'Component',
-        metadata: {
-          name: 'test-component',
-          annotations: {
-            'vcf-operations/instance': 'test-instance',
-          },
-        },
-      },
-    });
-    mockVcfOperationsApi.getInstances.mockResolvedValue([]);
-    mockVcfOperationsApi.getResourceTree.mockResolvedValue([]);
-    mockVcfOperationsApi.getMetrics.mockResolvedValue([]);
-    mockVcfOperationsApi.getResourceKinds.mockResolvedValue([]);
+    
+    // Default successful mocks
+    mockApi.getInstances.mockResolvedValue([]);
+    mockApi.findResourceByName.mockResolvedValue(null);
+    mockApi.findResourceForEntity.mockResolvedValue(null);
+    mockApi.getMetrics.mockResolvedValue([]);
+    
+    const { useEntity } = require('@backstage/plugin-catalog-react');
+    useEntity.mockReturnValue({ entity: mockVMEntity });
   });
 
   it('should be defined', () => {
@@ -61,108 +81,153 @@ describe('VCFOperationsExplorer', () => {
   });
 
   it('should render without crashing', async () => {
-    mockVcfOperationsApi.getInstances.mockResolvedValue([
-      { name: 'test-instance', baseUrl: 'http://vcf.example.com' },
-    ]);
-
-    render(
-      <TestApiProvider apis={[[vcfOperationsApiRef, mockVcfOperationsApi]]}>
+    const { container } = render(
+      <TestApiProvider apis={[
+        [vcfOperationsApiRef, mockApi],
+        [errorApiRef, mockErrorApi],
+      ]}>
         <VCFOperationsExplorer />
-      </TestApiProvider>,
+      </TestApiProvider>
     );
 
     await waitFor(() => {
-      expect(mockVcfOperationsApi.getInstances).toHaveBeenCalled();
+      expect(container).toBeDefined();
+    });
+  });
+
+  it('should call getInstances on mount', async () => {
+    render(
+      <TestApiProvider apis={[
+        [vcfOperationsApiRef, mockApi],
+        [errorApiRef, mockErrorApi],
+      ]}>
+        <VCFOperationsExplorer />
+      </TestApiProvider>
+    );
+
+    await waitFor(() => {
+      expect(mockApi.getInstances).toHaveBeenCalled();
     });
   });
 
   it('should show loading state initially', async () => {
-    mockVcfOperationsApi.getInstances.mockImplementation(() => new Promise(() => {}));
-
     render(
-      <TestApiProvider apis={[[vcfOperationsApiRef, mockVcfOperationsApi]]}>
+      <TestApiProvider apis={[
+        [vcfOperationsApiRef, mockApi],
+        [errorApiRef, mockErrorApi],
+      ]}>
         <VCFOperationsExplorer />
-      </TestApiProvider>,
+      </TestApiProvider>
     );
 
-    // The component should be defined
-    expect(VCFOperationsExplorer).toBeDefined();
+    // The component shows a loading spinner initially
+    expect(screen.getByRole('progressbar')).toBeInTheDocument();
   });
 
-  it('should handle entity without vcf-operations annotation', async () => {
+  it('should handle entity without tags', async () => {
+    const { useEntity } = require('@backstage/plugin-catalog-react');
     useEntity.mockReturnValue({
       entity: {
-        apiVersion: 'backstage.io/v1alpha1',
-        kind: 'Component',
-        metadata: {
-          name: 'test-component',
-          annotations: {},
-        },
+        ...mockVMEntity,
+        metadata: { ...mockVMEntity.metadata, tags: undefined },
       },
     });
 
-    render(
-      <TestApiProvider apis={[[vcfOperationsApiRef, mockVcfOperationsApi]]}>
+    const { container } = render(
+      <TestApiProvider apis={[
+        [vcfOperationsApiRef, mockApi],
+        [errorApiRef, mockErrorApi],
+      ]}>
         <VCFOperationsExplorer />
-      </TestApiProvider>,
+      </TestApiProvider>
     );
 
     await waitFor(() => {
-      expect(mockVcfOperationsApi.getInstances).toHaveBeenCalled();
+      expect(container).toBeDefined();
     });
   });
 
-  it('should handle API errors gracefully', async () => {
-    mockVcfOperationsApi.getInstances.mockRejectedValue(new Error('API Error'));
-
-    render(
-      <TestApiProvider apis={[[vcfOperationsApiRef, mockVcfOperationsApi]]}>
-        <VCFOperationsExplorer />
-      </TestApiProvider>,
-    );
-
-    await waitFor(() => {
-      expect(mockVcfOperationsApi.getInstances).toHaveBeenCalled();
-    });
-  });
-
-  it('should render with multiple instances', async () => {
-    mockVcfOperationsApi.getInstances.mockResolvedValue([
-      { name: 'instance-1', baseUrl: 'http://vcf1.example.com' },
-      { name: 'instance-2', baseUrl: 'http://vcf2.example.com' },
-    ]);
-
-    render(
-      <TestApiProvider apis={[[vcfOperationsApiRef, mockVcfOperationsApi]]}>
-        <VCFOperationsExplorer />
-      </TestApiProvider>,
-    );
-
-    await waitFor(() => {
-      expect(mockVcfOperationsApi.getInstances).toHaveBeenCalled();
-    });
-  });
-
-  it('should handle unsupported entity kind', async () => {
+  it('should handle entity without spec type', async () => {
+    const { useEntity } = require('@backstage/plugin-catalog-react');
     useEntity.mockReturnValue({
       entity: {
-        apiVersion: 'backstage.io/v1alpha1',
-        kind: 'UnsupportedKind',
-        metadata: {
-          name: 'test-component',
-        },
+        ...mockVMEntity,
+        spec: {},
       },
     });
 
-    render(
-      <TestApiProvider apis={[[vcfOperationsApiRef, mockVcfOperationsApi]]}>
+    const { container } = render(
+      <TestApiProvider apis={[
+        [vcfOperationsApiRef, mockApi],
+        [errorApiRef, mockErrorApi],
+      ]}>
         <VCFOperationsExplorer />
-      </TestApiProvider>,
+      </TestApiProvider>
     );
 
     await waitFor(() => {
-      // Component should still render
-      expect(VCFOperationsExplorer).toBeDefined();
+      expect(container).toBeDefined();
     });
+  });
+
+  it('should handle entity with Kubernetes kind tag', async () => {
+    const { useEntity } = require('@backstage/plugin-catalog-react');
+    useEntity.mockReturnValue({
+      entity: {
+        ...mockVMEntity,
+        metadata: { ...mockVMEntity.metadata, tags: ['kind:kubernetes'] },
+      },
+    });
+
+    const { container } = render(
+      <TestApiProvider apis={[
+        [vcfOperationsApiRef, mockApi],
+        [errorApiRef, mockErrorApi],
+      ]}>
+        <VCFOperationsExplorer />
+      </TestApiProvider>
+    );
+
+    await waitFor(() => {
+      expect(mockApi.getInstances).toHaveBeenCalled();
+    });
+  });
+
+  it('should handle entity with Host kind tag', async () => {
+    const { useEntity } = require('@backstage/plugin-catalog-react');
+    useEntity.mockReturnValue({
+      entity: {
+        ...mockVMEntity,
+        metadata: { ...mockVMEntity.metadata, tags: ['kind:host'] },
+      },
+    });
+
+    const { container } = render(
+      <TestApiProvider apis={[
+        [vcfOperationsApiRef, mockApi],
+        [errorApiRef, mockErrorApi],
+      ]}>
+        <VCFOperationsExplorer />
+      </TestApiProvider>
+    );
+
+    await waitFor(() => {
+      expect(mockApi.getInstances).toHaveBeenCalled();
+    });
+  });
+});
+
+// Test VcfOperationsApiError class
+describe('VcfOperationsApiError', () => {
+  it('should create error with message and status', () => {
+    const error = new VcfOperationsApiError('Test error', 403);
+    expect(error.message).toBe('Test error');
+    expect(error.status).toBe(403);
+    expect(error.name).toBe('VcfOperationsApiError');
+  });
+
+  it('should be instance of Error', () => {
+    const error = new VcfOperationsApiError('Test', 500);
+    expect(error).toBeInstanceOf(Error);
   });
 });

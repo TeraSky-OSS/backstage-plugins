@@ -5,9 +5,14 @@ describe('appModuleGlobalSigninPage', () => {
     expect(appModuleGlobalSigninPage).toBeDefined();
   });
 
-  it('should be a frontend module for app', () => {
-    // The module is created with createFrontendModule for the app plugin
-    expect(appModuleGlobalSigninPage).toBeDefined();
+  it('should be a valid frontend module', () => {
+    expect(appModuleGlobalSigninPage).toHaveProperty('$$type');
   });
 });
 
+describe('providerDefaults', () => {
+  it('should export module correctly', () => {
+    // The module exports a frontend module for sign-in
+    expect(typeof appModuleGlobalSigninPage).toBe('object');
+  });
+});

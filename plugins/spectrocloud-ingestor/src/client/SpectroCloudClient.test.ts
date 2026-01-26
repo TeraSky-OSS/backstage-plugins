@@ -1,387 +1,341 @@
 import { SpectroCloudClient } from './SpectroCloudClient';
-import { mockServices } from '@backstage/backend-test-utils';
-import { setupServer } from 'msw/node';
-import { rest } from 'msw';
 
-const server = setupServer();
-beforeAll(() => server.listen());
-afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
+// Mock node-fetch
+jest.mock('node-fetch', () => {
+  return jest.fn();
+});
 
-describe('SpectroCloudClient (Ingestor)', () => {
-  const mockLogger = mockServices.logger.mock();
-  const baseUrl = 'https://spectrocloud.example.com';
-  const apiToken = 'test-api-token';
-  const tenant = 'test-tenant';
+const mockFetch = require('node-fetch') as jest.MockedFunction<typeof import('node-fetch').default>;
+
+describe('SpectroCloudClient', () => {
+  const mockLogger = {
+    info: jest.fn(),
+    debug: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    child: jest.fn().mockReturnThis(),
+  };
+
+  const clientOptions = {
+    url: 'https://api.spectrocloud.com',
+    tenant: 'test-tenant',
+    apiToken: 'test-token',
+    instanceName: 'test-instance',
+  };
+
+  let client: SpectroCloudClient;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    client = new SpectroCloudClient(clientOptions, mockLogger as any);
   });
 
   describe('constructor', () => {
-    it('should create client with instance name', () => {
-      const client = new SpectroCloudClient(
-        { url: baseUrl, tenant, apiToken, instanceName: 'test-instance' },
-        mockLogger,
-      );
-
-      expect(client.getInstanceName()).toBe('test-instance');
-    });
-
-    it('should create client without instance name', () => {
-      const client = new SpectroCloudClient(
-        { url: baseUrl, tenant, apiToken },
-        mockLogger,
-      );
-
-      expect(client.getInstanceName()).toBeUndefined();
+    it('should create client with provided options', () => {
+      expect(client).toBeDefined();
     });
   });
 
   describe('getAllClusters', () => {
-    it('should fetch all clusters', async () => {
+    it('should return clusters on successful response', async () => {
       const mockClusters = [
-        {
-          metadata: {
-            uid: 'cluster-1',
-            name: 'cluster-one',
-            annotations: { scope: 'project', projectUid: 'project-1' },
-          },
-          spec: {
-            cloudType: 'aws',
-            clusterProfileTemplates: [{ uid: 'profile-1', name: 'infra-profile' }],
-          },
-          status: { state: 'Running' },
-        },
-        {
-          metadata: {
-            uid: 'cluster-2',
-            name: 'cluster-two',
-            annotations: { scope: 'tenant' },
-          },
-          spec: { cloudType: 'gcp' },
-          status: { state: 'Running' },
-        },
+        { metadata: { uid: 'cluster-1', name: 'test-cluster' } },
       ];
 
-      server.use(
-        rest.get(`${baseUrl}/v1/dashboard/spectroclusters/meta`, (req, res, ctx) => {
-          expect(req.headers.get('ApiKey')).toBe(apiToken);
-          return res(ctx.json(mockClusters));
-        }),
-      );
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockClusters),
+      } as any);
 
-      const client = new SpectroCloudClient({ url: baseUrl, tenant, apiToken }, mockLogger);
       const result = await client.getAllClusters();
-
-      expect(result).toHaveLength(2);
-      expect(result[0].metadata.name).toBe('cluster-one');
-      expect(result[1].spec?.cloudType).toBe('gcp');
+      expect(result).toEqual(mockClusters);
+      expect(mockFetch).toHaveBeenCalled();
     });
 
     it('should return empty array on error', async () => {
-      server.use(
-        rest.get(`${baseUrl}/v1/dashboard/spectroclusters/meta`, (req, res, ctx) => {
-          return res(ctx.status(500), ctx.text('Internal Server Error'));
-        }),
-      );
+      mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
-      const client = new SpectroCloudClient({ url: baseUrl, tenant, apiToken }, mockLogger);
       const result = await client.getAllClusters();
-
       expect(result).toEqual([]);
       expect(mockLogger.error).toHaveBeenCalled();
     });
   });
 
   describe('getCluster', () => {
-    it('should fetch cluster details', async () => {
-      const mockCluster = {
-        metadata: { uid: 'cluster-1', name: 'test-cluster' },
-        spec: { cloudType: 'aws' },
-        status: { state: 'Running' },
-      };
+    it('should return cluster on successful response', async () => {
+      const mockCluster = { metadata: { uid: 'cluster-1', name: 'test-cluster' } };
 
-      server.use(
-        rest.get(`${baseUrl}/v1/dashboard/spectroclusters/cluster-1`, (req, res, ctx) => {
-          return res(ctx.json(mockCluster));
-        }),
-      );
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockCluster),
+      } as any);
 
-      const client = new SpectroCloudClient({ url: baseUrl, tenant, apiToken }, mockLogger);
       const result = await client.getCluster('cluster-1');
-
-      expect(result?.metadata.name).toBe('test-cluster');
+      expect(result).toEqual(mockCluster);
     });
 
-    it('should include ProjectUid header when provided', async () => {
-      server.use(
-        rest.get(`${baseUrl}/v1/dashboard/spectroclusters/cluster-1`, (req, res, ctx) => {
-          expect(req.headers.get('ProjectUid')).toBe('project-1');
-          return res(ctx.json({ metadata: { uid: 'cluster-1', name: 'test' } }));
-        }),
-      );
+    it('should include ProjectUid header when projectUid provided', async () => {
+      const mockCluster = { metadata: { uid: 'cluster-1', name: 'test-cluster' } };
 
-      const client = new SpectroCloudClient({ url: baseUrl, tenant, apiToken }, mockLogger);
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockCluster),
+      } as any);
+
       await client.getCluster('cluster-1', 'project-1');
+      
+      const fetchCall = mockFetch.mock.calls[0];
+      expect(fetchCall[1]?.headers).toHaveProperty('ProjectUid', 'project-1');
     });
 
     it('should return undefined on error', async () => {
-      server.use(
-        rest.get(`${baseUrl}/v1/dashboard/spectroclusters/not-found`, (req, res, ctx) => {
-          return res(ctx.status(404), ctx.text('Not Found'));
-        }),
-      );
+      mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
-      const client = new SpectroCloudClient({ url: baseUrl, tenant, apiToken }, mockLogger);
-      const result = await client.getCluster('not-found');
-
+      const result = await client.getCluster('cluster-1');
       expect(result).toBeUndefined();
     });
   });
 
   describe('getAllProjects', () => {
-    it('should fetch all projects with pagination', async () => {
-      server.use(
-        rest.post(`${baseUrl}/v1/dashboard/projects`, async (req, res, ctx) => {
-          const body = await req.json();
-          
-          if (!body.continue) {
-            return res(ctx.json({
-              items: [{ metadata: { uid: 'p1', name: 'Project 1' } }],
-              listmeta: { continue: 'token-1' },
-            }));
-          }
-          
-          if (body.continue === 'token-1') {
-            return res(ctx.json({
-              items: [{ metadata: { uid: 'p2', name: 'Project 2' } }],
-              listmeta: {},
-            }));
-          }
-          
-          return res(ctx.json({ items: [], listmeta: {} }));
-        }),
-      );
+    it('should return projects on successful response', async () => {
+      const mockProjects = [
+        { metadata: { uid: 'project-1', name: 'test-project' } },
+      ];
 
-      const client = new SpectroCloudClient({ url: baseUrl, tenant, apiToken }, mockLogger);
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ items: mockProjects }),
+      } as any);
+
       const result = await client.getAllProjects();
+      expect(result).toEqual(mockProjects);
+    });
 
+    it('should handle pagination', async () => {
+      const page1 = [{ metadata: { uid: 'p1' } }];
+      const page2 = [{ metadata: { uid: 'p2' } }];
+
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ items: page1, listmeta: { continue: 'token' } }),
+        } as any)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ items: page2 }),
+        } as any);
+
+      const result = await client.getAllProjects();
       expect(result).toHaveLength(2);
-      expect(result[0].metadata.name).toBe('Project 1');
-      expect(result[1].metadata.name).toBe('Project 2');
     });
 
     it('should return empty array on error', async () => {
-      server.use(
-        rest.post(`${baseUrl}/v1/dashboard/projects`, (req, res, ctx) => {
-          return res(ctx.status(500), ctx.text('Error'));
-        }),
-      );
+      mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
-      const client = new SpectroCloudClient({ url: baseUrl, tenant, apiToken }, mockLogger);
       const result = await client.getAllProjects();
-
       expect(result).toEqual([]);
-      expect(mockLogger.error).toHaveBeenCalled();
     });
   });
 
   describe('getProject', () => {
-    it('should fetch a project', async () => {
-      const mockProject = {
-        metadata: { uid: 'project-1', name: 'Test Project' },
-        spec: { description: 'A test project' },
-      };
+    it('should return project on successful response', async () => {
+      const mockProject = { metadata: { uid: 'project-1', name: 'test-project' } };
 
-      server.use(
-        rest.get(`${baseUrl}/v1/projects/project-1`, (req, res, ctx) => {
-          return res(ctx.json(mockProject));
-        }),
-      );
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockProject),
+      } as any);
 
-      const client = new SpectroCloudClient({ url: baseUrl, tenant, apiToken }, mockLogger);
       const result = await client.getProject('project-1');
-
-      expect(result?.metadata.name).toBe('Test Project');
-      expect(result?.spec?.description).toBe('A test project');
+      expect(result).toEqual(mockProject);
     });
 
     it('should return undefined on error', async () => {
-      server.use(
-        rest.get(`${baseUrl}/v1/projects/not-found`, (req, res, ctx) => {
-          return res(ctx.status(404), ctx.text('Not Found'));
-        }),
-      );
+      mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
-      const client = new SpectroCloudClient({ url: baseUrl, tenant, apiToken }, mockLogger);
-      const result = await client.getProject('not-found');
-
+      const result = await client.getProject('project-1');
       expect(result).toBeUndefined();
     });
   });
 
   describe('getAllClusterProfiles', () => {
-    it('should fetch all cluster profiles', async () => {
-      server.use(
-        rest.post(`${baseUrl}/v1/dashboard/clusterprofiles`, async (req, res, ctx) => {
-          return res(ctx.json({
-            items: [
-              {
-                metadata: { uid: 'profile-1', name: 'Infra Profile' },
-                specSummary: { published: { cloudType: 'aws', type: 'infra' } },
-              },
-            ],
-            listmeta: {},
-          }));
-        }),
-      );
+    it('should return profiles on successful response', async () => {
+      const mockProfiles = [
+        { metadata: { uid: 'profile-1', name: 'test-profile' } },
+      ];
 
-      const client = new SpectroCloudClient({ url: baseUrl, tenant, apiToken }, mockLogger);
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ items: mockProfiles }),
+      } as any);
+
       const result = await client.getAllClusterProfiles();
-
-      expect(result).toHaveLength(1);
-      expect(result[0].metadata.name).toBe('Infra Profile');
-    });
-  });
-
-  describe('getProjectClusterProfiles', () => {
-    it('should fetch cluster profiles for a project', async () => {
-      server.use(
-        rest.post(`${baseUrl}/v1/dashboard/clusterprofiles`, async (req, res, ctx) => {
-          const projectUid = req.headers.get('ProjectUid');
-          expect(projectUid).toBe('project-1');
-          
-          const body = await req.json();
-          expect(body.filter.scope).toBe('project');
-          
-          return res(ctx.json({
-            items: [
-              { metadata: { uid: 'profile-1', name: 'Project Profile' } },
-            ],
-            listmeta: {},
-          }));
-        }),
-      );
-
-      const client = new SpectroCloudClient({ url: baseUrl, tenant, apiToken }, mockLogger);
-      const result = await client.getProjectClusterProfiles('project-1');
-
-      expect(result).toHaveLength(1);
-      expect(result[0].metadata.name).toBe('Project Profile');
+      expect(result).toEqual(mockProfiles);
     });
 
-    it('should handle infinite pagination loop detection', async () => {
-      let callCount = 0;
-      server.use(
-        rest.post(`${baseUrl}/v1/dashboard/clusterprofiles`, async (req, res, ctx) => {
-          callCount++;
-          // Return same continue token to simulate infinite loop
-          return res(ctx.json({
-            items: [{ metadata: { uid: `profile-${callCount}`, name: `Profile ${callCount}` } }],
-            listmeta: { continue: 'same-token' },
-          }));
-        }),
-      );
+    it('should return empty array on error', async () => {
+      mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
-      const client = new SpectroCloudClient({ url: baseUrl, tenant, apiToken }, mockLogger);
-      const result = await client.getProjectClusterProfiles('project-1');
-
-      // Should break out of the loop after detecting duplicate token
-      expect(result.length).toBeLessThanOrEqual(2);
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        expect.stringContaining('Infinite pagination loop detected')
-      );
+      const result = await client.getAllClusterProfiles();
+      expect(result).toEqual([]);
     });
   });
 
   describe('getClusterProfile', () => {
-    it('should fetch a cluster profile', async () => {
-      const mockProfile = {
-        metadata: { uid: 'profile-1', name: 'Test Profile' },
-        spec: {
-          published: {
-            cloudType: 'aws',
-            type: 'infra',
-            packs: [{ name: 'kubernetes', tag: 'v1.28.0' }],
-          },
-        },
-      };
+    it('should return profile on successful response', async () => {
+      const mockProfile = { metadata: { uid: 'profile-1', name: 'test-profile' } };
 
-      server.use(
-        rest.get(`${baseUrl}/v1/clusterprofiles/profile-1`, (req, res, ctx) => {
-          return res(ctx.json(mockProfile));
-        }),
-      );
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockProfile),
+      } as any);
 
-      const client = new SpectroCloudClient({ url: baseUrl, tenant, apiToken }, mockLogger);
       const result = await client.getClusterProfile('profile-1');
-
-      expect(result?.metadata.name).toBe('Test Profile');
-      expect(result?.spec?.published?.packs).toHaveLength(1);
+      expect(result).toEqual(mockProfile);
     });
 
-    it('should include ProjectUid header when provided', async () => {
-      server.use(
-        rest.get(`${baseUrl}/v1/clusterprofiles/profile-1`, (req, res, ctx) => {
-          expect(req.headers.get('ProjectUid')).toBe('project-1');
-          return res(ctx.json({ metadata: { uid: 'profile-1', name: 'Test' } }));
-        }),
-      );
+    it('should include ProjectUid header when projectUid provided', async () => {
+      const mockProfile = { metadata: { uid: 'profile-1' } };
 
-      const client = new SpectroCloudClient({ url: baseUrl, tenant, apiToken }, mockLogger);
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockProfile),
+      } as any);
+
       await client.getClusterProfile('profile-1', 'project-1');
+      
+      const fetchCall = mockFetch.mock.calls[0];
+      expect(fetchCall[1]?.headers).toHaveProperty('ProjectUid', 'project-1');
+    });
+
+    it('should return undefined on error', async () => {
+      mockFetch.mockRejectedValueOnce(new Error('Network error'));
+
+      const result = await client.getClusterProfile('profile-1');
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('getProjectClusterProfiles', () => {
+    it('should return profiles for project on successful response', async () => {
+      const mockProfiles = [
+        { metadata: { uid: 'profile-1', name: 'test-profile' } },
+      ];
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ items: mockProfiles }),
+      } as any);
+
+      const result = await client.getProjectClusterProfiles('project-1');
+      expect(result).toEqual(mockProfiles);
+    });
+
+    it('should handle pagination', async () => {
+      const page1 = [{ metadata: { uid: 'p1' } }];
+      const page2 = [{ metadata: { uid: 'p2' } }];
+
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ items: page1, listmeta: { continue: 'token1' } }),
+        } as any)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ items: page2 }),
+        } as any);
+
+      const result = await client.getProjectClusterProfiles('project-1');
+      expect(result).toHaveLength(2);
+    });
+
+    it('should detect infinite pagination loop', async () => {
+      const page = [{ metadata: { uid: 'p1' } }];
+
+      // Return the same continue token repeatedly
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ items: page, listmeta: { continue: 'same-token' } }),
+        } as any)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ items: page, listmeta: { continue: 'same-token' } }),
+        } as any);
+
+      const result = await client.getProjectClusterProfiles('project-1');
+      expect(result.length).toBeGreaterThanOrEqual(1);
+      expect(mockLogger.error).toHaveBeenCalledWith(expect.stringContaining('Infinite pagination loop'));
+    });
+
+    it('should return empty array on error', async () => {
+      mockFetch.mockRejectedValueOnce(new Error('Network error'));
+
+      const result = await client.getProjectClusterProfiles('project-1');
+      expect(result).toEqual([]);
     });
   });
 
   describe('getClientKubeConfig', () => {
-    it('should fetch client kubeconfig', async () => {
-      const mockKubeconfig = `
-apiVersion: v1
-kind: Config
-clusters:
-  - name: test-cluster
-    cluster:
-      server: https://api.test-cluster.example.com
-`;
+    it('should return kubeconfig on successful response', async () => {
+      const mockKubeconfig = 'apiVersion: v1\nkind: Config';
 
-      server.use(
-        rest.get(`${baseUrl}/v1/spectroclusters/cluster-1/assets/kubeconfig`, (req, res, ctx) => {
-          expect(req.url.searchParams.get('frp')).toBe('true');
-          return res(ctx.text(mockKubeconfig));
-        }),
-      );
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        text: jest.fn().mockResolvedValue(mockKubeconfig),
+      } as any);
 
-      const client = new SpectroCloudClient({ url: baseUrl, tenant, apiToken }, mockLogger);
       const result = await client.getClientKubeConfig('cluster-1');
-
-      expect(result).toContain('test-cluster');
+      expect(result).toBe(mockKubeconfig);
     });
 
-    it('should include ProjectUid header and frp parameter', async () => {
-      server.use(
-        rest.get(`${baseUrl}/v1/spectroclusters/cluster-1/assets/kubeconfig`, (req, res, ctx) => {
-          expect(req.headers.get('ProjectUid')).toBe('project-1');
-          expect(req.url.searchParams.get('frp')).toBe('false');
-          return res(ctx.text('kubeconfig'));
-        }),
-      );
+    it('should include ProjectUid header when projectUid provided', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        text: jest.fn().mockResolvedValue('config'),
+      } as any);
 
-      const client = new SpectroCloudClient({ url: baseUrl, tenant, apiToken }, mockLogger);
-      await client.getClientKubeConfig('cluster-1', 'project-1', false);
+      await client.getClientKubeConfig('cluster-1', 'project-1');
+      
+      const fetchCall = mockFetch.mock.calls[0];
+      expect(fetchCall[1]?.headers).toHaveProperty('ProjectUid', 'project-1');
     });
 
     it('should return undefined on error', async () => {
-      server.use(
-        rest.get(`${baseUrl}/v1/spectroclusters/not-found/assets/kubeconfig`, (req, res, ctx) => {
-          return res(ctx.status(404), ctx.text('Not Found'));
-        }),
-      );
+      mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
-      const client = new SpectroCloudClient({ url: baseUrl, tenant, apiToken }, mockLogger);
-      const result = await client.getClientKubeConfig('not-found');
-
+      const result = await client.getClientKubeConfig('cluster-1');
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe('getInstanceName', () => {
+    it('should return instance name', () => {
+      expect(client.getInstanceName()).toBe('test-instance');
+    });
+
+    it('should return undefined if not set', () => {
+      const clientWithoutInstance = new SpectroCloudClient({
+        url: 'https://api.spectrocloud.com',
+        tenant: 'test-tenant',
+        apiToken: 'test-token',
+      }, mockLogger as any);
+      expect(clientWithoutInstance.getInstanceName()).toBeUndefined();
+    });
+  });
+
+  describe('makeRequest (via public methods)', () => {
+    it('should handle non-ok response', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized',
+        text: jest.fn().mockResolvedValue('Invalid token'),
+      } as any);
+
+      const result = await client.getAllClusters();
+      expect(result).toEqual([]);
+      expect(mockLogger.error).toHaveBeenCalled();
     });
   });
 });

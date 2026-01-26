@@ -1,4 +1,4 @@
-import { KubernetesEntityProvider, XRDTemplateEntityProvider } from './EntityProvider';
+import { KubernetesEntityProvider, XRDTemplateEntityProvider, resolveOwnerRef } from './EntityProvider';
 import { mockServices } from '@backstage/backend-test-utils';
 import { ConfigReader } from '@backstage/config';
 
@@ -15,6 +15,23 @@ afterEach(() => {
   console.log = originalConsoleLog;
   console.error = originalConsoleError;
   console.warn = originalConsoleWarn;
+});
+
+describe('resolveOwnerRef', () => {
+  it('should return default owner when annotation is undefined', () => {
+    const result = resolveOwnerRef(undefined, 'group:default', 'kubernetes-auto-ingested');
+    expect(result).toBe('group:default/kubernetes-auto-ingested');
+  });
+
+  it('should return annotation as-is when it contains a colon (full entity ref)', () => {
+    const result = resolveOwnerRef('group:myteam/my-owner', 'group:default', 'kubernetes-auto-ingested');
+    expect(result).toBe('group:myteam/my-owner');
+  });
+
+  it('should prefix with namespace when annotation does not contain colon', () => {
+    const result = resolveOwnerRef('my-owner', 'group:default', 'kubernetes-auto-ingested');
+    expect(result).toBe('group:default/my-owner');
+  });
 });
 
 describe('KubernetesEntityProvider', () => {
@@ -211,6 +228,100 @@ describe('KubernetesEntityProvider', () => {
       await expect(provider.connect({
         applyMutation: jest.fn(),
       } as any)).resolves.not.toThrow();
+    });
+
+    it('should process regular Kubernetes resources when Crossplane is disabled', async () => {
+      const noCrossplaneConfig = new ConfigReader({
+        kubernetesIngestor: {
+          components: {
+            enabled: true,
+            taskRunner: { frequency: 60, timeout: 600 },
+          },
+          crossplane: {
+            enabled: false,
+          },
+          kro: {
+            enabled: false,
+          },
+          annotationPrefix: 'terasky.backstage.io',
+        },
+        kubernetes: {
+          clusterLocatorMethods: [
+            {
+              type: 'config',
+              clusters: [
+                { name: 'test-cluster', url: 'http://k8s.example.com' },
+              ],
+            },
+          ],
+        },
+      });
+
+      const mockTaskRunner = {
+        run: jest.fn().mockImplementation(({ fn }) => fn()),
+      };
+
+      const provider = new KubernetesEntityProvider(
+        mockTaskRunner as any,
+        mockLogger,
+        noCrossplaneConfig,
+        mockResourceFetcher as any,
+      );
+
+      const mockConnection = {
+        applyMutation: jest.fn().mockResolvedValue(undefined),
+      };
+
+      await provider.connect(mockConnection as any);
+      expect(mockConnection.applyMutation).toHaveBeenCalled();
+    });
+
+    it('should process Crossplane claims when Crossplane is enabled', async () => {
+      const mockTaskRunner = {
+        run: jest.fn().mockImplementation(({ fn }) => fn()),
+      };
+
+      const provider = new KubernetesEntityProvider(
+        mockTaskRunner as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+      );
+
+      const mockConnection = {
+        applyMutation: jest.fn().mockResolvedValue(undefined),
+      };
+
+      await provider.connect(mockConnection as any);
+      expect(mockConnection.applyMutation).toHaveBeenCalled();
+    });
+
+    it('should handle run errors gracefully', async () => {
+      const mockTaskRunner = {
+        run: jest.fn().mockImplementation(({ fn }) => fn()),
+      };
+
+      // Make resource fetcher throw an error
+      const errorResourceFetcher = {
+        ...mockResourceFetcher,
+        fetchResources: jest.fn().mockRejectedValue(new Error('Fetch failed')),
+        getClusters: jest.fn().mockRejectedValue(new Error('Clusters failed')),
+      };
+
+      const provider = new KubernetesEntityProvider(
+        mockTaskRunner as any,
+        mockLogger,
+        mockConfig,
+        errorResourceFetcher as any,
+      );
+
+      const mockConnection = {
+        applyMutation: jest.fn().mockResolvedValue(undefined),
+      };
+
+      // Should not throw even when internal errors occur
+      await provider.connect(mockConnection as any);
+      expect(mockConnection.applyMutation).toHaveBeenCalled();
     });
   });
 });

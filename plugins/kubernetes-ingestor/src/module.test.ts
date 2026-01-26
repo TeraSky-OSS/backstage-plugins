@@ -5,9 +5,8 @@ describe('catalogModuleKubernetesIngestor', () => {
     expect(catalogModuleKubernetesIngestor).toBeDefined();
   });
 
-  it('should be a backend module', () => {
-    // The module is created with createBackendModule
-    expect(catalogModuleKubernetesIngestor).toBeDefined();
+  it('should have the correct $$type', () => {
+    expect(catalogModuleKubernetesIngestor.$$type).toBe('@backstage/BackendFeature');
   });
 });
 

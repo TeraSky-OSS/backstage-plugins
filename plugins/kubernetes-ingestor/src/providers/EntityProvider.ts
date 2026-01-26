@@ -26,7 +26,7 @@ interface BackstageLink {
  * If the annotation contains a full entity ref (with kind like "group:" or "user:"),
  * it returns it as-is. Otherwise, it prefixes with the namespace.
  */
-function resolveOwnerRef(
+export function resolveOwnerRef(
   ownerAnnotation: string | undefined,
   namespacePrefix: string,
   defaultOwner: string,
