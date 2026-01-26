@@ -14205,7 +14205,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-app-module-global-signin-page@npm:^0.2.1, @terasky/backstage-plugin-app-module-global-signin-page@workspace:plugins/app-module-global-signin-page":
+"@terasky/backstage-plugin-app-module-global-signin-page@npm:^0.2.2, @terasky/backstage-plugin-app-module-global-signin-page@workspace:plugins/app-module-global-signin-page":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-app-module-global-signin-page@workspace:plugins/app-module-global-signin-page"
   dependencies:
@@ -14861,7 +14861,7 @@ __metadata:
     "@backstage/config": "npm:^1.3.6"
     "@backstage/errors": "npm:^1.2.7"
     "@backstage/plugin-catalog-node": "npm:^1.20.1"
-    "@terasky/backstage-plugin-spectrocloud-common": "npm:^0.1.1"
+    "@terasky/backstage-plugin-spectrocloud-common": "npm:^0.1.2"
     "@types/express": "npm:^4.17.6"
     "@types/node-fetch": "npm:^2.6.11"
     "@types/supertest": "npm:^6.0.0"
@@ -14890,7 +14890,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-spectrocloud-common@npm:^0.1.1, @terasky/backstage-plugin-spectrocloud-common@workspace:plugins/spectrocloud-common":
+"@terasky/backstage-plugin-spectrocloud-common@npm:^0.1.2, @terasky/backstage-plugin-spectrocloud-common@workspace:plugins/spectrocloud-common":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-spectrocloud-common@workspace:plugins/spectrocloud-common"
   dependencies:
@@ -14900,7 +14900,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-spectrocloud-ingestor@npm:^0.1.1, @terasky/backstage-plugin-spectrocloud-ingestor@workspace:plugins/spectrocloud-ingestor":
+"@terasky/backstage-plugin-spectrocloud-ingestor@npm:^0.1.2, @terasky/backstage-plugin-spectrocloud-ingestor@workspace:plugins/spectrocloud-ingestor":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-spectrocloud-ingestor@workspace:plugins/spectrocloud-ingestor"
   dependencies:
@@ -14914,7 +14914,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-spectrocloud@npm:^0.1.1, @terasky/backstage-plugin-spectrocloud@workspace:plugins/spectrocloud":
+"@terasky/backstage-plugin-spectrocloud@npm:^0.1.2, @terasky/backstage-plugin-spectrocloud@workspace:plugins/spectrocloud":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-spectrocloud@workspace:plugins/spectrocloud"
   dependencies:
@@ -14932,7 +14932,7 @@ __metadata:
     "@material-ui/core": "npm:^4.12.4"
     "@material-ui/icons": "npm:^4.11.3"
     "@material-ui/lab": "npm:^4.0.0-alpha.61"
-    "@terasky/backstage-plugin-spectrocloud-common": "npm:^0.1.1"
+    "@terasky/backstage-plugin-spectrocloud-common": "npm:^0.1.2"
     "@testing-library/jest-dom": "npm:^6.0.0"
     "@testing-library/react": "npm:^14.0.0"
     "@testing-library/user-event": "npm:^14.0.0"
@@ -14995,7 +14995,7 @@ __metadata:
     "@backstage/backend-test-utils": "npm:^1.10.3"
     "@backstage/cli": "npm:^0.35.2"
     "@backstage/config": "npm:^1.3.6"
-    "@terasky/backstage-plugin-vcf-automation-common": "npm:^1.2.8"
+    "@terasky/backstage-plugin-vcf-automation-common": "npm:^1.2.9"
     "@types/express": "npm:^4.17.22"
     "@types/supertest": "npm:^2.0.12"
     express: "npm:^4.17.1"
@@ -15007,7 +15007,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-vcf-automation-common@npm:^1.2.8, @terasky/backstage-plugin-vcf-automation-common@workspace:plugins/vcf-automation-common":
+"@terasky/backstage-plugin-vcf-automation-common@npm:^1.2.9, @terasky/backstage-plugin-vcf-automation-common@workspace:plugins/vcf-automation-common":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-vcf-automation-common@workspace:plugins/vcf-automation-common"
   dependencies:
@@ -15052,7 +15052,7 @@ __metadata:
     "@material-ui/icons": "npm:^4.11.3"
     "@material-ui/lab": "npm:4.0.0-alpha.61"
     "@monaco-editor/react": "npm:^4.7.0"
-    "@terasky/backstage-plugin-vcf-automation-common": "npm:^1.2.8"
+    "@terasky/backstage-plugin-vcf-automation-common": "npm:^1.2.9"
     "@testing-library/jest-dom": "npm:^5.10.1"
     "@testing-library/react": "npm:^12.1.3"
     "@testing-library/user-event": "npm:^14.0.0"
@@ -15077,7 +15077,7 @@ __metadata:
     "@backstage/backend-test-utils": "npm:^1.10.3"
     "@backstage/cli": "npm:^0.35.2"
     "@backstage/config": "npm:^1.3.6"
-    "@terasky/backstage-plugin-vcf-operations-common": "npm:^0.1.8"
+    "@terasky/backstage-plugin-vcf-operations-common": "npm:^0.1.9"
     "@types/express": "npm:^4.17.22"
     "@types/supertest": "npm:^2.0.12"
     express: "npm:^4.17.1"
@@ -15089,7 +15089,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-vcf-operations-common@npm:^0.1.8, @terasky/backstage-plugin-vcf-operations-common@workspace:plugins/vcf-operations-common":
+"@terasky/backstage-plugin-vcf-operations-common@npm:^0.1.9, @terasky/backstage-plugin-vcf-operations-common@workspace:plugins/vcf-operations-common":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-vcf-operations-common@workspace:plugins/vcf-operations-common"
   dependencies:
@@ -15116,7 +15116,7 @@ __metadata:
     "@material-ui/core": "npm:^4.12.4"
     "@material-ui/icons": "npm:^4.11.3"
     "@material-ui/lab": "npm:4.0.0-alpha.61"
-    "@terasky/backstage-plugin-vcf-operations-common": "npm:^0.1.8"
+    "@terasky/backstage-plugin-vcf-operations-common": "npm:^0.1.9"
     "@testing-library/jest-dom": "npm:^5.10.1"
     "@testing-library/react": "npm:^12.1.3"
     "@testing-library/user-event": "npm:^14.0.0"
@@ -17568,7 +17568,7 @@ __metadata:
     "@material-ui/icons": "npm:^4.9.1"
     "@playwright/test": "npm:^1.32.3"
     "@terasky/backstage-plugin-ai-rules": "npm:^1.4.1"
-    "@terasky/backstage-plugin-app-module-global-signin-page": "npm:^0.2.1"
+    "@terasky/backstage-plugin-app-module-global-signin-page": "npm:^0.2.2"
     "@terasky/backstage-plugin-crossplane-resources-frontend": "npm:^2.10.1"
     "@terasky/backstage-plugin-devpod": "npm:^1.6.1"
     "@terasky/backstage-plugin-educates": "npm:^1.6.2"
@@ -17578,7 +17578,7 @@ __metadata:
     "@terasky/backstage-plugin-kubernetes-resources-frontend": "npm:^0.9.3"
     "@terasky/backstage-plugin-kyverno-policy-reports": "npm:^1.10.1"
     "@terasky/backstage-plugin-scaleops-frontend": "npm:^2.0.2"
-    "@terasky/backstage-plugin-spectrocloud": "npm:^0.1.1"
+    "@terasky/backstage-plugin-spectrocloud": "npm:^0.1.2"
     "@terasky/backstage-plugin-terraform-scaffolder": "npm:^0.7.1"
     "@terasky/backstage-plugin-vcf-automation": "npm:^1.9.1"
     "@terasky/backstage-plugin-vcf-operations": "npm:^0.7.1"
@@ -18247,7 +18247,7 @@ __metadata:
     "@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils": "npm:^2.2.1"
     "@terasky/backstage-plugin-spectrocloud-backend": "npm:^0.1.1"
     "@terasky/backstage-plugin-spectrocloud-cluster-provider": "npm:^0.4.1"
-    "@terasky/backstage-plugin-spectrocloud-ingestor": "npm:^0.1.1"
+    "@terasky/backstage-plugin-spectrocloud-ingestor": "npm:^0.1.2"
     "@terasky/backstage-plugin-vcf-automation-backend": "npm:^1.9.1"
     "@terasky/backstage-plugin-vcf-automation-ingestor": "npm:^1.9.1"
     "@terasky/backstage-plugin-vcf-operations-backend": "npm:^0.6.1"

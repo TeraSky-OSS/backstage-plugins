@@ -1,6 +1,6 @@
 {
   "name": "@terasky/backstage-plugin-app-module-global-signin-page",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Configuration-driven sign-in page module for Backstage supporting all core authentication providers",
   "license": "Apache-2.0",
   "main": "src/index.ts",
@@ -21,7 +21,7 @@
   "backstage": {
     "role": "frontend-plugin-module",
     "pluginId": "app",
-    "pluginPackage": "@backstage/plugin-app"
+    "pluginPackage": "@backstage/plugin-app-backend"
   },
   "sideEffects": false,
   "scripts": {

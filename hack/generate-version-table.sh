@@ -36,6 +36,8 @@ for dir in plugins/*/; do
             type="Scaffolder Field Extension"
         elif [[ $folder == *"scaffolder"* ]]; then
             type="Scaffolder Actions"
+        elif [[ $folder == *"cluster-provider"* ]]; then
+            type="Kubernetes Cluster Locator"
         else
             type="Frontend"  # Default type
         fi

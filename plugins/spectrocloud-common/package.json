@@ -1,7 +1,7 @@
 {
   "name": "@terasky/backstage-plugin-spectrocloud-common",
   "description": "Common functionalities for the SpectroCloud plugin",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "main": "src/index.ts",
   "types": "src/index.ts",
   "license": "Apache-2.0",
@@ -21,9 +21,8 @@
     "role": "common-library",
     "pluginId": "spectrocloud",
     "pluginPackages": [
-      "@terasky/backstage-plugin-spectrocloud-common",
       "@terasky/backstage-plugin-spectrocloud",
-      "@terasky/backstage-plugin-spectrocloud-backend"
+      "@terasky/backstage-plugin-spectrocloud-common"
     ]
   },
   "sideEffects": false,
