@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { TrainingPortalHeader } from './TrainingPortalHeader';
 import { TrainingPortalStatus } from '@terasky/backstage-plugin-educates-common';
@@ -22,10 +21,14 @@ const mockPortal: TrainingPortalStatus = {
   name: 'test-portal',
   title: 'Test Portal',
   url: 'http://test-portal.example.com',
+  uid: 'portal-uid-123',
+  generation: 1,
   logo: 'data:image/png;base64,testlogo',
   sessions: {
     allocated: 3,
     maximum: 10,
+    registered: 5,
+    anonymous: 2,
   },
   labels: {
     team: 'platform',
@@ -70,7 +73,7 @@ describe('TrainingPortalHeader', () => {
   });
 
   it('should display Unlimited when maximum sessions is not set', () => {
-    const portalUnlimited = { ...mockPortal, sessions: { allocated: 2, maximum: undefined } };
+    const portalUnlimited = { ...mockPortal, sessions: { allocated: 2, maximum: undefined, registered: 3, anonymous: 1 } } as any;
     render(<TrainingPortalHeader portal={portalUnlimited} workshopCount={3} />);
     expect(screen.getByText(/Active Sessions: 2 \/ Unlimited/)).toBeInTheDocument();
   });

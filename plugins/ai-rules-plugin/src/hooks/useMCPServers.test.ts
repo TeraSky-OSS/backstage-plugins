@@ -39,10 +39,7 @@ describe('useMCPServers', () => {
     
     mockUseEntity.mockReturnValue({
       entity: mockEntity,
-      loading: false,
-      error: undefined,
-      refresh: jest.fn(),
-    });
+    } as any);
   });
 
   it('should return initial loading state', () => {
@@ -96,10 +93,7 @@ describe('useMCPServers', () => {
           annotations: {},
         },
       },
-      loading: false,
-      error: undefined,
-      refresh: jest.fn(),
-    });
+    } as any);
 
     const { result } = renderHook(() => useMCPServers());
 
@@ -121,10 +115,7 @@ describe('useMCPServers', () => {
           },
         },
       },
-      loading: false,
-      error: undefined,
-      refresh: jest.fn(),
-    });
+    } as any);
 
     mockApi.getMCPServers.mockResolvedValue({ servers: [] });
 
@@ -146,10 +137,7 @@ describe('useMCPServers', () => {
           },
         },
       },
-      loading: false,
-      error: undefined,
-      refresh: jest.fn(),
-    });
+    } as any);
 
     mockApi.getMCPServers.mockResolvedValue({ servers: [] });
 

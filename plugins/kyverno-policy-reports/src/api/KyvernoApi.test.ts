@@ -101,7 +101,7 @@ describe('KyvernoApi', () => {
         expect(callUrl).toContain('http://kyverno-backend/policy');
         expect(callUrl).toContain('clusterName=test-cluster');
         expect(callUrl).toContain('policyName=test-policy');
-        expect(result.kind).toBe('ClusterPolicy');
+        expect((result as any).kind).toBe('ClusterPolicy');
       });
 
       it('should include namespace in request when provided', async () => {

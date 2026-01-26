@@ -54,10 +54,7 @@ describe('useAiRules', () => {
 
     mockUseEntity.mockReturnValue({
       entity: mockEntity,
-      loading: false,
-      error: undefined,
-      refresh: jest.fn(),
-    });
+    } as any);
 
     mockConfigApi.getOptionalStringArray.mockImplementation((key: string) => {
       if (key === 'aiRules.allowedRuleTypes') {
@@ -91,10 +88,7 @@ describe('useAiRules', () => {
           annotations: {},
         },
       },
-      loading: false,
-      error: undefined,
-      refresh: jest.fn(),
-    });
+    } as any);
 
     const { result } = renderHook(() => useAiRules());
 
@@ -112,10 +106,7 @@ describe('useAiRules', () => {
           },
         },
       },
-      loading: false,
-      error: undefined,
-      refresh: jest.fn(),
-    });
+    } as any);
 
     const { result } = renderHook(() => useAiRules());
 
@@ -133,10 +124,7 @@ describe('useAiRules', () => {
           },
         },
       },
-      loading: false,
-      error: undefined,
-      refresh: jest.fn(),
-    });
+    } as any);
 
     const { result } = renderHook(() => useAiRules());
 
@@ -321,10 +309,7 @@ describe('useAiRules', () => {
           annotations: {},
         },
       },
-      loading: false,
-      error: undefined,
-      refresh: jest.fn(),
-    });
+    } as any);
 
     renderHook(() => useAiRules());
 

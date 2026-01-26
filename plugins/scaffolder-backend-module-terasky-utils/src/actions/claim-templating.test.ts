@@ -1,7 +1,6 @@
 import { createCrossplaneClaimAction } from './claim-templating';
 import { ConfigReader } from '@backstage/config';
 import fs from 'fs-extra';
-import path from 'path';
 
 jest.mock('fs-extra');
 

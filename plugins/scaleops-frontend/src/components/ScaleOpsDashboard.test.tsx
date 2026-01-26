@@ -1,5 +1,4 @@
-import React from 'react';
-import { render, waitFor, screen, cleanup } from '@testing-library/react';
+import { render, waitFor, cleanup } from '@testing-library/react';
 import { ScaleOpsDashboard } from './ScaleOpsDashboard';
 import { TestApiProvider } from '@backstage/test-utils';
 import { configApiRef, identityApiRef, errorApiRef } from '@backstage/core-plugin-api';
@@ -48,7 +47,7 @@ const mockIdentityApi = {
 
 const mockErrorApi = {
   post: jest.fn(),
-  error$: { subscribe: jest.fn() },
+  error$: jest.fn().mockReturnValue({ subscribe: jest.fn() }),
 };
 
 const mockEntity: Entity = {

@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { DevpodComponent, isDevpodAvailable } from './DevpodComponent';
 import { useDevpod } from '../../hooks/useDevpod';
@@ -59,6 +58,7 @@ describe('DevpodComponent', () => {
   describe('component rendering', () => {
     it('should render message when no git URL', () => {
       mockUseDevpod.mockReturnValue({
+        gitUrl: undefined,
         hasGitUrl: false,
         devpodUrl: '',
         selectedIde: 'vscode' as any,
@@ -73,6 +73,7 @@ describe('DevpodComponent', () => {
 
     it('should render devpod button when git URL is available', () => {
       mockUseDevpod.mockReturnValue({
+        gitUrl: 'https://github.com/org/repo',
         hasGitUrl: true,
         devpodUrl: 'devpod://open#https%3A%2F%2Fgithub.com%2Forg%2Frepo',
         selectedIde: 'vscode' as any,
@@ -88,6 +89,7 @@ describe('DevpodComponent', () => {
 
     it('should render IDE selector when git URL is available', () => {
       mockUseDevpod.mockReturnValue({
+        gitUrl: 'https://github.com/org/repo',
         hasGitUrl: true,
         devpodUrl: 'devpod://open#https%3A%2F%2Fgithub.com%2Forg%2Frepo',
         selectedIde: 'vscode' as any,

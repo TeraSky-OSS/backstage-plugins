@@ -20,7 +20,7 @@ describe('KubernetesService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockDiscovery.getBaseUrl.mockResolvedValue('http://kubernetes-backend');
-    mockAuth.getOwnServiceCredentials.mockResolvedValue({ principal: { type: 'service' } });
+    mockAuth.getOwnServiceCredentials.mockResolvedValue({ $$type: '@backstage/BackstageCredentials', principal: { type: 'service', subject: 'test-service' } } as any);
     mockAuth.getPluginRequestToken.mockResolvedValue({ token: 'test-token' });
 
     service = new KubernetesService(mockLogger, mockDiscovery, mockAuth, mockConfig);
@@ -29,7 +29,7 @@ describe('KubernetesService', () => {
   describe('getPolicyReports', () => {
     it('should fetch policy reports for entity workloads', async () => {
       server.use(
-        rest.post('http://kubernetes-backend/services/test-entity', (req, res, ctx) => {
+        rest.post('http://kubernetes-backend/services/test-entity', (_req, res, ctx) => {
           return res(ctx.json({
             items: [
               {
@@ -50,7 +50,7 @@ describe('KubernetesService', () => {
             ],
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/wgpolicyk8s.io/v1alpha2/namespaces/default/policyreports/pod-uid-123', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/wgpolicyk8s.io/v1alpha2/namespaces/default/policyreports/pod-uid-123', (_req, res, ctx) => {
           return res(ctx.json({
             metadata: { uid: 'report-123', namespace: 'default' },
             scope: { kind: 'Pod', name: 'test-pod' },
@@ -72,7 +72,7 @@ describe('KubernetesService', () => {
 
     it('should handle missing metadata gracefully', async () => {
       server.use(
-        rest.post('http://kubernetes-backend/services/test-entity', (req, res, ctx) => {
+        rest.post('http://kubernetes-backend/services/test-entity', (_req, res, ctx) => {
           return res(ctx.json({
             items: [
               {
@@ -103,7 +103,7 @@ describe('KubernetesService', () => {
 
     it('should throw error when workloads fetch fails', async () => {
       server.use(
-        rest.post('http://kubernetes-backend/services/test-entity', (req, res, ctx) => {
+        rest.post('http://kubernetes-backend/services/test-entity', (_req, res, ctx) => {
           return res(ctx.status(500), ctx.text('Internal Server Error'));
         }),
       );
@@ -121,7 +121,7 @@ describe('KubernetesService', () => {
   describe('getPolicy', () => {
     it('should fetch cluster policy', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/kyverno.io/v1/clusterpolicies/test-policy', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/kyverno.io/v1/clusterpolicies/test-policy', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'kyverno.io/v1',
             kind: 'ClusterPolicy',
@@ -139,10 +139,10 @@ describe('KubernetesService', () => {
 
     it('should fetch namespaced policy when cluster policy not found', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/kyverno.io/v1/clusterpolicies/test-policy', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/kyverno.io/v1/clusterpolicies/test-policy', (_req, res, ctx) => {
           return res(ctx.status(404), ctx.text('Not Found'));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/kyverno.io/v1/namespaces/default/policies/test-policy', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/kyverno.io/v1/namespaces/default/policies/test-policy', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'kyverno.io/v1',
             kind: 'Policy',
@@ -160,7 +160,7 @@ describe('KubernetesService', () => {
 
     it('should throw error when policy not found', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/kyverno.io/v1/clusterpolicies/non-existent', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/kyverno.io/v1/clusterpolicies/non-existent', (_req, res, ctx) => {
           return res(ctx.status(404), ctx.text('Not Found'));
         }),
       );
@@ -189,7 +189,7 @@ describe('KubernetesService', () => {
       };
 
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1alpha1/namespaces/default/testclaims/my-claim', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1alpha1/namespaces/default/testclaims/my-claim', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'test.example.com/v1alpha1',
             kind: 'TestClaim',
@@ -200,7 +200,7 @@ describe('KubernetesService', () => {
             },
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/wgpolicyk8s.io/v1alpha2/namespaces/default/policyreports/claim-uid-123', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/wgpolicyk8s.io/v1alpha2/namespaces/default/policyreports/claim-uid-123', (_req, res, ctx) => {
           return res(ctx.json({
             metadata: { uid: 'report-123', namespace: 'default' },
             scope: { kind: 'TestClaim', name: 'my-claim' },
@@ -233,7 +233,7 @@ describe('KubernetesService', () => {
       };
 
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1alpha1/namespaces/default/composites/my-composite', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1alpha1/namespaces/default/composites/my-composite', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'test.example.com/v1alpha1',
             kind: 'Composite',
@@ -244,7 +244,7 @@ describe('KubernetesService', () => {
             },
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/wgpolicyk8s.io/v1alpha2/namespaces/default/policyreports/composite-uid-123', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/wgpolicyk8s.io/v1alpha2/namespaces/default/policyreports/composite-uid-123', (_req, res, ctx) => {
           return res(ctx.json({
             metadata: { uid: 'report-123', namespace: 'default' },
             scope: { kind: 'Composite', name: 'my-composite' },
@@ -275,7 +275,7 @@ describe('KubernetesService', () => {
       };
 
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1alpha1/composites/my-composite', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1alpha1/composites/my-composite', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'test.example.com/v1alpha1',
             kind: 'Composite',
@@ -285,7 +285,7 @@ describe('KubernetesService', () => {
             },
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/wgpolicyk8s.io/v1alpha2/clusterpolicyreports/composite-uid-123', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/wgpolicyk8s.io/v1alpha2/clusterpolicyreports/composite-uid-123', (_req, res, ctx) => {
           return res(ctx.json({
             metadata: { uid: 'report-123' },
             scope: { kind: 'Composite', name: 'my-composite' },

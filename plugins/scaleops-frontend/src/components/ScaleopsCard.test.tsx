@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, waitFor } from '@testing-library/react';
 import { isScaleopsAvailable, ScaleopsCard } from './ScaleopsCard';
 import { Entity } from '@backstage/catalog-model';
@@ -49,7 +48,7 @@ const mockIdentityApi = {
 
 const mockErrorApi = {
   post: jest.fn(),
-  error$: { subscribe: jest.fn() },
+  error$: jest.fn().mockReturnValue({ subscribe: jest.fn() }),
 };
 
 const mockEntity: Entity = {

@@ -44,7 +44,7 @@ describe('createRouter', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
-    mockAuth.getOwnServiceCredentials.mockResolvedValue({ principal: { type: 'service' } });
+    mockAuth.getOwnServiceCredentials.mockResolvedValue({ $$type: '@backstage/BackstageCredentials', principal: { type: 'service', subject: 'plugin:spectrocloud-backend' } } as any);
     mockPermissions.authorize.mockResolvedValue([{ result: 'ALLOW' }]);
 
     const router = await createRouter({

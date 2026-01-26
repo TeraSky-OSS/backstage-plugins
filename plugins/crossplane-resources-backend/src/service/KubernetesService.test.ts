@@ -18,7 +18,7 @@ describe('KubernetesService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockDiscovery.getBaseUrl.mockResolvedValue('http://kubernetes-backend');
-    mockAuth.getOwnServiceCredentials.mockResolvedValue({ principal: { type: 'service' } });
+    mockAuth.getOwnServiceCredentials.mockResolvedValue({ $$type: '@backstage/BackstageCredentials', principal: { type: 'service', subject: 'test-service' } } as any);
     mockAuth.getPluginRequestToken.mockResolvedValue({ token: 'test-token' });
 
     service = new KubernetesService(mockLogger, mockDiscovery, mockAuth);
@@ -27,7 +27,7 @@ describe('KubernetesService', () => {
   describe('getResources', () => {
     it('should fetch claim resources', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/testclaims/my-claim', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/testclaims/my-claim', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'test.example.com/v1',
             kind: 'TestClaim',
@@ -63,7 +63,7 @@ describe('KubernetesService', () => {
 
     it('should fetch claim with composite and managed resources', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/testclaims/my-claim', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/testclaims/my-claim', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'test.example.com/v1',
             kind: 'TestClaim',
@@ -83,7 +83,7 @@ describe('KubernetesService', () => {
             },
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/composite.example.com/v1/xcomposites/my-composite', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/composite.example.com/v1/xcomposites/my-composite', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'composite.example.com/v1',
             kind: 'XComposite',
@@ -105,7 +105,7 @@ describe('KubernetesService', () => {
             },
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/resources.example.com/v1/namespaces/default/managedresources/managed-1', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/resources.example.com/v1/namespaces/default/managedresources/managed-1', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'resources.example.com/v1',
             kind: 'ManagedResource',
@@ -139,7 +139,7 @@ describe('KubernetesService', () => {
 
     it('should handle cluster-scoped resources', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/testresources/my-resource', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/testresources/my-resource', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'test.example.com/v1',
             kind: 'TestResource',
@@ -169,7 +169,7 @@ describe('KubernetesService', () => {
 
     it('should handle core API group resources', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/api/v1/namespaces/default/pods/my-pod', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/api/v1/namespaces/default/pods/my-pod', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'v1',
             kind: 'Pod',
@@ -189,6 +189,7 @@ describe('KubernetesService', () => {
       const result = await service.getResources({
         clusterName: 'test-cluster',
         namespace: 'default',
+        group: '',
         version: 'v1',
         plural: 'pods',
         name: 'my-pod',
@@ -199,7 +200,7 @@ describe('KubernetesService', () => {
 
     it('should handle core API cluster-scoped resources', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/api/v1/namespaces/my-namespace', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/api/v1/namespaces/my-namespace', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'v1',
             kind: 'Namespace',
@@ -214,6 +215,7 @@ describe('KubernetesService', () => {
 
       const result = await service.getResources({
         clusterName: 'test-cluster',
+        group: '',
         version: 'v1',
         plural: 'namespaces',
         name: 'my-namespace',
@@ -224,7 +226,7 @@ describe('KubernetesService', () => {
 
     it('should handle Composite resources (kind starts with Composite)', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/compositeresources/my-composite', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/compositeresources/my-composite', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'test.example.com/v1',
             kind: 'CompositeResource',
@@ -255,7 +257,7 @@ describe('KubernetesService', () => {
 
     it('should handle XRD resources', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/apiextensions.crossplane.io/v1/compositeresourcedefinitions/my-xrd', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/apiextensions.crossplane.io/v1/compositeresourcedefinitions/my-xrd', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'apiextensions.crossplane.io/v1',
             kind: 'CompositeResourceDefinition',
@@ -285,7 +287,7 @@ describe('KubernetesService', () => {
 
     it('should handle claim using spec.resourceRef (older Crossplane)', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/testclaims/my-claim', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/testclaims/my-claim', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'test.example.com/v1',
             kind: 'TestClaim',
@@ -307,7 +309,7 @@ describe('KubernetesService', () => {
             },
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/composite.example.com/v1/xcomposites/my-composite', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/composite.example.com/v1/xcomposites/my-composite', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'composite.example.com/v1',
             kind: 'XComposite',
@@ -340,7 +342,7 @@ describe('KubernetesService', () => {
 
     it('should handle core API group managed resources', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/testclaims/my-claim', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/testclaims/my-claim', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'test.example.com/v1',
             kind: 'TestClaim',
@@ -360,7 +362,7 @@ describe('KubernetesService', () => {
             },
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/composite.example.com/v1/xcomposites/my-composite', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/composite.example.com/v1/xcomposites/my-composite', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'composite.example.com/v1',
             kind: 'XComposite',
@@ -382,7 +384,7 @@ describe('KubernetesService', () => {
             },
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/api/v1/namespaces/default/services/my-service', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/api/v1/namespaces/default/services/my-service', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'v1',
             kind: 'Service',
@@ -410,7 +412,7 @@ describe('KubernetesService', () => {
 
     it('should fallback to cluster-scoped when namespaced fails', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/testclaims/my-claim', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/testclaims/my-claim', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'test.example.com/v1',
             kind: 'TestClaim',
@@ -430,7 +432,7 @@ describe('KubernetesService', () => {
             },
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/composite.example.com/v1/xcomposites/my-composite', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/composite.example.com/v1/xcomposites/my-composite', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'composite.example.com/v1',
             kind: 'XComposite',
@@ -451,10 +453,10 @@ describe('KubernetesService', () => {
             },
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/cluster.example.com/v1/namespaces/default/clusterresources/cluster-resource', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/cluster.example.com/v1/namespaces/default/clusterresources/cluster-resource', (_req, res, ctx) => {
           return res(ctx.status(404), ctx.text('Not Found'));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/cluster.example.com/v1/clusterresources/cluster-resource', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/cluster.example.com/v1/clusterresources/cluster-resource', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'cluster.example.com/v1',
             kind: 'ClusterResource',
@@ -481,7 +483,7 @@ describe('KubernetesService', () => {
 
     it('should handle errors when fetching managed resources', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/testclaims/my-claim', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/testclaims/my-claim', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'test.example.com/v1',
             kind: 'TestClaim',
@@ -501,7 +503,7 @@ describe('KubernetesService', () => {
             },
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/composite.example.com/v1/xcomposites/my-composite', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/composite.example.com/v1/xcomposites/my-composite', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'composite.example.com/v1',
             kind: 'XComposite',
@@ -522,10 +524,10 @@ describe('KubernetesService', () => {
             },
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/error.example.com/v1/namespaces/default/errorresources/error-resource', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/error.example.com/v1/namespaces/default/errorresources/error-resource', (_req, res, ctx) => {
           return res(ctx.status(500), ctx.text('Internal Server Error'));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/error.example.com/v1/errorresources/error-resource', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/error.example.com/v1/errorresources/error-resource', (_req, res, ctx) => {
           return res(ctx.status(500), ctx.text('Internal Server Error'));
         }),
       );
@@ -545,7 +547,7 @@ describe('KubernetesService', () => {
 
     it('should handle errors when fetching composite resource', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/testclaims/my-claim', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/testclaims/my-claim', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'test.example.com/v1',
             kind: 'TestClaim',
@@ -565,7 +567,7 @@ describe('KubernetesService', () => {
             },
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/composite.example.com/v1/xcomposites/my-composite', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/composite.example.com/v1/xcomposites/my-composite', (_req, res, ctx) => {
           return res(ctx.status(500), ctx.text('Internal Server Error'));
         }),
       );
@@ -585,7 +587,7 @@ describe('KubernetesService', () => {
 
     it('should throw error on failed request', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/*', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/*', (_req, res, ctx) => {
           return res(ctx.status(404), ctx.text('Not Found'));
         }),
       );
@@ -606,7 +608,7 @@ describe('KubernetesService', () => {
   describe('getEvents', () => {
     it('should fetch events for a resource', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/api/v1/namespaces/default/events', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/api/v1/namespaces/default/events', (_req, res, ctx) => {
           return res(ctx.json({
             items: [
               {
@@ -634,7 +636,7 @@ describe('KubernetesService', () => {
 
     it('should return empty events array when no items', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/api/v1/namespaces/default/events', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/api/v1/namespaces/default/events', (_req, res, ctx) => {
           return res(ctx.json({}));
         }),
       );
@@ -651,7 +653,7 @@ describe('KubernetesService', () => {
 
     it('should throw error on failed request', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/*', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/*', (_req, res, ctx) => {
           return res(ctx.status(500), ctx.text('Internal Server Error'));
         }),
       );
@@ -670,7 +672,7 @@ describe('KubernetesService', () => {
   describe('getResourceGraph', () => {
     it('should fetch resource graph for claim', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/testclaims/my-claim', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/testclaims/my-claim', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'test.example.com/v1',
             kind: 'TestClaim',
@@ -687,7 +689,7 @@ describe('KubernetesService', () => {
             },
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/composite.example.com/v1/xcomposites/my-composite', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/composite.example.com/v1/xcomposites/my-composite', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'composite.example.com/v1',
             kind: 'XComposite',
@@ -704,6 +706,9 @@ describe('KubernetesService', () => {
       const result = await service.getResourceGraph({
         clusterName: 'test-cluster',
         namespace: 'default',
+        xrdName: 'test-xrd',
+        xrdId: 'xrd-123',
+        claimId: 'claim-123',
         claimName: 'my-claim',
         claimGroup: 'test.example.com',
         claimVersion: 'v1',
@@ -715,7 +720,7 @@ describe('KubernetesService', () => {
 
     it('should fetch claim without composite ref', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/testclaims/my-claim', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/testclaims/my-claim', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'test.example.com/v1',
             kind: 'TestClaim',
@@ -731,6 +736,9 @@ describe('KubernetesService', () => {
       const result = await service.getResourceGraph({
         clusterName: 'test-cluster',
         namespace: 'default',
+        xrdName: 'test-xrd',
+        xrdId: 'xrd-123',
+        claimId: 'claim-123',
         claimName: 'my-claim',
         claimGroup: 'test.example.com',
         claimVersion: 'v1',
@@ -742,7 +750,7 @@ describe('KubernetesService', () => {
 
     it('should handle claim using spec.resourceRef (older Crossplane)', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/testclaims/my-claim', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/testclaims/my-claim', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'test.example.com/v1',
             kind: 'TestClaim',
@@ -759,7 +767,7 @@ describe('KubernetesService', () => {
             },
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/composite.example.com/v1/xcomposites/my-composite', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/composite.example.com/v1/xcomposites/my-composite', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'composite.example.com/v1',
             kind: 'XComposite',
@@ -776,6 +784,9 @@ describe('KubernetesService', () => {
       const result = await service.getResourceGraph({
         clusterName: 'test-cluster',
         namespace: 'default',
+        xrdName: 'test-xrd',
+        xrdId: 'xrd-123',
+        claimId: 'claim-123',
         claimName: 'my-claim',
         claimGroup: 'test.example.com',
         claimVersion: 'v1',
@@ -787,7 +798,7 @@ describe('KubernetesService', () => {
 
     it('should fetch graph with managed resources', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/testclaims/my-claim', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/testclaims/my-claim', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'test.example.com/v1',
             kind: 'TestClaim',
@@ -801,7 +812,7 @@ describe('KubernetesService', () => {
             },
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/composite.example.com/v1/xcomposites/my-composite', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/composite.example.com/v1/xcomposites/my-composite', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'composite.example.com/v1',
             kind: 'XComposite',
@@ -813,7 +824,7 @@ describe('KubernetesService', () => {
             },
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/managed.example.com/v1/namespaces/default/managedresources/mr-1', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/managed.example.com/v1/namespaces/default/managedresources/mr-1', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'managed.example.com/v1',
             kind: 'ManagedResource',
@@ -825,6 +836,9 @@ describe('KubernetesService', () => {
       const result = await service.getResourceGraph({
         clusterName: 'test-cluster',
         namespace: 'default',
+        xrdName: 'test-xrd',
+        xrdId: 'xrd-123',
+        claimId: 'claim-123',
         claimName: 'my-claim',
         claimGroup: 'test.example.com',
         claimVersion: 'v1',
@@ -836,7 +850,7 @@ describe('KubernetesService', () => {
 
     it('should handle Object resource with remote manifest', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/testclaims/my-claim', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/testclaims/my-claim', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'test.example.com/v1',
             kind: 'TestClaim',
@@ -850,7 +864,7 @@ describe('KubernetesService', () => {
             },
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/composite.example.com/v1/xcomposites/my-composite', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/composite.example.com/v1/xcomposites/my-composite', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'composite.example.com/v1',
             kind: 'XComposite',
@@ -862,7 +876,7 @@ describe('KubernetesService', () => {
             },
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/kubernetes.crossplane.io/v1alpha1/namespaces/default/objects/remote-obj', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/kubernetes.crossplane.io/v1alpha1/namespaces/default/objects/remote-obj', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'kubernetes.crossplane.io/v1alpha1',
             kind: 'Object',
@@ -883,6 +897,9 @@ describe('KubernetesService', () => {
       const result = await service.getResourceGraph({
         clusterName: 'test-cluster',
         namespace: 'default',
+        xrdName: 'test-xrd',
+        xrdId: 'xrd-123',
+        claimId: 'claim-123',
         claimName: 'my-claim',
         claimGroup: 'test.example.com',
         claimVersion: 'v1',
@@ -897,7 +914,7 @@ describe('KubernetesService', () => {
 
     it('should fallback to cluster-scoped for managed resources', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/testclaims/my-claim', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/testclaims/my-claim', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'test.example.com/v1',
             kind: 'TestClaim',
@@ -911,7 +928,7 @@ describe('KubernetesService', () => {
             },
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/composite.example.com/v1/xcomposites/my-composite', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/composite.example.com/v1/xcomposites/my-composite', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'composite.example.com/v1',
             kind: 'XComposite',
@@ -923,10 +940,10 @@ describe('KubernetesService', () => {
             },
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/cluster.example.com/v1/namespaces/default/clusterresources/cr-1', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/cluster.example.com/v1/namespaces/default/clusterresources/cr-1', (_req, res, ctx) => {
           return res(ctx.status(404), ctx.text('Not Found'));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/cluster.example.com/v1/clusterresources/cr-1', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/cluster.example.com/v1/clusterresources/cr-1', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'cluster.example.com/v1',
             kind: 'ClusterResource',
@@ -938,6 +955,9 @@ describe('KubernetesService', () => {
       const result = await service.getResourceGraph({
         clusterName: 'test-cluster',
         namespace: 'default',
+        xrdName: 'test-xrd',
+        xrdId: 'xrd-123',
+        claimId: 'claim-123',
         claimName: 'my-claim',
         claimGroup: 'test.example.com',
         claimVersion: 'v1',
@@ -949,7 +969,7 @@ describe('KubernetesService', () => {
 
     it('should handle core API group managed resources', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/testclaims/my-claim', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/testclaims/my-claim', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'test.example.com/v1',
             kind: 'TestClaim',
@@ -963,7 +983,7 @@ describe('KubernetesService', () => {
             },
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/composite.example.com/v1/xcomposites/my-composite', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/composite.example.com/v1/xcomposites/my-composite', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'composite.example.com/v1',
             kind: 'XComposite',
@@ -975,7 +995,7 @@ describe('KubernetesService', () => {
             },
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/api/v1/namespaces/default/services/svc-1', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/api/v1/namespaces/default/services/svc-1', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'v1',
             kind: 'Service',
@@ -987,6 +1007,9 @@ describe('KubernetesService', () => {
       const result = await service.getResourceGraph({
         clusterName: 'test-cluster',
         namespace: 'default',
+        xrdName: 'test-xrd',
+        xrdId: 'xrd-123',
+        claimId: 'claim-123',
         claimName: 'my-claim',
         claimGroup: 'test.example.com',
         claimVersion: 'v1',
@@ -998,7 +1021,7 @@ describe('KubernetesService', () => {
 
     it('should throw error on failed claim fetch', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/*', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/*', (_req, res, ctx) => {
           return res(ctx.status(500), ctx.text('Internal Server Error'));
         }),
       );
@@ -1007,6 +1030,9 @@ describe('KubernetesService', () => {
         service.getResourceGraph({
           clusterName: 'test-cluster',
           namespace: 'default',
+          xrdName: 'test-xrd',
+          xrdId: 'xrd-123',
+          claimId: 'claim-123',
           claimName: 'my-claim',
           claimGroup: 'test.example.com',
           claimVersion: 'v1',
@@ -1019,7 +1045,7 @@ describe('KubernetesService', () => {
   describe('getV2ResourceGraph', () => {
     it('should fetch V2 resource graph', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/composites/my-composite', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/composites/my-composite', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'test.example.com/v1',
             kind: 'Composite',
@@ -1051,7 +1077,7 @@ describe('KubernetesService', () => {
 
     it('should fetch cluster-scoped V2 resources', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/composites/my-composite', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/composites/my-composite', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'test.example.com/v1',
             kind: 'Composite',
@@ -1082,7 +1108,7 @@ describe('KubernetesService', () => {
 
     it('should fetch V2 graph with managed resources', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/composites/my-composite', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/composites/my-composite', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'test.example.com/v1',
             kind: 'Composite',
@@ -1096,7 +1122,7 @@ describe('KubernetesService', () => {
             },
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/managed.example.com/v1/namespaces/default/managedresources/mr-1', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/managed.example.com/v1/namespaces/default/managedresources/mr-1', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'managed.example.com/v1',
             kind: 'ManagedResource',
@@ -1120,7 +1146,7 @@ describe('KubernetesService', () => {
 
     it('should handle V2 Object resource with remote manifest', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/composites/my-composite', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/composites/my-composite', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'test.example.com/v1',
             kind: 'Composite',
@@ -1134,7 +1160,7 @@ describe('KubernetesService', () => {
             },
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/kubernetes.crossplane.io/v1alpha1/namespaces/default/objects/remote-obj', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/kubernetes.crossplane.io/v1alpha1/namespaces/default/objects/remote-obj', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'kubernetes.crossplane.io/v1alpha1',
             kind: 'Object',
@@ -1169,7 +1195,7 @@ describe('KubernetesService', () => {
 
     it('should handle core API group resources in V2', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/composites/my-composite', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/composites/my-composite', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'test.example.com/v1',
             kind: 'Composite',
@@ -1183,7 +1209,7 @@ describe('KubernetesService', () => {
             },
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/api/v1/namespaces/default/configmaps/cm-1', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/api/v1/namespaces/default/configmaps/cm-1', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'v1',
             kind: 'ConfigMap',
@@ -1207,7 +1233,7 @@ describe('KubernetesService', () => {
 
     it('should fallback to cluster-scoped for V2 managed resources', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/composites/my-composite', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1/namespaces/default/composites/my-composite', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'test.example.com/v1',
             kind: 'Composite',
@@ -1221,10 +1247,10 @@ describe('KubernetesService', () => {
             },
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/cluster.example.com/v1/namespaces/default/clusterresources/cr-1', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/cluster.example.com/v1/namespaces/default/clusterresources/cr-1', (_req, res, ctx) => {
           return res(ctx.status(404), ctx.text('Not Found'));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/cluster.example.com/v1/clusterresources/cr-1', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/cluster.example.com/v1/clusterresources/cr-1', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'cluster.example.com/v1',
             kind: 'ClusterResource',
@@ -1248,7 +1274,7 @@ describe('KubernetesService', () => {
 
     it('should throw error on failed composite fetch', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/*', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/*', (_req, res, ctx) => {
           return res(ctx.status(500), ctx.text('Internal Server Error'));
         }),
       );

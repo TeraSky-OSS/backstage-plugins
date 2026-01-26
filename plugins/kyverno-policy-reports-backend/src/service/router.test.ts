@@ -43,7 +43,7 @@ describe('createRouter', () => {
   describe('POST /reports', () => {
     it('should return reports when authorized', async () => {
       mockKubernetesService.getPolicyReports.mockResolvedValueOnce([
-        { kind: 'PolicyReport', metadata: { name: 'test-report' } },
+        { kind: 'PolicyReport', metadata: { uid: 'report-1', namespace: 'default' } } as any,
       ]);
 
       const response = await request(app)
@@ -131,7 +131,7 @@ describe('createRouter', () => {
   describe('POST /crossplane-reports', () => {
     it('should return crossplane reports when authorized', async () => {
       mockKubernetesService.getCrossplanePolicyReports.mockResolvedValueOnce([
-        { kind: 'PolicyReport', metadata: { name: 'crossplane-report' } },
+        { kind: 'PolicyReport', metadata: { uid: 'crossplane-1', namespace: 'default' } } as any,
       ]);
 
       const response = await request(app)

@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import KroOverviewCard from './KroOverviewCard';
 import { TestApiProvider } from '@backstage/test-utils';
@@ -173,8 +172,8 @@ describe('KroOverviewCard', () => {
   it('should handle missing annotations gracefully', async () => {
     const entityNoAnnotations = {
       ...mockEntity,
-      metadata: { name: 'test', annotations: {} },
-    };
+      metadata: { name: 'test', namespace: 'default', annotations: {} },
+    } as any;
     
     renderComponent(entityNoAnnotations);
     

@@ -1,4 +1,3 @@
-import React from 'react';
 import { render } from '@testing-library/react';
 import { TestApiProvider } from '@backstage/test-utils';
 import { useEntity } from '@backstage/plugin-catalog-react';
@@ -51,10 +50,7 @@ describe('CrossplaneV1ResourceTable', () => {
     
     mockUseEntity.mockReturnValue({
       entity: mockEntity,
-      loading: false,
-      error: undefined,
-      refresh: jest.fn(),
-    });
+    } as any);
 
     mockUsePermission.mockReturnValue({
       loading: false,

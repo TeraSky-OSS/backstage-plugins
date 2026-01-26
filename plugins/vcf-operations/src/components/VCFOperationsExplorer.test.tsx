@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { VCFOperationsExplorer } from './VCFOperationsExplorer';
 import { TestApiProvider } from '@backstage/test-utils';
@@ -40,7 +39,7 @@ const mockApi = {
 
 const mockErrorApi = {
   post: jest.fn(),
-  error$: { subscribe: jest.fn() },
+  error$: jest.fn().mockReturnValue({ subscribe: jest.fn() }),
 };
 
 const mockVMEntity: Entity = {
@@ -179,7 +178,7 @@ describe('VCFOperationsExplorer', () => {
       },
     });
 
-    const { container } = render(
+    render(
       <TestApiProvider apis={[
         [vcfOperationsApiRef, mockApi],
         [errorApiRef, mockErrorApi],
@@ -202,7 +201,7 @@ describe('VCFOperationsExplorer', () => {
       },
     });
 
-    const { container } = render(
+    render(
       <TestApiProvider apis={[
         [vcfOperationsApiRef, mockApi],
         [errorApiRef, mockErrorApi],
@@ -220,14 +219,14 @@ describe('VCFOperationsExplorer', () => {
 // Test VcfOperationsApiError class
 describe('VcfOperationsApiError', () => {
   it('should create error with message and status', () => {
-    const error = new VcfOperationsApiError('Test error', 403);
+    const error = new VcfOperationsApiError('Test error', 403, 'Forbidden');
     expect(error.message).toBe('Test error');
     expect(error.status).toBe(403);
     expect(error.name).toBe('VcfOperationsApiError');
   });
 
   it('should be instance of Error', () => {
-    const error = new VcfOperationsApiError('Test', 500);
+    const error = new VcfOperationsApiError('Test', 500, 'Internal Server Error');
     expect(error).toBeInstanceOf(Error);
   });
 });

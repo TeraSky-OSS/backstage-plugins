@@ -35,7 +35,7 @@ const mockApi = {
 
 const mockErrorApi = {
   post: jest.fn(),
-  error$: { subscribe: jest.fn() },
+  error$: jest.fn().mockReturnValue({ subscribe: jest.fn() }),
 };
 
 const mockEntity: Entity = {

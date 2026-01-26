@@ -40,7 +40,7 @@ describe('SpectroCloudClient', () => {
       ];
 
       server.use(
-        rest.get(`${baseUrl}/v1/dashboard/spectroclusters/meta`, (req, res, ctx) => {
+        rest.get(`${baseUrl}/v1/dashboard/spectroclusters/meta`, (_req, res, ctx) => {
           return res(ctx.json(mockClusters));
         }),
       );
@@ -58,7 +58,7 @@ describe('SpectroCloudClient', () => {
 
     it('should return empty array on error', async () => {
       server.use(
-        rest.get(`${baseUrl}/v1/dashboard/spectroclusters/meta`, (req, res, ctx) => {
+        rest.get(`${baseUrl}/v1/dashboard/spectroclusters/meta`, (_req, res, ctx) => {
           return res(ctx.status(500), ctx.text('Internal Server Error'));
         }),
       );
@@ -82,7 +82,7 @@ describe('SpectroCloudClient', () => {
       };
 
       server.use(
-        rest.get(`${baseUrl}/v1/projects/project-1`, (req, res, ctx) => {
+        rest.get(`${baseUrl}/v1/projects/project-1`, (_req, res, ctx) => {
           return res(ctx.json(mockProject));
         }),
       );
@@ -99,7 +99,7 @@ describe('SpectroCloudClient', () => {
 
     it('should return undefined on error', async () => {
       server.use(
-        rest.get(`${baseUrl}/v1/projects/not-found`, (req, res, ctx) => {
+        rest.get(`${baseUrl}/v1/projects/not-found`, (_req, res, ctx) => {
           return res(ctx.status(404), ctx.text('Not Found'));
         }),
       );
@@ -173,7 +173,7 @@ clusters:
 
     it('should return undefined on error', async () => {
       server.use(
-        rest.get(`${baseUrl}/v1/spectroclusters/not-found/assets/adminKubeconfig`, (req, res, ctx) => {
+        rest.get(`${baseUrl}/v1/spectroclusters/not-found/assets/adminKubeconfig`, (_req, res, ctx) => {
           return res(ctx.status(404), ctx.text('Not Found'));
         }),
       );

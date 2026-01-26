@@ -45,7 +45,7 @@ describe('createRouter', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
-    mockHttpAuth.credentials.mockResolvedValue({ principal: { type: 'user', userEntityRef: 'user:default/test' } });
+    mockHttpAuth.credentials.mockResolvedValue({ $$type: '@backstage/BackstageCredentials' as const, principal: { type: 'user', userEntityRef: 'user:default/test' } });
     mockPermissions.authorize.mockResolvedValue([{ result: AuthorizeResult.ALLOW }]);
 
     const router = await createRouter({

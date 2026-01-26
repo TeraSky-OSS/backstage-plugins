@@ -3,7 +3,6 @@ import request from 'supertest';
 import { createRouter } from './router';
 import { ConfigReader } from '@backstage/config';
 import { mockServices } from '@backstage/backend-test-utils';
-import { InputError, NotFoundError } from '@backstage/errors';
 
 describe('createRouter', () => {
   let app: express.Express;

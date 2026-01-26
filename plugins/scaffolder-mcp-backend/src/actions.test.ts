@@ -35,7 +35,7 @@ describe('registerMcpActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockDiscovery.getBaseUrl.mockResolvedValue('http://scaffolder-backend');
-    mockAuth.getOwnServiceCredentials.mockResolvedValue({ principal: { type: 'service' } });
+    mockAuth.getOwnServiceCredentials.mockResolvedValue({ $$type: '@backstage/BackstageCredentials', principal: { type: 'service', subject: 'plugin:scaffolder-mcp-backend' } } as any);
     mockAuth.getPluginRequestToken.mockResolvedValue({ token: 'test-token' });
   });
 

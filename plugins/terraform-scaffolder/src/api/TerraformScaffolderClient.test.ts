@@ -1,5 +1,4 @@
 import { TerraformScaffolderClient } from './TerraformScaffolderClient';
-import { ConfigReader } from '@backstage/config';
 
 describe('TerraformScaffolderClient', () => {
   const mockConfigApi = {

@@ -25,7 +25,7 @@ describe('registerMcpActions', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockAuth.getOwnServiceCredentials.mockResolvedValue({ principal: { type: 'service' } });
+    mockAuth.getOwnServiceCredentials.mockResolvedValue({ $$type: '@backstage/BackstageCredentials', principal: { type: 'service', subject: 'plugin:scaleops-backend' } } as any);
     mockAuth.getPluginRequestToken.mockResolvedValue({ token: 'test-token' });
     (mockService.generateDashboardUrl as jest.Mock).mockReturnValue('http://scaleops/dashboard');
   });

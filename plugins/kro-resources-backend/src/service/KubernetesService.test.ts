@@ -18,7 +18,7 @@ describe('KubernetesService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockDiscovery.getBaseUrl.mockResolvedValue('http://kubernetes-backend');
-    mockAuth.getOwnServiceCredentials.mockResolvedValue({ principal: { type: 'service' } });
+    mockAuth.getOwnServiceCredentials.mockResolvedValue({ $$type: '@backstage/BackstageCredentials', principal: { type: 'service', subject: 'test-service' } } as any);
     mockAuth.getPluginRequestToken.mockResolvedValue({ token: 'test-token' });
 
     service = new KubernetesService(mockLogger, mockDiscovery, mockAuth);
@@ -27,7 +27,7 @@ describe('KubernetesService', () => {
   describe('getResources', () => {
     it('should fetch KRO resources', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/kro.run/v1alpha1/resourcegraphdefinitions/test-rgd', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/kro.run/v1alpha1/resourcegraphdefinitions/test-rgd', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'kro.run/v1alpha1',
             kind: 'ResourceGraphDefinition',
@@ -46,7 +46,7 @@ describe('KubernetesService', () => {
             },
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/apiextensions.k8s.io/v1/customresourcedefinitions/tests.kro.run', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/apiextensions.k8s.io/v1/customresourcedefinitions/tests.kro.run', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'apiextensions.k8s.io/v1',
             kind: 'CustomResourceDefinition',
@@ -58,7 +58,7 @@ describe('KubernetesService', () => {
             },
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/kro.run/v1alpha1/namespaces/default/tests/test-entity', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/kro.run/v1alpha1/namespaces/default/tests/test-entity', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'kro.run/v1alpha1',
             kind: 'Test',
@@ -76,7 +76,7 @@ describe('KubernetesService', () => {
             },
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/apps/v1/namespaces/default/deployments', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/apps/v1/namespaces/default/deployments', (_req, res, ctx) => {
           return res(ctx.json({ items: [] }));
         }),
       );
@@ -98,7 +98,7 @@ describe('KubernetesService', () => {
 
     it('should throw error on failed request', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/*', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/*', (_req, res, ctx) => {
           return res(ctx.status(404), ctx.text('Not Found'));
         }),
       );
@@ -120,7 +120,7 @@ describe('KubernetesService', () => {
   describe('getEvents', () => {
     it('should fetch events for a resource', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/api/v1/namespaces/default/events', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/api/v1/namespaces/default/events', (_req, res, ctx) => {
           return res(ctx.json({
             items: [
               {
@@ -148,7 +148,7 @@ describe('KubernetesService', () => {
 
     it('should throw error on failed request', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/*', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/*', (_req, res, ctx) => {
           return res(ctx.status(500), ctx.text('Internal Server Error'));
         }),
       );
@@ -162,7 +162,7 @@ describe('KubernetesService', () => {
   describe('getResourceGraph', () => {
     it('should fetch resource graph', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/kro.run/v1alpha1/resourcegraphdefinitions/test-rgd', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/kro.run/v1alpha1/resourcegraphdefinitions/test-rgd', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'kro.run/v1alpha1',
             kind: 'ResourceGraphDefinition',
@@ -174,7 +174,7 @@ describe('KubernetesService', () => {
             },
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/apiextensions.k8s.io/v1/customresourcedefinitions/tests.kro.run', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/apiextensions.k8s.io/v1/customresourcedefinitions/tests.kro.run', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'apiextensions.k8s.io/v1',
             kind: 'CustomResourceDefinition',
@@ -186,7 +186,7 @@ describe('KubernetesService', () => {
             },
           }));
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/kro.run/v1alpha1/namespaces/default/tests/test-entity', (req, res, ctx) => {
+        rest.get('http://kubernetes-backend/proxy/apis/kro.run/v1alpha1/namespaces/default/tests/test-entity', (_req, res, ctx) => {
           return res(ctx.json({
             apiVersion: 'kro.run/v1alpha1',
             kind: 'Test',

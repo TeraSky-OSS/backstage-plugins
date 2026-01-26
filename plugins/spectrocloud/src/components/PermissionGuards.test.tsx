@@ -1,6 +1,4 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { renderHook } from '@testing-library/react-hooks';
 import {
   getAnnotationPrefix,
   isSpectroCloudCluster,

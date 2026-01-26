@@ -32,10 +32,7 @@ describe('useDevpod', () => {
     
     mockUseEntity.mockReturnValue({
       entity: mockEntity,
-      loading: false,
-      error: undefined,
-      refresh: jest.fn(),
-    });
+    } as any);
   });
 
   it('should return initial state', () => {
@@ -57,10 +54,7 @@ describe('useDevpod', () => {
           annotations: {},
         },
       },
-      loading: false,
-      error: undefined,
-      refresh: jest.fn(),
-    });
+    } as any);
 
     const { result } = renderHook(() => useDevpod());
 
@@ -80,10 +74,7 @@ describe('useDevpod', () => {
           },
         },
       },
-      loading: false,
-      error: undefined,
-      refresh: jest.fn(),
-    });
+    } as any);
 
     const { result } = renderHook(() => useDevpod());
 
@@ -102,10 +93,7 @@ describe('useDevpod', () => {
           },
         },
       },
-      loading: false,
-      error: undefined,
-      refresh: jest.fn(),
-    });
+    } as any);
 
     const { result } = renderHook(() => useDevpod());
 
@@ -124,10 +112,7 @@ describe('useDevpod', () => {
           },
         },
       },
-      loading: false,
-      error: undefined,
-      refresh: jest.fn(),
-    });
+    } as any);
 
     const { result } = renderHook(() => useDevpod());
 
@@ -146,10 +131,7 @@ describe('useDevpod', () => {
           },
         },
       },
-      loading: false,
-      error: undefined,
-      refresh: jest.fn(),
-    });
+    } as any);
 
     const { result } = renderHook(() => useDevpod());
 
@@ -192,10 +174,7 @@ describe('useDevpod', () => {
           },
         },
       },
-      loading: false,
-      error: undefined,
-      refresh: jest.fn(),
-    });
+    } as any);
 
     const { result } = renderHook(() => useDevpod());
 
@@ -213,10 +192,7 @@ describe('useDevpod', () => {
           },
         },
       },
-      loading: false,
-      error: undefined,
-      refresh: jest.fn(),
-    });
+    } as any);
 
     const { result } = renderHook(() => useDevpod());
 
@@ -234,10 +210,7 @@ describe('useDevpod', () => {
           },
         },
       },
-      loading: false,
-      error: undefined,
-      refresh: jest.fn(),
-    });
+    } as any);
 
     const { result } = renderHook(() => useDevpod());
 

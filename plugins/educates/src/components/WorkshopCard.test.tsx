@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { WorkshopCard } from './WorkshopCard';
 import { Workshop } from '@terasky/backstage-plugin-educates-common';
@@ -28,12 +27,21 @@ const mockWorkshop: Workshop = {
   title: 'Test Workshop',
   description: 'A test workshop description',
   vendor: 'Test Vendor',
+  authors: ['Test Author'],
   difficulty: 'Beginner',
   duration: '30m',
   tags: ['kubernetes', 'docker'],
+  labels: {},
+  logo: 'data:image/png;base64,testlogo',
+  url: 'http://test-workshop.example.com',
   environment: {
+    name: 'test-env',
+    state: 'RUNNING',
+    duration: 1800,
     capacity: 10,
+    reserved: 0,
     allocated: 3,
+    available: 7,
   },
 };
 
@@ -108,7 +116,7 @@ describe('WorkshopCard', () => {
   it('should disable button when no capacity', () => {
     const workshopNoCapacity = {
       ...mockWorkshop,
-      environment: { capacity: 5, allocated: 5 },
+      environment: { ...mockWorkshop.environment, capacity: 5, allocated: 5, available: 0 },
     };
     render(<WorkshopCard {...defaultProps} workshop={workshopNoCapacity} />);
     
@@ -117,14 +125,14 @@ describe('WorkshopCard', () => {
   });
 
   it('should not render vendor chip when not provided', () => {
-    const workshopNoVendor = { ...mockWorkshop, vendor: undefined };
+    const workshopNoVendor = { ...mockWorkshop, vendor: '' };
     render(<WorkshopCard {...defaultProps} workshop={workshopNoVendor} />);
     
     expect(screen.queryByText('Test Vendor')).not.toBeInTheDocument();
   });
 
   it('should not render difficulty chip when not provided', () => {
-    const workshopNoDifficulty = { ...mockWorkshop, difficulty: undefined };
+    const workshopNoDifficulty = { ...mockWorkshop, difficulty: '' };
     render(<WorkshopCard {...defaultProps} workshop={workshopNoDifficulty} />);
     
     expect(screen.queryByText('Beginner')).not.toBeInTheDocument();

@@ -32,7 +32,7 @@ describe('registerMcpActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockDiscovery.getBaseUrl.mockResolvedValue('http://catalog-backend');
-    mockAuth.getOwnServiceCredentials.mockResolvedValue({ principal: { type: 'service' } });
+    mockAuth.getOwnServiceCredentials.mockResolvedValue({ $$type: '@backstage/BackstageCredentials', principal: { type: 'service', subject: 'plugin:catalog-mcp-backend' } } as any);
     mockAuth.getPluginRequestToken.mockResolvedValue({ token: 'test-token' });
   });
 

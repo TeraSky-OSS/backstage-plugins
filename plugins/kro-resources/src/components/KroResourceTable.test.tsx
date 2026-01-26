@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import KroResourceTable from './KroResourceTable';
 import { TestApiProvider } from '@backstage/test-utils';
@@ -56,7 +55,7 @@ const mockConfigApi = {
 
 const mockErrorApi = {
   post: jest.fn(),
-  error$: { subscribe: jest.fn() },
+  error$: jest.fn().mockReturnValue({ subscribe: jest.fn() }),
 };
 
 const mockEntityWithAnnotations: Entity = {

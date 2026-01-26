@@ -31,7 +31,7 @@ describe('registerMcpActions', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockAuth.getOwnServiceCredentials.mockResolvedValue({ principal: { type: 'service' } });
+    mockAuth.getOwnServiceCredentials.mockResolvedValue({ $$type: '@backstage/BackstageCredentials', principal: { type: 'service', subject: 'plugin:spectrocloud-backend' } } as any);
     mockAuth.getPluginRequestToken.mockResolvedValue({ token: 'test-plugin-token' });
     mockPermissions.authorize.mockResolvedValue([{ result: 'ALLOW' }]);
   });
@@ -270,7 +270,7 @@ describe('registerMcpActions', () => {
 
     beforeEach(() => {
       jest.clearAllMocks();
-      mockAuth.getOwnServiceCredentials.mockResolvedValue({ principal: { type: 'service' } });
+      mockAuth.getOwnServiceCredentials.mockResolvedValue({ $$type: '@backstage/BackstageCredentials', principal: { type: 'service', subject: 'plugin:spectrocloud-backend' } } as any);
       mockAuth.getPluginRequestToken.mockResolvedValue({ token: 'test-plugin-token' });
 
       registerMcpActions(
@@ -388,7 +388,7 @@ describe('registerMcpActions', () => {
 
     beforeEach(() => {
       jest.clearAllMocks();
-      mockAuth.getOwnServiceCredentials.mockResolvedValue({ principal: { type: 'service' } });
+      mockAuth.getOwnServiceCredentials.mockResolvedValue({ $$type: '@backstage/BackstageCredentials', principal: { type: 'service', subject: 'plugin:spectrocloud-backend' } } as any);
       mockAuth.getPluginRequestToken.mockResolvedValue({ token: 'test-plugin-token' });
 
       registerMcpActions(
@@ -424,7 +424,7 @@ describe('registerMcpActions', () => {
 
     beforeEach(() => {
       jest.clearAllMocks();
-      mockAuth.getOwnServiceCredentials.mockResolvedValue({ principal: { type: 'service' } });
+      mockAuth.getOwnServiceCredentials.mockResolvedValue({ $$type: '@backstage/BackstageCredentials', principal: { type: 'service', subject: 'plugin:spectrocloud-backend' } } as any);
       mockAuth.getPluginRequestToken.mockResolvedValue({ token: 'test-plugin-token' });
 
       registerMcpActions(
