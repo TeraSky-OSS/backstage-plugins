@@ -1,6 +1,6 @@
 {
   "name": "@terasky/backstage-plugin-spectrocloud-ingestor",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Backstage catalog entity provider for SpectroCloud Palette resources",
   "main": "src/index.ts",
   "types": "src/index.ts",

@@ -1,7 +1,7 @@
 {
   "name": "@terasky/plugin-scaffolder-mcp-backend",
   "description": "A plugin that exposes MCP tools for interacting with Backstage software templates (scaffolder).",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "license": "Apache-2.0",
   "main": "src/index.ts",
   "types": "src/index.ts",
