@@ -10,6 +10,7 @@ The Kubernetes Ingestor plugin is a powerful backend plugin for Backstage that a
 - **KRO Integration**: Auto-ingest KRO RGDs and instances
 - **Template Generation**: Create templates for Crossplane XRDs and KRO RGDs with enhanced repository picker support and reliable YAML download links (base64-encoded)
 - **API Entity Creation**: Generate API entities for XRDs and RGDs
+- **API Auto-Registration**: Automatically create API entities from OpenAPI/Swagger definitions exposed by your workloads
 - **API-Only Ingestion**: Ingest CRDs, XRDs, and RGDs as API entities only without template generation
 - **Resource Entity Support**: Ingest Kubernetes objects as Resource entities instead of Component entities
 - **Relationship Mapping**: Track dependencies between resources and APIs
@@ -94,6 +95,10 @@ Workload Resource Annotations:
   terasky.backstage.io/title: string
   terasky.backstage.io/name: string
   terasky.backstage.io/description: string
+
+API Auto-Registration Annotations:
+  terasky.backstage.io/provides-api-from-url: string
+  terasky.backstage.io/provides-api-from-resource-ref: JSON
 ```
 
 ## Getting Started

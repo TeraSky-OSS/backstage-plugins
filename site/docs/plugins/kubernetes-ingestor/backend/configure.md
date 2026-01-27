@@ -280,6 +280,123 @@ This configuration:
 - Represents existing claim/XR instances as infrastructure resources
 - Provides API documentation without the ability to create new instances through Backstage
 
+### API Auto-Registration from Workloads
+
+The plugin supports automatic registration of API entities from OpenAPI/Swagger definitions exposed by your workloads. This feature allows you to annotate Kubernetes resources (Deployments, Crossplane claims, KRO instances, etc.) to automatically fetch their API definitions and create corresponding API entities in the Backstage catalog.
+
+When an API entity is auto-registered:
+- The API entity is created with the same name as the component
+- The API entity title is set to `{Component Title} API` (e.g., "Petstore API")
+- The component's `providesApis` field is automatically updated to reference the API
+- The API definition is stored in YAML format
+
+#### Option 1: Direct URL
+
+Use this annotation when you have a direct URL to the OpenAPI/Swagger definition:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: petstore
+  annotations:
+    terasky.backstage.io/title: "Petstore"
+    terasky.backstage.io/provides-api-from-url: "http://petstore.example.com/swagger/openapi.json"
+spec:
+  # ... deployment spec
+```
+
+The URL can point to:
+- OpenAPI 3.x specifications (JSON or YAML)
+- Swagger 2.x specifications (JSON or YAML)
+
+The plugin will automatically:
+1. Fetch the API definition from the URL
+2. Convert JSON to YAML if necessary
+3. Create an API entity named after the component
+4. Link the API to the component via `providesApis`
+
+#### Option 2: Kubernetes Resource Reference
+
+Use this annotation when the API endpoint information needs to be extracted from another Kubernetes resource (e.g., a Service's LoadBalancer IP):
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: petstore
+  annotations:
+    terasky.backstage.io/title: "Petstore"
+    terasky.backstage.io/provides-api-from-resource-ref: |
+      {
+        "kind": "Service",
+        "name": "petstore-svc",
+        "apiVersion": "v1",
+        "path": "/swagger/openapi.json",
+        "target-protocol": "http",
+        "target-port": "80",
+        "target-field": ".status.loadBalancer.ingress[0].ip"
+      }
+spec:
+  # ... deployment spec
+```
+
+**Resource Reference Fields:**
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `kind` | Yes | The Kubernetes resource kind (e.g., "Service", "Ingress") |
+| `name` | Yes | The name of the Kubernetes resource |
+| `apiVersion` | Yes | The API version (e.g., "v1", "networking.k8s.io/v1") |
+| `namespace` | No | The namespace (defaults to the annotated resource's namespace) |
+| `path` | Yes | The path to append to the endpoint URL (e.g., "/swagger/openapi.json") |
+| `target-protocol` | Yes | The protocol to use: "http" or "https" |
+| `target-port` | Yes | The port number to use |
+| `target-field` | Yes | JSONPath-like expression to extract the endpoint from the resource |
+
+**Supported `target-field` Examples:**
+
+```yaml
+# Get LoadBalancer IP from a Service
+"target-field": ".status.loadBalancer.ingress[0].ip"
+
+# Get LoadBalancer hostname from a Service
+"target-field": ".status.loadBalancer.ingress[0].hostname"
+
+# Get cluster IP from a Service
+"target-field": ".spec.clusterIP"
+
+# Get external IP from a Service (first one)
+"target-field": ".spec.externalIPs[0]"
+
+# Get FQDN from Ingress
+"target-field": ".spec.rules[0].host"
+```
+
+The plugin will:
+1. Fetch the referenced Kubernetes resource
+2. Extract the endpoint using the `target-field` expression
+3. Construct the full URL: `{target-protocol}://{extracted-endpoint}:{target-port}{path}`
+4. Fetch the API definition from the constructed URL
+5. Create an API entity and link it to the component
+
+#### Error Handling
+
+If the plugin fails to fetch the API definition (network error, invalid URL, resource not found, etc.):
+- A warning is logged with details about the failure
+- The component is still created without the API reference
+- The plugin continues processing other resources
+
+This ensures that a failing API endpoint doesn't prevent the rest of your catalog from being ingested.
+
+#### Use Cases
+
+1. **Microservices with Swagger UI**: Annotate deployments to auto-register their OpenAPI specs
+2. **External APIs**: Reference APIs exposed via LoadBalancer services
+3. **Internal Services**: Use ClusterIP or service DNS for internal API documentation
+4. **Crossplane-provisioned APIs**: Auto-register APIs from infrastructure provisioned by Crossplane
+5. **KRO Application Stacks**: Document APIs from multi-resource applications managed by KRO
+
 ## Mapping Models
 
 ### Namespace Model
