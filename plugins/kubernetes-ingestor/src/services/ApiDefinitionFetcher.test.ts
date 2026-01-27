@@ -1,0 +1,571 @@
+import { ApiDefinitionFetcher } from './ApiDefinitionFetcher';
+import { ApiFromResourceRef } from '../types';
+
+// Mock node-fetch
+jest.mock('node-fetch', () => jest.fn());
+import fetch from 'node-fetch';
+const mockFetch = fetch as jest.MockedFunction<typeof fetch>;
+
+describe('ApiDefinitionFetcher', () => {
+  const mockResourceFetcher = {
+    proxyKubernetesRequest: jest.fn(),
+    fetchResource: jest.fn(),
+    fetchResources: jest.fn(),
+    getClusters: jest.fn(),
+  };
+
+  const mockConfig = {
+    getOptionalString: jest.fn().mockReturnValue('terasky.backstage.io'),
+  };
+
+  const mockLogger = {
+    debug: jest.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  };
+
+  let fetcher: ApiDefinitionFetcher;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    fetcher = new ApiDefinitionFetcher(
+      mockResourceFetcher as any,
+      mockConfig as any,
+      mockLogger as any,
+    );
+  });
+
+  describe('fetchFromUrl', () => {
+    it('should fetch and return JSON API definition converted to YAML', async () => {
+      const jsonContent = {
+        openapi: '3.0.0',
+        info: { title: 'Test API', version: '1.0.0' },
+        paths: {},
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        headers: {
+          get: () => 'application/json',
+        },
+        text: () => Promise.resolve(JSON.stringify(jsonContent)),
+      } as any);
+
+      const result = await fetcher.fetchFromUrl('http://example.com/swagger.json');
+
+      expect(result.success).toBe(true);
+      expect(result.definition).toContain('openapi: 3.0.0');
+      expect(result.definition).toContain('title: Test API');
+    });
+
+    it('should fetch and return YAML API definition as-is', async () => {
+      const yamlContent = `openapi: 3.0.0
+info:
+  title: Test API
+  version: 1.0.0
+paths: {}`;
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        headers: {
+          get: () => 'application/yaml',
+        },
+        text: () => Promise.resolve(yamlContent),
+      } as any);
+
+      const result = await fetcher.fetchFromUrl('http://example.com/swagger.yaml');
+
+      expect(result.success).toBe(true);
+      expect(result.definition).toContain('openapi: 3.0.0');
+    });
+
+    it('should return error when fetch fails with non-200 status', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+      } as any);
+
+      const result = await fetcher.fetchFromUrl('http://example.com/swagger.json');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Failed to fetch API definition');
+      expect(result.error).toContain('404');
+    });
+
+    it('should return error when content is invalid YAML', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        headers: {
+          get: () => 'text/plain',
+        },
+        text: () => Promise.resolve('{ invalid yaml: ['),
+      } as any);
+
+      const result = await fetcher.fetchFromUrl('http://example.com/swagger.json');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Invalid API definition format');
+    });
+
+    it('should return error when network request fails', async () => {
+      mockFetch.mockRejectedValueOnce(new Error('Network error'));
+
+      const result = await fetcher.fetchFromUrl('http://example.com/swagger.json');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Error fetching API definition');
+      expect(result.error).toContain('Network error');
+    });
+
+    it('should detect JSON by content even without proper content-type', async () => {
+      const jsonContent = {
+        openapi: '3.0.0',
+        info: { title: 'Test API', version: '1.0.0' },
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        headers: {
+          get: () => 'text/plain',
+        },
+        text: () => Promise.resolve(JSON.stringify(jsonContent)),
+      } as any);
+
+      const result = await fetcher.fetchFromUrl('http://example.com/swagger');
+
+      expect(result.success).toBe(true);
+      expect(result.definition).toContain('openapi: 3.0.0');
+    });
+  });
+
+  describe('fetchFromResourceRef', () => {
+    const baseResourceRef: ApiFromResourceRef = {
+      kind: 'Service',
+      name: 'my-service',
+      apiVersion: 'v1',
+      path: '/swagger/openapi.json',
+      'target-protocol': 'http',
+      'target-port': '80',
+      'target-field': '.status.loadBalancer.ingress[0].ip',
+    };
+
+    it('should fetch API definition from Service LoadBalancer IP', async () => {
+      // Mock the Kubernetes resource fetch
+      mockResourceFetcher.proxyKubernetesRequest.mockResolvedValueOnce({
+        metadata: { name: 'my-service' },
+        status: {
+          loadBalancer: {
+            ingress: [{ ip: '10.0.0.1' }],
+          },
+        },
+      });
+
+      // Mock the API definition fetch
+      const jsonContent = { openapi: '3.0.0', info: { title: 'Test API' } };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => 'application/json' },
+        text: () => Promise.resolve(JSON.stringify(jsonContent)),
+      } as any);
+
+      const result = await fetcher.fetchFromResourceRef(
+        baseResourceRef,
+        'test-cluster',
+        'default',
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.definition).toContain('openapi: 3.0.0');
+      
+      // Verify the correct Kubernetes API path was used for core API
+      expect(mockResourceFetcher.proxyKubernetesRequest).toHaveBeenCalledWith(
+        'test-cluster',
+        { path: '/api/v1/namespaces/default/services/my-service' },
+      );
+      
+      // Verify the correct URL was constructed
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://10.0.0.1:80/swagger/openapi.json',
+        expect.any(Object),
+      );
+    });
+
+    it('should use custom namespace from resourceRef', async () => {
+      const resourceRefWithNamespace: ApiFromResourceRef = {
+        ...baseResourceRef,
+        namespace: 'custom-namespace',
+      };
+
+      mockResourceFetcher.proxyKubernetesRequest.mockResolvedValueOnce({
+        status: { loadBalancer: { ingress: [{ ip: '10.0.0.1' }] } },
+      });
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => 'application/json' },
+        text: () => Promise.resolve('{"openapi": "3.0.0"}'),
+      } as any);
+
+      await fetcher.fetchFromResourceRef(
+        resourceRefWithNamespace,
+        'test-cluster',
+        'default',
+      );
+
+      expect(mockResourceFetcher.proxyKubernetesRequest).toHaveBeenCalledWith(
+        'test-cluster',
+        { path: '/api/v1/namespaces/custom-namespace/services/my-service' },
+      );
+    });
+
+    it('should handle API group resources correctly (e.g., networking.k8s.io/v1)', async () => {
+      const ingressRef: ApiFromResourceRef = {
+        kind: 'Ingress',
+        name: 'my-ingress',
+        apiVersion: 'networking.k8s.io/v1',
+        path: '/swagger.json',
+        'target-protocol': 'https',
+        'target-port': '443',
+        'target-field': '.spec.rules[0].host',
+      };
+
+      mockResourceFetcher.proxyKubernetesRequest.mockResolvedValueOnce({
+        spec: { rules: [{ host: 'api.example.com' }] },
+      });
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => 'application/json' },
+        text: () => Promise.resolve('{"openapi": "3.0.0"}'),
+      } as any);
+
+      await fetcher.fetchFromResourceRef(ingressRef, 'test-cluster', 'default');
+
+      // Verify the correct path for API group resources
+      expect(mockResourceFetcher.proxyKubernetesRequest).toHaveBeenCalledWith(
+        'test-cluster',
+        { path: '/apis/networking.k8s.io/v1/namespaces/default/ingresses/my-ingress' },
+      );
+
+      // Verify HTTPS URL was constructed correctly
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.example.com:443/swagger.json',
+        expect.any(Object),
+      );
+    });
+
+    it('should return error when Kubernetes resource fetch fails', async () => {
+      mockResourceFetcher.proxyKubernetesRequest.mockRejectedValueOnce(
+        new Error('Resource not found'),
+      );
+
+      const result = await fetcher.fetchFromResourceRef(
+        baseResourceRef,
+        'test-cluster',
+        'default',
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Failed to fetch Kubernetes resource');
+    });
+
+    it('should return error when target-field cannot be extracted', async () => {
+      mockResourceFetcher.proxyKubernetesRequest.mockResolvedValueOnce({
+        status: { loadBalancer: { ingress: [] } }, // Empty ingress array
+      });
+
+      const result = await fetcher.fetchFromResourceRef(
+        baseResourceRef,
+        'test-cluster',
+        'default',
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Could not extract endpoint');
+    });
+
+    it('should extract hostname from loadBalancer', async () => {
+      const hostnameRef: ApiFromResourceRef = {
+        ...baseResourceRef,
+        'target-field': '.status.loadBalancer.ingress[0].hostname',
+      };
+
+      mockResourceFetcher.proxyKubernetesRequest.mockResolvedValueOnce({
+        status: {
+          loadBalancer: {
+            ingress: [{ hostname: 'my-lb.example.com' }],
+          },
+        },
+      });
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => 'application/json' },
+        text: () => Promise.resolve('{"openapi": "3.0.0"}'),
+      } as any);
+
+      await fetcher.fetchFromResourceRef(hostnameRef, 'test-cluster', 'default');
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://my-lb.example.com:80/swagger/openapi.json',
+        expect.any(Object),
+      );
+    });
+
+    it('should extract clusterIP from Service', async () => {
+      const clusterIPRef: ApiFromResourceRef = {
+        ...baseResourceRef,
+        'target-field': '.spec.clusterIP',
+      };
+
+      mockResourceFetcher.proxyKubernetesRequest.mockResolvedValueOnce({
+        spec: { clusterIP: '10.96.0.100' },
+      });
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => 'application/json' },
+        text: () => Promise.resolve('{"openapi": "3.0.0"}'),
+      } as any);
+
+      await fetcher.fetchFromResourceRef(clusterIPRef, 'test-cluster', 'default');
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://10.96.0.100:80/swagger/openapi.json',
+        expect.any(Object),
+      );
+    });
+  });
+
+  describe('parseResourceRefAnnotation', () => {
+    it('should parse valid JSON annotation', () => {
+      const annotation = JSON.stringify({
+        kind: 'Service',
+        name: 'my-service',
+        apiVersion: 'v1',
+        path: '/swagger.json',
+        'target-protocol': 'http',
+        'target-port': '80',
+        'target-field': '.spec.clusterIP',
+      });
+
+      const result = fetcher.parseResourceRefAnnotation(annotation);
+
+      expect(result).not.toBeNull();
+      expect(result?.kind).toBe('Service');
+      expect(result?.name).toBe('my-service');
+    });
+
+    it('should return null for invalid JSON', () => {
+      const result = fetcher.parseResourceRefAnnotation('{ invalid json }');
+
+      expect(result).toBeNull();
+      expect(mockLogger.warn).toHaveBeenCalled();
+    });
+
+    it('should return null for missing required fields', () => {
+      const annotation = JSON.stringify({
+        kind: 'Service',
+        name: 'my-service',
+        // Missing other required fields
+      });
+
+      const result = fetcher.parseResourceRefAnnotation(annotation);
+
+      expect(result).toBeNull();
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('Missing required field'),
+      );
+    });
+
+    it('should return null for invalid target-protocol', () => {
+      const annotation = JSON.stringify({
+        kind: 'Service',
+        name: 'my-service',
+        apiVersion: 'v1',
+        path: '/swagger.json',
+        'target-protocol': 'ftp', // Invalid
+        'target-port': '80',
+        'target-field': '.spec.clusterIP',
+      });
+
+      const result = fetcher.parseResourceRefAnnotation(annotation);
+
+      expect(result).toBeNull();
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('Invalid target-protocol'),
+      );
+    });
+  });
+
+  describe('fetchApiFromAnnotations', () => {
+    it('should return null when no API annotations are present', async () => {
+      const annotations = {
+        'some-other-annotation': 'value',
+      };
+
+      const result = await fetcher.fetchApiFromAnnotations(
+        annotations,
+        'test-cluster',
+        'default',
+      );
+
+      expect(result).toBeNull();
+    });
+
+    it('should fetch from URL annotation when present', async () => {
+      const annotations = {
+        'terasky.backstage.io/provides-api-from-url': 'http://example.com/swagger.json',
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => 'application/json' },
+        text: () => Promise.resolve('{"openapi": "3.0.0"}'),
+      } as any);
+
+      const result = await fetcher.fetchApiFromAnnotations(
+        annotations,
+        'test-cluster',
+        'default',
+      );
+
+      expect(result?.success).toBe(true);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://example.com/swagger.json',
+        expect.any(Object),
+      );
+    });
+
+    it('should prefer URL annotation over resource-ref annotation', async () => {
+      const annotations = {
+        'terasky.backstage.io/provides-api-from-url': 'http://example.com/swagger.json',
+        'terasky.backstage.io/provides-api-from-resource-ref': JSON.stringify({
+          kind: 'Service',
+          name: 'my-service',
+          apiVersion: 'v1',
+          path: '/swagger.json',
+          'target-protocol': 'http',
+          'target-port': '80',
+          'target-field': '.spec.clusterIP',
+        }),
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => 'application/json' },
+        text: () => Promise.resolve('{"openapi": "3.0.0"}'),
+      } as any);
+
+      await fetcher.fetchApiFromAnnotations(annotations, 'test-cluster', 'default');
+
+      // Should use URL, not resource-ref
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://example.com/swagger.json',
+        expect.any(Object),
+      );
+      expect(mockResourceFetcher.proxyKubernetesRequest).not.toHaveBeenCalled();
+    });
+
+    it('should fetch from resource-ref annotation when URL is not present', async () => {
+      const annotations = {
+        'terasky.backstage.io/provides-api-from-resource-ref': JSON.stringify({
+          kind: 'Service',
+          name: 'my-service',
+          apiVersion: 'v1',
+          path: '/swagger.json',
+          'target-protocol': 'http',
+          'target-port': '80',
+          'target-field': '.spec.clusterIP',
+        }),
+      };
+
+      mockResourceFetcher.proxyKubernetesRequest.mockResolvedValueOnce({
+        spec: { clusterIP: '10.96.0.100' },
+      });
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => 'application/json' },
+        text: () => Promise.resolve('{"openapi": "3.0.0"}'),
+      } as any);
+
+      const result = await fetcher.fetchApiFromAnnotations(
+        annotations,
+        'test-cluster',
+        'default',
+      );
+
+      expect(result?.success).toBe(true);
+      expect(mockResourceFetcher.proxyKubernetesRequest).toHaveBeenCalled();
+    });
+
+    it('should return error for invalid resource-ref annotation', async () => {
+      const annotations = {
+        'terasky.backstage.io/provides-api-from-resource-ref': '{ invalid json }',
+      };
+
+      const result = await fetcher.fetchApiFromAnnotations(
+        annotations,
+        'test-cluster',
+        'default',
+      );
+
+      expect(result?.success).toBe(false);
+      expect(result?.error).toContain('Invalid provides-api-from-resource-ref');
+    });
+  });
+
+  describe('extractValueFromPath', () => {
+    // Access the private method through the class prototype
+    const extractValue = (obj: any, path: string) => {
+      return (fetcher as any).extractValueFromPath(obj, path);
+    };
+
+    it('should extract simple nested property', () => {
+      const obj = { spec: { clusterIP: '10.0.0.1' } };
+      expect(extractValue(obj, '.spec.clusterIP')).toBe('10.0.0.1');
+    });
+
+    it('should extract array element', () => {
+      const obj = { status: { ingress: [{ ip: '10.0.0.1' }, { ip: '10.0.0.2' }] } };
+      expect(extractValue(obj, '.status.ingress[0].ip')).toBe('10.0.0.1');
+      expect(extractValue(obj, '.status.ingress[1].ip')).toBe('10.0.0.2');
+    });
+
+    it('should handle path without leading dot', () => {
+      const obj = { spec: { clusterIP: '10.0.0.1' } };
+      expect(extractValue(obj, 'spec.clusterIP')).toBe('10.0.0.1');
+    });
+
+    it('should return undefined for non-existent path', () => {
+      const obj = { spec: {} };
+      expect(extractValue(obj, '.spec.clusterIP')).toBeUndefined();
+    });
+
+    it('should return undefined for out-of-bounds array index', () => {
+      const obj = { items: [{ name: 'first' }] };
+      expect(extractValue(obj, '.items[5].name')).toBeUndefined();
+    });
+
+    it('should convert non-string values to string', () => {
+      const obj = { port: 8080 };
+      expect(extractValue(obj, '.port')).toBe('8080');
+    });
+
+    it('should handle complex nested paths with arrays', () => {
+      const obj = {
+        status: {
+          loadBalancer: {
+            ingress: [
+              { ip: '10.0.0.1', ports: [{ port: 80 }] },
+            ],
+          },
+        },
+      };
+      expect(extractValue(obj, '.status.loadBalancer.ingress[0].ip')).toBe('10.0.0.1');
+    });
+  });
+});

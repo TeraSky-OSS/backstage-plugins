@@ -154,6 +154,10 @@ export class ApiDefinitionFetcher {
       }
     }
 
+    // Return undefined if value was not found, otherwise convert to string
+    if (value === undefined || value === null) {
+      return undefined;
+    }
     return typeof value === 'string' ? value : String(value);
   }
 
