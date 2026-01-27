@@ -5,7 +5,7 @@ import {
 import { Entity } from '@backstage/catalog-model';
 import { Config } from '@backstage/config';
 import { LoggerService, SchedulerServiceTaskRunner } from '@backstage/backend-plugin-api';
-import { DefaultKubernetesResourceFetcher } from '../services';
+import { DefaultKubernetesResourceFetcher, ApiDefinitionFetcher } from '../services';
 import { KubernetesDataProvider } from './KubernetesDataProvider';
 import { Logger } from 'winston';
 import { CRDDataProvider } from './CRDDataProvider';
@@ -1934,6 +1934,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
 
 export class KubernetesEntityProvider implements EntityProvider {
   private connection?: EntityProviderConnection;
+  private readonly apiDefinitionFetcher: ApiDefinitionFetcher;
 
   constructor(
     private readonly taskRunner: SchedulerServiceTaskRunner,
@@ -1965,6 +1966,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         }
       },
     } as unknown as Logger;
+    this.apiDefinitionFetcher = new ApiDefinitionFetcher(resourceFetcher, config, logger);
   }
 
   private validateEntityName(entity: Entity): boolean {
@@ -2047,24 +2049,30 @@ export class KubernetesEntityProvider implements EntityProvider {
         const kubernetesData = await kubernetesDataProvider.fetchKubernetesObjects();
         const crdMapping = await kubernetesDataProvider.fetchCRDMapping();
         let claimCount = 0, compositeCount = 0, k8sCount = 0, kroCount = 0;
-        const entities = kubernetesData.flatMap((k8s: any) => {
+        
+        // Process resources and collect entities (including API entities)
+        const allEntities: Entity[] = [];
+        
+        for (const k8s of kubernetesData) {
           if (!isCrossplaneEnabled) {
             // When Crossplane is disabled, treat everything as regular K8s resources
             if (k8s) {
               // Log the resource type being processed
               this.logger.debug(`Processing as regular K8s resource: ${k8s.kind} ${k8s.metadata?.name}`);
               k8sCount++;
-              return this.translateKubernetesObjectsToEntities(k8s);
+              const entities = await this.translateKubernetesObjectsToEntities(k8s);
+              allEntities.push(...entities);
             }
-            return [];
+            continue;
           }
 
           // Crossplane processing when enabled
           if (k8s?.spec?.resourceRef) {
             this.logger.debug(`Processing Crossplane claim: ${k8s.kind} ${k8s.metadata?.name}`);
-            const entity = this.translateCrossplaneClaimToEntity(k8s, k8s.clusterName, crdMapping);
-            if (entity) claimCount++;
-            return entity ? [entity] : [];
+            const entities = await this.translateCrossplaneClaimToEntity(k8s, k8s.clusterName, crdMapping);
+            if (entities.length > 0) claimCount++;
+            allEntities.push(...entities);
+            continue;
           }
           // Ingest XRs for v2/Cluster or v2/Namespaced (case-insensitive)
           if (k8s?.spec?.crossplane) {
@@ -2073,9 +2081,10 @@ export class KubernetesEntityProvider implements EntityProvider {
             const lookupKey = `${k8s.kind}|${group}|${version}`;
             const lookupKeyLower = lookupKey.toLowerCase();
             if (compositeKindLookup[lookupKey] || compositeKindLookup[lookupKeyLower]) {
-              const entity = this.translateCrossplaneCompositeToEntity(k8s, k8s.clusterName, compositeKindLookup);
-              if (entity) compositeCount++;
-              return entity ? [entity] : [];
+              const entities = await this.translateCrossplaneCompositeToEntity(k8s, k8s.clusterName, compositeKindLookup);
+              if (entities.length > 0) compositeCount++;
+              allEntities.push(...entities);
+              continue;
             }
           }
           // Check if it's a KRO instance
@@ -2086,7 +2095,9 @@ export class KubernetesEntityProvider implements EntityProvider {
             const lookupKeyLower = lookupKey.toLowerCase();
             if (rgdLookup[lookupKey] || rgdLookup[lookupKeyLower]) {
               kroCount++;
-              return this.translateKROInstanceToEntity(k8s, k8s.clusterName, rgdLookup);
+              const entities = await this.translateKROInstanceToEntity(k8s, k8s.clusterName, rgdLookup);
+              allEntities.push(...entities);
+              continue;
             }
           }
 
@@ -2094,14 +2105,14 @@ export class KubernetesEntityProvider implements EntityProvider {
           if (k8s) {
             this.logger.debug(`Processing as regular K8s resource: ${k8s.kind} ${k8s.metadata?.name}`);
             k8sCount++;
-            return this.translateKubernetesObjectsToEntities(k8s);
+            const entities = await this.translateKubernetesObjectsToEntities(k8s);
+            allEntities.push(...entities);
           }
-          return [];
-        });
+        }
 
         await this.connection.applyMutation({
           type: 'full',
-          entities: entities.map((entity: Entity) => ({
+          entities: allEntities.map((entity: Entity) => ({
             entity,
             locationKey: `provider:${this.getProviderName()}`,
           })),
@@ -2117,7 +2128,7 @@ export class KubernetesEntityProvider implements EntityProvider {
     }
   }
 
-  private translateKubernetesObjectsToEntities(resource: any): Entity[] {
+  private async translateKubernetesObjectsToEntities(resource: any): Promise<Entity[]> {
     const namespace = resource.metadata.namespace || 'default';
     const annotations = resource.metadata.annotations || {};
     const systemNamespaceModel = this.config.getOptionalString('kubernetesIngestor.mappings.namespaceModel')?.toLowerCase() || 'default';
@@ -2238,14 +2249,52 @@ export class KubernetesEntityProvider implements EntityProvider {
     const ingestAsResources = this.config.getOptionalBoolean('kubernetesIngestor.components.ingestAsResources') ?? false;
     const entityKind = ingestAsResources ? 'Resource' : 'Component';
 
+    // Determine the component name, title, and namespace for API entity creation
+    const componentName = annotations[`${prefix}/name`] || nameValue;
+    const componentTitle = annotations[`${prefix}/title`] || titleValue;
+    const componentNamespace = annotations[`${prefix}/backstage-namespace`] || systemNamespaceValue;
+    const componentOwner = resolveOwnerRef(annotations[`${prefix}/owner`], systemReferencesNamespaceValue, this.getDefaultOwner());
+
+    // Try to fetch API definition from annotations
+    let apiEntity: Entity | undefined;
+    let apiRef: string | undefined;
+    
+    if (entityKind === 'Component') {
+      const apiResult = await this.fetchAndCreateApiEntity(
+        annotations,
+        componentName,
+        componentTitle,
+        componentNamespace,
+        resource.clusterName,
+        namespace,
+        componentOwner,
+      );
+      
+      if (apiResult) {
+        apiEntity = apiResult.entity;
+        apiRef = apiResult.ref;
+      }
+    }
+
+    // Build providesApis list - combine existing annotation with auto-generated API
+    let providesApis: string[] | undefined;
+    if (entityKind === 'Component') {
+      const existingApis = annotations[`${prefix}/providesApis`]?.split(',').filter(Boolean) || [];
+      if (apiRef) {
+        providesApis = [...existingApis, apiRef];
+      } else if (existingApis.length > 0) {
+        providesApis = existingApis;
+      }
+    }
+
     const componentEntity: Entity = {
       apiVersion: 'backstage.io/v1alpha1',
       kind: entityKind,
       metadata: {
-        name: annotations[`${prefix}/name`] || nameValue,
+        name: componentName,
         title: annotations[`${prefix}/title`] || titleValue,
         description: annotations[`${prefix}/description`] || `${resource.kind} ${resource.metadata.name} from ${resource.clusterName}`,
-        namespace: annotations[`${prefix}/backstage-namespace`] || systemNamespaceValue,
+        namespace: componentNamespace,
         links: this.parseBackstageLinks(resource.metadata.annotations || {}),
         annotations: {
           ...Object.fromEntries(
@@ -2266,11 +2315,11 @@ export class KubernetesEntityProvider implements EntityProvider {
       spec: {
         type: annotations[`${prefix}/component-type`] || 'service',
         lifecycle: annotations[`${prefix}/lifecycle`] || 'production',
-        owner: resolveOwnerRef(annotations[`${prefix}/owner`], systemReferencesNamespaceValue, this.getDefaultOwner()),
+        owner: componentOwner,
         system: annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`,
         dependsOn: annotations[`${prefix}/dependsOn`]?.split(','),
         ...(entityKind === 'Component' ? {
-          providesApis: annotations[`${prefix}/providesApis`]?.split(','),
+          providesApis: providesApis,
           consumesApis: annotations[`${prefix}/consumesApis`]?.split(','),
         } : {}),
         ...(annotations[`${prefix}/subcomponent-of`] && {
@@ -2286,15 +2335,19 @@ export class KubernetesEntityProvider implements EntityProvider {
     if (this.validateEntityName(componentEntity)) {
       entities.push(componentEntity);
     }
+    // Add the API entity if it was created
+    if (apiEntity) {
+      entities.push(apiEntity);
+    }
     return entities;
   }
 
-  private translateCrossplaneClaimToEntity(claim: any, clusterName: string, crdMapping: any): Entity | undefined {
+  private async translateCrossplaneClaimToEntity(claim: any, clusterName: string, crdMapping: any): Promise<Entity[]> {
     // First, check if this is a valid claim by looking up its kind in the CRD mapping
     const resourceKind = claim.kind;
     if (!crdMapping[resourceKind]) {
       this.logger.debug(`No CRD mapping found for kind ${resourceKind}, skipping claim processing`);
-      return undefined;
+      return [];
     }
     const prefix = this.getAnnotationPrefix();
     const annotations = claim.metadata.annotations || {};
@@ -2395,15 +2448,48 @@ export class KubernetesEntityProvider implements EntityProvider {
     const ingestAsResources = this.config.getOptionalBoolean('kubernetesIngestor.crossplane.claims.ingestAsResources') ?? false;
     const entityKind = ingestAsResources ? 'Resource' : 'Component';
 
+    // Determine the component name, title, and namespace for API entity creation
+    const componentName = annotations[`${prefix}/name`] || nameValue;
+    const componentTitle = annotations[`${prefix}/title`] || titleValue;
+    const componentNamespace = annotations[`${prefix}/backstage-namespace`] || systemNamespaceValue;
+    const componentOwner = resolveOwnerRef(annotations[`${prefix}/owner`], systemReferencesNamespaceValue, this.getDefaultOwner());
+
+    // Try to fetch API definition from annotations
+    let apiEntity: Entity | undefined;
+    let apiRef: string | undefined;
+    
+    if (entityKind === 'Component') {
+      const apiResult = await this.fetchAndCreateApiEntity(
+        annotations,
+        componentName,
+        componentTitle,
+        componentNamespace,
+        clusterName,
+        claim.metadata.namespace || 'default',
+        componentOwner,
+      );
+      
+      if (apiResult) {
+        apiEntity = apiResult.entity;
+        apiRef = apiResult.ref;
+      }
+    }
+
+    // Build providesApis list - combine existing annotation with auto-generated API
+    let providesApis: string[] | undefined;
+    if (entityKind === 'Component' && apiRef) {
+      providesApis = [apiRef];
+    }
+
     const entity: Entity = {
       apiVersion: 'backstage.io/v1alpha1',
       kind: entityKind,
       metadata: {
-        name: annotations[`${prefix}/name`] || nameValue,
+        name: componentName,
         title: annotations[`${prefix}/title`] || titleValue,
         description: annotations[`${prefix}/description`] || `${crKind} ${claim.metadata.name} from ${claim.clusterName}`,
         tags: [`cluster:${claim.clusterName}`, `kind:${crKind.toLowerCase()}`],
-        namespace: annotations[`${prefix}/backstage-namespace`] || systemNamespaceValue,
+        namespace: componentNamespace,
         links: this.parseBackstageLinks(claim.metadata.annotations || {}),
         annotations: {
           ...Object.fromEntries(
@@ -2421,10 +2507,11 @@ export class KubernetesEntityProvider implements EntityProvider {
       spec: {
         type: 'crossplane-claim',
         lifecycle: annotations[`${prefix}/lifecycle`] || 'production',
-        owner: resolveOwnerRef(annotations[`${prefix}/owner`], systemReferencesNamespaceValue, this.getDefaultOwner()),
+        owner: componentOwner,
         system: annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`,
         dependsOn: annotations[`${prefix}/dependsOn`]?.split(','),
         ...(entityKind === 'Component' ? {
+          providesApis: providesApis,
           consumesApis: [`${systemReferencesNamespaceValue}/${claim.kind}-${claim.apiVersion.split('/').join('--')}`],
         } : {}),
         ...(annotations[`${prefix}/subcomponent-of`] && {
@@ -2433,10 +2520,18 @@ export class KubernetesEntityProvider implements EntityProvider {
       },
     };
 
-    return this.validateEntityName(entity) ? entity : undefined;
+    const entities: Entity[] = [];
+    if (this.validateEntityName(entity)) {
+      entities.push(entity);
+    }
+    // Add the API entity if it was created
+    if (apiEntity) {
+      entities.push(apiEntity);
+    }
+    return entities;
   }
 
-  private translateKROInstanceToEntity(instance: any, clusterName: string, rgdLookup: any): Entity[] {
+  private async translateKROInstanceToEntity(instance: any, clusterName: string, rgdLookup: any): Promise<Entity[]> {
     // First, check if this is a valid KRO instance by looking up its kind in the RGD lookup
     const [group, version] = instance.apiVersion.split('/');
     const lookupKey = `${instance.kind}|${group}|${version}`;
@@ -2530,15 +2625,48 @@ export class KubernetesEntityProvider implements EntityProvider {
     const ingestAsResources = this.config.getOptionalBoolean('kubernetesIngestor.kro.instances.ingestAsResources') ?? false;
     const entityKind = ingestAsResources ? 'Resource' : 'Component';
 
+    // Determine the component name, title, and namespace for API entity creation
+    const componentName = annotations[`${prefix}/name`] || nameValue;
+    const componentTitle = annotations[`${prefix}/title`] || titleValue;
+    const componentNamespace = annotations[`${prefix}/backstage-namespace`] || systemNamespaceValue;
+    const componentOwner = resolveOwnerRef(annotations[`${prefix}/owner`], systemReferencesNamespaceValue, this.getDefaultOwner());
+
+    // Try to fetch API definition from annotations
+    let apiEntity: Entity | undefined;
+    let apiRef: string | undefined;
+    
+    if (entityKind === 'Component') {
+      const apiResult = await this.fetchAndCreateApiEntity(
+        annotations,
+        componentName,
+        componentTitle,
+        componentNamespace,
+        clusterName,
+        instance.metadata.namespace || 'default',
+        componentOwner,
+      );
+      
+      if (apiResult) {
+        apiEntity = apiResult.entity;
+        apiRef = apiResult.ref;
+      }
+    }
+
+    // Build providesApis list
+    let providesApis: string[] | undefined;
+    if (entityKind === 'Component' && apiRef) {
+      providesApis = [apiRef];
+    }
+
     const entity: Entity = {
       apiVersion: 'backstage.io/v1alpha1',
       kind: entityKind,
       metadata: {
-        name: annotations[`${prefix}/name`] || nameValue,
+        name: componentName,
         title: annotations[`${prefix}/title`] || titleValue,
         description: annotations[`${prefix}/description`] || `${instance.kind} ${instance.metadata.name} from ${instance.clusterName}`,
         tags: [`cluster:${instance.clusterName}`, `kind:${instance.kind?.toLowerCase()}`],
-        namespace: annotations[`${prefix}/backstage-namespace`] || systemNamespaceValue,
+        namespace: componentNamespace,
         links: this.parseBackstageLinks(instance.metadata.annotations || {}),
         annotations: {
           ...Object.fromEntries(
@@ -2555,10 +2683,11 @@ export class KubernetesEntityProvider implements EntityProvider {
       spec: {
         type: 'kro-instance',
         lifecycle: annotations[`${prefix}/lifecycle`] || 'production',
-        owner: resolveOwnerRef(annotations[`${prefix}/owner`], systemReferencesNamespaceValue, this.getDefaultOwner()),
+        owner: componentOwner,
         system: annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`,
         dependsOn: annotations[`${prefix}/dependsOn`]?.split(','),
         ...(entityKind === 'Component' ? {
+          providesApis: providesApis,
           consumesApis: [`${systemReferencesNamespaceValue}/${instance.kind}-${instance.apiVersion.split('/').join('--')}`],
         } : {}),
         ...(annotations[`${prefix}/subcomponent-of`] && {
@@ -2567,17 +2696,25 @@ export class KubernetesEntityProvider implements EntityProvider {
       },
     };
 
-    return this.validateEntityName(entity) ? [entity] : [];
+    const entities: Entity[] = [];
+    if (this.validateEntityName(entity)) {
+      entities.push(entity);
+    }
+    // Add the API entity if it was created
+    if (apiEntity) {
+      entities.push(apiEntity);
+    }
+    return entities;
   }
 
-  private translateCrossplaneCompositeToEntity(xr: any, clusterName: string, compositeKindLookup: any): Entity | undefined {
+  private async translateCrossplaneCompositeToEntity(xr: any, clusterName: string, compositeKindLookup: any): Promise<Entity[]> {
     // First, check if this is a valid composite by looking up its kind in the composite kind lookup
     const [group, version] = xr.apiVersion.split('/');
     const lookupKey = `${xr.kind}|${group}|${version}`;
     const lookupKeyLower = lookupKey.toLowerCase();
     if (!compositeKindLookup[lookupKey] && !compositeKindLookup[lookupKeyLower]) {
       this.logger.debug(`No composite kind lookup found for key ${lookupKey}, skipping composite processing`);
-      return undefined;
+      return [];
     }
     const annotations = xr.metadata.annotations || {};
     const prefix = this.getAnnotationPrefix();
@@ -2590,7 +2727,7 @@ export class KubernetesEntityProvider implements EntityProvider {
     const compositionFunctions = compositionData.usedFunctions || [];
 
     // Add Crossplane annotations
-    const crossplaneAnnotations = {
+    const crossplaneAnnotations: Record<string, string> = {
       [`${prefix}/crossplane-version`]: crossplaneVersion,
       [`${prefix}/crossplane-scope`]: scope,
       [`${prefix}/composite-kind`]: kind,
@@ -2672,15 +2809,48 @@ export class KubernetesEntityProvider implements EntityProvider {
     const ingestAsResources = this.config.getOptionalBoolean('kubernetesIngestor.crossplane.claims.ingestAsResources') ?? false;
     const entityKind = ingestAsResources ? 'Resource' : 'Component';
 
+    // Determine the component name, title, and namespace for API entity creation
+    const componentName = annotations[`${prefix}/name`] || nameValue;
+    const componentTitle = annotations[`${prefix}/title`] || titleValue;
+    const componentNamespace = annotations[`${prefix}/backstage-namespace`] || systemNamespaceValue;
+    const componentOwner = annotations[`${prefix}/owner`] || this.getDefaultOwner();
+
+    // Try to fetch API definition from annotations
+    let apiEntity: Entity | undefined;
+    let apiRef: string | undefined;
+    
+    if (entityKind === 'Component') {
+      const apiResult = await this.fetchAndCreateApiEntity(
+        annotations,
+        componentName,
+        componentTitle,
+        componentNamespace,
+        clusterName,
+        xr.metadata.namespace || 'default',
+        componentOwner,
+      );
+      
+      if (apiResult) {
+        apiEntity = apiResult.entity;
+        apiRef = apiResult.ref;
+      }
+    }
+
+    // Build providesApis list
+    let providesApis: string[] | undefined;
+    if (entityKind === 'Component' && apiRef) {
+      providesApis = [apiRef];
+    }
+
     const entity: Entity = {
       apiVersion: 'backstage.io/v1alpha1',
       kind: entityKind,
       metadata: {
-        name: annotations[`${prefix}/name`] || nameValue,
+        name: componentName,
         title: annotations[`${prefix}/title`] || titleValue,
         description: annotations[`${prefix}/description`] || `${kind} ${xr.metadata.name} from ${xr.clusterName}`,
         tags: [`cluster:${xr.clusterName}`, `kind:${kind.toLowerCase()}`],
-        namespace: annotations[`${prefix}/backstage-namespace`] || systemNamespaceValue,
+        namespace: componentNamespace,
         links: this.parseBackstageLinks(xr.metadata.annotations || {}),
         annotations: {
           ...Object.fromEntries(
@@ -2695,10 +2865,11 @@ export class KubernetesEntityProvider implements EntityProvider {
       spec: {
         type: 'crossplane-xr',
         lifecycle: annotations[`${prefix}/lifecycle`] || 'production',
-        owner: annotations[`${prefix}/owner`] || this.getDefaultOwner(),
+        owner: componentOwner,
         system: annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`,
         dependsOn: annotations[`${prefix}/dependsOn`]?.split(','),
         ...(entityKind === 'Component' ? {
+          providesApis: providesApis,
           consumesApis: [`${systemReferencesNamespaceValue}/${xr.kind}-${xr.apiVersion.split('/').join('--')}`],
         } : {}),
         ...(annotations[`${prefix}/subcomponent-of`] && {
@@ -2707,7 +2878,15 @@ export class KubernetesEntityProvider implements EntityProvider {
       },
     };
 
-    return this.validateEntityName(entity) ? entity : undefined;
+    const entities: Entity[] = [];
+    if (this.validateEntityName(entity)) {
+      entities.push(entity);
+    }
+    // Add the API entity if it was created
+    if (apiEntity) {
+      entities.push(apiEntity);
+    }
+    return entities;
   }
 
   private extractCustomAnnotations(annotations: Record<string, string>, clusterName: string): Record<string, string> {
@@ -2780,6 +2959,122 @@ export class KubernetesEntityProvider implements EntityProvider {
     }
 
     return null;
+  }
+
+  /**
+   * Creates an API entity from a fetched API definition.
+   * @param componentName The name of the component that provides this API
+   * @param componentTitle The title of the component (used for API title)
+   * @param componentNamespace The namespace of the component
+   * @param clusterName The cluster where the resource is located
+   * @param definition The API definition in YAML format
+   * @param owner The owner of the API entity
+   * @returns The API entity or undefined if creation fails
+   */
+  private createApiEntity(
+    componentName: string,
+    componentTitle: string,
+    componentNamespace: string,
+    clusterName: string,
+    definition: string,
+    owner: string,
+  ): Entity | undefined {
+    try {
+      const prefix = this.getAnnotationPrefix();
+      
+      const apiEntity: Entity = {
+        apiVersion: 'backstage.io/v1alpha1',
+        kind: 'API',
+        metadata: {
+          name: componentName,
+          namespace: componentNamespace,
+          title: `${componentTitle} API`,
+          description: `API provided by ${componentTitle}`,
+          annotations: {
+            'backstage.io/managed-by-location': `cluster origin: ${clusterName}`,
+            'backstage.io/managed-by-origin-location': `cluster origin: ${clusterName}`,
+            [`${prefix}/auto-generated-api`]: 'true',
+          },
+          tags: [`cluster:${clusterName}`],
+        },
+        spec: {
+          type: 'openapi',
+          lifecycle: 'production',
+          owner: owner,
+          definition: definition,
+        },
+      };
+
+      if (this.validateEntityName(apiEntity)) {
+        return apiEntity;
+      }
+      return undefined;
+    } catch (error) {
+      this.logger.warn(`Failed to create API entity for ${componentName}: ${error}`);
+      return undefined;
+    }
+  }
+
+  /**
+   * Fetches and creates an API entity from resource annotations if available.
+   * @param annotations The resource annotations
+   * @param componentName The name of the component
+   * @param componentTitle The title of the component (used for API title)
+   * @param componentNamespace The namespace of the component
+   * @param clusterName The cluster where the resource is located
+   * @param defaultNamespace The default namespace for resource refs
+   * @param owner The owner of the API entity
+   * @returns The API entity and reference, or null if no API annotations or fetch failed
+   */
+  private async fetchAndCreateApiEntity(
+    annotations: Record<string, string>,
+    componentName: string,
+    componentTitle: string,
+    componentNamespace: string,
+    clusterName: string,
+    defaultNamespace: string,
+    owner: string,
+  ): Promise<{ entity: Entity; ref: string } | null> {
+    try {
+      const result = await this.apiDefinitionFetcher.fetchApiFromAnnotations(
+        annotations,
+        clusterName,
+        defaultNamespace,
+      );
+
+      if (!result) {
+        // No API annotations present
+        return null;
+      }
+
+      if (!result.success) {
+        this.logger.warn(
+          `Failed to fetch API definition for ${componentName}: ${result.error}`,
+        );
+        return null;
+      }
+
+      const apiEntity = this.createApiEntity(
+        componentName,
+        componentTitle,
+        componentNamespace,
+        clusterName,
+        result.definition!,
+        owner,
+      );
+
+      if (apiEntity) {
+        const apiRef = componentNamespace === 'default' 
+          ? componentName 
+          : `${componentNamespace}/${componentName}`;
+        return { entity: apiEntity, ref: apiRef };
+      }
+
+      return null;
+    } catch (error) {
+      this.logger.warn(`Error processing API annotations for ${componentName}: ${error}`);
+      return null;
+    }
   }
 
   private parseBackstageLinks(annotations: Record<string, string>): BackstageLink[] {
