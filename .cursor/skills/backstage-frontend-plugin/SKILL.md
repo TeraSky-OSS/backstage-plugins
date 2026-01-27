@@ -1,7 +1,7 @@
 ---
 name: backstage-frontend-plugin
-description: "Build Backstage frontend plugins with the new Frontend System: createFrontendPlugin, blueprints, routes, Utility APIs, testing. Use for pages, nav, entity content, or cards."
-version: 1.0.0
+description: "Build Backstage frontend plugins with the new Frontend System."
+version: 0.1.0
 ---
 
 # Backstage Frontend Plugin (New Frontend System)
@@ -173,7 +173,6 @@ Hide/show entity content based on permissions or ownership to avoid broken UX fo
 
 ### 1) Scaffold
 
-**⚠️ CRITICAL**: `yarn new` generates LEGACY frontend plugins using the old `createPlugin` API. You MUST convert the generated code to the New Frontend System for everything to work properly.
 
 ```bash
 # From the repository root (interactive)
@@ -185,100 +184,7 @@ yarn new
 yarn new --select frontend-plugin --option pluginId=example --option owner=""
 ```
 
-This creates `plugins/example/` with legacy code. **Follow steps 2-5 below to convert it to the New Frontend System.**
-
-([Backstage][1])
-
-### 2) Convert Routes (`src/routes.ts`)
-
-Replace the generated legacy code with New Frontend System:
-
-```ts
-import { createRouteRef } from '@backstage/frontend-plugin-api';
-
-// Keep routes here to avoid circular imports.
-export const rootRouteRef = createRouteRef();
-```
-
-**Change from legacy**: Import from `@backstage/frontend-plugin-api` (not `@backstage/core-plugin-api`). Remove the `id` parameter from `createRouteRef()`.
-
-([Backstage][1])
-
-### 3) Convert Plugin (`src/plugin.ts`)
-
-**COMPLETELY REPLACE** the generated legacy code with New Frontend System:
-
-```tsx
-import {
-  createFrontendPlugin,
-  PageBlueprint,
-  NavItemBlueprint,
-} from '@backstage/frontend-plugin-api';
-import { rootRouteRef } from './routes';
-import ExampleIcon from '@material-ui/icons/Extension';
-
-// Page (lazy-loaded via dynamic import)
-const examplePage = PageBlueprint.make({
-  params: {
-    routeRef: rootRouteRef,
-    path: '/example',
-    loader: () => import('./components/ExampleComponent').then(m => <m.ExampleComponent />),
-  },
-});
-
-// Sidebar navigation item
-const exampleNavItem = NavItemBlueprint.make({
-  params: {
-    routeRef: rootRouteRef,
-    title: 'Example',
-    icon: ExampleIcon,
-  },
-});
-
-// Export plugin instance; do NOT export extensions from the package
-export const examplePlugin = createFrontendPlugin({
-  pluginId: 'example',
-  extensions: [examplePage, exampleNavItem],
-  routes: { root: rootRouteRef },
-});
-```
-
-**Changes from legacy**:
-- Use `createFrontendPlugin` (not `createPlugin`)
-- Use `PageBlueprint` and `NavItemBlueprint` (not `createRoutableExtension`)
-- Export only the plugin instance (not individual page components)
-- Extensions are defined inline and passed to the plugin
-
-([Backstage][1])
-
-### 4) Update Page Component (`src/components/ExampleComponent.tsx`)
-
-The scaffolded component is already compatible with the New Frontend System. You can modify it as needed:
-
-```tsx
-export function ExampleComponent() {
-  return (
-    <div>
-      <h1>Example</h1>
-      <p>Hello from the New Frontend System!</p>
-    </div>
-  );
-}
-```
-
-**Note**: The component name should match what's referenced in the `loader` in `plugin.ts`.
-
-### 5) Convert Index (`src/index.ts`)
-
-Update the exports to only export the plugin instance:
-
-```ts
-export { examplePlugin as default } from './plugin';
-```
-
-**Changes from legacy**: Remove all component exports (like `HelloWorldPage`). Only export the plugin.
-
-### 6) Utility API (optional)
+### 2) Utility API (optional)
 
 ```ts
 // src/api.ts
@@ -321,7 +227,7 @@ export const examplePlugin = createFrontendPlugin({
 });
 ```
 
-### 7) Entity integration (optional)
+### 3) Entity integration (optional)
 
 ```tsx
 import { EntityContentBlueprint } from '@backstage/plugin-catalog-react/alpha';
@@ -340,12 +246,9 @@ const exampleEntityContent = EntityContentBlueprint.make({
 
 ## Verify in an app
 
-- If using the new Frontend System app:
+- In a new Frontend System app:
   - Ensure the app is created with `@backstage/frontend-defaults` and your plugin is included at app creation.
   - Start the repo and visit the path declared by your `PageBlueprint`.
-- If using a legacy app:
-  - Import the page component and add a `<Route path="/example" element={<ExamplePage />} />` under `FlatRoutes`.
-  - Start the repo and navigate to `/example`.
 
 ## Testing, linting & structure checks
 
@@ -410,7 +313,5 @@ Load these resources as needed during development:
 ## External References
 
 - Building Frontend Plugins (New Frontend System): createFrontendPlugin, blueprints, routes, Utility APIs. ([Backstage][1])
-- Anthropic Skill spec & packaging details (required metadata; ≤200 char description). ([Claude Help Center][2])
 
 [1]: https://backstage.io/docs/frontend-system/building-plugins/index/
-[2]: https://support.claude.com/en/articles/12512198-creating-custom-skills

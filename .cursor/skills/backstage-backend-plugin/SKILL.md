@@ -1,21 +1,21 @@
 ---
 name: backstage-backend-plugin
-description: "Build Backstage backend plugins with createBackendPlugin and core services: DI, httpRouter, secure-by-default auth, Knex DB, routes, testing. Use for APIs and background jobs."
-version: 1.0.0
+description: "Build and maintain Backstage backend plugins following best practices."
+version: 0.1.0
 ---
 
-# Backstage Backend Plugin (New Backend System)
+# Backstage Backend Plugin
 
 ## About This Skill
 
-This skill provides specialized knowledge and workflows for building Backstage backend plugins using the New Backend System. It guides the development of server-side functionality including REST/HTTP APIs, background jobs, data processing, and integrations.
+This skill provides specialized knowledge and workflows for building Backstage backend plugins. It guides the development of server-side functionality including REST/HTTP APIs, background jobs, data processing, and integrations.
 
 ### What This Skill Provides
 
 1. **Specialized workflows** - Step-by-step procedures for creating and configuring backend plugins
 2. **Best practices** - Production-ready patterns for auth, validation, error handling, and database usage
 3. **Golden path templates** - Copy/paste code snippets for common backend patterns
-4. **Domain expertise** - Backstage-specific knowledge about DI, core services, and secure-by-default architecture
+4. **Domain expertise** - Backstage specific knowledge about core services, and architecture best practices
 
 ### When to Use This Skill
 
@@ -35,6 +35,7 @@ Before building a backend plugin, clearly understand:
 - Whether background jobs or scheduled tasks are needed
 - Authentication and authorization requirements
 - Integration points with other services or plugins
+- What MCP actions make sense to expose if any
 
 ### 1.2 Load Reference Documentation
 
@@ -46,6 +47,13 @@ Load reference files as needed based on the plugin requirements:
   - cache, scheduler, urlReader, discovery, permissions
   - Usage patterns and best practices for each service
 
+**For MCP Actions:**
+- [🤖 MCP Actions Reference](./reference/mcp_actions.md) - Complete guide to exposing plugin functionality to AI interfaces:
+  - Actions Registry Service (`actionsRegistryServiceRef`)
+  - Action registration patterns and schema definitions
+  - Permission integration with MCP actions
+  - Authentication and credential handling
+
 **For Testing:**
 - [✅ Testing Reference](./reference/testing.md) - Comprehensive testing guide for backend plugins
 
@@ -53,13 +61,18 @@ Load reference files as needed based on the plugin requirements:
 
 ## Phase 2: Implementation
 
-Follow the Golden Path workflow below for implementation, referring to reference files as needed.
+Follow the workflow below for implementation, referring to the reference files as needed.
 
 **Important Decisions:**
 - Determine which core services are needed (load [⚙️ Core Services Reference](./reference/core_services.md))
-- Plan database schema and migrations if using database
+- Plan database schema and migrations if using database with knex
 - Design authentication policies (which endpoints need auth?)
+- Design needed permissions for integrating with the permission framework
 - Plan error handling and validation strategies
+- Plan what MCP actions need to be exposed supporting reuse of functions from the rest of the plugin (load [🤖 MCP Actions Reference](./reference/mcp_actions.md))
+
+**⚠️ MCP Actions Key Point:**
+- **Always add permission checks at the MCP action level** - Actions receive `credentials` in their handler; use these with `permissions.authorize()` for sensitive operations. Unlike HTTP routes, MCP actions don't have route-level auth policies, so explicit permission checks are critical.
 
 ---
 
@@ -71,7 +84,7 @@ After implementing the plugin:
 2. Write comprehensive tests for:
    - Router endpoints using `startTestBackend`
    - Database operations with `TestDatabases`
-   - External service calls with MSW (Mock Service Worker)
+   - External service calls with MSW
    - Authentication flows
 3. Run tests and achieve good coverage:
    ```bash
@@ -89,21 +102,23 @@ Before publishing:
 3. Verify authentication policies are correct
 4. Check database migrations are production-ready
 5. Review the Common Pitfalls section below
-6. Test horizontal scalability (no in-memory state)
 
 ---
 
-## Quick Facts
+## Quick Notes
 
 - Scaffold with `yarn new` → backend‑plugin; the package lives in `plugins/<id>-backend/`.
 - Define the plugin with `createBackendPlugin`, declare dependencies via `deps`, and initialize in `register(env).registerInit`.
 - Attach routes through `coreServices.httpRouter`. Backstage prefixes plugin routers with `/api/<pluginId>`.
 - Backends are secure by default; use `httpRouter.addAuthPolicy({ path, allow })` to allow unauthenticated endpoints like `/health`.
 - Core services (logger, database, httpRouter, httpAuth, userInfo, urlReader, scheduler, etc.) are available via `coreServices`.
+- MCP actions use `actionsRegistryServiceRef` from `@backstage/backend-plugin-api/alpha`.
+- **Always check permissions in MCP actions** - use `permissions.authorize()` with the `credentials` passed to the action handler.
+- Register plugin permissions with `permissionsRegistry.addPermissions()` at plugin init.
 
 ---
 
-## Production Best Practices
+## Best Practices
 
 ### Request Validation
 
@@ -149,13 +164,23 @@ Add a terminal error handler to your router and prefer structured logs with cont
 
 - Use `const knex = await database.getClient();` to get a database client
 - Keep queries in small repo/service modules
-- Write migrations in JavaScript (`.js`) and export them in package.json (see Core Services Reference for details)
+- Write migrations in JavaScript (`.js`) and export them in package.json (see the Core Services Reference for details)
 
 ### Observability & Scalability
 
 - Avoid in-memory state
 - Make handlers idempotent
 - Log with `logger.child({ plugin: 'example' })` for traceability
+
+### MCP Actions
+
+- **Always check permissions at the action level** - Use `permissions.authorize()` with the `credentials` from the action handler
+- Use `auth.getPluginRequestToken({ onBehalfOf: credentials })` for downstream API calls to preserve user identity
+- Create a separate `actions.ts` file for MCP action registration
+- Reuse service classes from your plugin - don't duplicate business logic in actions
+- Write clear, descriptive action descriptions so AI understands when to use them
+- Use snake_case for action names with verb prefix: `get_example_items`, `create_example_item`
+- Handle errors with Backstage error types: `InputError`, `NotAllowedError`
 
 ---
 
@@ -164,11 +189,7 @@ Add a terminal error handler to your router and prefer structured logs with cont
 ### 1) Scaffold
 
 ```bash
-# From the repository root (interactive)
-yarn new
-# Select: backend-plugin
-# Plugin id (without -backend suffix), e.g. example
-
+# From the repository root 
 # Non-interactive (for AI agents/automation)
 yarn new --select backend-plugin --option pluginId=example --option owner=""
 ```
@@ -312,6 +333,16 @@ Load these resources as needed during development:
   - Configuration and health check services
   - Service composition examples and best practices
 
+### MCP Actions
+- [🤖 MCP Actions Reference](./reference/mcp_actions.md) - Complete guide to MCP action integration:
+  - Actions Registry Service (`actionsRegistryServiceRef` from `@backstage/backend-plugin-api/alpha`)
+  - Action registration with schema definitions (input/output using zod)
+  - Authentication handling with `credentials` and `auth.getPluginRequestToken()`
+  - Permission integration with `permissions.authorize()` for sensitive operations
+  - Reusing service classes in actions
+  - Error handling patterns with Backstage error types
+  - Complete examples from existing plugins
+
 ### Testing
 - [✅ Testing Reference](./reference/testing.md) - Comprehensive testing guide including:
   - Testing backend plugins with `startTestBackend`
@@ -330,8 +361,6 @@ Load these resources as needed during development:
 
 - Backend plugins: scaffolding, DI, `httpRouter`, `/api/<pluginId>`, secure‑by‑default, DB & identity usage. ([Backstage][3])
 - Core Backend Service APIs index (logger, database, httpAuth, scheduler, urlReader, etc.). ([Backstage][4])
-- Anthropic Skill spec & packaging details (required metadata; ≤200 char description). ([Claude Help Center][2])
 
-[2]: https://support.claude.com/en/articles/12512198-creating-custom-skills
 [3]: https://backstage.io/docs/plugins/backend-plugin/
 [4]: https://backstage.io/docs/backend-system/core-services/index/

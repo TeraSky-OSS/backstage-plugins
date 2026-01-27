@@ -512,10 +512,11 @@ Integrates authorization for user actions.
 
 **Type**: `PermissionsService`
 
-**Usage**:
+**Basic Usage**:
 
 ```ts
 import { createPermission } from '@backstage/plugin-permission-common';
+import { AuthorizeResult } from '@backstage/plugin-permission-common';
 
 // Define permission
 export const exampleDeletePermission = createPermission({
@@ -532,7 +533,7 @@ router.delete('/data/:id', async (req, res) => {
     { credentials }
   );
 
-  if (decision[0].result === 'DENY') {
+  if (decision[0].result !== AuthorizeResult.ALLOW) {
     return res.status(403).json({ error: 'Forbidden' });
   }
 
@@ -541,6 +542,193 @@ router.delete('/data/:id', async (req, res) => {
   res.json({ success: true });
 });
 ```
+
+---
+
+### Permissions Registry Service
+
+Registers plugin permissions and resource types with the permission framework.
+
+**Import**: `coreServices.permissionsRegistry`
+
+**Type**: `PermissionsRegistryService`
+
+**Defining Permissions** (in common package):
+
+```ts
+// plugins/example-common/src/permissions.ts
+import { createPermission } from '@backstage/plugin-permission-common';
+
+export const exampleViewPermission = createPermission({
+  name: 'example.view',
+  attributes: { action: 'read' },
+});
+
+export const exampleCreatePermission = createPermission({
+  name: 'example.create',
+  attributes: { action: 'create' },
+});
+
+export const exampleDeletePermission = createPermission({
+  name: 'example.delete',
+  attributes: { action: 'delete' },
+});
+
+// Export all permissions for registration
+export const examplePermissions = [
+  exampleViewPermission,
+  exampleCreatePermission,
+  exampleDeletePermission,
+];
+```
+
+**Registering Permissions in Plugin**:
+
+```ts
+import { coreServices, createBackendPlugin } from '@backstage/backend-plugin-api';
+import { examplePermissions } from '@internal/backstage-plugin-example-common';
+
+export const examplePlugin = createBackendPlugin({
+  pluginId: 'example',
+  register(env) {
+    env.registerInit({
+      deps: {
+        permissions: coreServices.permissions,
+        permissionsRegistry: coreServices.permissionsRegistry,
+        httpAuth: coreServices.httpAuth,
+      },
+      async init({ permissions, permissionsRegistry, httpAuth }) {
+        // Register all plugin permissions
+        permissionsRegistry.addPermissions(examplePermissions);
+        
+        // Now permissions can be enforced in routes...
+      },
+    });
+  },
+});
+```
+
+**Resource-Based Permissions**:
+
+For fine-grained permissions on specific resources:
+
+```ts
+import { createPermission } from '@backstage/plugin-permission-common';
+import { createPermissionResourceRef } from '@backstage/plugin-permission-node';
+
+// Define resource type reference
+export const exampleResourceRef = createPermissionResourceRef(
+  'example',
+  'resource'
+);
+
+// Define resource permission
+export const resourceViewPermission = createPermission({
+  name: 'example.resource.view',
+  attributes: { action: 'read' },
+  resourceType: 'example-resource',
+});
+
+// Register resource type in plugin
+permissionsRegistry.addResourceType({
+  resourceRef: exampleResourceRef,
+  permissions: [resourceViewPermission],
+  rules: Object.values(resourceRules),
+  getResources: async (resourceRefs) => {
+    // Fetch resources for permission evaluation
+    return resourceRefs.map(ref => ({ id: ref }));
+  },
+});
+
+// Check resource-specific permission
+const decision = await permissions.authorize(
+  [{ 
+    permission: resourceViewPermission, 
+    resourceRef: resourceId  // The specific resource
+  }],
+  { credentials }
+);
+```
+
+**Complete Permission Integration Example**:
+
+```ts
+import {
+  coreServices,
+  createBackendPlugin,
+} from '@backstage/backend-plugin-api';
+import { AuthorizeResult } from '@backstage/plugin-permission-common';
+import { 
+  examplePermissions,
+  exampleViewPermission,
+  exampleDeletePermission,
+} from '@internal/backstage-plugin-example-common';
+
+export const examplePlugin = createBackendPlugin({
+  pluginId: 'example',
+  register(env) {
+    env.registerInit({
+      deps: {
+        httpRouter: coreServices.httpRouter,
+        httpAuth: coreServices.httpAuth,
+        permissions: coreServices.permissions,
+        permissionsRegistry: coreServices.permissionsRegistry,
+        logger: coreServices.logger,
+      },
+      async init({ httpRouter, httpAuth, permissions, permissionsRegistry, logger }) {
+        // 1. Register permissions
+        permissionsRegistry.addPermissions(examplePermissions);
+        logger.info('Example permissions registered');
+
+        // 2. Create router with permission checks
+        const router = express.Router();
+
+        router.get('/items', async (req, res) => {
+          const credentials = await httpAuth.credentials(req, { allow: ['user'] });
+          
+          const decision = await permissions.authorize(
+            [{ permission: exampleViewPermission }],
+            { credentials }
+          );
+
+          if (decision[0].result !== AuthorizeResult.ALLOW) {
+            return res.status(403).json({ error: 'Permission denied' });
+          }
+
+          const items = await getItems();
+          res.json({ items });
+        });
+
+        router.delete('/items/:id', async (req, res) => {
+          const credentials = await httpAuth.credentials(req, { allow: ['user'] });
+          
+          const decision = await permissions.authorize(
+            [{ permission: exampleDeletePermission }],
+            { credentials }
+          );
+
+          if (decision[0].result !== AuthorizeResult.ALLOW) {
+            return res.status(403).json({ error: 'Permission denied' });
+          }
+
+          await deleteItem(req.params.id);
+          res.json({ success: true });
+        });
+
+        httpRouter.use(router);
+      },
+    });
+  },
+});
+```
+
+**Best Practices**:
+
+- Define permissions in a `-common` package for sharing between frontend and backend
+- Register all permissions using `permissionsRegistry.addPermissions()` at plugin init
+- Use `AuthorizeResult.ALLOW` for comparison (not string 'ALLOW')
+- For MCP actions, always check permissions using the `credentials` passed to the action handler
+- Use resource-based permissions for fine-grained access control
 
 ---
 
