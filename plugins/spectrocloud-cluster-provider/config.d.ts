@@ -57,6 +57,19 @@ export interface Config {
        */
       clusterProvider?: {
         /**
+         * Optional: Authentication type for Kubernetes clusters (default: serviceAccount)
+         * - serviceAccount: Create service accounts in clusters for authentication
+         * - oidc: Use OIDC authentication (no resources created in clusters)
+         * @visibility frontend
+         */
+        authType?: 'serviceAccount' | 'oidc';
+        /**
+         * Optional: OIDC auth provider name when authType is 'oidc' (default: spectrocloud)
+         * This should match the oidcTokenProvider configured in the Kubernetes plugin
+         * @visibility frontend
+         */
+        oidcAuthProviderName?: string;
+        /**
          * Optional: List of projects to include (if empty, all projects are included)
          * @visibility frontend
          */
@@ -83,11 +96,13 @@ export interface Config {
         refreshIntervalSeconds?: number;
         /**
          * Optional: Timeout in seconds for RBAC setup per cluster (default: 15)
+         * Only applies when authType is 'serviceAccount'
          * @visibility frontend
          */
         clusterTimeoutSeconds?: number;
         /**
          * Optional: RBAC configuration
+         * Only applies when authType is 'serviceAccount'
          * @visibility frontend
          */
         rbac?: {

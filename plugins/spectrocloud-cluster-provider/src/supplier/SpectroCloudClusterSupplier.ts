@@ -24,6 +24,8 @@ export interface SpectroCloudConfig {
   tenant: string;
   apiToken: string;
   name?: string; // Optional instance name for cluster name prefixing
+  authType: 'serviceAccount' | 'oidc';
+  oidcAuthProviderName: string;
   includeProjects: string[];
   excludeProjects: string[];
   skipMetricsLookup: boolean;
@@ -69,6 +71,8 @@ export class SpectroCloudClusterSupplier implements KubernetesClustersSupplier {
       }));
     }
 
+    const authType = (clusterProviderConfig?.getOptionalString('authType') ?? 'serviceAccount') as 'serviceAccount' | 'oidc';
+    
     const spectroConfig: SpectroCloudConfig = {
       // Generic SpectroCloud fields (top-level)
       url: methodConfig.getString('url'),
@@ -77,6 +81,8 @@ export class SpectroCloudClusterSupplier implements KubernetesClustersSupplier {
       name: methodConfig.getOptionalString('name'),
       
       // Cluster provider-specific fields (from clusterProvider section)
+      authType,
+      oidcAuthProviderName: clusterProviderConfig?.getOptionalString('oidcAuthProviderName') ?? 'spectrocloud',
       excludeProjects: clusterProviderConfig?.getOptionalStringArray('excludeProjects') ?? [],
       includeProjects: clusterProviderConfig?.getOptionalStringArray('includeProjects') ?? [],
       skipMetricsLookup: clusterProviderConfig?.getOptionalBoolean('skipMetricsLookup') ?? true,
@@ -165,22 +171,37 @@ export class SpectroCloudClusterSupplier implements KubernetesClustersSupplier {
           // Apply instance name prefix if configured
           const prefixedClusterName = this.prefixClusterName(cluster.metadata.name);
 
-          const setupPromise = this.setupServiceAccountAccess(
-            prefixedClusterName,
-            adminKubeconfigText,
-          );
+          let clusterDetail: ClusterDetails | undefined;
 
-          const timeoutPromise = new Promise<ClusterDetails | undefined>((resolve) => {
-            setTimeout(() => {
-              this.logger.warn(`Timeout: ${prefixedClusterName} unreachable (${this.config.clusterTimeoutSeconds}s)`);
-              resolve(undefined);
-            }, this.config.clusterTimeoutSeconds * 1000);
-          });
+          if (this.config.authType === 'oidc') {
+            // OIDC mode: no service account setup, just extract cluster details
+            clusterDetail = this.setupOIDCAccess(
+              prefixedClusterName,
+              adminKubeconfigText,
+            );
+            
+            if (clusterDetail) {
+              newClusterDetails.push(clusterDetail);
+            }
+          } else {
+            // Service Account mode: create service account and setup access
+            const setupPromise = this.setupServiceAccountAccess(
+              prefixedClusterName,
+              adminKubeconfigText,
+            );
 
-          const clusterDetail = await Promise.race([setupPromise, timeoutPromise]);
+            const timeoutPromise = new Promise<ClusterDetails | undefined>((resolve) => {
+              setTimeout(() => {
+                this.logger.warn(`Timeout: ${prefixedClusterName} unreachable (${this.config.clusterTimeoutSeconds}s)`);
+                resolve(undefined);
+              }, this.config.clusterTimeoutSeconds * 1000);
+            });
 
-          if (clusterDetail) {
-            newClusterDetails.push(clusterDetail);
+            clusterDetail = await Promise.race([setupPromise, timeoutPromise]);
+
+            if (clusterDetail) {
+              newClusterDetails.push(clusterDetail);
+            }
           }
           
         } catch (error) {
@@ -212,6 +233,44 @@ export class SpectroCloudClusterSupplier implements KubernetesClustersSupplier {
       return `${this.config.name}-${clusterName}`;
     }
     return clusterName;
+  }
+
+  /**
+   * Setup OIDC access - extracts cluster details without creating any resources
+   */
+  private setupOIDCAccess(
+    clusterName: string,
+    adminKubeconfigYaml: string,
+  ): ClusterDetails | undefined {
+    try {
+      const kc = new k8s.KubeConfig();
+      kc.loadFromString(adminKubeconfigYaml);
+
+      const cluster = kc.clusters[0];
+      if (!cluster) {
+        throw new Error('No cluster found in kubeconfig');
+      }
+
+      const server = cluster.server;
+      const caData = cluster.caData;
+
+      this.logger.info(`✓ ${clusterName} (OIDC)`);
+
+      return {
+        name: clusterName,
+        url: server,
+        authMetadata: {
+          'kubernetes.io/auth-provider': 'oidc',
+          'kubernetes.io/oidc-token-provider': this.config.oidcAuthProviderName,
+        },
+        caData,
+        skipTLSVerify: true, // SpectroCloud clusters typically use self-signed certs
+        skipMetricsLookup: this.config.skipMetricsLookup,
+      };
+    } catch (error: any) {
+      this.logger.error(`Failed to setup OIDC access for ${clusterName}: ${error.message || error}`);
+      return undefined;
+    }
   }
 
   /**
