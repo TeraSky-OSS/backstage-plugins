@@ -4,7 +4,7 @@ import {
 } from '@backstage/plugin-catalog-node';
 import { Entity } from '@backstage/catalog-model';
 import { Config } from '@backstage/config';
-import { LoggerService, SchedulerServiceTaskRunner } from '@backstage/backend-plugin-api';
+import { LoggerService, SchedulerServiceTaskRunner, UrlReaderService } from '@backstage/backend-plugin-api';
 import { DefaultKubernetesResourceFetcher, ApiDefinitionFetcher } from '../services';
 import { KubernetesDataProvider } from './KubernetesDataProvider';
 import { Logger } from 'winston';
@@ -1941,6 +1941,7 @@ export class KubernetesEntityProvider implements EntityProvider {
     private readonly logger: LoggerService,
     private readonly config: Config,
     private readonly resourceFetcher: DefaultKubernetesResourceFetcher,
+    urlReader?: UrlReaderService,
   ) {
     this.logger = {
       silent: true,
@@ -1966,7 +1967,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         }
       },
     } as unknown as Logger;
-    this.apiDefinitionFetcher = new ApiDefinitionFetcher(resourceFetcher, config, logger);
+    this.apiDefinitionFetcher = new ApiDefinitionFetcher(resourceFetcher, config, logger, urlReader);
   }
 
   private validateEntityName(entity: Entity): boolean {
@@ -2975,9 +2976,10 @@ export class KubernetesEntityProvider implements EntityProvider {
    * @param componentTitle The title of the component (used for API title)
    * @param componentNamespace The namespace of the component
    * @param clusterName The cluster where the resource is located
-   * @param definition The API definition in YAML format
+   * @param definition The API definition in YAML format, or a URL if useTextReference is true
    * @param owner The owner of the API entity
    * @param system The system that this API belongs to (same as the component's system)
+   * @param useTextReference If true, use Backstage's $text directive to reference the URL instead of embedding content
    * @returns The API entity or undefined if creation fails
    */
   private createApiEntity(
@@ -2988,9 +2990,15 @@ export class KubernetesEntityProvider implements EntityProvider {
     definition: string,
     owner: string,
     system: string,
+    useTextReference: boolean = false,
   ): Entity | undefined {
     try {
       const prefix = this.getAnnotationPrefix();
+      
+      // Determine the definition value - either embedded content or $text reference
+      const definitionValue = useTextReference 
+        ? { $text: definition }
+        : definition;
       
       const apiEntity: Entity = {
         apiVersion: 'backstage.io/v1alpha1',
@@ -3012,7 +3020,7 @@ export class KubernetesEntityProvider implements EntityProvider {
           lifecycle: 'production',
           owner: owner,
           system: system,
-          definition: definition,
+          definition: definitionValue,
         },
       };
 
@@ -3075,6 +3083,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         result.definition!,
         owner,
         system,
+        result.useTextReference ?? false,
       );
 
       if (apiEntity) {

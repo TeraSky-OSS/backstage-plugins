@@ -20,6 +20,7 @@ export const catalogModuleKubernetesIngestor = createBackendModule({
         discovery: coreServices.discovery,
         scheduler: coreServices.scheduler,
         auth: coreServices.auth,
+        urlReader: coreServices.urlReader,
       },
       async init({
         catalog,
@@ -28,6 +29,7 @@ export const catalogModuleKubernetesIngestor = createBackendModule({
         discovery,
         scheduler,
         auth,
+        urlReader,
       }) {
         const taskRunner = scheduler.createScheduledTaskRunner({
           frequency: {
@@ -62,6 +64,7 @@ export const catalogModuleKubernetesIngestor = createBackendModule({
           logger,
           config,
           resourceFetcher,
+          urlReader,
         );
 
         const xrdTemplateEntityProvider = new XRDTemplateEntityProvider(

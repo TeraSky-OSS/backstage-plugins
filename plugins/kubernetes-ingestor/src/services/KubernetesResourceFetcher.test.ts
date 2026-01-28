@@ -58,6 +58,58 @@ describe('DefaultKubernetesResourceFetcher', () => {
 
       await expect(fetcher.getClusters()).rejects.toThrow('Failed to fetch clusters');
     });
+
+    it('should filter out clusters with OIDC auth provider', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({
+          items: [
+            { name: 'cluster-1', authProvider: 'serviceAccount' },
+            { name: 'cluster-2', authProvider: 'oidc' },
+            { name: 'cluster-3', authProvider: 'google' },
+          ],
+        }),
+      } as any);
+
+      const clusters = await fetcher.getClusters();
+
+      expect(clusters).toEqual(['cluster-1', 'cluster-3']);
+      expect(clusters).not.toContain('cluster-2');
+    });
+
+    it('should filter out OIDC clusters case-insensitively', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({
+          items: [
+            { name: 'cluster-1', authProvider: 'serviceAccount' },
+            { name: 'cluster-2', authProvider: 'OIDC' },
+            { name: 'cluster-3', authProvider: 'Oidc' },
+          ],
+        }),
+      } as any);
+
+      const clusters = await fetcher.getClusters();
+
+      expect(clusters).toEqual(['cluster-1']);
+    });
+
+    it('should include clusters without authProvider field', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({
+          items: [
+            { name: 'cluster-1' },
+            { name: 'cluster-2', authProvider: 'oidc' },
+            { name: 'cluster-3', authProvider: 'serviceAccount' },
+          ],
+        }),
+      } as any);
+
+      const clusters = await fetcher.getClusters();
+
+      expect(clusters).toEqual(['cluster-1', 'cluster-3']);
+    });
   });
 
   describe('fetchResources', () => {

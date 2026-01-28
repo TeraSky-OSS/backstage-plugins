@@ -1,4 +1,4 @@
-import { LoggerService } from '@backstage/backend-plugin-api';
+import { LoggerService, UrlReaderService } from '@backstage/backend-plugin-api';
 import { Config } from '@backstage/config';
 import { DefaultKubernetesResourceFetcher } from './KubernetesResourceFetcher';
 import { ApiFromResourceRef, ApiDefinitionResult } from '../types';
@@ -7,16 +7,37 @@ import fetch from 'node-fetch';
 import pluralize from 'pluralize';
 
 /**
+ * Known Git provider URL patterns that should use UrlReaderService.
+ * These patterns match common Git hosting services.
+ */
+const GIT_PROVIDER_PATTERNS = [
+  /^https?:\/\/(www\.)?github\.com\//i,
+  /^https?:\/\/(www\.)?gitlab\.com\//i,
+  /^https?:\/\/(www\.)?bitbucket\.org\//i,
+  /^https?:\/\/dev\.azure\.com\//i,
+  /^https?:\/\/.*\.visualstudio\.com\//i,
+  /^https?:\/\/.*\.github\.io\//i,
+  /^https?:\/\/raw\.githubusercontent\.com\//i,
+  /^https?:\/\/gitlab\..+\//i, // Self-hosted GitLab
+  /^https?:\/\/github\..+\//i, // GitHub Enterprise
+];
+
+/**
  * Service for fetching API definitions from URLs or Kubernetes resource references.
  * Supports two annotation types:
  * 1. provides-api-from-url: Direct URL to the API definition
  * 2. provides-api-from-resource-ref: Reference to a Kubernetes resource that exposes the API
+ * 
+ * For Git-based URLs (GitHub, GitLab, Bitbucket, Azure DevOps), uses Backstage's
+ * UrlReaderService for integrated authentication and caching. For regular HTTP
+ * endpoints (e.g., internal service Swagger endpoints), uses node-fetch directly.
  */
 export class ApiDefinitionFetcher {
   constructor(
     private readonly resourceFetcher: DefaultKubernetesResourceFetcher,
     private readonly config: Config,
     private readonly logger: LoggerService,
+    private readonly urlReader?: UrlReaderService,
   ) {}
 
   private getAnnotationPrefix(): string {
@@ -127,13 +148,51 @@ export class ApiDefinitionFetcher {
   }
 
   /**
-   * Fetches an API definition from a direct URL.
-   * @param url The URL to fetch the API definition from
-   * @returns The API definition result including the fetch URL
+   * Checks if a URL is a Git provider URL that should use UrlReaderService.
+   * @param url The URL to check
+   * @returns true if the URL matches a known Git provider pattern
    */
-  async fetchFromUrl(url: string): Promise<ApiDefinitionResult> {
+  private isGitProviderUrl(url: string): boolean {
+    return GIT_PROVIDER_PATTERNS.some(pattern => pattern.test(url));
+  }
+
+  /**
+   * Fetches content from a Git provider URL using Backstage's UrlReaderService.
+   * This provides integrated authentication, caching, and rate limiting.
+   * @param url The Git provider URL to fetch from
+   * @returns The API definition result
+   */
+  private async fetchFromUrlReader(url: string): Promise<ApiDefinitionResult> {
+    if (!this.urlReader) {
+      // Fall back to node-fetch if urlReader is not available
+      this.logger.debug(`UrlReaderService not available, falling back to node-fetch for: ${url}`);
+      return this.fetchFromNodeFetch(url);
+    }
+
     try {
-      this.logger.debug(`Fetching API definition from URL: ${url}`);
+      this.logger.debug(`Fetching API definition from Git provider using UrlReaderService: ${url}`);
+      
+      const response = await this.urlReader.readUrl(url);
+      const buffer = await response.buffer();
+      const text = buffer.toString('utf-8');
+
+      return this.processApiDefinitionText(text, url);
+    } catch (error) {
+      // If UrlReaderService fails (e.g., no integration configured), fall back to node-fetch
+      this.logger.debug(`UrlReaderService failed for ${url}, falling back to node-fetch: ${error}`);
+      return this.fetchFromNodeFetch(url);
+    }
+  }
+
+  /**
+   * Fetches content from a URL using node-fetch directly.
+   * Used for internal service endpoints and as a fallback for Git URLs.
+   * @param url The URL to fetch from
+   * @returns The API definition result
+   */
+  private async fetchFromNodeFetch(url: string): Promise<ApiDefinitionResult> {
+    try {
+      this.logger.debug(`Fetching API definition using node-fetch: ${url}`);
       
       const response = await fetch(url, {
         headers: {
@@ -149,12 +208,27 @@ export class ApiDefinitionFetcher {
         };
       }
 
-      const contentType = response.headers.get('content-type') || '';
       const text = await response.text();
+      return this.processApiDefinitionText(text, url);
+    } catch (error) {
+      return {
+        success: false,
+        error: `Error fetching API definition from ${url}: ${error}`,
+      };
+    }
+  }
 
+  /**
+   * Processes raw API definition text (JSON or YAML) and returns the result.
+   * @param text The raw text content
+   * @param url The URL the content was fetched from (for error messages and server URL processing)
+   * @returns The API definition result
+   */
+  private processApiDefinitionText(text: string, url: string): ApiDefinitionResult {
+    try {
       // Parse the content to process the servers field
       let apiSpec: any;
-      if (contentType.includes('json') || text.trim().startsWith('{') || text.trim().startsWith('[')) {
+      if (text.trim().startsWith('{') || text.trim().startsWith('[')) {
         try {
           apiSpec = JSON.parse(text);
         } catch (parseError) {
@@ -194,9 +268,25 @@ export class ApiDefinitionFetcher {
     } catch (error) {
       return {
         success: false,
-        error: `Error fetching API definition from ${url}: ${error}`,
+        error: `Error processing API definition from ${url}: ${error}`,
       };
     }
+  }
+
+  /**
+   * Fetches an API definition from a direct URL.
+   * Uses UrlReaderService for Git provider URLs (GitHub, GitLab, etc.) for
+   * integrated authentication and caching. Uses node-fetch for other URLs
+   * (e.g., internal service Swagger endpoints).
+   * @param url The URL to fetch the API definition from
+   * @returns The API definition result including the fetch URL
+   */
+  async fetchFromUrl(url: string): Promise<ApiDefinitionResult> {
+    // Use UrlReaderService for Git provider URLs, node-fetch for everything else
+    if (this.urlReader && this.isGitProviderUrl(url)) {
+      return this.fetchFromUrlReader(url);
+    }
+    return this.fetchFromNodeFetch(url);
   }
 
   /**
@@ -396,7 +486,7 @@ export class ApiDefinitionFetcher {
 
   /**
    * Fetches API definition based on resource annotations.
-   * Checks for both provides-api-from-url and provides-api-from-resource-ref annotations.
+   * Checks for provides-api-from-def, provides-api-from-url, and provides-api-from-resource-ref annotations.
    * @param annotations The resource annotations
    * @param clusterName The cluster name
    * @param defaultNamespace The default namespace for resource refs
@@ -409,7 +499,18 @@ export class ApiDefinitionFetcher {
   ): Promise<ApiDefinitionResult | null> {
     const prefix = this.getAnnotationPrefix();
     
-    // Check for direct URL annotation first
+    // Check for $text reference annotation first (no fetching, just reference)
+    const defAnnotation = annotations[`${prefix}/provides-api-from-def`];
+    if (defAnnotation) {
+      this.logger.debug(`Using $text reference for API definition: ${defAnnotation}`);
+      return {
+        success: true,
+        definition: defAnnotation, // The URL is stored in definition field
+        useTextReference: true,
+      };
+    }
+
+    // Check for direct URL annotation (fetches content)
     const urlAnnotation = annotations[`${prefix}/provides-api-from-url`];
     if (urlAnnotation) {
       return this.fetchFromUrl(urlAnnotation);

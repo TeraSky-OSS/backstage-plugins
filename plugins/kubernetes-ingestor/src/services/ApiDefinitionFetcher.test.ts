@@ -25,7 +25,14 @@ describe('ApiDefinitionFetcher', () => {
     error: jest.fn(),
   };
 
+  const mockUrlReader = {
+    readUrl: jest.fn(),
+    readTree: jest.fn(),
+    search: jest.fn(),
+  };
+
   let fetcher: ApiDefinitionFetcher;
+  let fetcherWithUrlReader: ApiDefinitionFetcher;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -33,6 +40,12 @@ describe('ApiDefinitionFetcher', () => {
       mockResourceFetcher as any,
       mockConfig as any,
       mockLogger as any,
+    );
+    fetcherWithUrlReader = new ApiDefinitionFetcher(
+      mockResourceFetcher as any,
+      mockConfig as any,
+      mockLogger as any,
+      mockUrlReader as any,
     );
   });
 
@@ -258,6 +271,193 @@ paths: {}`;
       expect(result.success).toBe(true);
       expect(result.definition).toContain('servers:');
       expect(result.definition).toContain('http://api.example.com');
+    });
+  });
+
+  describe('UrlReaderService integration', () => {
+    it('should use UrlReaderService for GitHub URLs when available', async () => {
+      const jsonContent = JSON.stringify({
+        openapi: '3.0.0',
+        info: { title: 'GitHub API', version: '1.0.0' },
+      });
+
+      mockUrlReader.readUrl.mockResolvedValueOnce({
+        buffer: () => Promise.resolve(Buffer.from(jsonContent)),
+      });
+
+      const result = await fetcherWithUrlReader.fetchFromUrl(
+        'https://raw.githubusercontent.com/owner/repo/main/openapi.json'
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.definition).toContain('openapi: 3.0.0');
+      expect(mockUrlReader.readUrl).toHaveBeenCalledWith(
+        'https://raw.githubusercontent.com/owner/repo/main/openapi.json'
+      );
+      // Should NOT call node-fetch
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('should use UrlReaderService for GitLab URLs', async () => {
+      const jsonContent = JSON.stringify({
+        openapi: '3.0.0',
+        info: { title: 'GitLab API', version: '1.0.0' },
+      });
+
+      mockUrlReader.readUrl.mockResolvedValueOnce({
+        buffer: () => Promise.resolve(Buffer.from(jsonContent)),
+      });
+
+      const result = await fetcherWithUrlReader.fetchFromUrl(
+        'https://gitlab.com/owner/repo/-/raw/main/openapi.json'
+      );
+
+      expect(result.success).toBe(true);
+      expect(mockUrlReader.readUrl).toHaveBeenCalled();
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('should use UrlReaderService for Bitbucket URLs', async () => {
+      const jsonContent = JSON.stringify({
+        openapi: '3.0.0',
+        info: { title: 'Bitbucket API', version: '1.0.0' },
+      });
+
+      mockUrlReader.readUrl.mockResolvedValueOnce({
+        buffer: () => Promise.resolve(Buffer.from(jsonContent)),
+      });
+
+      const result = await fetcherWithUrlReader.fetchFromUrl(
+        'https://bitbucket.org/owner/repo/raw/main/openapi.json'
+      );
+
+      expect(result.success).toBe(true);
+      expect(mockUrlReader.readUrl).toHaveBeenCalled();
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('should use UrlReaderService for Azure DevOps URLs', async () => {
+      const jsonContent = JSON.stringify({
+        openapi: '3.0.0',
+        info: { title: 'Azure API', version: '1.0.0' },
+      });
+
+      mockUrlReader.readUrl.mockResolvedValueOnce({
+        buffer: () => Promise.resolve(Buffer.from(jsonContent)),
+      });
+
+      const result = await fetcherWithUrlReader.fetchFromUrl(
+        'https://dev.azure.com/org/project/_git/repo?path=/openapi.json'
+      );
+
+      expect(result.success).toBe(true);
+      expect(mockUrlReader.readUrl).toHaveBeenCalled();
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('should fall back to node-fetch when UrlReaderService fails', async () => {
+      const jsonContent = {
+        openapi: '3.0.0',
+        info: { title: 'Fallback API', version: '1.0.0' },
+      };
+
+      mockUrlReader.readUrl.mockRejectedValueOnce(new Error('No integration configured'));
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => 'application/json' },
+        text: () => Promise.resolve(JSON.stringify(jsonContent)),
+      } as any);
+
+      const result = await fetcherWithUrlReader.fetchFromUrl(
+        'https://github.com/owner/repo/blob/main/openapi.json'
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.definition).toContain('openapi: 3.0.0');
+      expect(mockUrlReader.readUrl).toHaveBeenCalled();
+      expect(mockFetch).toHaveBeenCalled(); // Fallback was used
+    });
+
+    it('should use node-fetch for non-Git URLs even when UrlReaderService is available', async () => {
+      const jsonContent = {
+        openapi: '3.0.0',
+        info: { title: 'Internal API', version: '1.0.0' },
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => 'application/json' },
+        text: () => Promise.resolve(JSON.stringify(jsonContent)),
+      } as any);
+
+      const result = await fetcherWithUrlReader.fetchFromUrl(
+        'http://internal-service.default.svc.cluster.local/swagger.json'
+      );
+
+      expect(result.success).toBe(true);
+      expect(mockFetch).toHaveBeenCalled();
+      expect(mockUrlReader.readUrl).not.toHaveBeenCalled();
+    });
+
+    it('should use node-fetch when UrlReaderService is not provided', async () => {
+      const jsonContent = {
+        openapi: '3.0.0',
+        info: { title: 'GitHub API', version: '1.0.0' },
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => 'application/json' },
+        text: () => Promise.resolve(JSON.stringify(jsonContent)),
+      } as any);
+
+      // Using fetcher without UrlReaderService
+      const result = await fetcher.fetchFromUrl(
+        'https://raw.githubusercontent.com/owner/repo/main/openapi.json'
+      );
+
+      expect(result.success).toBe(true);
+      expect(mockFetch).toHaveBeenCalled();
+      expect(mockUrlReader.readUrl).not.toHaveBeenCalled();
+    });
+
+    it('should detect self-hosted GitLab URLs', async () => {
+      const jsonContent = JSON.stringify({
+        openapi: '3.0.0',
+        info: { title: 'Self-hosted GitLab API', version: '1.0.0' },
+      });
+
+      mockUrlReader.readUrl.mockResolvedValueOnce({
+        buffer: () => Promise.resolve(Buffer.from(jsonContent)),
+      });
+
+      const result = await fetcherWithUrlReader.fetchFromUrl(
+        'https://gitlab.mycompany.com/group/project/-/raw/main/openapi.yaml'
+      );
+
+      expect(result.success).toBe(true);
+      expect(mockUrlReader.readUrl).toHaveBeenCalled();
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('should detect GitHub Enterprise URLs', async () => {
+      const jsonContent = JSON.stringify({
+        openapi: '3.0.0',
+        info: { title: 'GHE API', version: '1.0.0' },
+      });
+
+      mockUrlReader.readUrl.mockResolvedValueOnce({
+        buffer: () => Promise.resolve(Buffer.from(jsonContent)),
+      });
+
+      const result = await fetcherWithUrlReader.fetchFromUrl(
+        'https://github.mycompany.com/org/repo/blob/main/openapi.json'
+      );
+
+      expect(result.success).toBe(true);
+      expect(mockUrlReader.readUrl).toHaveBeenCalled();
+      expect(mockFetch).not.toHaveBeenCalled();
     });
   });
 
@@ -534,6 +734,43 @@ paths: {}`;
       );
 
       expect(result).toBeNull();
+    });
+
+    it('should return $text reference for provides-api-from-def annotation', async () => {
+      const annotations = {
+        'terasky.backstage.io/provides-api-from-def': 'http://example.com/api/v3/openapi.json',
+      };
+
+      const result = await fetcher.fetchApiFromAnnotations(
+        annotations,
+        'test-cluster',
+        'default',
+      );
+
+      expect(result?.success).toBe(true);
+      expect(result?.definition).toBe('http://example.com/api/v3/openapi.json');
+      expect(result?.useTextReference).toBe(true);
+      // Should NOT call node-fetch - no fetching required
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('should prioritize provides-api-from-def over provides-api-from-url', async () => {
+      const annotations = {
+        'terasky.backstage.io/provides-api-from-def': 'http://example.com/api/v3/openapi.json',
+        'terasky.backstage.io/provides-api-from-url': 'http://example.com/swagger.json',
+      };
+
+      const result = await fetcher.fetchApiFromAnnotations(
+        annotations,
+        'test-cluster',
+        'default',
+      );
+
+      expect(result?.success).toBe(true);
+      expect(result?.useTextReference).toBe(true);
+      expect(result?.definition).toBe('http://example.com/api/v3/openapi.json');
+      // Should NOT fetch - $text reference takes priority
+      expect(mockFetch).not.toHaveBeenCalled();
     });
 
     it('should fetch from URL annotation when present', async () => {

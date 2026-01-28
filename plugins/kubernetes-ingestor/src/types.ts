@@ -48,10 +48,15 @@ export interface ApiFromResourceRef {
 export interface ApiDefinitionResult {
   /** Whether the fetch was successful */
   success: boolean;
-  /** The API definition content in YAML format (if successful) */
+  /** The API definition content in YAML format (if successful and not using $text reference) */
   definition?: string;
   /** Error message if the fetch failed */
   error?: string;
   /** The URL from which the API definition was fetched (used for fixing servers field) */
   fetchUrl?: string;
+  /** 
+   * If true, the definition field contains a URL that should be used with Backstage's $text directive
+   * instead of embedding the content directly. The API entity's definition will be: { $text: <url> }
+   */
+  useTextReference?: boolean;
 }

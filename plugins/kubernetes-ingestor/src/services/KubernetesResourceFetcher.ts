@@ -10,6 +10,12 @@ export class DefaultKubernetesResourceFetcher implements KubernetesResourceFetch
     private readonly auth: AuthService,
   ) {}
 
+  /**
+   * Auth providers that require client-side authentication and should be excluded
+   * from backend processing as they won't work for server-to-server communication.
+   */
+  private static readonly EXCLUDED_AUTH_PROVIDERS = ['oidc'];
+
   async getClusters(): Promise<string[]> {
     const baseUrl = await this.discoveryApi.getBaseUrl('kubernetes');
     const credentials = await this.auth.getOwnServiceCredentials();
@@ -28,7 +34,18 @@ export class DefaultKubernetesResourceFetcher implements KubernetesResourceFetch
       throw new Error(`Failed to fetch clusters: ${response.statusText}`);
     }
     const clusters = await response.json();
-    return clusters.items.map((cluster: any) => cluster.name);
+    
+    // Filter out clusters with auth providers that require client-side authentication
+    // (e.g., OIDC) as these won't work for backend-to-cluster communication
+    return clusters.items
+      .filter((cluster: any) => {
+        const authProvider = cluster.authProvider?.toLowerCase();
+        if (authProvider && DefaultKubernetesResourceFetcher.EXCLUDED_AUTH_PROVIDERS.includes(authProvider)) {
+          return false;
+        }
+        return true;
+      })
+      .map((cluster: any) => cluster.name);
   }
 
   async fetchResources<T>(options: KubernetesResourceFetcherOptions): Promise<T[]> {
