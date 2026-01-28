@@ -64,4 +64,10 @@ p, role:default/platformteam, kro.resources.view-yaml, read, allow
 p, role:default/platformteam, kro.resources.show-events, read, allow
 p, role:default/platformteam, kro.resource-graph.show, read, allow
 p, role:default/platformteam, kro.overview.view, read, allow
+p, role:default/platformteam, spectrocloud.cluster.view-info, read, allow
+p, role:default/platformteam, spectrocloud.cluster.download-kubeconfig, read, allow
+p, role:default/platformteam, spectrocloud.cluster.view-pack-values, read, allow
+p, role:default/platformteam, spectrocloud.cluster.view-pack-manifests, read, allow
+p, role:default/platformteam, spectrocloud.profile.view-info, read, allow
+p, role:default/platformteam, spectrocloud.profile.view-clusters, read, allow
 g, group:default/all_users, role:default/platformteam
