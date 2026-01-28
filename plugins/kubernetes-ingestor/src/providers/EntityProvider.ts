@@ -2249,11 +2249,12 @@ export class KubernetesEntityProvider implements EntityProvider {
     const ingestAsResources = this.config.getOptionalBoolean('kubernetesIngestor.components.ingestAsResources') ?? false;
     const entityKind = ingestAsResources ? 'Resource' : 'Component';
 
-    // Determine the component name, title, and namespace for API entity creation
+    // Determine the component name, title, namespace, and system for API entity creation
     const componentName = annotations[`${prefix}/name`] || nameValue;
     const componentTitle = annotations[`${prefix}/title`] || titleValue;
     const componentNamespace = annotations[`${prefix}/backstage-namespace`] || systemNamespaceValue;
     const componentOwner = resolveOwnerRef(annotations[`${prefix}/owner`], systemReferencesNamespaceValue, this.getDefaultOwner());
+    const componentSystem = annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`;
 
     // Try to fetch API definition from annotations
     let apiEntity: Entity | undefined;
@@ -2268,6 +2269,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         resource.clusterName,
         namespace,
         componentOwner,
+        componentSystem,
       );
       
       if (apiResult) {
@@ -2448,11 +2450,12 @@ export class KubernetesEntityProvider implements EntityProvider {
     const ingestAsResources = this.config.getOptionalBoolean('kubernetesIngestor.crossplane.claims.ingestAsResources') ?? false;
     const entityKind = ingestAsResources ? 'Resource' : 'Component';
 
-    // Determine the component name, title, and namespace for API entity creation
+    // Determine the component name, title, namespace, and system for API entity creation
     const componentName = annotations[`${prefix}/name`] || nameValue;
     const componentTitle = annotations[`${prefix}/title`] || titleValue;
     const componentNamespace = annotations[`${prefix}/backstage-namespace`] || systemNamespaceValue;
     const componentOwner = resolveOwnerRef(annotations[`${prefix}/owner`], systemReferencesNamespaceValue, this.getDefaultOwner());
+    const componentSystem = annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`;
 
     // Try to fetch API definition from annotations
     let apiEntity: Entity | undefined;
@@ -2467,6 +2470,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         clusterName,
         claim.metadata.namespace || 'default',
         componentOwner,
+        componentSystem,
       );
       
       if (apiResult) {
@@ -2625,11 +2629,12 @@ export class KubernetesEntityProvider implements EntityProvider {
     const ingestAsResources = this.config.getOptionalBoolean('kubernetesIngestor.kro.instances.ingestAsResources') ?? false;
     const entityKind = ingestAsResources ? 'Resource' : 'Component';
 
-    // Determine the component name, title, and namespace for API entity creation
+    // Determine the component name, title, namespace, and system for API entity creation
     const componentName = annotations[`${prefix}/name`] || nameValue;
     const componentTitle = annotations[`${prefix}/title`] || titleValue;
     const componentNamespace = annotations[`${prefix}/backstage-namespace`] || systemNamespaceValue;
     const componentOwner = resolveOwnerRef(annotations[`${prefix}/owner`], systemReferencesNamespaceValue, this.getDefaultOwner());
+    const componentSystem = annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`;
 
     // Try to fetch API definition from annotations
     let apiEntity: Entity | undefined;
@@ -2644,6 +2649,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         clusterName,
         instance.metadata.namespace || 'default',
         componentOwner,
+        componentSystem,
       );
       
       if (apiResult) {
@@ -2809,11 +2815,12 @@ export class KubernetesEntityProvider implements EntityProvider {
     const ingestAsResources = this.config.getOptionalBoolean('kubernetesIngestor.crossplane.claims.ingestAsResources') ?? false;
     const entityKind = ingestAsResources ? 'Resource' : 'Component';
 
-    // Determine the component name, title, and namespace for API entity creation
+    // Determine the component name, title, namespace, and system for API entity creation
     const componentName = annotations[`${prefix}/name`] || nameValue;
     const componentTitle = annotations[`${prefix}/title`] || titleValue;
     const componentNamespace = annotations[`${prefix}/backstage-namespace`] || systemNamespaceValue;
     const componentOwner = annotations[`${prefix}/owner`] || this.getDefaultOwner();
+    const componentSystem = annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`;
 
     // Try to fetch API definition from annotations
     let apiEntity: Entity | undefined;
@@ -2828,6 +2835,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         clusterName,
         xr.metadata.namespace || 'default',
         componentOwner,
+        componentSystem,
       );
       
       if (apiResult) {
@@ -2969,6 +2977,7 @@ export class KubernetesEntityProvider implements EntityProvider {
    * @param clusterName The cluster where the resource is located
    * @param definition The API definition in YAML format
    * @param owner The owner of the API entity
+   * @param system The system that this API belongs to (same as the component's system)
    * @returns The API entity or undefined if creation fails
    */
   private createApiEntity(
@@ -2978,6 +2987,7 @@ export class KubernetesEntityProvider implements EntityProvider {
     clusterName: string,
     definition: string,
     owner: string,
+    system: string,
   ): Entity | undefined {
     try {
       const prefix = this.getAnnotationPrefix();
@@ -3001,6 +3011,7 @@ export class KubernetesEntityProvider implements EntityProvider {
           type: 'openapi',
           lifecycle: 'production',
           owner: owner,
+          system: system,
           definition: definition,
         },
       };
@@ -3024,6 +3035,7 @@ export class KubernetesEntityProvider implements EntityProvider {
    * @param clusterName The cluster where the resource is located
    * @param defaultNamespace The default namespace for resource refs
    * @param owner The owner of the API entity
+   * @param system The system that this API belongs to (same as the component's system)
    * @returns The API entity and reference, or null if no API annotations or fetch failed
    */
   private async fetchAndCreateApiEntity(
@@ -3034,6 +3046,7 @@ export class KubernetesEntityProvider implements EntityProvider {
     clusterName: string,
     defaultNamespace: string,
     owner: string,
+    system: string,
   ): Promise<{ entity: Entity; ref: string } | null> {
     try {
       const result = await this.apiDefinitionFetcher.fetchApiFromAnnotations(
@@ -3061,6 +3074,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         clusterName,
         result.definition!,
         owner,
+        system,
       );
 
       if (apiEntity) {

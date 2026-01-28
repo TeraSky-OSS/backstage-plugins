@@ -138,6 +138,127 @@ paths: {}`;
       expect(result.success).toBe(true);
       expect(result.definition).toContain('openapi: 3.0.0');
     });
+
+    it('should include fetchUrl in the result', async () => {
+      const jsonContent = {
+        openapi: '3.0.0',
+        info: { title: 'Test API', version: '1.0.0' },
+        servers: [{ url: 'http://example.com' }],
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => 'application/json' },
+        text: () => Promise.resolve(JSON.stringify(jsonContent)),
+      } as any);
+
+      const result = await fetcher.fetchFromUrl('http://example.com/swagger.json');
+
+      expect(result.success).toBe(true);
+      expect(result.fetchUrl).toBe('http://example.com/swagger.json');
+    });
+
+    it('should convert relative servers[0].url to full URL', async () => {
+      const jsonContent = {
+        openapi: '3.0.0',
+        info: { title: 'Test API', version: '1.0.0' },
+        servers: [{ url: '/api/v1' }],
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => 'application/json' },
+        text: () => Promise.resolve(JSON.stringify(jsonContent)),
+      } as any);
+
+      const result = await fetcher.fetchFromUrl('http://api.example.com:8080/swagger.json');
+
+      expect(result.success).toBe(true);
+      expect(result.definition).toContain('http://api.example.com:8080/api/v1');
+    });
+
+    it('should preserve full URL in servers[0].url and add second entry if different', async () => {
+      const jsonContent = {
+        openapi: '3.0.0',
+        info: { title: 'Test API', version: '1.0.0' },
+        servers: [{ url: 'https://external.example.com/api' }],
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => 'application/json' },
+        text: () => Promise.resolve(JSON.stringify(jsonContent)),
+      } as any);
+
+      const result = await fetcher.fetchFromUrl('http://internal.example.com:8080/swagger.json');
+
+      expect(result.success).toBe(true);
+      // Should preserve the original URL
+      expect(result.definition).toContain('https://external.example.com/api');
+      // Should add a second entry based on fetch URL
+      expect(result.definition).toContain('http://internal.example.com:8080/api');
+      expect(result.definition).toContain('Server based on API fetch location');
+    });
+
+    it('should not add duplicate server entry if URLs match', async () => {
+      const jsonContent = {
+        openapi: '3.0.0',
+        info: { title: 'Test API', version: '1.0.0' },
+        servers: [{ url: 'http://example.com/api' }],
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => 'application/json' },
+        text: () => Promise.resolve(JSON.stringify(jsonContent)),
+      } as any);
+
+      const result = await fetcher.fetchFromUrl('http://example.com/swagger.json');
+
+      expect(result.success).toBe(true);
+      // Should only have one server entry
+      const serverMatches = result.definition!.match(/- url:/g);
+      expect(serverMatches).toHaveLength(1);
+    });
+
+    it('should add server entry when servers array is empty', async () => {
+      const jsonContent = {
+        openapi: '3.0.0',
+        info: { title: 'Test API', version: '1.0.0' },
+        servers: [],
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => 'application/json' },
+        text: () => Promise.resolve(JSON.stringify(jsonContent)),
+      } as any);
+
+      const result = await fetcher.fetchFromUrl('http://api.example.com:8080/swagger.json');
+
+      expect(result.success).toBe(true);
+      expect(result.definition).toContain('http://api.example.com:8080');
+    });
+
+    it('should add server entry when servers field is missing', async () => {
+      const jsonContent = {
+        openapi: '3.0.0',
+        info: { title: 'Test API', version: '1.0.0' },
+        paths: {},
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => 'application/json' },
+        text: () => Promise.resolve(JSON.stringify(jsonContent)),
+      } as any);
+
+      const result = await fetcher.fetchFromUrl('http://api.example.com/swagger.json');
+
+      expect(result.success).toBe(true);
+      expect(result.definition).toContain('servers:');
+      expect(result.definition).toContain('http://api.example.com');
+    });
   });
 
   describe('fetchFromResourceRef', () => {

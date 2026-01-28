@@ -24,9 +24,112 @@ export class ApiDefinitionFetcher {
   }
 
   /**
+   * Checks if a URL is a full URL (has protocol and host) or just a path.
+   * @param url The URL to check
+   * @returns true if it's a full URL, false if it's just a path
+   */
+  private isFullUrl(url: string): boolean {
+    try {
+      const parsed = new URL(url);
+      return !!parsed.protocol && !!parsed.host;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Extracts the base URL (protocol + host + port) from a full URL.
+   * @param url The URL to extract the base from
+   * @returns The base URL (e.g., "https://api.example.com:443")
+   */
+  private getBaseUrl(url: string): string {
+    try {
+      const parsed = new URL(url);
+      // parsed.host already includes the port if present
+      return `${parsed.protocol}//${parsed.host}`;
+    } catch {
+      return url;
+    }
+  }
+
+  /**
+   * Processes the servers field in an OpenAPI spec to ensure full URLs.
+   * If servers[0].url is just a path, replaces it with the full URL based on where the spec was fetched.
+   * If it's a full URL but different from the fetch URL, adds a second entry.
+   * @param apiSpec The parsed API spec object
+   * @param fetchUrl The URL from which the spec was fetched
+   * @returns The modified API spec object
+   */
+  private processServersField(apiSpec: any, fetchUrl: string): any {
+    if (!apiSpec || typeof apiSpec !== 'object') {
+      return apiSpec;
+    }
+
+    const fetchBaseUrl = this.getBaseUrl(fetchUrl);
+    
+    // Initialize servers array if it doesn't exist
+    if (!apiSpec.servers) {
+      apiSpec.servers = [];
+    }
+
+    // Ensure servers is an array
+    if (!Array.isArray(apiSpec.servers)) {
+      return apiSpec;
+    }
+
+    if (apiSpec.servers.length === 0) {
+      // No servers defined, add one based on fetch URL
+      apiSpec.servers = [{ url: fetchBaseUrl }];
+      this.logger.debug(`Added server entry based on fetch URL: ${fetchBaseUrl}`);
+      return apiSpec;
+    }
+
+    const firstServer = apiSpec.servers[0];
+    if (!firstServer || typeof firstServer.url !== 'string') {
+      return apiSpec;
+    }
+
+    const firstServerUrl = firstServer.url;
+
+    if (!this.isFullUrl(firstServerUrl)) {
+      // It's a relative path, construct full URL from fetch URL base + path
+      const fullUrl = firstServerUrl.startsWith('/')
+        ? `${fetchBaseUrl}${firstServerUrl}`
+        : `${fetchBaseUrl}/${firstServerUrl}`;
+      
+      this.logger.debug(`Converting relative server URL "${firstServerUrl}" to full URL: ${fullUrl}`);
+      apiSpec.servers[0].url = fullUrl;
+    } else {
+      // It's a full URL, check if we need to add a second entry
+      const existingBaseUrl = this.getBaseUrl(firstServerUrl);
+      
+      if (existingBaseUrl !== fetchBaseUrl) {
+        // Add a second server entry based on where we fetched the spec
+        const fetchPath = firstServerUrl.replace(existingBaseUrl, '');
+        const newServerUrl = fetchPath ? `${fetchBaseUrl}${fetchPath}` : fetchBaseUrl;
+        
+        // Check if this URL already exists in the servers array
+        const exists = apiSpec.servers.some(
+          (s: any) => typeof s.url === 'string' && s.url === newServerUrl
+        );
+        
+        if (!exists) {
+          this.logger.debug(`Adding additional server entry based on fetch URL: ${newServerUrl}`);
+          apiSpec.servers.push({
+            url: newServerUrl,
+            description: 'Server based on API fetch location',
+          });
+        }
+      }
+    }
+
+    return apiSpec;
+  }
+
+  /**
    * Fetches an API definition from a direct URL.
    * @param url The URL to fetch the API definition from
-   * @returns The API definition result
+   * @returns The API definition result including the fetch URL
    */
   async fetchFromUrl(url: string): Promise<ApiDefinitionResult> {
     try {
@@ -49,34 +152,44 @@ export class ApiDefinitionFetcher {
       const contentType = response.headers.get('content-type') || '';
       const text = await response.text();
 
-      // Convert to YAML if it's JSON
-      let yamlDefinition: string;
+      // Parse the content to process the servers field
+      let apiSpec: any;
       if (contentType.includes('json') || text.trim().startsWith('{') || text.trim().startsWith('[')) {
         try {
-          const jsonContent = JSON.parse(text);
-          yamlDefinition = yaml.dump(jsonContent);
+          apiSpec = JSON.parse(text);
         } catch (parseError) {
           // If JSON parsing fails, try treating it as YAML
-          yamlDefinition = text;
+          try {
+            apiSpec = yaml.load(text);
+          } catch (yamlError) {
+            return {
+              success: false,
+              error: `Invalid API definition format from ${url}: ${yamlError}`,
+            };
+          }
         }
       } else {
-        // Already YAML or treat as YAML
-        yamlDefinition = text;
+        // Treat as YAML
+        try {
+          apiSpec = yaml.load(text);
+        } catch (yamlError) {
+          return {
+            success: false,
+            error: `Invalid API definition format from ${url}: ${yamlError}`,
+          };
+        }
       }
 
-      // Validate that it's valid YAML
-      try {
-        yaml.load(yamlDefinition);
-      } catch (yamlError) {
-        return {
-          success: false,
-          error: `Invalid API definition format from ${url}: ${yamlError}`,
-        };
-      }
+      // Process the servers field to ensure full URLs
+      apiSpec = this.processServersField(apiSpec, url);
+
+      // Convert back to YAML
+      const yamlDefinition = yaml.dump(apiSpec);
 
       return {
         success: true,
         definition: yamlDefinition,
+        fetchUrl: url,
       };
     } catch (error) {
       return {

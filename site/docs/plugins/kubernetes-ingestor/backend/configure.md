@@ -287,8 +287,10 @@ The plugin supports automatic registration of API entities from OpenAPI/Swagger 
 When an API entity is auto-registered:
 - The API entity is created with the same name as the component
 - The API entity title is set to `{Component Title} API` (e.g., "Petstore API")
+- The API entity is assigned to the same system as the component
 - The component's `providesApis` field is automatically updated to reference the API
 - The API definition is stored in YAML format
+- The `servers` field in the OpenAPI spec is automatically processed (see below)
 
 #### Option 1: Direct URL
 
@@ -379,6 +381,40 @@ The plugin will:
 3. Construct the full URL: `{target-protocol}://{extracted-endpoint}:{target-port}{path}`
 4. Fetch the API definition from the constructed URL
 5. Create an API entity and link it to the component
+
+#### Server URL Processing
+
+The plugin automatically processes the `servers` field in OpenAPI specifications to ensure usable server URLs:
+
+**Relative URLs**: If the `servers[0].url` field contains a relative path (e.g., `/api/v1`), it is automatically converted to a full URL based on where the API specification was fetched from.
+
+```yaml
+# Original spec fetched from http://api.example.com:8080/swagger.json
+servers:
+  - url: /api/v1
+
+# After processing
+servers:
+  - url: http://api.example.com:8080/api/v1
+```
+
+**Different Server URLs**: If the `servers[0].url` field contains a full URL that differs from the fetch location, the plugin preserves the original URL and adds a second server entry based on the fetch location:
+
+```yaml
+# Original spec fetched from http://internal.example.com:8080/swagger.json
+servers:
+  - url: https://external.example.com/api
+
+# After processing - both URLs are preserved
+servers:
+  - url: https://external.example.com/api
+  - url: http://internal.example.com:8080/api
+    description: Server based on API fetch location
+```
+
+**Empty or Missing Servers**: If the `servers` field is empty or missing, the plugin adds a server entry based on the fetch URL.
+
+This automatic processing ensures that API documentation in Backstage always includes usable server URLs for testing and exploration.
 
 #### Error Handling
 

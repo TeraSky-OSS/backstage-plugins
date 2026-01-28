@@ -52,4 +52,6 @@ export interface ApiDefinitionResult {
   definition?: string;
   /** Error message if the fetch failed */
   error?: string;
+  /** The URL from which the API definition was fetched (used for fixing servers field) */
+  fetchUrl?: string;
 }
