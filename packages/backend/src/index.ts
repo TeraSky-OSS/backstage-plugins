@@ -19,6 +19,8 @@ backend.add(import('@backstage/plugin-auth-backend'));
 // See https://backstage.io/docs/backend-system/building-backends/migrating#the-auth-plugin
 backend.add(import('@backstage/plugin-auth-backend-module-guest-provider'));
 // See https://backstage.io/docs/auth/guest/provider
+// SpectroCloud OIDC authentication
+  backend.add(import('@terasky/backstage-plugin-spectrocloud-auth-backend'));
 
 // catalog plugin
 backend.add(import('@backstage/plugin-catalog-backend'));

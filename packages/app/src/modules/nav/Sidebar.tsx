@@ -25,7 +25,7 @@ import SchoolIcon from '@material-ui/icons/School';
 import { SidebarSearchModal } from '@backstage/plugin-search';
 import { UserSettingsSignInAvatar, Settings as SidebarSettings } from '@backstage/plugin-user-settings';
 
-export const SidebarContent = NavContentBlueprint.make({
+export const SidebarContent: ReturnType<typeof NavContentBlueprint.make> = NavContentBlueprint.make({
   params: {
     component: ({}) =>
       compatWrapper(
@@ -37,7 +37,7 @@ export const SidebarContent = NavContentBlueprint.make({
       <SidebarDivider />
       <SidebarGroup label="Menu" icon={<MenuIcon />}>
         {/* Global nav, not org-specific */}
-        <SidebarItem icon={ListIcon} text="Catalog" to={'/catalog'}>
+        <SidebarItem icon={ListIcon} text="Catalog" to="/catalog">
           <SidebarSubmenu title="Catalog">
             <Typography variant="subtitle2" style={{ padding: '32px 16px 16px 16px', fontWeight: 'bold' }}>
               Application Components
