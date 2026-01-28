@@ -4,7 +4,7 @@ The SpectroCloud plugins for Backstage provide comprehensive integration with Sp
 
 ## Plugin Suite Components
 
-The SpectroCloud plugin suite consists of several components:
+The SpectroCloud plugin suite consists of several components for resource management and authentication:
 
 - **Frontend Plugin (`@terasky/backstage-plugin-spectrocloud`)**: 
   - Entity cards for clusters and cluster profiles
@@ -33,8 +33,27 @@ The SpectroCloud plugin suite consists of several components:
 
 - **Cluster Provider Plugin (`@terasky/backstage-plugin-spectrocloud-cluster-provider`)**:
   - Kubernetes cluster discovery from Palette
-  - Automatic RBAC setup with service accounts
+  - Service account or OIDC authentication support
+  - Automatic RBAC setup (service account mode)
   - Integration with Backstage Kubernetes plugin
+
+- **Authentication Backend Module (`@terasky/backstage-plugin-spectrocloud-auth-backend`)**:
+  - SpectroCloud OIDC authentication integration
+  - OAuth2 authorization code flow with token exchange
+  - RS256 ID token for Kubernetes authentication
+  - User profile extraction and sign-in resolution
+
+- **Authentication Frontend Plugin (`@terasky/backstage-plugin-spectrocloud-auth`)**:
+  - OAuth2 client for SpectroCloud authentication
+  - Sign-in page integration
+  - Session management and user identity APIs
+  - Auto-discovered by Backstage
+
+- **Kubernetes Auth Module (`@terasky/backstage-plugin-spectrocloud-kubernetes-auth-module`)**:
+  - Extends Backstage Kubernetes plugin for OIDC
+  - User-level authentication to clusters
+  - Uses SpectroCloud identity tokens
+  - Provides audit trails with actual user names
 
 - **Common Library (`@terasky/backstage-plugin-spectrocloud-common`)**:
   - Shared types and interfaces
@@ -117,7 +136,9 @@ spectrocloud:
 
 ## Getting Started
 
-To get started with the SpectroCloud plugins:
+### Resource Management Plugins
+
+To get started with SpectroCloud resource management:
 
 1. **Install the ingestor plugin** for catalog integration
 2. **Install the backend plugin** for API and MCP actions
@@ -125,15 +146,28 @@ To get started with the SpectroCloud plugins:
 4. **Optionally install the cluster provider** for Kubernetes plugin integration
 5. **Configure permissions** as needed
 
-For detailed installation and configuration instructions, refer to the individual plugin documentation:
+### Authentication Plugins
 
-- [Frontend Plugin Installation](./frontend/install.md)
-- [Frontend Plugin Configuration](./frontend/configure.md)
-- [Backend Plugin Installation](./backend/install.md)
-- [Backend Plugin Configuration](./backend/configure.md)
-- [Ingestor Plugin Installation](./ingestor/install.md)
-- [Ingestor Plugin Configuration](./ingestor/configure.md)
-- [Cluster Provider About](./cluster-provider/about.md)
-- [Cluster Provider Installation](./cluster-provider/install.md)
-- [Cluster Provider Configuration](./cluster-provider/configure.md)
+To enable SpectroCloud authentication:
+
+1. **Install the backend auth module** for OIDC authentication
+2. **Install the frontend auth plugin** (auto-discovered)
+3. **Optional: Install Kubernetes auth module** for user-level cluster access
+4. **Configure sign-in resolvers** and authentication providers
+
+## Documentation
+
+### Resource Management
+
+- [Frontend Plugin](./frontend/about.md)
+- [Backend Plugin](./backend/about.md)
+- [Ingestor Plugin](./ingestor/about.md)
+- [Cluster Provider](./cluster-provider/about.md)
+
+### Authentication
+
+- [Authentication Overview](./auth/overview.md)
+- [Backend Auth Module](./auth/backend/about.md)
+- [Frontend Auth Plugin](./auth/frontend/about.md)
+- [Kubernetes Auth Module](./auth/kubernetes-module/about.md)
 

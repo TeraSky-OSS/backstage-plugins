@@ -97,8 +97,9 @@ Workload Resource Annotations:
   terasky.backstage.io/description: string
 
 API Auto-Registration Annotations:
-  terasky.backstage.io/provides-api-from-url: string
-  terasky.backstage.io/provides-api-from-resource-ref: JSON
+  terasky.backstage.io/provides-api-from-def: string      # URL for $text reference (runtime fetch)
+  terasky.backstage.io/provides-api-from-url: string      # URL to fetch and embed at ingestion
+  terasky.backstage.io/provides-api-from-resource-ref: JSON  # K8s resource reference
 ```
 
 ## Getting Started

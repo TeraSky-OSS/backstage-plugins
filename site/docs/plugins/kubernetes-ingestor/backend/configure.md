@@ -27,6 +27,7 @@ kubernetesIngestor:
   # Default owner for ingested entities when no owner annotation is set
   defaultOwner: 'kubernetes-auto-ingested'
   # A list of cluster names to ingest resources from. If empty, resources from all clusters under kubernetes.clusterLocatorMethods.clusters will be ingested.
+  # Note: Clusters using OIDC authentication are automatically excluded as they require client-side authentication.
   # allowedClusterNames:
   #   - my-cluster-name
   components:
@@ -147,6 +148,31 @@ kubernetesIngestor:
   # Whether to auto add the argo cd plugins annotation to the ingested components if the ingested resources have the ArgoCD tracking annotation added to them. defaults to false
   argoIntegration: true
 ```
+
+## Cluster Authentication Requirements
+
+The Kubernetes Ingestor plugin runs on the backend and communicates directly with Kubernetes clusters. This means it requires authentication methods that work for server-to-server communication.
+
+### Supported Authentication Providers
+
+The following authentication providers are supported:
+
+- `serviceAccount` - Uses a Kubernetes service account token
+- `google` - Uses Google Cloud service account credentials
+- `aws` - Uses AWS IAM credentials
+- `azure` - Uses Azure service principal credentials
+- `localKubectlProxy` - Uses a local kubectl proxy
+
+### Excluded Authentication Providers
+
+The following authentication providers are **automatically excluded** because they require client-side (browser-based) authentication:
+
+- `oidc` - OpenID Connect requires user interaction for authentication
+
+Clusters configured with these auth providers will be silently skipped during ingestion. If you need to ingest resources from an OIDC-authenticated cluster, consider:
+
+1. Adding a service account with appropriate RBAC permissions to the cluster
+2. Configuring a separate cluster entry with `authProvider: serviceAccount` pointing to the same cluster
 
 ## Advanced Features
 
@@ -292,9 +318,40 @@ When an API entity is auto-registered:
 - The API definition is stored in YAML format
 - The `servers` field in the OpenAPI spec is automatically processed (see below)
 
-#### Option 1: Direct URL
+#### Option 1: External URL Reference ($text directive)
 
-Use this annotation when you have a direct URL to the OpenAPI/Swagger definition:
+Use this annotation when you want Backstage to fetch the API definition at runtime rather than embedding it in the catalog. This uses Backstage's `$text` substitution directive, which means the content is fetched when the entity is processed rather than during ingestion:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: petstore
+  annotations:
+    terasky.backstage.io/title: "Petstore"
+    terasky.backstage.io/provides-api-from-def: "http://petstore.example.com/api/v3/openapi.json"
+spec:
+  # ... deployment spec
+```
+
+This creates an API entity with the following definition structure:
+
+```yaml
+spec:
+  definition:
+    $text: http://petstore.example.com/api/v3/openapi.json
+```
+
+**When to use this option:**
+- When the API spec is frequently updated and you want the latest version
+- When you don't want to store large API specs in the catalog database
+- When the API endpoint is always accessible from the Backstage backend
+
+**Note:** The URL must be accessible by the Backstage backend at runtime when the entity is processed.
+
+#### Option 2: Fetch and Embed
+
+Use this annotation when you want the plugin to fetch the API definition during ingestion and embed it directly in the catalog:
 
 ```yaml
 apiVersion: apps/v1
@@ -311,6 +368,19 @@ spec:
 The URL can point to:
 - OpenAPI 3.x specifications (JSON or YAML)
 - Swagger 2.x specifications (JSON or YAML)
+- URLs from Git providers (GitHub, GitLab, Bitbucket, Azure DevOps) with automatic authentication
+
+**Git Provider URLs**: When pointing to files hosted on Git providers, the plugin automatically uses Backstage's `UrlReaderService` for integrated authentication, caching, and rate limiting. This means your configured Git integrations will be used to authenticate requests. For example:
+
+```yaml
+# GitHub raw content URL (uses configured GitHub integration)
+terasky.backstage.io/provides-api-from-url: "https://raw.githubusercontent.com/org/repo/main/openapi.json"
+
+# GitLab raw file URL (uses configured GitLab integration)
+terasky.backstage.io/provides-api-from-url: "https://gitlab.com/org/repo/-/raw/main/openapi.yaml"
+```
+
+**Internal Service URLs**: For non-Git URLs (e.g., internal service Swagger endpoints), the plugin uses direct HTTP requests, which is appropriate for endpoints that don't require Backstage integration authentication.
 
 The plugin will automatically:
 1. Fetch the API definition from the URL
@@ -318,7 +388,7 @@ The plugin will automatically:
 3. Create an API entity named after the component
 4. Link the API to the component via `providesApis`
 
-#### Option 2: Kubernetes Resource Reference
+#### Option 3: Kubernetes Resource Reference
 
 Use this annotation when the API endpoint information needs to be extracted from another Kubernetes resource (e.g., a Service's LoadBalancer IP):
 

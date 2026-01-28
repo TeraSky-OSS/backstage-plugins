@@ -29,6 +29,9 @@ The module supports all core Backstage authentication providers:
 - **VMware Cloud** - VMware Cloud Services authentication
 - **Guest** - Development-only guest access
 
+#### Additional Provider Support
+The module also supports the custom spectrocloud oidc auth provider from this repo.
+
 ### Per-Provider Customization
 Each authentication provider can be individually configured with:
 

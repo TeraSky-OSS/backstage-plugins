@@ -13,6 +13,7 @@ spectrocloud:
       tenant: my-tenant
       apiToken: ${SPECTROCLOUD_API_TOKEN}
       clusterProvider:
+        authType: serviceAccount  # or 'oidc'
         includeProjects: [production, staging]
         excludeProjects: [sandbox]
         excludeTenantScopedClusters: false
@@ -27,6 +28,36 @@ spectrocloud:
               resources: ['*']
               verbs: ['get', 'list', 'watch']
 ```
+
+## Authentication Types
+
+The cluster provider supports two authentication methods:
+
+### Service Account (Default)
+
+- **How it works:** Creates a service account, ClusterRole, and ClusterRoleBinding in each cluster
+- **Use when:** You want Backstage to have its own dedicated credentials per cluster
+- **Pros:** 
+  - Isolated credentials per cluster
+  - Works without additional authentication setup
+  - Fine-grained RBAC control
+- **Cons:**
+  - Creates resources in each cluster
+  - Requires admin access to clusters
+  - No user-level auditing
+
+### OIDC
+
+- **How it works:** Uses OIDC tokens from user authentication (SpectroCloud)
+- **Use when:** Users authenticate via SpectroCloud and you want user-level access
+- **Pros:**
+  - No resources created in clusters
+  - User-level auditing and access control
+  - Leverages existing SpectroCloud authentication
+- **Cons:**
+  - Requires SpectroCloud OIDC auth plugin configured
+  - Users must be authenticated
+  - Access based on user's permissions
 
 ## Configuration Parameters
 
@@ -43,14 +74,18 @@ spectrocloud:
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
+| `authType` | string | `serviceAccount` | Authentication type: `serviceAccount` or `oidc` |
+| `oidcAuthProviderName` | string | `spectrocloud` | OIDC provider name (when authType is `oidc`) |
 | `includeProjects` | string[] | `[]` | Projects to include (empty = all) |
 | `excludeProjects` | string[] | `[]` | Projects to exclude |
 | `excludeTenantScopedClusters` | boolean | `false` | Exclude tenant-scoped clusters |
 | `refreshIntervalSeconds` | number | `300` | Refresh interval |
-| `clusterTimeoutSeconds` | number | `30` | Timeout per cluster |
+| `clusterTimeoutSeconds` | number | `30` | Timeout per cluster (serviceAccount only) |
 | `skipMetricsLookup` | boolean | `false` | Skip metrics API check |
 
 ### RBAC Configuration
+
+**Note:** RBAC settings only apply when `authType` is `serviceAccount`. When using `oidc` authentication, no resources are created in the cluster.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
@@ -108,6 +143,34 @@ spectrocloud:
               verbs: ['get', 'list', 'watch']
 ```
 
+### OIDC Authentication
+
+Use OIDC authentication instead of service accounts. No resources are created in clusters.
+
+```yaml
+spectrocloud:
+  environments:
+    - url: https://api.spectrocloud.com
+      tenant: my-tenant
+      apiToken: ${SPECTROCLOUD_API_TOKEN}
+      clusterProvider:
+        authType: oidc
+        oidcAuthProviderName: spectrocloud  # Must match your OIDC auth provider
+```
+
+You'll also need to configure the Kubernetes plugin to use OIDC:
+
+```yaml
+kubernetes:
+  clusterLocatorMethods: []  # Use only SpectroCloud clusters
+  clusters:
+    # Clusters will be auto-discovered from SpectroCloud
+    # Configure them to use OIDC in your spectrocloud config
+
+# Add the spectrocloud-kubernetes-auth-module to your app
+# See the spectrocloud-auth plugin documentation for details
+```
+
 ### Multi-Instance
 
 ```yaml
@@ -124,6 +187,7 @@ spectrocloud:
       tenant: eu-tenant
       apiToken: ${SPECTROCLOUD_EU_TOKEN}
       clusterProvider:
+        authType: oidc  # Use OIDC for EU clusters
         includeProjects: [production]
 ```
 

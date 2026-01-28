@@ -257,6 +257,17 @@ signinPage:
       message: Sign in using VMware Cloud  # Default
 ```
 
+### Spectro Cloud
+
+```yaml
+signinPage:
+  providers:
+    spectrocloud:
+      enabled: true
+      title: Spectro Cloud  # Default
+      message: Sign in using Spectro Cloud  # Default
+```
+
 ## Environment-Specific Configuration
 
 ### Using Configuration Files
@@ -364,6 +375,9 @@ signinPage:
       enabled: false
     
     vmwareCloud:
+      enabled: false
+
+    spectrocloud:
       enabled: false
 ```
 

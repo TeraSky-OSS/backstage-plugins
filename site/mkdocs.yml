@@ -67,6 +67,20 @@ nav:
               - About: plugins/spectrocloud/cluster-provider/about.md
               - Install: plugins/spectrocloud/cluster-provider/install.md
               - Configure: plugins/spectrocloud/cluster-provider/configure.md
+          - Authentication:
+              - Overview: plugins/spectrocloud/auth/overview.md
+              - Backend Module:
+                  - About: plugins/spectrocloud/auth/backend/about.md
+                  - Install: plugins/spectrocloud/auth/backend/install.md
+                  - Configure: plugins/spectrocloud/auth/backend/configure.md
+              - Frontend Plugin:
+                  - About: plugins/spectrocloud/auth/frontend/about.md
+                  - Install: plugins/spectrocloud/auth/frontend/install.md
+                  - Configure: plugins/spectrocloud/auth/frontend/configure.md
+              - Kubernetes Module:
+                  - About: plugins/spectrocloud/auth/kubernetes-module/about.md
+                  - Install: plugins/spectrocloud/auth/kubernetes-module/install.md
+                  - Configure: plugins/spectrocloud/auth/kubernetes-module/configure.md
   - IaC GitOps:
       - GitOps Manifest Updater:
           - Overview: plugins/gitops-manifest-updater/overview.md
