@@ -16,6 +16,7 @@ import {
 } from '@backstage/frontend-plugin-api';
 import { SignInPage } from '@backstage/core-components';
 import { useApi, configApiRef } from '@backstage/core-plugin-api';
+import { spectroCloudAuthApiRef } from '@terasky/backstage-plugin-spectrocloud-auth';
 
 // Define default configurations for each provider
 const providerDefaults = {
@@ -84,6 +85,12 @@ const providerDefaults = {
     title: 'VMware Cloud',
     message: 'Sign in using VMware Cloud',
     apiRef: vmwareCloudAuthApiRef,
+  },
+  spectrocloud: {
+    id: 'spectrocloud-auth-provider',
+    title: 'SpectroCloud',
+    message: 'Sign in using SpectroCloud',
+    apiRef: spectroCloudAuthApiRef,
   },
 };
 

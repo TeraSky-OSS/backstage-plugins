@@ -256,6 +256,28 @@ export interface Config {
          */
         message?: string;
       };
+
+      /**
+       * SpectroCloud authentication provider
+       * @visibility frontend
+       */
+      spectrocloud?: {
+        /**
+         * Enable SpectroCloud provider
+         * @visibility frontend
+         */
+        enabled?: boolean;
+        /**
+         * Custom title for SpectroCloud provider
+         * @visibility frontend
+         */
+        title?: string;
+        /**
+         * Custom message for SpectroCloud provider
+         * @visibility frontend
+         */
+        message?: string;
+      };
     };
   };
 }
