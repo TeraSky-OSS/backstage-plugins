@@ -111,6 +111,7 @@ export const SidebarContent: ReturnType<typeof NavContentBlueprint.make> = NavCo
             </Typography>
             <SidebarSubmenuItem title="Namespaces" to="/catalog?filters[kind]=system&filters[type]=kubernetes-namespace" icon={SiKubernetes} />
             <SidebarSubmenuItem title="Workloads" to="/catalog?filters[kind]=component&filters[type]=service" icon={SiKubernetes} />
+            <SidebarSubmenuItem title="CRDs" to="/catalog?filters[kind]=api&filters[tags]=crd" icon={SiOpenapiinitiative} />
             <SidebarDivider />
             <Typography variant="subtitle2" style={{ padding: '32px 16px 16px 16px', fontWeight: 'bold' }}>
               Crossplane
@@ -118,11 +119,12 @@ export const SidebarContent: ReturnType<typeof NavContentBlueprint.make> = NavCo
             
             <SidebarSubmenuItem title="Claims" to="/catalog?filters[kind]=component&filters[type]=crossplane-claim" icon={SiKubernetes} />
             <SidebarSubmenuItem title="Composites" to="/catalog?filters[kind]=component&filters[type]=crossplane-xr" icon={SiKubernetes} />
-            <SidebarSubmenuItem title="CRDs" to="/catalog?filters[kind]=api&filters[owners]=group:default/kubernetes-auto-ingested" icon={SiOpenapiinitiative} />
+            <SidebarSubmenuItem title="XRDs" to="/catalog?filters[kind]=api&filters[tags]=crossplane" icon={SiOpenapiinitiative} />
             <Typography variant="subtitle2" style={{ padding: '32px 16px 16px 16px', fontWeight: 'bold' }}>
               KRO
             </Typography>
             <SidebarSubmenuItem title="Instances" to="/catalog?filters[kind]=component&filters[type]=kro-instance" icon={SiKubernetes} />
+            <SidebarSubmenuItem title="RGDs" to="/catalog?filters[kind]=api&filters[tags]=kro" icon={SiOpenapiinitiative} />
           </SidebarSubmenu>
         </SidebarItem>
         <SidebarItem icon={FaCloud} text="VCF Automation">

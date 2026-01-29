@@ -23,7 +23,7 @@
     "@backstage/frontend-plugin-api": "^0.13.4",
     "@backstage/integration-react": "^1.2.14",
     "@backstage/plugin-api-docs": "^0.13.3",
-    "@backstage/plugin-app-react": "0.1.0",
+    "@backstage/plugin-app-react": "^0.1.0",
     "@backstage/plugin-app-visualizer": "^0.1.27",
     "@backstage/plugin-auth": "^0.1.4",
     "@backstage/plugin-catalog": "^1.32.2",
