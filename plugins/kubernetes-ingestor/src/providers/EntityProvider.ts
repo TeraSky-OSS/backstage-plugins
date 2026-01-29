@@ -97,6 +97,84 @@ export class XRDTemplateEntityProvider implements EntityProvider {
     return this.config.getOptionalString('kubernetesIngestor.defaultOwner') || 'kubernetes-auto-ingested';
   }
 
+  /**
+   * Normalizes a cluster name by stripping configured prefixes for use in entity naming/organization.
+   * This ensures consistent naming regardless of whether SA or OIDC auth prefixes are used.
+   * 
+   * @param clusterName - The original cluster name (e.g., 'sa-cls-01' or 'oidc-cls-01')
+   * @returns The normalized cluster name (e.g., 'cls-01')
+   */
+  private getNormalizedClusterName(clusterName: string): string {
+    const mappingConfig = this.config.getOptionalConfig('kubernetesIngestor.clusterNameMapping');
+    
+    if (!mappingConfig) {
+      return clusterName;
+    }
+
+    const mode = mappingConfig.getOptionalString('mode');
+
+    if (mode === 'prefix-replacement') {
+      const sourcePrefix = mappingConfig.getOptionalString('sourcePrefix');
+      const targetPrefix = mappingConfig.getOptionalString('targetPrefix');
+
+      // Strip source prefix if present
+      if (sourcePrefix && clusterName.startsWith(sourcePrefix)) {
+        return clusterName.substring(sourcePrefix.length);
+      }
+      
+      // Strip target prefix if present
+      if (targetPrefix && clusterName.startsWith(targetPrefix)) {
+        return clusterName.substring(targetPrefix.length);
+      }
+    } else if (mode === 'explicit') {
+      // For explicit mode, try to find a pattern by checking if multiple mappings
+      // share the same base name after removing common prefixes
+      const mappings = mappingConfig.getOptionalConfig('mappings');
+      if (mappings) {
+        // Check if this cluster is a key (source) in the mappings
+        const mappedValue = mappings.getOptionalString(clusterName);
+        if (mappedValue) {
+          // This is a source cluster, try to detect common prefix with its target
+          const commonPrefixLength = this.findCommonPrefixDifference(clusterName, mappedValue);
+          if (commonPrefixLength > 0) {
+            return clusterName.substring(commonPrefixLength);
+          }
+        }
+        
+        // Check if this cluster is a value (target) in the mappings
+        const allKeys = mappings.keys();
+        for (const key of allKeys) {
+          const value = mappings.getOptionalString(key);
+          if (value === clusterName) {
+            // This is a target cluster, try to detect common prefix with its source
+            const commonPrefixLength = this.findCommonPrefixDifference(key, clusterName);
+            if (commonPrefixLength > 0) {
+              return clusterName.substring(commonPrefixLength);
+            }
+          }
+        }
+      }
+    }
+
+    return clusterName;
+  }
+
+  /**
+   * Helper to find where two strings diverge to detect prefix differences.
+   */
+  private findCommonPrefixDifference(str1: string, str2: string): number {
+    // Find where the strings start to be the same (after different prefixes)
+    // e.g., "sa-cls-01" and "oidc-cls-01" should return the position of "cls-01"
+    for (let i = 0; i < Math.min(str1.length, str2.length); i++) {
+      const remaining1 = str1.substring(i);
+      const remaining2 = str2.substring(i);
+      if (remaining1 === remaining2) {
+        return i;
+      }
+    }
+    return 0;
+  }
+
   getProviderName(): string {
     return 'XRDTemplateEntityProvider';
   }
@@ -210,7 +288,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
         const parameters = this.extractParameters(version, clusters, xrd);
         const prefix = this.getAnnotationPrefix();
         const steps = this.extractSteps(version, xrd);
-        const clusterTags = clusters.map((cluster: any) => `cluster:${cluster}`);
+        const clusterTags = clusters.map((cluster: any) => `cluster:${this.getNormalizedClusterName(cluster)}`);
         const tags = ['crossplane', ...clusterTags];
         const crossplaneAnnotations = {
           [`${prefix}/crossplane-version`]: crossplaneVersion,
@@ -258,7 +336,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
       const parameters = this.extractParameters(version, clusters, xrd);
       const prefix = this.getAnnotationPrefix();
       const steps = this.extractSteps(version, xrd);
-      const clusterTags = clusters.map((cluster: any) => `cluster:${cluster}`);
+      const clusterTags = clusters.map((cluster: any) => `cluster:${this.getNormalizedClusterName(cluster)}`);
       const tags = ['crossplane', ...clusterTags];
       const crossplaneAnnotations = {
         [`${prefix}/crossplane-version`]: crossplaneVersion,
@@ -553,6 +631,9 @@ export class XRDTemplateEntityProvider implements EntityProvider {
   }
 
   private extractParameters(version: any, clusters: string[], xrd: any): any[] {
+    // Normalize cluster names for template display
+    const normalizedClusters = clusters.map(cluster => this.getNormalizedClusterName(cluster));
+    
     // --- BEGIN VERSION/SCOPE LOGIC REFACTOR ---
     // Use presence of xrd.spec.scope to determine v2, otherwise v1
     const isV2 = !!xrd.spec?.scope;
@@ -916,7 +997,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
                             type: 'array',
                             minItems: 1,
                             items: {
-                              enum: clusters,
+                              enum: normalizedClusters,
                               type: 'string',
                             },
                             uniqueItems: true,
@@ -1000,7 +1081,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
                             type: 'array',
                             minItems: 1,
                             items: {
-                              enum: clusters,
+                              enum: normalizedClusters,
                               type: 'string',
                             },
                             uniqueItems: true,
@@ -1195,7 +1276,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
 
     const parameters = this.extractCRDParameters(storedVersion, clusters, crd);
     const steps = this.extractCRDSteps(storedVersion, crd);
-    const clusterTags = clusters.map((cluster: any) => `cluster:${cluster}`);
+    const clusterTags = clusters.map((cluster: any) => `cluster:${this.getNormalizedClusterName(cluster)}`);
     const tags = ['kubernetes-crd', ...clusterTags];
 
     const templates = [{
@@ -1560,6 +1641,9 @@ export class XRDTemplateEntityProvider implements EntityProvider {
   }
 
   private extractCRDParameters(version: any, clusters: string[], crd: any): any[] {
+    // Normalize cluster names for template display
+    const normalizedClusters = clusters.map(cluster => this.getNormalizedClusterName(cluster));
+    
     const mainParameterGroup = {
       title: 'Resource Metadata',
       required: ['name'],
@@ -1725,7 +1809,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
                             type: "array",
                             minItems: 1,
                             items: {
-                              enum: clusters,
+                              enum: normalizedClusters,
                               type: 'string',
                             },
                             uniqueItems: true,
@@ -1808,7 +1892,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
                             type: "array",
                             minItems: 1,
                             items: {
-                              enum: clusters,
+                              enum: normalizedClusters,
                               type: 'string',
                             },
                             uniqueItems: true,
@@ -1980,6 +2064,121 @@ export class KubernetesEntityProvider implements EntityProvider {
     return true;
   }
 
+  /**
+   * Maps a backend cluster name to a frontend cluster name based on configuration.
+   * Supports both prefix-based replacement and explicit mappings.
+   * Used for the backstage.io/kubernetes-cluster annotation.
+   * 
+   * @param clusterName - The original cluster name from the backend
+   * @returns The mapped cluster name for frontend use, or the original if no mapping applies
+   */
+  private mapClusterName(clusterName: string): string {
+    const mappingConfig = this.config.getOptionalConfig('kubernetesIngestor.clusterNameMapping');
+    
+    if (!mappingConfig) {
+      return clusterName;
+    }
+
+    const mode = mappingConfig.getOptionalString('mode');
+
+    if (mode === 'prefix-replacement') {
+      const sourcePrefix = mappingConfig.getOptionalString('sourcePrefix');
+      const targetPrefix = mappingConfig.getOptionalString('targetPrefix');
+
+      if (sourcePrefix && targetPrefix && clusterName.startsWith(sourcePrefix)) {
+        return clusterName.replace(sourcePrefix, targetPrefix);
+      }
+    } else if (mode === 'explicit') {
+      const mappings = mappingConfig.getOptionalConfig('mappings');
+      if (mappings) {
+        const mappedName = mappings.getOptionalString(clusterName);
+        if (mappedName) {
+          return mappedName;
+        }
+      }
+    }
+
+    return clusterName;
+  }
+
+  /**
+   * Normalizes a cluster name by stripping configured prefixes for use in entity naming/organization.
+   * This ensures consistent naming regardless of whether SA or OIDC auth prefixes are used.
+   * 
+   * @param clusterName - The original cluster name (e.g., 'sa-cls-01' or 'oidc-cls-01')
+   * @returns The normalized cluster name (e.g., 'cls-01')
+   */
+  private getNormalizedClusterName(clusterName: string): string {
+    const mappingConfig = this.config.getOptionalConfig('kubernetesIngestor.clusterNameMapping');
+    
+    if (!mappingConfig) {
+      return clusterName;
+    }
+
+    const mode = mappingConfig.getOptionalString('mode');
+
+    if (mode === 'prefix-replacement') {
+      const sourcePrefix = mappingConfig.getOptionalString('sourcePrefix');
+      const targetPrefix = mappingConfig.getOptionalString('targetPrefix');
+
+      // Strip source prefix if present
+      if (sourcePrefix && clusterName.startsWith(sourcePrefix)) {
+        return clusterName.substring(sourcePrefix.length);
+      }
+      
+      // Strip target prefix if present
+      if (targetPrefix && clusterName.startsWith(targetPrefix)) {
+        return clusterName.substring(targetPrefix.length);
+      }
+    } else if (mode === 'explicit') {
+      // For explicit mode, try to find a pattern by checking if multiple mappings
+      // share the same base name after removing common prefixes
+      const mappings = mappingConfig.getOptionalConfig('mappings');
+      if (mappings) {
+        // Check if this cluster is a key (source) in the mappings
+        const mappedValue = mappings.getOptionalString(clusterName);
+        if (mappedValue) {
+          // This is a source cluster, try to detect common prefix with its target
+          const commonPrefixLength = this.findCommonPrefixDifference(clusterName, mappedValue);
+          if (commonPrefixLength > 0) {
+            return clusterName.substring(commonPrefixLength);
+          }
+        }
+        
+        // Check if this cluster is a value (target) in the mappings
+        const allKeys = mappings.keys();
+        for (const key of allKeys) {
+          const value = mappings.getOptionalString(key);
+          if (value === clusterName) {
+            // This is a target cluster, try to detect common prefix with its source
+            const commonPrefixLength = this.findCommonPrefixDifference(key, clusterName);
+            if (commonPrefixLength > 0) {
+              return clusterName.substring(commonPrefixLength);
+            }
+          }
+        }
+      }
+    }
+
+    return clusterName;
+  }
+
+  /**
+   * Helper to find where two strings diverge to detect prefix differences.
+   */
+  private findCommonPrefixDifference(str1: string, str2: string): number {
+    // Find where the strings start to be the same (after different prefixes)
+    // e.g., "sa-cls-01" and "oidc-cls-01" should return the position of "cls-01"
+    for (let i = 0; i < Math.min(str1.length, str2.length); i++) {
+      const remaining1 = str1.substring(i);
+      const remaining2 = str2.substring(i);
+      if (remaining1 === remaining2) {
+        return i;
+      }
+    }
+    return 0;
+  }
+
   getProviderName(): string {
     return 'KubernetesEntityProvider';
   }
@@ -2135,7 +2334,7 @@ export class KubernetesEntityProvider implements EntityProvider {
     const systemNamespaceModel = this.config.getOptionalString('kubernetesIngestor.mappings.namespaceModel')?.toLowerCase() || 'default';
     let systemNamespaceValue = '';
     if (systemNamespaceModel === 'cluster') {
-      systemNamespaceValue = resource.clusterName;
+      systemNamespaceValue = this.getNormalizedClusterName(resource.clusterName);
     } else if (systemNamespaceModel === 'namespace') {
       systemNamespaceValue = namespace || 'default';
     } else {
@@ -2143,15 +2342,16 @@ export class KubernetesEntityProvider implements EntityProvider {
     }
     const systemNameModel = this.config.getOptionalString('kubernetesIngestor.mappings.systemModel')?.toLowerCase() || 'namespace';
     let systemNameValue = '';
+    const normalizedClusterName = this.getNormalizedClusterName(resource.clusterName);
     if (systemNameModel === 'cluster') {
-      systemNameValue = resource.clusterName;
+      systemNameValue = normalizedClusterName;
     } else if (systemNameModel === 'namespace') {
       systemNameValue = namespace || resource.metadata.name;
     } else if (systemNameModel === 'cluster-namespace') {
       if (resource.metadata.namespace) {
-        systemNameValue = `${resource.clusterName}-${resource.metadata.namespace}`;
+        systemNameValue = `${normalizedClusterName}-${resource.metadata.namespace}`;
       } else {
-        systemNameValue = `${resource.clusterName}`;
+        systemNameValue = `${normalizedClusterName}`;
       }
     } else {
       systemNameValue = 'default';
@@ -2168,7 +2368,7 @@ export class KubernetesEntityProvider implements EntityProvider {
     if (nameModel === 'name-kind') {
       nameValue = `${resource.metadata.name}-${resource.kind.toLowerCase()}`;
     } else if (nameModel === 'name-cluster') {
-      nameValue = `${resource.metadata.name}-${resource.clusterName}`;
+      nameValue = `${resource.metadata.name}-${normalizedClusterName}`;
     } else if (nameModel === 'name-namespace') {
       nameValue = `${resource.metadata.name}-${namespace}`;
     } else {
@@ -2177,7 +2377,7 @@ export class KubernetesEntityProvider implements EntityProvider {
     const titleModel = this.config.getOptionalString('kubernetesIngestor.mappings.titleModel')?.toLowerCase() || 'name';
     let titleValue = '';
     if (titleModel === 'name-cluster') {
-      titleValue = `${resource.metadata.name}-${resource.clusterName}`;
+      titleValue = `${resource.metadata.name}-${normalizedClusterName}`;
     } else if (titleModel === 'name-namespace') {
       titleValue = `${resource.metadata.name}-${namespace}`;
     } else {
@@ -2310,10 +2510,10 @@ export class KubernetesEntityProvider implements EntityProvider {
           ...customAnnotations,
           ...argoAnnotations,
           ...(systemNameModel === 'cluster-namespace' || systemNamespaceModel === 'cluster' ? {
-            'backstage.io/kubernetes-cluster': resource.clusterName,
+            'backstage.io/kubernetes-cluster': this.mapClusterName(resource.clusterName),
           } : {})
         },
-        tags: [`cluster:${resource.clusterName}`, `kind:${resource.kind?.toLowerCase()}`],
+        tags: [`cluster:${normalizedClusterName}`, `kind:${resource.kind?.toLowerCase()}`],
       },
       spec: {
         type: annotations[`${prefix}/component-type`] || 'service',
@@ -2397,8 +2597,9 @@ export class KubernetesEntityProvider implements EntityProvider {
 
     const systemNamespaceModel = this.config.getOptionalString('kubernetesIngestor.mappings.namespaceModel')?.toLowerCase() || 'default';
     let systemNamespaceValue = '';
+    const normalizedClusterName = this.getNormalizedClusterName(clusterName);
     if (systemNamespaceModel === 'cluster') {
-      systemNamespaceValue = clusterName;
+      systemNamespaceValue = normalizedClusterName;
     } else if (systemNamespaceModel === 'namespace') {
       systemNamespaceValue = claim.metadata.namespace || 'default';
     } else {
@@ -2407,14 +2608,14 @@ export class KubernetesEntityProvider implements EntityProvider {
     const systemNameModel = this.config.getOptionalString('kubernetesIngestor.mappings.systemModel')?.toLowerCase() || 'namespace';
     let systemNameValue = '';
     if (systemNameModel === 'cluster') {
-      systemNameValue = clusterName;
+      systemNameValue = normalizedClusterName;
     } else if (systemNameModel === 'namespace') {
       systemNameValue = claim.metadata.namespace || claim.metadata.name;
     } else if (systemNameModel === 'cluster-namespace') {
       if (claim.metadata.namespace) {
-        systemNameValue = `${clusterName}-${claim.metadata.namespace}`;
+        systemNameValue = `${normalizedClusterName}-${claim.metadata.namespace}`;
       } else {
-        systemNameValue = `${clusterName}`;
+        systemNameValue = `${normalizedClusterName}`;
       }
     } else {
       systemNameValue = 'default';
@@ -2431,7 +2632,7 @@ export class KubernetesEntityProvider implements EntityProvider {
     if (nameModel === 'name-kind') {
       nameValue = `${claim.metadata.name}-${crKind.toLowerCase()}`;
     } else if (nameModel === 'name-cluster') {
-      nameValue = `${claim.metadata.name}-${clusterName}`;
+      nameValue = `${claim.metadata.name}-${normalizedClusterName}`;
     } else if (nameModel === 'name-namespace') {
       nameValue = `${claim.metadata.name}-${claim.metadata.namespace}`;
     } else {
@@ -2440,7 +2641,7 @@ export class KubernetesEntityProvider implements EntityProvider {
     const titleModel = this.config.getOptionalString('kubernetesIngestor.mappings.titleModel')?.toLowerCase() || 'name';
     let titleValue = '';
     if (titleModel === 'name-cluster') {
-      titleValue = `${claim.metadata.name}-${clusterName}`;
+      titleValue = `${claim.metadata.name}-${normalizedClusterName}`;
     } else if (titleModel === 'name-namespace') {
       titleValue = `${claim.metadata.name}-${claim.metadata.namespace}`;
     } else {
@@ -2493,7 +2694,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         name: componentName,
         title: annotations[`${prefix}/title`] || titleValue,
         description: annotations[`${prefix}/description`] || `${crKind} ${claim.metadata.name} from ${claim.clusterName}`,
-        tags: [`cluster:${claim.clusterName}`, `kind:${crKind.toLowerCase()}`],
+        tags: [`cluster:${normalizedClusterName}`, `kind:${crKind.toLowerCase()}`],
         namespace: componentNamespace,
         links: this.parseBackstageLinks(claim.metadata.annotations || {}),
         annotations: {
@@ -2502,7 +2703,7 @@ export class KubernetesEntityProvider implements EntityProvider {
           ),
           [`${prefix}/component-type`]: 'crossplane-claim',
           ...(systemNameModel === 'cluster-namespace' || systemNamespaceModel === 'cluster' ? {
-            'backstage.io/kubernetes-cluster': clusterName,
+            'backstage.io/kubernetes-cluster': this.mapClusterName(clusterName),
           } : {}),
           ...customAnnotations,
           ...argoAnnotations,
@@ -2541,8 +2742,8 @@ export class KubernetesEntityProvider implements EntityProvider {
     const [group, version] = instance.apiVersion.split('/');
     const lookupKey = `${instance.kind}|${group}|${version}`;
     const lookupKeyLower = lookupKey.toLowerCase();
-    const rgd = rgdLookup[lookupKey] || rgdLookup[lookupKeyLower];
-    if (!rgd) {
+    const rgdData = rgdLookup[lookupKey] || rgdLookup[lookupKeyLower];
+    if (!rgdData) {
       this.logger.debug(`No RGD lookup found for key ${lookupKey}, skipping KRO instance processing`);
       return [];
     }
@@ -2551,15 +2752,22 @@ export class KubernetesEntityProvider implements EntityProvider {
     const annotations = instance.metadata.annotations || {};
     const rgdId = instance.metadata.labels['kro.run/resource-graph-definition-id'];
 
+    // Extract RGD and CRD info from lookup data
+    const rgd = rgdData.rgd;
+    const crdSpec = rgdData.spec;
+    
+    // Generate CRD name from spec
+    const crdName = crdSpec?.names?.plural ? `${crdSpec.names.plural}.${crdSpec.group}` : undefined;
+
     // Add KRO-specific annotations
     const kroAnnotations = {
-      [`${prefix}/kro-rgd-name`]: instance.kroData.rgd.metadata.name,
+      [`${prefix}/kro-rgd-name`]: rgd.metadata.name,
       [`${prefix}/kro-rgd-id`]: rgdId,
-      [`${prefix}/kro-rgd-crd-name`]: instance.kroData.crd?.metadata?.name,
+      [`${prefix}/kro-rgd-crd-name`]: crdName,
       [`${prefix}/kro-instance-uid`]: instance.metadata?.uid,
       [`${prefix}/kro-instance-namespace`]: instance.metadata?.namespace,
       [`${prefix}/kro-instance-name`]: instance.metadata?.name,
-      [`${prefix}/kro-sub-resources`]: instance.kroData.rgd.spec.resources.map((r: any) => {
+      [`${prefix}/kro-sub-resources`]: (rgd.spec?.resources || []).map((r: any) => {
         if (!r.template) return null;
         const apiVersion = r.template.apiVersion.toLowerCase();
         const kind = r.template.kind.toLowerCase();
@@ -2576,8 +2784,9 @@ export class KubernetesEntityProvider implements EntityProvider {
 
     const systemNamespaceModel = this.config.getOptionalString('kubernetesIngestor.mappings.namespaceModel')?.toLowerCase() || 'default';
     let systemNamespaceValue = '';
+    const normalizedClusterName = this.getNormalizedClusterName(clusterName);
     if (systemNamespaceModel === 'cluster') {
-      systemNamespaceValue = clusterName;
+      systemNamespaceValue = normalizedClusterName;
     } else if (systemNamespaceModel === 'namespace') {
       systemNamespaceValue = instance.metadata.namespace || 'default';
     } else {
@@ -2586,14 +2795,14 @@ export class KubernetesEntityProvider implements EntityProvider {
     const systemNameModel = this.config.getOptionalString('kubernetesIngestor.mappings.systemModel')?.toLowerCase() || 'namespace';
     let systemNameValue = '';
     if (systemNameModel === 'cluster') {
-      systemNameValue = clusterName;
+      systemNameValue = normalizedClusterName;
     } else if (systemNameModel === 'namespace') {
       systemNameValue = instance.metadata.namespace || instance.metadata.name;
     } else if (systemNameModel === 'cluster-namespace') {
       if (instance.metadata.namespace) {
-        systemNameValue = `${clusterName}-${instance.metadata.namespace}`;
+        systemNameValue = `${normalizedClusterName}-${instance.metadata.namespace}`;
       } else {
-        systemNameValue = `${clusterName}`;
+        systemNameValue = `${normalizedClusterName}`;
       }
     } else {
       systemNameValue = 'default';
@@ -2610,7 +2819,7 @@ export class KubernetesEntityProvider implements EntityProvider {
     if (nameModel === 'name-kind') {
       nameValue = `${instance.metadata.name}-${instance.kind?.toLowerCase()}`;
     } else if (nameModel === 'name-cluster') {
-      nameValue = `${instance.metadata.name}-${clusterName}`;
+      nameValue = `${instance.metadata.name}-${normalizedClusterName}`;
     } else if (nameModel === 'name-namespace') {
       nameValue = `${instance.metadata.name}-${instance.metadata.namespace}`;
     } else {
@@ -2619,7 +2828,7 @@ export class KubernetesEntityProvider implements EntityProvider {
     const titleModel = this.config.getOptionalString('kubernetesIngestor.mappings.titleModel')?.toLowerCase() || 'name';
     let titleValue = '';
     if (titleModel === 'name-cluster') {
-      titleValue = `${instance.metadata.name}-${clusterName}`;
+      titleValue = `${instance.metadata.name}-${normalizedClusterName}`;
     } else if (titleModel === 'name-namespace') {
       titleValue = `${instance.metadata.name}-${instance.metadata.namespace}`;
     } else {
@@ -2672,7 +2881,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         name: componentName,
         title: annotations[`${prefix}/title`] || titleValue,
         description: annotations[`${prefix}/description`] || `${instance.kind} ${instance.metadata.name} from ${instance.clusterName}`,
-        tags: [`cluster:${instance.clusterName}`, `kind:${instance.kind?.toLowerCase()}`],
+        tags: [`cluster:${normalizedClusterName}`, `kind:${instance.kind?.toLowerCase()}`],
         namespace: componentNamespace,
         links: this.parseBackstageLinks(instance.metadata.annotations || {}),
         annotations: {
@@ -2680,7 +2889,7 @@ export class KubernetesEntityProvider implements EntityProvider {
             Object.entries(annotations).filter(([key]) => key !== `${prefix}/links`)
           ),
           ...(systemNameModel === 'cluster-namespace' || systemNamespaceModel === 'cluster' ? {
-            'backstage.io/kubernetes-cluster': clusterName,
+            'backstage.io/kubernetes-cluster': this.mapClusterName(clusterName),
           } : {}),
           ...customAnnotations,
           ...argoAnnotations,
@@ -2762,8 +2971,9 @@ export class KubernetesEntityProvider implements EntityProvider {
 
     const systemNamespaceModel = this.config.getOptionalString('kubernetesIngestor.mappings.namespaceModel')?.toLowerCase() || 'default';
     let systemNamespaceValue = '';
+    const normalizedClusterName = this.getNormalizedClusterName(clusterName);
     if (systemNamespaceModel === 'cluster') {
-      systemNamespaceValue = clusterName;
+      systemNamespaceValue = normalizedClusterName;
     } else if (systemNamespaceModel === 'namespace') {
       systemNamespaceValue = xr.metadata.namespace || 'default';
     } else {
@@ -2772,14 +2982,14 @@ export class KubernetesEntityProvider implements EntityProvider {
     const systemNameModel = this.config.getOptionalString('kubernetesIngestor.mappings.systemModel')?.toLowerCase() || 'namespace';
     let systemNameValue = '';
     if (systemNameModel === 'cluster') {
-      systemNameValue = clusterName;
+      systemNameValue = normalizedClusterName;
     } else if (systemNameModel === 'namespace') {
       systemNameValue = xr.metadata.namespace || xr.metadata.name;
     } else if (systemNameModel === 'cluster-namespace') {
       if (xr.metadata.namespace) {
-        systemNameValue = `${clusterName}-${xr.metadata.namespace}`;
+        systemNameValue = `${normalizedClusterName}-${xr.metadata.namespace}`;
       } else {
-        systemNameValue = `${clusterName}`;
+        systemNameValue = `${normalizedClusterName}`;
       }
     } else {
       systemNameValue = 'default';
@@ -2796,7 +3006,7 @@ export class KubernetesEntityProvider implements EntityProvider {
     if (nameModel === 'name-kind') {
       nameValue = `${xr.metadata.name}-${kind.toLowerCase()}`;
     } else if (nameModel === 'name-cluster') {
-      nameValue = `${xr.metadata.name}-${clusterName}`;
+      nameValue = `${xr.metadata.name}-${normalizedClusterName}`;
     } else if (nameModel === 'name-namespace') {
       nameValue = `${xr.metadata.name}-${xr.metadata.namespace || 'default'}`;
     } else {
@@ -2805,7 +3015,7 @@ export class KubernetesEntityProvider implements EntityProvider {
     const titleModel = this.config.getOptionalString('kubernetesIngestor.mappings.titleModel')?.toLowerCase() || 'name';
     let titleValue = '';
     if (titleModel === 'name-cluster') {
-      titleValue = `${xr.metadata.name}-${clusterName}`;
+      titleValue = `${xr.metadata.name}-${normalizedClusterName}`;
     } else if (titleModel === 'name-namespace') {
       titleValue = `${xr.metadata.name}-${xr.metadata.namespace || 'default'}`;
     } else {
@@ -2858,14 +3068,14 @@ export class KubernetesEntityProvider implements EntityProvider {
         name: componentName,
         title: annotations[`${prefix}/title`] || titleValue,
         description: annotations[`${prefix}/description`] || `${kind} ${xr.metadata.name} from ${xr.clusterName}`,
-        tags: [`cluster:${xr.clusterName}`, `kind:${kind.toLowerCase()}`],
+        tags: [`cluster:${normalizedClusterName}`, `kind:${kind.toLowerCase()}`],
         namespace: componentNamespace,
         links: this.parseBackstageLinks(xr.metadata.annotations || {}),
         annotations: {
           ...Object.fromEntries(
             Object.entries(annotations).filter(([key]) => key !== `${prefix}/links`)
           ),
-          'backstage.io/kubernetes-cluster': clusterName,
+          'backstage.io/kubernetes-cluster': this.mapClusterName(clusterName),
           ...customAnnotations,
           ...argoAnnotations,
           ...crossplaneAnnotations,
@@ -3013,7 +3223,7 @@ export class KubernetesEntityProvider implements EntityProvider {
             'backstage.io/managed-by-origin-location': `cluster origin: ${clusterName}`,
             [`${prefix}/auto-generated-api`]: 'true',
           },
-          tags: [`cluster:${clusterName}`],
+          tags: [`cluster:${this.getNormalizedClusterName(clusterName)}`],
         },
         spec: {
           type: 'openapi',
