@@ -30,6 +30,16 @@ kubernetesIngestor:
   # Note: Clusters using OIDC authentication are automatically excluded as they require client-side authentication.
   # allowedClusterNames:
   #   - my-cluster-name
+  # Cluster name mapping for entity annotations (optional)
+  # Maps backend cluster names (SA auth) to frontend cluster names (OIDC auth)
+  # clusterNameMapping:
+  #   mode: 'prefix-replacement'  # or 'explicit'
+  #   sourcePrefix: 'sa-'
+  #   targetPrefix: 'oidc-'
+  #   # For explicit mode:
+  #   # mappings:
+  #   #   'sa-cls-01': 'oidc-cls-01'
+  #   #   'sa-cls-02': 'oidc-cls-02'
   components:
     # Whether to enable creation of backstage components for Kubernetes workloads
     enabled: true
@@ -173,6 +183,156 @@ Clusters configured with these auth providers will be silently skipped during in
 
 1. Adding a service account with appropriate RBAC permissions to the cluster
 2. Configuring a separate cluster entry with `authProvider: serviceAccount` pointing to the same cluster
+
+### Cluster Name Mapping
+
+When working with multiple authentication methods for the same cluster, you may need to register the cluster twice: once with service account authentication for backend ingestion, and once with OIDC authentication for frontend user interactions. The cluster name mapping feature allows the ingestor to use one cluster name for data collection while annotating entities with a different cluster name for frontend interactions.
+
+#### Use Case
+
+You need different authentication methods for different contexts:
+- **Backend/Ingestion**: Service Account (SA) authentication to scrape and ingest Kubernetes resources
+- **Frontend**: OIDC authentication for user interactions through the Backstage UI
+
+By using cluster name mapping, the ingestor will connect to clusters using SA authentication but annotate entities with the OIDC cluster name, ensuring users interact with the correct cluster configuration.
+
+#### Configuration
+
+The plugin supports two mapping modes: **prefix replacement** and **explicit mappings**.
+
+##### Prefix Replacement Mode
+
+Use this mode when your clusters follow a naming convention with prefixes:
+
+```yaml
+kubernetesIngestor:
+  clusterNameMapping:
+    mode: 'prefix-replacement'
+    sourcePrefix: 'sa-'
+    targetPrefix: 'oidc-'
+```
+
+**Examples:**
+- Backend cluster: `sa-cls-01` → Frontend cluster: `oidc-cls-01`
+- Backend cluster: `sa-cls-02` → Frontend cluster: `oidc-cls-02`
+- Backend cluster: `sa-prod-us-east` → Frontend cluster: `oidc-prod-us-east`
+
+##### Explicit Mapping Mode
+
+Use this mode when you need specific, one-to-one mappings between cluster names:
+
+```yaml
+kubernetesIngestor:
+  clusterNameMapping:
+    mode: 'explicit'
+    mappings:
+      'sa-cls-01': 'oidc-cls-01'
+      'sa-cls-02': 'oidc-cls-02'
+      'backend-prod': 'frontend-prod'
+      'svc-acct-dev': 'user-auth-dev'
+```
+
+**Behavior:**
+- Mapped clusters use the specified frontend cluster name
+- Unmapped clusters use their original names (backward compatible)
+
+#### Complete Example
+
+Here's a complete example showing both the Kubernetes plugin configuration and the Ingestor mapping:
+
+```yaml
+kubernetes:
+  serviceLocatorMethod:
+    type: 'multiTenant'
+  clusterLocatorMethods:
+    - type: 'config'
+      clusters:
+        # Service Account clusters for backend ingestion
+        - name: sa-cls-01
+          url: https://cluster-01.example.com
+          authProvider: 'serviceAccount'
+          serviceAccountToken: ${K8S_SA_TOKEN_CLS_01}
+        
+        - name: sa-cls-02
+          url: https://cluster-02.example.com
+          authProvider: 'serviceAccount'
+          serviceAccountToken: ${K8S_SA_TOKEN_CLS_02}
+        
+        # OIDC clusters for frontend interactions
+        - name: oidc-cls-01
+          url: https://cluster-01.example.com
+          authProvider: 'oidc'
+          oidcTokenProvider: default
+        
+        - name: oidc-cls-02
+          url: https://cluster-02.example.com
+          authProvider: 'oidc'
+          oidcTokenProvider: default
+
+kubernetesIngestor:
+  enabled: true
+  
+  # Configure cluster name mapping
+  clusterNameMapping:
+    mode: 'prefix-replacement'
+    sourcePrefix: 'sa-'
+    targetPrefix: 'oidc-'
+  
+  # Optionally restrict ingestion to specific clusters
+  allowedClusterNames:
+    - 'sa-cls-01'
+    - 'sa-cls-02'
+```
+
+#### How It Works
+
+1. The ingestor connects to clusters using Service Account authentication (e.g., `sa-cls-01`)
+2. It scrapes resources and creates Backstage entities
+3. When setting the `backstage.io/kubernetes-cluster` annotation on entities, it applies the configured mapping
+4. The annotation value becomes the mapped cluster name (e.g., `oidc-cls-01`)
+5. When users interact with these entities in the Backstage UI, the Kubernetes plugin uses the OIDC cluster configuration
+
+#### Cluster Name Normalization
+
+For entity naming, organization, tagging, and template generation purposes, the plugin automatically strips the configured prefixes to ensure consistent naming regardless of which authentication method was used. This means:
+
+- **Entity names** (when using `name-cluster` model): `myapp-cls-01` (not `myapp-sa-cls-01` or `myapp-oidc-cls-01`)
+- **Entity titles** (when using `name-cluster` model): `myapp-cls-01` (not `myapp-sa-cls-01` or `myapp-oidc-cls-01`)
+- **Namespaces** (when using `cluster` model): `cls-01` (not `sa-cls-01` or `oidc-cls-01`)
+- **Systems** (when using `cluster` or `cluster-namespace` models): `cls-01` or `cls-01-default` (not `sa-cls-01-default`)
+- **Tags**: `cluster:cls-01` (not `cluster:sa-cls-01` or `cluster:oidc-cls-01`)
+- **Template cluster options** (in scaffolder templates): Users see and select `cls-01` in dropdowns (not `sa-cls-01` or `oidc-cls-01`)
+
+**Example:**
+
+With configuration:
+```yaml
+clusterNameMapping:
+  mode: 'prefix-replacement'
+  sourcePrefix: 'sa-'
+  targetPrefix: 'oidc-'
+```
+
+And clusters: `sa-cls-01`, `sa-cls-02`, `oidc-cls-01`, `oidc-cls-02`
+
+- Entity from `sa-cls-01` gets tag `cluster:cls-01` (prefix stripped)
+- Entity from `oidc-cls-01` would also get tag `cluster:cls-01` (prefix stripped)
+- But the `backstage.io/kubernetes-cluster` annotation will be `oidc-cls-01` (prefix mapped)
+
+This ensures that:
+1. Entities from the same physical cluster have consistent names/tags regardless of auth method
+2. Users searching for "cls-01" will find all related entities
+3. The Kubernetes plugin still uses the correct OIDC cluster for user interactions
+
+#### Affected Entities
+
+The cluster name mapping applies to the following entity types:
+- Kubernetes workload components (Deployments, StatefulSets, etc.)
+- Crossplane Claims (XRCs)
+- Crossplane Composite Resources (XRs)
+- KRO Instances
+
+**Note:** The mapping only affects the `backstage.io/kubernetes-cluster` annotation value. Cluster tags (e.g., `cluster:sa-cls-01`) remain unchanged for filtering and searching purposes.
 
 ## Advanced Features
 
