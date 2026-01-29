@@ -15095,7 +15095,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-kro-common@npm:^0.2.9, @terasky/backstage-plugin-kro-common@workspace:plugins/kro-common":
+"@terasky/backstage-plugin-kro-common@npm:^0.3.0, @terasky/backstage-plugin-kro-common@workspace:plugins/kro-common":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kro-common@workspace:plugins/kro-common"
   dependencies:
@@ -15105,7 +15105,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-kro-resources-backend@npm:^0.8.1, @terasky/backstage-plugin-kro-resources-backend@workspace:plugins/kro-resources-backend":
+"@terasky/backstage-plugin-kro-resources-backend@npm:^0.9.0, @terasky/backstage-plugin-kro-resources-backend@workspace:plugins/kro-resources-backend":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kro-resources-backend@workspace:plugins/kro-resources-backend"
   dependencies:
@@ -15118,7 +15118,7 @@ __metadata:
     "@backstage/plugin-auth-backend-module-guest-provider": "npm:^0.2.15"
     "@backstage/plugin-catalog-node": "npm:^1.20.1"
     "@backstage/plugin-permission-node": "npm:^0.10.9"
-    "@terasky/backstage-plugin-kro-common": "npm:^0.2.9"
+    "@terasky/backstage-plugin-kro-common": "npm:^0.3.0"
     "@types/express": "npm:^4.17.22"
     "@types/supertest": "npm:^2.0.12"
     express: "npm:^4.17.1"
@@ -15131,7 +15131,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-kro-resources-frontend@npm:^0.7.0, @terasky/backstage-plugin-kro-resources-frontend@workspace:plugins/kro-resources":
+"@terasky/backstage-plugin-kro-resources-frontend@npm:^0.8.0, @terasky/backstage-plugin-kro-resources-frontend@workspace:plugins/kro-resources":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kro-resources-frontend@workspace:plugins/kro-resources"
   dependencies:
@@ -15152,7 +15152,7 @@ __metadata:
     "@material-ui/core": "npm:^4.12.4"
     "@material-ui/icons": "npm:^4.11.3"
     "@material-ui/lab": "npm:^4.0.0-alpha.61"
-    "@terasky/backstage-plugin-kro-common": "npm:^0.2.9"
+    "@terasky/backstage-plugin-kro-common": "npm:^0.3.0"
     "@testing-library/jest-dom": "npm:^6.0.0"
     "@testing-library/react": "npm:^14.0.0"
     "@testing-library/user-event": "npm:^14.0.0"
@@ -15179,7 +15179,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-kubernetes-ingestor@npm:^3.4.1, @terasky/backstage-plugin-kubernetes-ingestor@workspace:plugins/kubernetes-ingestor":
+"@terasky/backstage-plugin-kubernetes-ingestor@npm:^3.5.0, @terasky/backstage-plugin-kubernetes-ingestor@workspace:plugins/kubernetes-ingestor":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kubernetes-ingestor@workspace:plugins/kubernetes-ingestor"
   dependencies:
@@ -18213,7 +18213,7 @@ __metadata:
     "@terasky/backstage-plugin-educates": "npm:^1.7.0"
     "@terasky/backstage-plugin-entity-scaffolder-content": "npm:^1.6.0"
     "@terasky/backstage-plugin-gitops-manifest-updater": "npm:^2.3.0"
-    "@terasky/backstage-plugin-kro-resources-frontend": "npm:^0.7.0"
+    "@terasky/backstage-plugin-kro-resources-frontend": "npm:^0.8.0"
     "@terasky/backstage-plugin-kubernetes-resources-frontend": "npm:^0.10.0"
     "@terasky/backstage-plugin-kyverno-policy-reports": "npm:^1.11.0"
     "@terasky/backstage-plugin-scaleops-frontend": "npm:^2.1.0"
@@ -18881,8 +18881,8 @@ __metadata:
     "@terasky/backstage-plugin-catalog-mcp-backend": "npm:^0.4.0"
     "@terasky/backstage-plugin-crossplane-resources-backend": "npm:^1.10.1"
     "@terasky/backstage-plugin-educates-backend": "npm:^1.6.0"
-    "@terasky/backstage-plugin-kro-resources-backend": "npm:^0.8.1"
-    "@terasky/backstage-plugin-kubernetes-ingestor": "npm:^3.4.1"
+    "@terasky/backstage-plugin-kro-resources-backend": "npm:^0.9.0"
+    "@terasky/backstage-plugin-kubernetes-ingestor": "npm:^3.5.0"
     "@terasky/backstage-plugin-kubernetes-resources-permissions-backend": "npm:^0.7.1"
     "@terasky/backstage-plugin-kyverno-policy-reports-backend": "npm:^1.8.1"
     "@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils": "npm:^2.3.0"
