@@ -3418,7 +3418,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/plugin-app-react@npm:0.1.0, @backstage/plugin-app-react@npm:^0.1.0":
+"@backstage/plugin-app-react@npm:^0.1.0":
   version: 0.1.0
   resolution: "@backstage/plugin-app-react@npm:0.1.0"
   dependencies:
@@ -14747,7 +14747,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@terasky/backstage-plugin-ai-rules-backend@npm:^1.6.0, @terasky/backstage-plugin-ai-rules-backend@workspace:plugins/ai-rules-plugin-backend":
+"@terasky/backstage-plugin-ai-rules-backend@npm:^1.6.1, @terasky/backstage-plugin-ai-rules-backend@workspace:plugins/ai-rules-plugin-backend":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-ai-rules-backend@workspace:plugins/ai-rules-plugin-backend"
   dependencies:
@@ -14847,7 +14847,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-crossplane-resources-backend@npm:^1.10.0, @terasky/backstage-plugin-crossplane-resources-backend@workspace:plugins/crossplane-resources-backend":
+"@terasky/backstage-plugin-crossplane-resources-backend@npm:^1.10.1, @terasky/backstage-plugin-crossplane-resources-backend@workspace:plugins/crossplane-resources-backend":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-crossplane-resources-backend@workspace:plugins/crossplane-resources-backend"
   dependencies:
@@ -15105,7 +15105,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-kro-resources-backend@npm:^0.8.0, @terasky/backstage-plugin-kro-resources-backend@workspace:plugins/kro-resources-backend":
+"@terasky/backstage-plugin-kro-resources-backend@npm:^0.8.1, @terasky/backstage-plugin-kro-resources-backend@workspace:plugins/kro-resources-backend":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kro-resources-backend@workspace:plugins/kro-resources-backend"
   dependencies:
@@ -15179,7 +15179,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-kubernetes-ingestor@npm:^3.4.0, @terasky/backstage-plugin-kubernetes-ingestor@workspace:plugins/kubernetes-ingestor":
+"@terasky/backstage-plugin-kubernetes-ingestor@npm:^3.4.1, @terasky/backstage-plugin-kubernetes-ingestor@workspace:plugins/kubernetes-ingestor":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kubernetes-ingestor@workspace:plugins/kubernetes-ingestor"
   dependencies:
@@ -15272,7 +15272,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-kubernetes-resources-permissions-backend@npm:^0.7.0, @terasky/backstage-plugin-kubernetes-resources-permissions-backend@workspace:plugins/kubernetes-resources-permissions-backend":
+"@terasky/backstage-plugin-kubernetes-resources-permissions-backend@npm:^0.7.1, @terasky/backstage-plugin-kubernetes-resources-permissions-backend@workspace:plugins/kubernetes-resources-permissions-backend":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kubernetes-resources-permissions-backend@workspace:plugins/kubernetes-resources-permissions-backend"
   dependencies:
@@ -15307,7 +15307,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-kyverno-policy-reports-backend@npm:^1.8.0, @terasky/backstage-plugin-kyverno-policy-reports-backend@workspace:plugins/kyverno-policy-reports-backend":
+"@terasky/backstage-plugin-kyverno-policy-reports-backend@npm:^1.8.1, @terasky/backstage-plugin-kyverno-policy-reports-backend@workspace:plugins/kyverno-policy-reports-backend":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kyverno-policy-reports-backend@workspace:plugins/kyverno-policy-reports-backend"
   dependencies:
@@ -15625,7 +15625,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-vcf-automation-backend@npm:^1.10.0, @terasky/backstage-plugin-vcf-automation-backend@workspace:plugins/vcf-automation-backend":
+"@terasky/backstage-plugin-vcf-automation-backend@npm:^1.10.1, @terasky/backstage-plugin-vcf-automation-backend@workspace:plugins/vcf-automation-backend":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-vcf-automation-backend@workspace:plugins/vcf-automation-backend"
   dependencies:
@@ -15655,7 +15655,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-vcf-automation-ingestor@npm:^1.10.0, @terasky/backstage-plugin-vcf-automation-ingestor@workspace:plugins/vcf-automation-ingestor":
+"@terasky/backstage-plugin-vcf-automation-ingestor@npm:^1.10.1, @terasky/backstage-plugin-vcf-automation-ingestor@workspace:plugins/vcf-automation-ingestor":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-vcf-automation-ingestor@workspace:plugins/vcf-automation-ingestor"
   dependencies:
@@ -15707,7 +15707,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-vcf-operations-backend@npm:^0.7.0, @terasky/backstage-plugin-vcf-operations-backend@workspace:plugins/vcf-operations-backend":
+"@terasky/backstage-plugin-vcf-operations-backend@npm:^0.7.1, @terasky/backstage-plugin-vcf-operations-backend@workspace:plugins/vcf-operations-backend":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-vcf-operations-backend@workspace:plugins/vcf-operations-backend"
   dependencies:
@@ -18183,7 +18183,7 @@ __metadata:
     "@backstage/frontend-test-utils": "npm:^0.4.5"
     "@backstage/integration-react": "npm:^1.2.14"
     "@backstage/plugin-api-docs": "npm:^0.13.3"
-    "@backstage/plugin-app-react": "npm:0.1.0"
+    "@backstage/plugin-app-react": "npm:^0.1.0"
     "@backstage/plugin-app-visualizer": "npm:^0.1.27"
     "@backstage/plugin-auth": "npm:^0.1.4"
     "@backstage/plugin-catalog": "npm:^1.32.2"
@@ -18877,22 +18877,22 @@ __metadata:
     "@backstage/plugin-search-backend-node": "npm:^1.4.0"
     "@backstage/plugin-techdocs-backend": "npm:^2.1.4"
     "@roadiehq/scaffolder-backend-module-utils": "npm:^4.1.1"
-    "@terasky/backstage-plugin-ai-rules-backend": "npm:^1.6.0"
+    "@terasky/backstage-plugin-ai-rules-backend": "npm:^1.6.1"
     "@terasky/backstage-plugin-catalog-mcp-backend": "npm:^0.4.0"
-    "@terasky/backstage-plugin-crossplane-resources-backend": "npm:^1.10.0"
+    "@terasky/backstage-plugin-crossplane-resources-backend": "npm:^1.10.1"
     "@terasky/backstage-plugin-educates-backend": "npm:^1.6.0"
-    "@terasky/backstage-plugin-kro-resources-backend": "npm:^0.8.0"
-    "@terasky/backstage-plugin-kubernetes-ingestor": "npm:^3.4.0"
-    "@terasky/backstage-plugin-kubernetes-resources-permissions-backend": "npm:^0.7.0"
-    "@terasky/backstage-plugin-kyverno-policy-reports-backend": "npm:^1.8.0"
+    "@terasky/backstage-plugin-kro-resources-backend": "npm:^0.8.1"
+    "@terasky/backstage-plugin-kubernetes-ingestor": "npm:^3.4.1"
+    "@terasky/backstage-plugin-kubernetes-resources-permissions-backend": "npm:^0.7.1"
+    "@terasky/backstage-plugin-kyverno-policy-reports-backend": "npm:^1.8.1"
     "@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils": "npm:^2.3.0"
     "@terasky/backstage-plugin-spectrocloud-auth-backend": "npm:^0.1.0"
     "@terasky/backstage-plugin-spectrocloud-backend": "npm:^0.2.0"
     "@terasky/backstage-plugin-spectrocloud-cluster-provider": "npm:^0.5.0"
     "@terasky/backstage-plugin-spectrocloud-ingestor": "npm:^0.2.0"
-    "@terasky/backstage-plugin-vcf-automation-backend": "npm:^1.10.0"
-    "@terasky/backstage-plugin-vcf-automation-ingestor": "npm:^1.10.0"
-    "@terasky/backstage-plugin-vcf-operations-backend": "npm:^0.7.0"
+    "@terasky/backstage-plugin-vcf-automation-backend": "npm:^1.10.1"
+    "@terasky/backstage-plugin-vcf-automation-ingestor": "npm:^1.10.1"
+    "@terasky/backstage-plugin-vcf-operations-backend": "npm:^0.7.1"
     "@terasky/plugin-rbac-mcp-backend": "npm:^0.5.0"
     "@terasky/plugin-scaffolder-mcp-backend": "npm:^0.5.0"
     app: "link:../app"
