@@ -1,6 +1,11 @@
 export interface Config {
   scaleops?: {
     /**
+     * Enable or disable the plugin
+     * @visibility frontend
+     */
+    enabled?: boolean;
+    /**
      * ScaleOps base URL
      * @visibility backend
      */

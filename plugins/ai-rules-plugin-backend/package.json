@@ -1,9 +1,10 @@
 {
   "name": "@terasky/backstage-plugin-ai-rules-backend",
   "description": "AI Rules Backend Plugin for Backstage",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "main": "src/index.ts",
   "types": "src/index.ts",
+  "configSchema": "config.d.ts",
   "license": "Apache-2.0",
   "publishConfig": {
     "access": "public",
@@ -61,7 +62,8 @@
     "typescript": "^5.8.3"
   },
   "files": [
-    "dist"
+    "dist",
+    "config.d.ts"
   ],
   "keywords": [
     "backstage",

@@ -1,6 +1,11 @@
 export interface Config {
   educates?: {
     /**
+     * Enable or disable the plugin
+     * @visibility frontend
+     */
+    enabled?: boolean;
+    /**
      * List of training portals
      */
     trainingPortals: Array<{

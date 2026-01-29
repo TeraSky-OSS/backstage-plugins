@@ -12,6 +12,11 @@ export interface Config {
    */
   spectrocloud?: {
     /**
+     * Enable or disable the plugin
+     * @visibility frontend
+     */
+    enabled?: boolean;
+    /**
      * Optional: Annotation prefix for SpectroCloud metadata (default: terasky.backstage.io)
      * @visibility frontend
      */
