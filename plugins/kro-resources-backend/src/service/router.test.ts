@@ -74,7 +74,7 @@ describe('kro-resources router', () => {
       const response = await request(app).get('/resources').query({});
 
       expect(response.status).toBe(400);
-      expect(response.body.error).toBe('Missing required parameters');
+      expect(response.body.error).toBe('Missing required parameters: clusterName, namespace, instanceId, instanceName');
     });
 
     it('should return 403 when permission denied', async () => {

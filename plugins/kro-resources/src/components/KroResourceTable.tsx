@@ -121,6 +121,16 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: theme.palette.type === 'dark' ? '#1976d2' : '#e3f2fd',
     color: theme.palette.type === 'dark' ? '#90caf9' : '#1976d2',
   },
+  externalBadge: {
+    backgroundColor: theme.palette.type === 'dark' ? '#ff6f00' : '#fff3e0',
+    color: theme.palette.type === 'dark' ? '#ffb74d' : '#e65100',
+    marginLeft: theme.spacing(1),
+    padding: '2px 6px',
+    borderRadius: '3px',
+    fontSize: '9px',
+    fontWeight: 'bold',
+    display: 'inline-block',
+  },
   expandIcon: {
     padding: 4, marginRight: theme.spacing(1), color: theme.palette.text.primary,
   },
@@ -196,6 +206,7 @@ interface ResourceTableRow {
   level: number;
   parentId?: string;
   isLastChild?: boolean;
+  isExternal?: boolean;
 }
 
 interface K8sEvent {
@@ -352,7 +363,15 @@ const KroResourceTable = () => {
     });
     filteredResources.forEach(resource => {
       let current = resource;
+      const visited = new Set<string>();
       while (current) {
+        const currentId = current.resource.metadata?.uid || `${current.kind}-${current.name}`;
+        if (visited.has(currentId)) {
+          // Circular reference detected, break to avoid infinite loop
+          break;
+        }
+        visited.add(currentId);
+        
         if (current.parentId) {
           autoExpanded.add(current.parentId);
           current = resourceMap.get(current.parentId)!;
@@ -374,35 +393,68 @@ const KroResourceTable = () => {
 
   // These functions are now handled by the backend
 
-  // Fetch nested resources for a given instance
-  const fetchNestedResources = async (parentId: string, level: number, clusterName: string, namespace: string) => {
-    const annotations = entity.metadata.annotations || {};
-    const rgdName = annotations['terasky.backstage.io/kro-rgd-name'];
-    const rgdId = annotations['terasky.backstage.io/kro-rgd-id'];
-    const instanceId = annotations['terasky.backstage.io/kro-instance-uid'];
+  // Fetch nested resources for a given instance (supports both top-level and nested instances)
+  const fetchNestedResources = async (parentId: string, level: number, clusterName: string, namespace: string, parentResource?: any) => {
+    let rgdName, rgdId, instanceId, instanceName, crdName;
 
-    if (!rgdName || !rgdId || !instanceId) {
+    // If parentResource is provided, it's a nested instance - extract from its labels/metadata
+    // Check for KRO labels that indicate this is a KRO instance
+    if (parentResource?.metadata?.labels?.['kro.run/resource-graph-definition-id']) {
+      // For nested instances, we'll rely on the backend to look up the RGD by kind/group/version
+      // We only need to extract what we can from the resource itself
+      // NOTE: We do NOT use the rgdId from the parent resource's labels because that's the PARENT's RGD ID,
+      // not this nested instance's RGD ID. The backend will look up the correct RGD ID.
+      instanceId = parentResource.metadata.uid;
+      instanceName = parentResource.metadata.name;
+      
+      // These will be looked up by backend using kind/group/version
+      rgdName = undefined;
+      crdName = undefined;
+      rgdId = undefined;
+    } else {
+      // Top-level instance - use entity annotations
+      const annotations = entity.metadata.annotations || {};
+      rgdName = annotations['terasky.backstage.io/kro-rgd-name'];
+      rgdId = annotations['terasky.backstage.io/kro-rgd-id'];
+      instanceId = annotations['terasky.backstage.io/kro-instance-uid'];
+      instanceName = annotations['terasky.backstage.io/kro-instance-name'] || entity.metadata.name;
+      crdName = annotations['terasky.backstage.io/kro-rgd-crd-name'];
+    }
+
+    if (!instanceId || !instanceName) {
+      console.warn('Missing required instance metadata', { instanceId, instanceName, parentResource });
       return [];
     }
 
     try {
-      const crdName = annotations['terasky.backstage.io/kro-rgd-crd-name'];
-      if (!crdName) {
-        throw new Error('CRD name not found in entity annotations');
-      }
-
-      const { resources } = await kroApi.getResources({
+      // For nested instances, also pass kind/group/version for backend lookup
+      const requestParams: any = {
         clusterName,
         namespace,
-        rgdName,
-        rgdId,
         instanceId,
-        instanceName: annotations['terasky.backstage.io/kro-instance-name'] || entity.metadata.name,
-        crdName,
-      });
+        instanceName,
+      };
+
+      // If we have rgdName and crdName, use them directly (top-level instances)
+      if (rgdName && crdName) {
+        requestParams.rgdName = rgdName;
+        requestParams.crdName = crdName;
+        requestParams.rgdId = rgdId;
+      }
+
+      // If this is a nested instance, provide kind/group/version for backend to look up the RGD
+      if (parentResource) {
+        const [group, version] = (parentResource.apiVersion || '').split('/');
+        requestParams.kind = parentResource.kind;
+        requestParams.group = group || parentResource.apiVersion;
+        requestParams.version = version || parentResource.apiVersion;
+        // Do NOT pass rgdId from parent - let backend look it up from the RGD matching kind/group
+      }
+
+      const { resources } = await kroApi.getResources(requestParams);
 
       return resources
-        .filter(r => r.type === 'Resource')
+        .filter(r => r.type === 'Resource' || r.type === 'Instance')
         .map(r => ({
           ...r,
           level,
@@ -417,17 +469,28 @@ const KroResourceTable = () => {
   // Function to expand all resources recursively
   const expandAllResources = async (resources: ResourceTableRow[]) => {
     const newExpandedRows = new Set<string>();
+    const visited = new Set<string>();
 
     const expandRecursively = async (resourceList: ResourceTableRow[]) => {
       for (const resource of resourceList) {
         const resourceId = resource.resource.metadata?.uid || `${resource.kind}-${resource.name}`;
+        
+        // Skip if already visited to prevent infinite recursion
+        if (visited.has(resourceId)) {
+          continue;
+        }
+        visited.add(resourceId);
+        
         if (resource.type === 'Instance') {
           newExpandedRows.add(resourceId);
 
           // Fetch nested resources if not already loaded
           if (!nestedResources[resourceId]) {
             const clusterName = entity.metadata.annotations?.['backstage.io/managed-by-location']?.split(": ")[1];
-            const nested = await fetchNestedResources(resourceId, resource.level + 1, clusterName || '', resource.namespace || 'default');
+            // Pass the resource if it's a KRO instance (has the KRO label), regardless of level
+            const hasKroLabel = resource.resource.metadata?.labels?.['kro.run/resource-graph-definition-id'];
+            const parentResource = hasKroLabel ? resource.resource : undefined;
+            const nested = await fetchNestedResources(resourceId, resource.level + 1, clusterName || '', resource.namespace || 'default', parentResource);
             setNestedResources(prev => ({
               ...prev,
               [resourceId]: nested
@@ -609,7 +672,11 @@ const KroResourceTable = () => {
     if (!nestedResources[resourceId] && resource.type === 'Instance') {
       const clusterName = entity.metadata.annotations?.['backstage.io/managed-by-location']?.split(": ")[1] || '';
       const namespace = resource.namespace || 'default';
-      const nested = await fetchNestedResources(resourceId, resource.level + 1, clusterName, namespace);
+      // Pass the resource if it's a KRO instance (has the KRO label), regardless of level
+      // This handles both nested instances (level > 0) and top-level instances viewed on their own entity page
+      const hasKroLabel = resource.resource.metadata?.labels?.['kro.run/resource-graph-definition-id'];
+      const parentResource = hasKroLabel ? resource.resource : undefined;
+      const nested = await fetchNestedResources(resourceId, resource.level + 1, clusterName, namespace, parentResource);
       setNestedResources(prev => ({ ...prev, [resourceId]: nested }));
     }
   };
@@ -683,7 +750,12 @@ const KroResourceTable = () => {
 
   const getTotalResourceCount = (): number => {
     let count = allResources.filter(r => !r.parentId).length;
+    const visited = new Set<string>();
+    
     const countNested = (parentId: string): number => {
+      if (visited.has(parentId)) return 0;
+      visited.add(parentId);
+      
       const nested = nestedResources[parentId];
       if (!nested) return 0;
       let nestedCount = nested.length;
@@ -716,9 +788,20 @@ const KroResourceTable = () => {
       created: new Set<string>()
     };
 
+    // Track visited resources to prevent infinite recursion
+    const visited = new Set<string>();
+
     // Collect values from all resources (including nested)
     const collectValues = (resources: ResourceTableRow[]) => {
       resources.forEach(resource => {
+        const resourceId = resource.resource.metadata?.uid || `${resource.kind}-${resource.name}`;
+        
+        // Skip if already visited to prevent infinite recursion
+        if (visited.has(resourceId)) {
+          return;
+        }
+        visited.add(resourceId);
+
         allValues.type.add(resource.type);
         allValues.name.add(resource.name);
         if (resource.namespace) {
@@ -745,7 +828,6 @@ const KroResourceTable = () => {
         allValues.created.add(getRelativeTime(resource.createdAt));
         
         // Recursively collect from nested resources
-        const resourceId = resource.resource.metadata?.uid || `${resource.kind}-${resource.name}`;
         if (nestedResources[resourceId]) {
           collectValues(nestedResources[resourceId]);
         }
@@ -857,11 +939,11 @@ const KroResourceTable = () => {
         if (!seenResourceIds.has(resourceId)) {
           seenResourceIds.add(resourceId);
           allFlattened.push(resource);
-        }
-        
-        // Add nested resources recursively
-        if (nestedResources[resourceId]) {
-          addResourcesRecursively(nestedResources[resourceId]);
+          
+          // Add nested resources recursively only if not already processed
+          if (nestedResources[resourceId]) {
+            addResourcesRecursively(nestedResources[resourceId]);
+          }
         }
       });
     };
@@ -883,9 +965,16 @@ const KroResourceTable = () => {
     });
     filteredResources.forEach(resource => {
       let current = resource;
+      const visited = new Set<string>();
       while (current) {
         const resourceId = current.resource.metadata?.uid || `${current.kind}-${current.name}`;
+        if (visited.has(resourceId)) {
+          // Circular reference detected, break to avoid infinite loop
+          break;
+        }
+        visited.add(resourceId);
         resourcesToShow.add(resourceId);
+        
         if (current.parentId) {
           current = resourceMap.get(current.parentId)!;
         } else {
@@ -983,10 +1072,9 @@ const KroResourceTable = () => {
       const mergedExpandedRows = getMergedExpandedRows();
       const isExpanded = mergedExpandedRows.has(resourceId);
 
-      // Check if this resource has any nested resources
-      // For KRO Instance resources, show expand icon only if they have loaded nested resources
-      // After initial load, all Instance resources that have nested resources will have them in nestedResources
-      const hasNestedResourcesToShow = nestedResources[resourceId] && nestedResources[resourceId].length > 0;
+      // Check if this resource can be expanded
+      // Show expand icon for all instances, and for already-loaded nested resources that have children
+      const canExpand = row.type === 'Instance' || (nestedResources[resourceId] && nestedResources[resourceId].length > 0);
 
       rows.push(
         <TableRow key={resourceId} className={`${classes.clickableRow} ${row.level > 0 ? classes.nestedRow : ''}`}>
@@ -999,7 +1087,7 @@ const KroResourceTable = () => {
                 <div key={index} className={classes.indent} />
               ))}
               <Box className={classes.resourceNameContent}>
-                {hasNestedResourcesToShow && (
+                {canExpand && (
                   <IconButton className={classes.expandIcon} size="small" onClick={(e) => {
                     e.stopPropagation();
                     handleRowExpand(row);
@@ -1008,6 +1096,11 @@ const KroResourceTable = () => {
                   </IconButton>
                 )}
                 {row.name}
+                {row.isExternal && (
+                  <Tooltip title="External Reference - Not managed by KRO" arrow>
+                    <span className={classes.externalBadge}>EXTERNAL</span>
+                  </Tooltip>
+                )}
               </Box>
             </Box>
           </TableCell>
@@ -1048,8 +1141,10 @@ const KroResourceTable = () => {
                   {renderStatusBadge(row.status.conditions, 'Active')}
                 </>
               ) : row.type === 'Instance' ? (
-                // For Instances, show only InstanceSynced
-                renderStatusBadge(row.status.conditions, 'InstanceSynced')
+                // For Instances, check for Ready (KRO 0.8+) or InstanceSynced (older versions)
+                row.status.conditions.find((c: any) => c.type === 'Ready') 
+                  ? renderStatusBadge(row.status.conditions, 'Ready')
+                  : renderStatusBadge(row.status.conditions, 'InstanceSynced')
               ) : null}
             </Box>
           </TableCell>

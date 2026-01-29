@@ -56,6 +56,7 @@ export interface KroResourceTableRow {
   level: number;
   parentId?: string;
   isLastChild?: boolean;
+  isExternal?: boolean; // Indicates if this is an external reference
 }
 
 export interface KroResourceListResponse {
@@ -75,11 +76,15 @@ export interface KroResourceGraphResponse {
 export interface GetResourcesRequest {
   clusterName: string;
   namespace: string;
-  rgdName: string;
-  rgdId: string;
+  rgdName?: string; // Optional for nested instances (will be looked up by kind/group/version)
+  rgdId?: string;
   instanceId: string;
   instanceName: string;
-  crdName: string;
+  crdName?: string; // Optional for nested instances (will be looked up by kind/group/version)
+  // New fields for nested instance lookup
+  kind?: string;
+  group?: string;
+  version?: string;
 }
 
 export interface GetEventsRequest {

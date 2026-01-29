@@ -158,6 +158,11 @@ const CustomNode = ({ data }: { data: any }) => {
                         backgroundColor: '#1b5e20',
                         color: '#a5d6a7'
                     };
+        case 'External':
+                    return {
+                        backgroundColor: '#ff6f00',
+                        color: '#ffb74d'
+                    };
                 default:
                     return {
                         backgroundColor: theme.palette.primary.dark,
@@ -186,6 +191,11 @@ const CustomNode = ({ data }: { data: any }) => {
                         backgroundColor: '#e8f5e9',
                         color: '#388e3c'
                     };
+        case 'External':
+                    return {
+                        backgroundColor: '#fff3e0',
+                        color: '#e65100'
+                    };
                 default:
                     return {
                         backgroundColor: theme.palette.primary.main,
@@ -210,11 +220,17 @@ const CustomNode = ({ data }: { data: any }) => {
         };
     };
 
+    // Add special styling for external references
+    const isExternal = data.categoryBadge === 'External';
+    const borderStyle = isExternal
+      ? `2px dashed ${isDarkMode ? '#ff6f00' : '#e65100'}`
+      : `1px solid ${isDarkMode ? theme.palette.grey[700] : theme.palette.grey[400]}`;
+
     return (
         <div
             style={{
                 padding: '8px',
-                border: `1px solid ${isDarkMode ? theme.palette.grey[700] : theme.palette.grey[400]}`,
+                border: borderStyle,
                 backgroundColor: isDarkMode ? theme.palette.background.paper : '#ffffff',
                 color: theme.palette.text.primary,
                 fontSize: '12px',
@@ -338,7 +354,7 @@ const CustomNode = ({ data }: { data: any }) => {
               </div>
             )
           ) : data.categoryBadge === 'Instance' ? (
-            // For instances, show only InstanceSynced
+            // For instances, show Ready (KRO 0.8+) or InstanceSynced (older versions)
                             <div style={{
                                 ...getStatusColors(data.isSynced),
                                 padding: '2px 8px',
@@ -346,8 +362,19 @@ const CustomNode = ({ data }: { data: any }) => {
                                 fontSize: '10px',
                                 fontWeight: 'bold'
                             }}>
-              InstanceSynced
+              {data.conditions?.find((c: any) => c.type === 'Ready') ? 'Ready' : 'InstanceSynced'}
                             </div>
+          ) : data.categoryBadge === 'External' ? (
+            // For external references, show a simple indicator
+            <div style={{
+              ...getStatusColors(true),
+              padding: '2px 8px',
+              borderRadius: '3px',
+              fontSize: '10px',
+              fontWeight: 'bold'
+            }}>
+              External Ref
+            </div>
           ) : data.categoryBadge === 'CRD' ? (
             // For CRDs, show all conditions
             data.conditions?.length > 0 ? (
@@ -656,26 +683,31 @@ const KroResourceGraph = () => {
         zIndex: 1
       });
 
-      // Add edges from Instance to managed resources
+      // Add edges from parent to child resources based on parentId
       resourceList.forEach(resource => {
         if (resource !== rgdNode && resource !== crdNode && resource !== instanceNode) {
           const resourceId = resource.metadata?.uid || `${resource.kind}-${Math.random()}`;
-          nodeHasChildren.set(instanceId, true);
+          const parentId = resource.metadata?.annotations?.['kro.terasky.io/parent-id'];
+          
+          // Use stored parentId if available, otherwise default to top-level instance
+          const sourceId = parentId || instanceId;
+          
+          nodeHasChildren.set(sourceId, true);
           const targetReady = nodeReadyStatus.get(resourceId) ?? true;
-                const isErrorEdge = !targetReady;
+          const isErrorEdge = !targetReady;
 
           edges.push({
-            id: `${instanceId}-${resourceId}`,
-            source: instanceId,
+            id: `${sourceId}-${resourceId}`,
+            source: sourceId,
             target: resourceId,
-                    type: 'smoothstep',
-                    style: {
-                        stroke: isErrorEdge ? '#f44336' : '#999',
-                        strokeWidth: 1,
-                        zIndex: isErrorEdge ? 10 : 1
-                    },
-                    animated: false,
-                    zIndex: isErrorEdge ? 10 : 1
+            type: 'smoothstep',
+            style: {
+              stroke: isErrorEdge ? '#f44336' : '#999',
+              strokeWidth: 1,
+              zIndex: isErrorEdge ? 10 : 1
+            },
+            animated: false,
+            zIndex: isErrorEdge ? 10 : 1
           });
         }
       });
@@ -692,14 +724,24 @@ const KroResourceGraph = () => {
     let rgdNodeId: string | undefined;
 
     const determineCategoryBadge = (resource: KubernetesObject): string => {
+      // Check if it's an external reference
+      if (resource.metadata?.annotations?.['kro.terasky.io/external-reference'] === 'true') {
+        return 'External';
+      }
       if (resource.kind === 'ResourceGraphDefinition') {
         return 'RGD';
       }
       if (resource.kind === 'CustomResourceDefinition') {
         return 'CRD';
       }
-      if (resource.metadata?.labels?.['kro.run/resource-graph-definition-id'] === entity.metadata.annotations?.['terasky.backstage.io/kro-rgd-id']) {
-        return resource.metadata?.uid === entity.metadata.annotations?.['terasky.backstage.io/kro-instance-uid'] ? 'Instance' : 'Resource';
+      // Check stored resource type
+      const resourceType = resource.metadata?.annotations?.['kro.terasky.io/resource-type'];
+      if (resourceType === 'Instance') {
+        return 'Instance';
+      }
+      // Check if it's the top-level instance
+      if (resource.metadata?.uid === entity.metadata.annotations?.['terasky.backstage.io/kro-instance-uid']) {
+        return 'Instance';
       }
       return 'Resource';
     };
@@ -867,7 +909,98 @@ const KroResourceGraph = () => {
           throw new Error('CRD name not found in entity annotations');
         }
 
-        const { resources: kroResources, supportingResources } = await kroApi.getResources({
+        // Recursive function to fetch resources for nested instances
+        const fetchAllResources = async (
+          parentInstanceId: string,
+          parentInstanceName: string,
+          parentRgdName?: string,
+          parentRgdId?: string,
+          parentCrdName?: string,
+          parentResource?: any
+        ): Promise<any[]> => {
+          const requestParams: any = {
+            clusterName,
+            namespace,
+            instanceId: parentInstanceId,
+            instanceName: parentInstanceName,
+          };
+
+          // If this is a nested instance (has parentResource), use kind/group/version lookup
+          if (parentResource) {
+            const [group, version] = (parentResource.apiVersion || '').split('/');
+            requestParams.kind = parentResource.kind;
+            requestParams.group = group || parentResource.apiVersion;
+            requestParams.version = version || parentResource.apiVersion;
+          } else {
+            // Top-level instance: use provided RGD info
+            requestParams.rgdName = parentRgdName;
+            requestParams.rgdId = parentRgdId;
+            requestParams.crdName = parentCrdName;
+          }
+
+          const { resources: fetchedResources } = await kroApi.getResources(requestParams);
+          
+          let allResources = [...fetchedResources];
+
+          // Find nested instances and fetch their resources recursively
+          const nestedInstances = fetchedResources.filter(r => r.type === 'Instance' && r.level > 0);
+          
+          for (const nestedInstance of nestedInstances) {
+            // Use the nested instance's own UID as its instance ID, not the parent's label
+            const nestedInstanceId = nestedInstance.resource.metadata?.uid;
+            const nestedInstanceName = nestedInstance.resource.metadata?.name;
+            
+            if (nestedInstanceId && nestedInstanceName) {
+              const nestedResources = await fetchAllResources(
+                nestedInstanceId,
+                nestedInstanceName,
+                undefined,
+                undefined,
+                undefined,
+                nestedInstance.resource
+              );
+              allResources = allResources.concat(nestedResources);
+            }
+          }
+
+          return allResources;
+        };
+
+        const rawResources = await fetchAllResources(
+          instanceId,
+          annotations['terasky.backstage.io/kro-instance-name'] || entity.metadata.name,
+          rgdName,
+          rgdId,
+          crdName,
+          undefined
+        );
+
+        // Deduplicate resources by UID (nested instances appear twice)
+        // Discard level-0 instances from their own nested fetch, keep parent's version
+        const resourceMap = new Map();
+        rawResources.forEach(r => {
+          const uid = r.resource.metadata?.uid;
+          if (uid) {
+            if (!resourceMap.has(uid)) {
+              resourceMap.set(uid, r);
+            } else {
+              const existing = resourceMap.get(uid);
+              // If new resource is a nested instance at level 0 (from its own fetch), discard it
+              if (r.type === 'Instance' && r.level === 0) {
+                // Keep existing (from parent fetch with correct parentId)
+                return;
+              }
+              // If existing is a nested instance at level 0, replace with new one
+              if (existing.type === 'Instance' && existing.level === 0) {
+                resourceMap.set(uid, r);
+              }
+            }
+          }
+        });
+        const allKroResources = Array.from(resourceMap.values());
+
+        // Re-fetch to get supporting resources (RGD, CRD)
+        const { supportingResources } = await kroApi.getResources({
           clusterName,
           namespace,
           rgdName,
@@ -877,18 +1010,44 @@ const KroResourceGraph = () => {
           crdName,
         });
 
-        // Extract RGD, CRD, instance, and managed resources
+        // Extract RGD, CRD, and top-level instance
         const rgd = supportingResources.find(r => r.kind === 'ResourceGraphDefinition');
         const crd = supportingResources.find(r => r.kind === 'CustomResourceDefinition');
-        const instance = kroResources.find(r => r.type === 'Instance')?.resource;
-        const managedResources = kroResources.filter(r => r.type === 'Resource').map(r => r.resource);
+        const topLevelInstance = allKroResources.find(r => r.type === 'Instance' && r.level === 0)?.resource;
+        
+        // Map ALL resources (instances and resources) with their metadata
+        const managedResources = allKroResources
+          .filter(r => r.level > 0) // Exclude the top-level instance
+          .map(r => {
+            // Add metadata for proper graph rendering
+            const resource = { ...r.resource };
+            if (r.isExternal) {
+              resource.metadata = {
+                ...resource.metadata,
+                annotations: {
+                  ...resource.metadata?.annotations,
+                  'kro.terasky.io/external-reference': 'true'
+                }
+              };
+            }
+            // Store parent ID and type for hierarchy
+            resource.metadata = {
+              ...resource.metadata,
+              annotations: {
+                ...resource.metadata?.annotations,
+                'kro.terasky.io/parent-id': r.parentId || '',
+                'kro.terasky.io/resource-type': r.type
+              }
+            };
+            return resource;
+          });
 
-        if (!rgd || !crd || !instance) {
+        if (!rgd || !crd || !topLevelInstance) {
           throw new Error('Missing required resources');
         }
 
-        setResources([rgd, crd, instance, ...managedResources]);
-        generateGraphElements([rgd, crd, instance, ...managedResources]);
+        setResources([rgd, crd, topLevelInstance, ...managedResources]);
+        generateGraphElements([rgd, crd, topLevelInstance, ...managedResources]);
             } catch (error) {
                 console.error('Failed to fetch resources:', error);
                 setResources([]);

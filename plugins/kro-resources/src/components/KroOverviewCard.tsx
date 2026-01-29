@@ -140,10 +140,18 @@ const KroOverviewCard = () => {
                 <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray' }}>Instance State</Typography>
                 <Tooltip
                   classes={{ tooltip: classes.customWidth }}
-                  title={renderConditionTooltip(instance?.status?.conditions?.find((condition: any) => condition.type === 'InstanceSynced') || {})}
+                  title={renderConditionTooltip(
+                    instance?.status?.conditions?.find((condition: any) => condition.type === 'Ready') ||
+                    instance?.status?.conditions?.find((condition: any) => condition.type === 'InstanceSynced') || 
+                    {}
+                  )}
                 >
                   <Typography variant="body2">
-                    {renderStatusIcon(instance?.status?.conditions?.find((condition: any) => condition.type === 'InstanceSynced')?.status || 'Unknown')}
+                    {renderStatusIcon(
+                      (instance?.status?.conditions?.find((condition: any) => condition.type === 'Ready') ||
+                       instance?.status?.conditions?.find((condition: any) => condition.type === 'InstanceSynced'))?.status || 
+                      'Unknown'
+                    )}
                   </Typography>
                 </Tooltip>
               </Grid>

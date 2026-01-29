@@ -31,8 +31,15 @@ describe('KubernetesService', () => {
           return res(ctx.json({
             apiVersion: 'kro.run/v1alpha1',
             kind: 'ResourceGraphDefinition',
-            metadata: { name: 'test-rgd' },
+            metadata: { 
+              name: 'test-rgd',
+              uid: 'rgd-123',
+            },
             spec: {
+              schema: {
+                group: 'kro.run',
+                kind: 'Test',
+              },
               resources: [
                 {
                   id: 'deployment',
@@ -77,7 +84,12 @@ describe('KubernetesService', () => {
           }));
         }),
         rest.get('http://kubernetes-backend/proxy/apis/apps/v1/namespaces/default/deployments', (_req, res, ctx) => {
+          // Label selector query returns empty list
           return res(ctx.json({ items: [] }));
+        }),
+        rest.get('http://kubernetes-backend/proxy/apis/apps/v1/namespaces/default/deployments/test-deployment', (_req, res, ctx) => {
+          // Direct fetch by name also returns 404 (resource doesn't exist)
+          return res(ctx.status(404), ctx.json({ message: 'Not found' }));
         }),
       );
 
@@ -166,10 +178,15 @@ describe('KubernetesService', () => {
           return res(ctx.json({
             apiVersion: 'kro.run/v1alpha1',
             kind: 'ResourceGraphDefinition',
-            metadata: { name: 'test-rgd' },
+            metadata: { 
+              name: 'test-rgd',
+              uid: 'rgd-123',
+            },
             spec: {
-              group: 'kro.run',
-              names: { plural: 'tests' },
+              schema: {
+                group: 'kro.run',
+                kind: 'Test',
+              },
               resources: [],
             },
           }));
