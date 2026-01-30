@@ -45,7 +45,12 @@ export class KubernetesDataProvider {
           'kubernetesIngestor.components.disableDefaultWorkloadTypes',
         ) ?? false;
 
-      const defaultWorkloadTypes = [
+      const defaultWorkloadTypes: Array<{
+        group: string;
+        apiVersion: string;
+        plural: string;
+        defaultType?: string;
+      }> = [
         {
           group: 'apps',
           apiVersion: 'v1',
@@ -77,6 +82,7 @@ export class KubernetesDataProvider {
             group: type.getString('group'),
             apiVersion: type.getString('apiVersion'),
             plural: type.getString('plural'),
+            defaultType: type.getOptionalString('defaultType'),
           })) || [];
 
       const workloadTypes = [
@@ -208,6 +214,7 @@ export class KubernetesDataProvider {
                   ...resource,
                   apiVersion: `${type.group}/${type.apiVersion}`,
                   kind: resource.kind || type.plural.charAt(0).toUpperCase() + type.plural.slice(1, -1),
+                  ...(type.defaultType && { workloadType: type.defaultType }),
                 }));
               } catch (error) {
                 this.logger.debug(
