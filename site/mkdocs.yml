@@ -112,6 +112,16 @@ nav:
               - About: plugins/devpod/frontend/about.md
               - Install: plugins/devpod/frontend/install.md
               - Configure: plugins/devpod/frontend/configure.md
+      - Spring Initializer:
+          - Overview: plugins/spring-initializer/overview.md
+          - Frontend:
+              - About: plugins/spring-initializer/frontend/about.md
+              - Install: plugins/spring-initializer/frontend/install.md
+              - Configure: plugins/spring-initializer/frontend/configure.md
+          - Backend:
+              - About: plugins/spring-initializer/backend/about.md
+              - Install: plugins/spring-initializer/backend/install.md
+              - Configure: plugins/spring-initializer/backend/configure.md
   - Resource And Cost Optimization:
       - ScaleOps:
           - Overview: plugins/scaleops/overview.md

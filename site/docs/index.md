@@ -21,6 +21,7 @@ Welcome to our comprehensive collection of Backstage plugins! We've created thes
 
 ### Development Tools
 1. [DevPod Plugin](./plugins/devpod/overview.md) [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-devpod/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-devpod) - Quick development environment setup with IDE integration.
+2. [Spring Initializer](./plugins/spring-initializer/overview.md) [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-spring-initializer/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-spring-initializer) - Create Spring Boot applications with smart dependency filtering, version compatibility checking, and admin-configurable defaults.
 
 ### Resource And Cost Optimization
 1. [ScaleOps Suite](./plugins/scaleops/overview.md) [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-scaleops-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-scaleops-backend) - Complete ScaleOps integration for cost optimization with AI-powered automation through MCP actions.
