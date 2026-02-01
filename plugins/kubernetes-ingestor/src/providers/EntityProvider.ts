@@ -2516,7 +2516,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         tags: [`cluster:${normalizedClusterName}`, `kind:${resource.kind?.toLowerCase()}`],
       },
       spec: {
-        type: annotations[`${prefix}/component-type`] || 'service',
+        type: annotations[`${prefix}/component-type`] || resource.workloadType || 'service',
         lifecycle: annotations[`${prefix}/lifecycle`] || 'production',
         owner: componentOwner,
         system: annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`,
@@ -2711,7 +2711,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         },
       },
       spec: {
-        type: 'crossplane-claim',
+        type: annotations[`${prefix}/component-type`] || claim.workloadType || 'crossplane-claim',
         lifecycle: annotations[`${prefix}/lifecycle`] || 'production',
         owner: componentOwner,
         system: annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`,
@@ -2897,7 +2897,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         },
       },
       spec: {
-        type: 'kro-instance',
+        type: annotations[`${prefix}/component-type`] || instance.workloadType || 'kro-instance',
         lifecycle: annotations[`${prefix}/lifecycle`] || 'production',
         owner: componentOwner,
         system: annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`,
@@ -3082,7 +3082,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         },
       },
       spec: {
-        type: 'crossplane-xr',
+        type: annotations[`${prefix}/component-type`] || xr.workloadType || 'crossplane-xr',
         lifecycle: annotations[`${prefix}/lifecycle`] || 'production',
         owner: componentOwner,
         system: annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`,

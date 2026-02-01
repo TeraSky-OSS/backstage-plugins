@@ -164,6 +164,10 @@ describe('KubernetesDataProvider', () => {
                 if (k === 'plural') return 'myresources';
                 return '';
               },
+              getOptionalString: (k: string) => {
+                if (k === 'defaultType') return undefined;
+                return undefined;
+              },
             },
           ];
         }
@@ -184,6 +188,326 @@ describe('KubernetesDataProvider', () => {
           resourcePath: 'custom.io/v1/myresources',
         }),
       );
+    });
+
+    it('should add workloadType to resources from customWorkloadTypes with defaultType', async () => {
+      mockConfig.getOptionalStringArray.mockImplementation((key: string) => {
+        if (key === 'kubernetesIngestor.allowedClusterNames') return ['cluster1'];
+        return undefined;
+      });
+      mockConfig.getOptionalBoolean.mockImplementation((key: string) => {
+        if (key === 'kubernetesIngestor.components.disableDefaultWorkloadTypes') return true;
+        return false;
+      });
+      mockConfig.getOptionalConfigArray.mockImplementation((key: string) => {
+        if (key === 'kubernetesIngestor.components.customWorkloadTypes') {
+          return [
+            {
+              getString: (k: string) => {
+                if (k === 'group') return 'argoproj.io';
+                if (k === 'apiVersion') return 'v1alpha1';
+                if (k === 'plural') return 'cronworkflows';
+                return '';
+              },
+              getOptionalString: (k: string) => {
+                if (k === 'defaultType') return 'workflow';
+                return undefined;
+              },
+            },
+          ];
+        }
+        return undefined;
+      });
+
+      const mockCronWorkflow = {
+        apiVersion: 'argoproj.io/v1alpha1',
+        kind: 'CronWorkflow',
+        metadata: { name: 'test-workflow', namespace: 'default' },
+        spec: {},
+      };
+
+      mockResourceFetcher.fetchResources.mockResolvedValue([mockCronWorkflow]);
+
+      const provider = new KubernetesDataProvider(
+        mockResourceFetcher as any,
+        mockConfig as any,
+        mockLogger as any,
+      );
+
+      const result = await provider.fetchKubernetesObjects();
+
+      const workflow = result.find((r: any) => r.metadata?.name === 'test-workflow');
+      expect(workflow).toBeDefined();
+      expect(workflow?.workloadType).toBe('workflow');
+    });
+
+    it('should not add workloadType when defaultType is not configured', async () => {
+      mockConfig.getOptionalStringArray.mockImplementation((key: string) => {
+        if (key === 'kubernetesIngestor.allowedClusterNames') return ['cluster1'];
+        return undefined;
+      });
+      mockConfig.getOptionalBoolean.mockReturnValue(false);
+      mockConfig.getOptionalConfigArray.mockImplementation((key: string) => {
+        if (key === 'kubernetesIngestor.components.customWorkloadTypes') {
+          return [
+            {
+              getString: (k: string) => {
+                if (k === 'group') return 'batch';
+                if (k === 'apiVersion') return 'v1';
+                if (k === 'plural') return 'jobs';
+                return '';
+              },
+              getOptionalString: (k: string) => {
+                // No defaultType configured
+                return undefined;
+              },
+            },
+          ];
+        }
+        return undefined;
+      });
+
+      const mockJob = {
+        apiVersion: 'batch/v1',
+        kind: 'Job',
+        metadata: { name: 'test-job', namespace: 'default' },
+        spec: {},
+      };
+
+      mockResourceFetcher.fetchResources.mockResolvedValue([mockJob]);
+
+      const provider = new KubernetesDataProvider(
+        mockResourceFetcher as any,
+        mockConfig as any,
+        mockLogger as any,
+      );
+
+      const result = await provider.fetchKubernetesObjects();
+
+      const job = result.find((r: any) => r.metadata?.name === 'test-job');
+      expect(job).toBeDefined();
+      expect(job?.workloadType).toBeUndefined();
+    });
+
+    it('should add workloadType to multiple custom workload types', async () => {
+      mockConfig.getOptionalStringArray.mockImplementation((key: string) => {
+        if (key === 'kubernetesIngestor.allowedClusterNames') return ['cluster1'];
+        return undefined;
+      });
+      mockConfig.getOptionalBoolean.mockImplementation((key: string) => {
+        if (key === 'kubernetesIngestor.components.disableDefaultWorkloadTypes') return true;
+        return false;
+      });
+      mockConfig.getOptionalConfigArray.mockImplementation((key: string) => {
+        if (key === 'kubernetesIngestor.components.customWorkloadTypes') {
+          return [
+            {
+              getString: (k: string) => {
+                if (k === 'group') return 'batch';
+                if (k === 'apiVersion') return 'v1';
+                if (k === 'plural') return 'jobs';
+                return '';
+              },
+              getOptionalString: (k: string) => {
+                if (k === 'defaultType') return 'batch-job';
+                return undefined;
+              },
+            },
+            {
+              getString: (k: string) => {
+                if (k === 'group') return 'batch';
+                if (k === 'apiVersion') return 'v1';
+                if (k === 'plural') return 'cronjobs';
+                return '';
+              },
+              getOptionalString: (k: string) => {
+                if (k === 'defaultType') return 'scheduled-task';
+                return undefined;
+              },
+            },
+          ];
+        }
+        return undefined;
+      });
+
+      const mockJob = {
+        apiVersion: 'batch/v1',
+        kind: 'Job',
+        metadata: { name: 'test-job', namespace: 'default' },
+        spec: {},
+      };
+
+      const mockCronJob = {
+        apiVersion: 'batch/v1',
+        kind: 'CronJob',
+        metadata: { name: 'test-cronjob', namespace: 'default' },
+        spec: {},
+      };
+
+      mockResourceFetcher.fetchResources.mockImplementation(async ({ resourcePath }: any) => {
+        if (resourcePath === 'batch/v1/jobs') return [mockJob];
+        if (resourcePath === 'batch/v1/cronjobs') return [mockCronJob];
+        return [];
+      });
+
+      const provider = new KubernetesDataProvider(
+        mockResourceFetcher as any,
+        mockConfig as any,
+        mockLogger as any,
+      );
+
+      const result = await provider.fetchKubernetesObjects();
+
+      const job = result.find((r: any) => r.metadata?.name === 'test-job');
+      expect(job?.workloadType).toBe('batch-job');
+
+      const cronJob = result.find((r: any) => r.metadata?.name === 'test-cronjob');
+      expect(cronJob?.workloadType).toBe('scheduled-task');
+    });
+
+    it('should add workloadType to Crossplane claims from customWorkloadTypes', async () => {
+      mockConfig.getOptionalStringArray.mockImplementation((key: string) => {
+        if (key === 'kubernetesIngestor.allowedClusterNames') return ['cluster1'];
+        return undefined;
+      });
+      mockConfig.getOptionalBoolean.mockImplementation((key: string) => {
+        if (key === 'kubernetesIngestor.crossplane.enabled') return true;
+        if (key === 'kubernetesIngestor.components.disableDefaultWorkloadTypes') return true;
+        return false;
+      });
+      mockConfig.getOptionalConfigArray.mockImplementation((key: string) => {
+        if (key === 'kubernetesIngestor.components.customWorkloadTypes') {
+          return [
+            {
+              getString: (k: string) => {
+                if (k === 'group') return 'database.example.com';
+                if (k === 'apiVersion') return 'v1alpha1';
+                if (k === 'plural') return 'postgresqlinstances';
+                return '';
+              },
+              getOptionalString: (k: string) => {
+                if (k === 'defaultType') return 'postgresql-database';
+                return undefined;
+              },
+            },
+          ];
+        }
+        return undefined;
+      });
+
+      const mockClaim = {
+        apiVersion: 'database.example.com/v1alpha1',
+        kind: 'PostgreSQLInstance',
+        metadata: { name: 'my-db', namespace: 'default' },
+        spec: {
+          resourceRef: { name: 'my-db-xyz' },
+        },
+      };
+
+      mockResourceFetcher.fetchResources.mockImplementation(async ({ resourcePath }: any) => {
+        if (resourcePath === 'database.example.com/v1alpha1/postgresqlinstances') return [mockClaim];
+        if (resourcePath === 'apiextensions.crossplane.io/v1/compositions') return [];
+        return [];
+      });
+
+      const provider = new KubernetesDataProvider(
+        mockResourceFetcher as any,
+        mockConfig as any,
+        mockLogger as any,
+      );
+
+      const result = await provider.fetchKubernetesObjects();
+
+      const claim = result.find((r: any) => r.metadata?.name === 'my-db');
+      expect(claim).toBeDefined();
+      expect(claim?.workloadType).toBe('postgresql-database');
+    });
+
+    it('should add workloadType to KRO instances from customWorkloadTypes', async () => {
+      mockConfig.getOptionalStringArray.mockImplementation((key: string) => {
+        if (key === 'kubernetesIngestor.allowedClusterNames') return ['cluster1'];
+        return undefined;
+      });
+      mockConfig.getOptionalBoolean.mockImplementation((key: string) => {
+        if (key === 'kubernetesIngestor.kro.enabled') return true;
+        if (key === 'kubernetesIngestor.components.disableDefaultWorkloadTypes') return true;
+        return false;
+      });
+      mockConfig.getOptionalConfigArray.mockImplementation((key: string) => {
+        if (key === 'kubernetesIngestor.components.customWorkloadTypes') {
+          return [
+            {
+              getString: (k: string) => {
+                if (k === 'group') return 'apps.example.com';
+                if (k === 'apiVersion') return 'v1';
+                if (k === 'plural') return 'webapplications';
+                return '';
+              },
+              getOptionalString: (k: string) => {
+                if (k === 'defaultType') return 'web-app';
+                return undefined;
+              },
+            },
+          ];
+        }
+        return undefined;
+      });
+
+      const rgdId = 'rgd-uid-456';
+      const mockKROInstance = {
+        apiVersion: 'apps.example.com/v1',
+        kind: 'WebApplication',
+        metadata: {
+          name: 'my-app',
+          namespace: 'default',
+          labels: {
+            'kro.run/resource-graph-definition-id': rgdId,
+          },
+        },
+        spec: {},
+      };
+
+      const rgd = {
+        metadata: { uid: rgdId, name: 'webapp-rgd' },
+        status: { state: 'Active' },
+        spec: {
+          schema: {
+            group: 'apps.example.com',
+            kind: 'WebApplication',
+          },
+        },
+      };
+
+      const crd = {
+        metadata: { name: 'webapplications.apps.example.com' },
+        spec: {
+          group: 'apps.example.com',
+          names: { plural: 'webapplications', kind: 'WebApplication' },
+          versions: [{ name: 'v1' }],
+        },
+      };
+
+      mockResourceFetcher.fetchResources.mockImplementation(async ({ resourcePath, query }: any) => {
+        if (resourcePath === 'kro.run/v1alpha1/resourcegraphdefinitions') return [rgd];
+        if (resourcePath === 'apiextensions.k8s.io/v1/customresourcedefinitions') {
+          if (query?.labelSelector?.includes(rgdId)) return [crd];
+          return [];
+        }
+        if (resourcePath === 'apps.example.com/v1/webapplications') return [mockKROInstance];
+        return [];
+      });
+
+      const provider = new KubernetesDataProvider(
+        mockResourceFetcher as any,
+        mockConfig as any,
+        mockLogger as any,
+      );
+
+      const result = await provider.fetchKubernetesObjects();
+
+      const kroInstance = result.find((r: any) => r.metadata?.name === 'my-app');
+      expect(kroInstance).toBeDefined();
+      expect(kroInstance?.workloadType).toBe('web-app');
     });
 
     it('should filter out excluded namespaces', async () => {
