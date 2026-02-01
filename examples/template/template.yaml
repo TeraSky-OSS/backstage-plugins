@@ -1,3 +1,72 @@
+---
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: spring-boot-application
+  title: Spring Boot Application
+  description: Create a new Spring Boot application using Spring Initializer
+  tags:
+    - java
+    - spring
+    - spring-boot
+spec:
+  owner: platform-team
+  type: service
+
+  parameters:
+    - title: Spring Boot Configuration
+      required:
+        - springConfig
+      properties:
+        springConfig:
+          title: Spring Configuration
+          type: object
+          description: Configure your Spring Boot project
+          ui:field: SpringInitializer
+
+    - title: Repository Information
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: Repository Location
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+
+  steps:
+    - id: generate-spring
+      name: Generate Spring Boot Project
+      action: terasky:spring-initializer
+      input:
+        type: ${{ parameters.springConfig.type }}
+        language: ${{ parameters.springConfig.language }}
+        bootVersion: ${{ parameters.springConfig.bootVersion }}
+        groupId: ${{ parameters.springConfig.groupId }}
+        artifactId: ${{ parameters.springConfig.artifactId }}
+        name: ${{ parameters.springConfig.name }}
+        description: ${{ parameters.springConfig.description }}
+        packageName: ${{ parameters.springConfig.packageName }}
+        packaging: ${{ parameters.springConfig.packaging }}
+        javaVersion: ${{ parameters.springConfig.javaVersion }}
+        dependencies: ${{ parameters.springConfig.dependencies }}
+        outputPath: .
+
+    - id: publish
+      name: Publish to GitHub
+      action: publish:github
+      input:
+        allowedHosts: ['github.com']
+        description: ${{ parameters.springConfig.description }}
+        repoUrl: ${{ parameters.repoUrl }}
+
+  output:
+    links:
+      - title: Repository
+        url: ${{ steps.publish.output.remoteUrl }}
+---
 apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
