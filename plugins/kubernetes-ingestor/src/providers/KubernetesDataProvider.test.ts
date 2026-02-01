@@ -257,7 +257,7 @@ describe('KubernetesDataProvider', () => {
                 if (k === 'plural') return 'jobs';
                 return '';
               },
-              getOptionalString: (k: string) => {
+              getOptionalString: (_k: string) => {
                 // No defaultType configured
                 return undefined;
               },
