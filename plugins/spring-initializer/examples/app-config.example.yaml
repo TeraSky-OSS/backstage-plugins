@@ -1,0 +1,55 @@
+# Example configuration for Spring Initializer plugin
+# Add this to your app-config.yaml
+
+springInitializer:
+  # API Configuration
+  endpoint: 'https://start.spring.io'
+  proxyPath: '/spring-initializer'
+  
+  # Field Defaults and Restrictions
+  # Group ID - enforce company namespace
+  defaultGroupId: 'com.mycompany'
+  defaultGroupIdReadOnly: true          # Users cannot change this
+  
+  # Spring Boot Version - recommend stable version
+  defaultBootVersion: '3.5.10'
+  defaultBootVersionReadOnly: false     # Users can select other versions
+  
+  # Java Version - enforce company standard
+  defaultJavaVersion: '17'
+  defaultJavaVersionReadOnly: true      # Locked to Java 17
+  
+  # Packaging - enforce JAR packaging
+  defaultPackaging: 'jar'
+  defaultPackagingReadOnly: true        # No WAR packaging
+  
+  # Project Type - allow Maven or Gradle
+  defaultType: 'maven-project'
+  defaultTypeReadOnly: false            # Users can choose
+  
+  # Language - allow Java or Kotlin
+  defaultLanguage: 'java'
+  defaultLanguageReadOnly: false        # Users can choose
+  
+  # Dependency Management
+  # Required dependencies (always included, cannot be removed)
+  requiredDependencies:
+    - web                               # Spring Web
+    - actuator                          # Spring Boot Actuator
+    - security                          # Spring Security
+    - micrometer-registry-prometheus    # Prometheus metrics
+  
+  # Disallowed dependencies (shown but disabled with red label)
+  disallowedDependencies:
+    - devtools                          # Not for production
+    - h2                               # Use real databases
+    - hsqldb                           # Use real databases
+    - derby                            # Use real databases
+    - lombok                           # Company prefers alternatives
+
+# Proxy Configuration (required)
+proxy:
+  endpoints:
+    '/spring-initializer':
+      target: 'https://start.spring.io'
+      changeOrigin: true

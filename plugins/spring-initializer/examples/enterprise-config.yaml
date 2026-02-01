@@ -1,0 +1,83 @@
+# Enterprise Spring Initializer Configuration Example
+# This example shows how to enforce enterprise standards while allowing developer flexibility
+
+springInitializer:
+  # Use internal Spring Initializer instance
+  endpoint: 'https://start.spring.io'
+  proxyPath: '/spring-initializer'
+  
+  # ✅ ENFORCED: Company namespace
+  defaultGroupId: 'com.acme.services'
+  defaultGroupIdReadOnly: true
+  
+  # ⚠️ RECOMMENDED: Latest LTS version, but allow selection
+  defaultBootVersion: '3.5.10'
+  defaultBootVersionReadOnly: false
+  
+  # ✅ ENFORCED: Java 17 (company standard)
+  defaultJavaVersion: '17'
+  defaultJavaVersionReadOnly: true
+  
+  # ✅ ENFORCED: JAR packaging only (containerized deployments)
+  defaultPackaging: 'jar'
+  defaultPackagingReadOnly: true
+  
+  # ⚠️ RECOMMENDED: Maven, but allow Gradle
+  defaultType: 'maven-project'
+  defaultTypeReadOnly: false
+  
+  # ⚠️ RECOMMENDED: Java, but allow Kotlin
+  defaultLanguage: 'java'
+  defaultLanguageReadOnly: false
+  
+  # Required baseline dependencies for all services
+  requiredDependencies:
+    - web                               # REST APIs
+    - actuator                          # Health checks & metrics
+    - security                          # Authentication & authorization
+    - data-jpa                          # Database access
+    - postgresql                        # PostgreSQL driver
+    - micrometer-registry-prometheus    # Prometheus metrics
+    - cloud-config-client               # Config server
+    - cloud-eureka-client               # Service discovery
+  
+  # Disallowed dependencies (security/policy violations)
+  disallowedDependencies:
+    - devtools                          # Not for production
+    - h2                               # No embedded databases
+    - hsqldb                           # No embedded databases
+    - derby                            # No embedded databases
+    - mysql                            # Use PostgreSQL
+    - mariadb                          # Use PostgreSQL
+    - oracle                           # Use PostgreSQL
+    - sqlserver                        # Use PostgreSQL
+
+# Required proxy configuration
+proxy:
+  endpoints:
+    '/spring-initializer':
+      target: 'https://start.spring.io'
+      changeOrigin: true
+
+---
+# Alternative: Development/Sandbox Configuration
+# Use this for developer experimentation
+
+springInitializer:
+  endpoint: 'https://start.spring.io'
+  proxyPath: '/spring-initializer'
+  
+  defaultGroupId: 'com.example'
+  defaultGroupIdReadOnly: false         # Developers can experiment
+  
+  defaultBootVersion: '4.0.2'
+  defaultBootVersionReadOnly: false     # Try latest features
+  
+  defaultJavaVersion: '21'
+  defaultJavaVersionReadOnly: false     # Experiment with newer Java
+  
+  requiredDependencies:
+    - web                               # Minimal baseline
+    - devtools                          # Hot reload for development
+  
+  disallowedDependencies: []            # No restrictions
