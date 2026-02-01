@@ -104,5 +104,5 @@ backend.add(import('@backstage/plugin-scaffolder-backend-module-azure'));
 backend.add(import('@backstage/plugin-catalog-backend-module-ldap'));
 backend.add(import('@backstage/plugin-catalog-backend-module-msgraph'));
 backend.add(import('@backstage/plugin-mcp-actions-backend'));
-
+backend.add(import('@terasky/backstage-plugin-scaffolder-backend-module-spring-initializer'));
 backend.start();
