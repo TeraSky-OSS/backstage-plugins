@@ -81,6 +81,12 @@ nav:
                   - About: plugins/spectrocloud/auth/kubernetes-module/about.md
                   - Install: plugins/spectrocloud/auth/kubernetes-module/install.md
                   - Configure: plugins/spectrocloud/auth/kubernetes-module/configure.md
+      - API Docs Module - CRD:
+          - Overview: plugins/api-docs-module-crd/overview.md
+          - Frontend:
+              - About: plugins/api-docs-module-crd/frontend/about.md
+              - Install: plugins/api-docs-module-crd/frontend/install.md
+              - Configure: plugins/api-docs-module-crd/frontend/configure.md
   - IaC GitOps:
       - GitOps Manifest Updater:
           - Overview: plugins/gitops-manifest-updater/overview.md
