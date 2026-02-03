@@ -24,6 +24,14 @@ export interface Config {
      */
     defaultOwner?: string;
     /**
+     * Ingest API entities as CRD type instead of OpenAPI type
+     * When true, API entities will have type "crd" with the CRD YAML as definition
+     * When false, API entities will have type "openapi" with generated OpenAPI spec
+     * @default true
+     * @visibility frontend
+     */
+    ingestAPIsAsCRDs?: boolean;
+    /**
      * Allow ingestion from all clusters
      * @default false
      * @visibility frontend

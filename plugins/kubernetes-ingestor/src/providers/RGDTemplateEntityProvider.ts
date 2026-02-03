@@ -380,26 +380,61 @@ export class RGDTemplateEntityProvider implements EntityProvider {
         }
       ];
 
-      return {
-        apiVersion: 'backstage.io/v1alpha1',
-        kind: 'API',
-        metadata: {
-          name: `${crd.spec.names.kind.toLowerCase()}-${crd.spec.group}--${version.name}`,
-          title: `${crd.spec.names.kind.toLowerCase()}-${crd.spec.group}--${version.name}`,
-          annotations: {
-            'backstage.io/managed-by-location': `cluster origin: ${rgd.clusterName}`,
-            'backstage.io/managed-by-origin-location': `cluster origin: ${rgd.clusterName}`,
+      // Check if we should ingest as CRD type or OpenAPI type
+      const ingestAsCRD = this.config.getOptionalBoolean('kubernetesIngestor.ingestAPIsAsCRDs') ?? true;
+      
+      if (ingestAsCRD) {
+        // Use CRD type with the actual CRD YAML as definition
+        // Ensure apiVersion and kind are set
+        const crdWithMetadata = {
+          apiVersion: crd.apiVersion || 'apiextensions.k8s.io/v1',
+          kind: crd.kind || 'CustomResourceDefinition',
+          ...crd
+        };
+        
+        return {
+          apiVersion: 'backstage.io/v1alpha1',
+          kind: 'API',
+          metadata: {
+            name: `${crd.spec.names.kind.toLowerCase()}-${crd.spec.group}--${version.name}`,
+            title: `${crd.spec.names.kind.toLowerCase()}-${crd.spec.group}--${version.name}`,
+            annotations: {
+              'backstage.io/managed-by-location': `cluster origin: ${rgd.clusterName}`,
+              'backstage.io/managed-by-origin-location': `cluster origin: ${rgd.clusterName}`,
+            },
+            tags: ['kro'],
           },
-          tags: ['kro'],
-        },
-        spec: {
-          type: "openapi",
-          lifecycle: "production",
-          owner: this.getDefaultOwner(),
-          system: "kubernetes-auto-ingested",
-          definition: yaml.dump(rgdOpenAPIDoc),
-        },
-      };
+          spec: {
+            type: "crd",
+            lifecycle: "production",
+            owner: this.getDefaultOwner(),
+            system: "kubernetes-auto-ingested",
+            definition: yaml.dump(crdWithMetadata),
+          },
+        };
+      } else {
+        // Use OpenAPI type with generated OpenAPI definition
+        return {
+          apiVersion: 'backstage.io/v1alpha1',
+          kind: 'API',
+          metadata: {
+            name: `${crd.spec.names.kind.toLowerCase()}-${crd.spec.group}--${version.name}`,
+            title: `${crd.spec.names.kind.toLowerCase()}-${crd.spec.group}--${version.name}`,
+            annotations: {
+              'backstage.io/managed-by-location': `cluster origin: ${rgd.clusterName}`,
+              'backstage.io/managed-by-origin-location': `cluster origin: ${rgd.clusterName}`,
+            },
+            tags: ['kro'],
+          },
+          spec: {
+            type: "openapi",
+            lifecycle: "production",
+            owner: this.getDefaultOwner(),
+            system: "kubernetes-auto-ingested",
+            definition: yaml.dump(rgdOpenAPIDoc),
+          },
+        };
+      }
     });
 
     // Filter out invalid APIs

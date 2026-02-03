@@ -604,26 +604,62 @@ export class XRDTemplateEntityProvider implements EntityProvider {
           bearerHttpAuthentication: []
         }
       ];
-      return {
-        apiVersion: 'backstage.io/v1alpha1',
-        kind: 'API',
-        metadata: {
-          name: `${resourceKind?.toLowerCase()}-${xrd.spec.group}--${version.name}`,
-          title: `${resourceKind?.toLowerCase()}-${xrd.spec.group}--${version.name}`,
-          tags: ['crossplane'],
-          annotations: {
-            'backstage.io/managed-by-location': `cluster origin: ${xrd.clusterName}`,
-            'backstage.io/managed-by-origin-location': `cluster origin: ${xrd.clusterName}`,
+
+      // Check if we should ingest as CRD type or OpenAPI type
+      const ingestAsCRD = this.config.getOptionalBoolean('kubernetesIngestor.ingestAPIsAsCRDs') ?? true;
+      
+      if (ingestAsCRD && xrd.generatedCRD) {
+        // Use CRD type with the actual CRD YAML as definition
+        // Ensure apiVersion and kind are set
+        const crdWithMetadata = {
+          apiVersion: xrd.generatedCRD.apiVersion || 'apiextensions.k8s.io/v1',
+          kind: xrd.generatedCRD.kind || 'CustomResourceDefinition',
+          ...xrd.generatedCRD
+        };
+        
+        return {
+          apiVersion: 'backstage.io/v1alpha1',
+          kind: 'API',
+          metadata: {
+            name: `${resourceKind?.toLowerCase()}-${xrd.spec.group}--${version.name}`,
+            title: `${resourceKind?.toLowerCase()}-${xrd.spec.group}--${version.name}`,
+            tags: ['crossplane'],
+            annotations: {
+              'backstage.io/managed-by-location': `cluster origin: ${xrd.clusterName}`,
+              'backstage.io/managed-by-origin-location': `cluster origin: ${xrd.clusterName}`,
+            },
           },
-        },
-        spec: {
-          type: "openapi",
-          lifecycle: "production",
-          owner: this.getDefaultOwner(),
-          system: "kubernetes-auto-ingested",
-          definition: yaml.dump(xrdOpenAPIDoc),
-        },
-      };
+          spec: {
+            type: "crd",
+            lifecycle: "production",
+            owner: this.getDefaultOwner(),
+            system: "kubernetes-auto-ingested",
+            definition: yaml.dump(crdWithMetadata),
+          },
+        };
+      } else {
+        // Use OpenAPI type with generated OpenAPI definition
+        return {
+          apiVersion: 'backstage.io/v1alpha1',
+          kind: 'API',
+          metadata: {
+            name: `${resourceKind?.toLowerCase()}-${xrd.spec.group}--${version.name}`,
+            title: `${resourceKind?.toLowerCase()}-${xrd.spec.group}--${version.name}`,
+            tags: ['crossplane'],
+            annotations: {
+              'backstage.io/managed-by-location': `cluster origin: ${xrd.clusterName}`,
+              'backstage.io/managed-by-origin-location': `cluster origin: ${xrd.clusterName}`,
+            },
+          },
+          spec: {
+            type: "openapi",
+            lifecycle: "production",
+            owner: this.getDefaultOwner(),
+            system: "kubernetes-auto-ingested",
+            definition: yaml.dump(xrdOpenAPIDoc),
+          },
+        };
+      }
     });
 
     // Filter out invalid APIs
@@ -1613,26 +1649,62 @@ export class XRDTemplateEntityProvider implements EntityProvider {
           bearerHttpAuthentication: []
         }
       ]
-      return {
-        apiVersion: 'backstage.io/v1alpha1',
-        kind: 'API',
-        metadata: {
-          name: `${crd.spec.names.kind.toLowerCase()}-${crd.spec.group}--${version.name}`,
-          title: `${crd.spec.names.kind.toLowerCase()}-${crd.spec.group}--${version.name}`,
-          tags: ['crd'],
-          annotations: {
-            'backstage.io/managed-by-location': `cluster origin: ${crd.clusterName}`,
-            'backstage.io/managed-by-origin-location': `cluster origin: ${crd.clusterName}`,
+
+      // Check if we should ingest as CRD type or OpenAPI type
+      const ingestAsCRD = this.config.getOptionalBoolean('kubernetesIngestor.ingestAPIsAsCRDs') ?? true;
+      
+      if (ingestAsCRD) {
+        // Use CRD type with the actual CRD YAML as definition
+        // Ensure apiVersion and kind are set
+        const crdWithMetadata = {
+          apiVersion: crd.apiVersion || 'apiextensions.k8s.io/v1',
+          kind: crd.kind || 'CustomResourceDefinition',
+          ...crd
+        };
+        
+        return {
+          apiVersion: 'backstage.io/v1alpha1',
+          kind: 'API',
+          metadata: {
+            name: `${crd.spec.names.kind.toLowerCase()}-${crd.spec.group}--${version.name}`,
+            title: `${crd.spec.names.kind.toLowerCase()}-${crd.spec.group}--${version.name}`,
+            tags: ['crd'],
+            annotations: {
+              'backstage.io/managed-by-location': `cluster origin: ${crd.clusterName}`,
+              'backstage.io/managed-by-origin-location': `cluster origin: ${crd.clusterName}`,
+            },
           },
-        },
-        spec: {
-          type: "openapi",
-          lifecycle: "production",
-          owner: this.getDefaultOwner(),
-          system: "kubernetes-auto-ingested",
-          definition: yaml.dump(crdOpenAPIDoc),
-        },
-      };
+          spec: {
+            type: "crd",
+            lifecycle: "production",
+            owner: this.getDefaultOwner(),
+            system: "kubernetes-auto-ingested",
+            definition: yaml.dump(crdWithMetadata),
+          },
+        };
+      } else {
+        // Use OpenAPI type with generated OpenAPI definition
+        return {
+          apiVersion: 'backstage.io/v1alpha1',
+          kind: 'API',
+          metadata: {
+            name: `${crd.spec.names.kind.toLowerCase()}-${crd.spec.group}--${version.name}`,
+            title: `${crd.spec.names.kind.toLowerCase()}-${crd.spec.group}--${version.name}`,
+            tags: ['crd'],
+            annotations: {
+              'backstage.io/managed-by-location': `cluster origin: ${crd.clusterName}`,
+              'backstage.io/managed-by-origin-location': `cluster origin: ${crd.clusterName}`,
+            },
+          },
+          spec: {
+            type: "openapi",
+            lifecycle: "production",
+            owner: this.getDefaultOwner(),
+            system: "kubernetes-auto-ingested",
+            definition: yaml.dump(crdOpenAPIDoc),
+          },
+        };
+      }
     }
     );
 
