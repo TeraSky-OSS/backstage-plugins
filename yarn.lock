@@ -1745,9 +1745,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage-community/plugin-rbac@npm:^1.47.2":
-  version: 1.47.2
-  resolution: "@backstage-community/plugin-rbac@npm:1.47.2"
+"@backstage-community/plugin-rbac@npm:^1.47.4":
+  version: 1.47.4
+  resolution: "@backstage-community/plugin-rbac@npm:1.47.4"
   dependencies:
     "@backstage-community/plugin-rbac-common": "npm:^1.22.0"
     "@backstage/catalog-model": "npm:^1.7.6"
@@ -1772,7 +1772,7 @@ __metadata:
   peerDependencies:
     react: ^16.13.1 || ^17.0.0 || ^18.0.0
     react-router-dom: ^6.0.0
-  checksum: 10c0/fdfdbc67270b7829da3bca134d6e5d35a4a8dc4a4fa2bbf6d503743b885fda40594bf9f410019ed2bb090a9a31d687cb6e1baa13edccb8027d3833b77eb69c08
+  checksum: 10c0/dceb07526a0b6b97ee7cbb9408a03a3d5f7ceb02b4c32a8099df7545dc17ea6ec5e8ff084dabc5e3c3bda1401ac341d6a152eebef26a31a29e70e6275feaec5c
   languageName: node
   linkType: hard
 
@@ -18259,7 +18259,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app@workspace:packages/app"
   dependencies:
-    "@backstage-community/plugin-rbac": "npm:^1.47.2"
+    "@backstage-community/plugin-rbac": "npm:^1.47.4"
     "@backstage/cli": "npm:^0.35.3"
     "@backstage/core-compat-api": "npm:^0.5.7"
     "@backstage/core-components": "npm:^0.18.6"
