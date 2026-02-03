@@ -15086,7 +15086,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-gitops-manifest-updater@npm:^2.3.0, @terasky/backstage-plugin-gitops-manifest-updater@workspace:plugins/gitops-manifest-updater":
+"@terasky/backstage-plugin-gitops-manifest-updater@npm:^2.4.0, @terasky/backstage-plugin-gitops-manifest-updater@workspace:plugins/gitops-manifest-updater":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-gitops-manifest-updater@workspace:plugins/gitops-manifest-updater"
   dependencies:
@@ -15211,7 +15211,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-kubernetes-ingestor@npm:^3.5.1, @terasky/backstage-plugin-kubernetes-ingestor@workspace:plugins/kubernetes-ingestor":
+"@terasky/backstage-plugin-kubernetes-ingestor@npm:^3.6.0, @terasky/backstage-plugin-kubernetes-ingestor@workspace:plugins/kubernetes-ingestor":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kubernetes-ingestor@workspace:plugins/kubernetes-ingestor"
   dependencies:
@@ -18299,7 +18299,7 @@ __metadata:
     "@terasky/backstage-plugin-devpod": "npm:^1.7.0"
     "@terasky/backstage-plugin-educates": "npm:^1.7.0"
     "@terasky/backstage-plugin-entity-scaffolder-content": "npm:^1.6.0"
-    "@terasky/backstage-plugin-gitops-manifest-updater": "npm:^2.3.0"
+    "@terasky/backstage-plugin-gitops-manifest-updater": "npm:^2.4.0"
     "@terasky/backstage-plugin-kro-resources-frontend": "npm:^0.8.0"
     "@terasky/backstage-plugin-kubernetes-resources-frontend": "npm:^0.10.0"
     "@terasky/backstage-plugin-kyverno-policy-reports": "npm:^1.11.0"
@@ -18970,7 +18970,7 @@ __metadata:
     "@terasky/backstage-plugin-crossplane-resources-backend": "npm:^1.10.1"
     "@terasky/backstage-plugin-educates-backend": "npm:^1.6.0"
     "@terasky/backstage-plugin-kro-resources-backend": "npm:^0.9.0"
-    "@terasky/backstage-plugin-kubernetes-ingestor": "npm:^3.5.1"
+    "@terasky/backstage-plugin-kubernetes-ingestor": "npm:^3.6.0"
     "@terasky/backstage-plugin-kubernetes-resources-permissions-backend": "npm:^0.7.1"
     "@terasky/backstage-plugin-kyverno-policy-reports-backend": "npm:^1.8.1"
     "@terasky/backstage-plugin-scaffolder-backend-module-spring-initializer": "npm:^0.1.0"

@@ -52,7 +52,7 @@
     "@terasky/backstage-plugin-devpod": "^1.7.0",
     "@terasky/backstage-plugin-educates": "^1.7.0",
     "@terasky/backstage-plugin-entity-scaffolder-content": "^1.6.0",
-    "@terasky/backstage-plugin-gitops-manifest-updater": "^2.3.0",
+    "@terasky/backstage-plugin-gitops-manifest-updater": "^2.4.0",
     "@terasky/backstage-plugin-kro-resources-frontend": "^0.8.0",
     "@terasky/backstage-plugin-kubernetes-resources-frontend": "^0.10.0",
     "@terasky/backstage-plugin-kyverno-policy-reports": "^1.11.0",
