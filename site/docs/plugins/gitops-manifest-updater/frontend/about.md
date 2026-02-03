@@ -10,7 +10,9 @@ The GitOps Manifest Updater frontend plugin provides a dynamic form component th
 
 ### Dynamic Form Generation
 - Automatic form creation from CRD schemas
-- Field validation based on OpenAPI specs
+- Support for CRD-type API entities (with full CRD YAML)
+- Support for OpenAPI-type API entities (with generated OpenAPI specs)
+- Field validation based on OpenAPI v3 schemas
 - Support for complex data structures
 - Custom field renderers
 

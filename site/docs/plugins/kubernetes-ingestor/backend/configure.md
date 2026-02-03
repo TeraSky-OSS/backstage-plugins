@@ -10,6 +10,11 @@ The plugin is configured through your `app-config.yaml`. Here's a comprehensive 
 kubernetesIngestor:
   # Optional field to set the default owner of the ingested resources.
   defaultOwner: kubernetes-auto-ingested
+  # Whether to ingest API entities as CRD type instead of OpenAPI type (default: true)
+  # When true, API entities will have type "crd" with the full CRD YAML as definition
+  # When false, API entities will have type "openapi" with generated OpenAPI spec
+  # Note: CRD-type APIs require the api-docs-module-crd plugin for proper rendering
+  ingestAPIsAsCRDs: true
   # Mappings of kubernetes resource metadata to backstage entity metadata
   # The list bellow are the default values when the mappings are not set in the app-config.yaml
   # The recommended values are:
@@ -335,6 +340,114 @@ The cluster name mapping applies to the following entity types:
 **Note:** The mapping only affects the `backstage.io/kubernetes-cluster` annotation value. Cluster tags (e.g., `cluster:sa-cls-01`) remain unchanged for filtering and searching purposes.
 
 ## Advanced Features
+
+### API Entity Types: CRD vs OpenAPI
+
+The plugin supports two formats for API entities generated from Custom Resource Definitions (CRDs), Crossplane XRDs, and KRO RGDs:
+
+#### CRD-Type API Entities (Default)
+
+```yaml
+kubernetesIngestor:
+  ingestAPIsAsCRDs: true  # Default: true
+```
+
+When `ingestAPIsAsCRDs` is set to `true` (or not set):
+- API entities will have `spec.type: "crd"`
+- The `spec.definition` field contains the full CRD YAML including the OpenAPI v3 schema
+- Provides a more complete representation of the Kubernetes resource including metadata, status definitions, and printer columns
+- **Requires the `@terasky/backstage-plugin-api-docs-module-crd` frontend plugin** to properly render CRD-type APIs in the Backstage UI
+
+**Example CRD-Type API Entity:**
+```yaml
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: clusterapp-example.clustered.crossplane.io--v1
+spec:
+  type: crd
+  lifecycle: production
+  owner: kubernetes-auto-ingested
+  system: kubernetes-auto-ingested
+  definition: |
+    apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      name: clusterapps.example.clustered.crossplane.io
+    spec:
+      group: example.clustered.crossplane.io
+      names:
+        kind: ClusterApp
+        plural: clusterapps
+      versions:
+        - name: v1
+          schema:
+            openAPIV3Schema:
+              # Full OpenAPI schema here
+```
+
+#### OpenAPI-Type API Entities (Legacy)
+
+```yaml
+kubernetesIngestor:
+  ingestAPIsAsCRDs: false
+```
+
+When `ingestAPIsAsCRDs` is set to `false`:
+- API entities will have `spec.type: "openapi"`
+- The `spec.definition` field contains a generated OpenAPI v3 specification
+- Provides a simplified view focused on the API operations
+- Works with Backstage's built-in API documentation viewer
+
+**Example OpenAPI-Type API Entity:**
+```yaml
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: clusterapp-example.clustered.crossplane.io--v1
+spec:
+  type: openapi
+  lifecycle: production
+  owner: kubernetes-auto-ingested
+  system: kubernetes-auto-ingested
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: clusterapps.example.clustered.crossplane.io
+      version: v1
+    components:
+      schemas:
+        Resource:
+          type: object
+          properties:
+            # OpenAPI schema here
+```
+
+#### Choosing the Right Format
+
+**Use CRD-Type (Default) when:**
+- You want complete CRD documentation including metadata and status fields
+- You need access to printer columns and subresource definitions
+- You want consistency with how CRDs are represented in Kubernetes
+- You have the api-docs-module-crd frontend plugin installed
+
+**Use OpenAPI-Type when:**
+- You prefer the simplified OpenAPI view
+- You don't have the api-docs-module-crd plugin installed
+- You want to use Backstage's built-in API documentation viewer
+- You're migrating from an older version and want to maintain compatibility
+
+#### Plugin Dependencies
+
+When using CRD-type API entities (`ingestAPIsAsCRDs: true`), you must install the api-docs-module-crd frontend plugin:
+
+```bash
+yarn workspace app add @terasky/backstage-plugin-api-docs-module-crd
+```
+
+See the [api-docs-module-crd plugin documentation](../../api-docs-module-crd/overview.md) for installation and configuration instructions.
+
+**Note:** The gitops-manifest-updater plugin automatically supports both CRD-type and OpenAPI-type API entities, so no additional configuration is needed for that plugin.
 
 ### Ingest Only as API
 

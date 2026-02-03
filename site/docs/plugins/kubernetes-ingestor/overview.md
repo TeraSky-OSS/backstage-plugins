@@ -9,7 +9,8 @@ The Kubernetes Ingestor plugin is a powerful backend plugin for Backstage that a
 - **Crossplane Integration**: Auto-ingest Crossplane claims and XRDs
 - **KRO Integration**: Auto-ingest KRO RGDs and instances
 - **Template Generation**: Create templates for Crossplane XRDs and KRO RGDs with enhanced repository picker support and reliable YAML download links (base64-encoded)
-- **API Entity Creation**: Generate API entities for XRDs and RGDs
+- **API Entity Creation**: Generate API entities for XRDs and RGDs with configurable formats (CRD or OpenAPI type)
+- **CRD-Type API Support**: Ingest APIs as CRD-type entities with full CRD YAML definitions (requires api-docs-module-crd plugin)
 - **API Auto-Registration**: Automatically create API entities from OpenAPI/Swagger definitions exposed by your workloads
 - **API-Only Ingestion**: Ingest CRDs, XRDs, and RGDs as API entities only without template generation
 - **Resource Entity Support**: Ingest Kubernetes objects as Resource entities instead of Component entities

@@ -5,7 +5,8 @@ The GitOps Manifest Updater plugin provides a powerful form component for updati
 ## Features
 
 - **Dynamic Form Generation**: Automatically create forms from CRD OpenAPI schemas
-- **Git Integration**: Seamless integration with GitHub through Backstage's SCM integration
+- **Multiple API Formats**: Supports both CRD-type and OpenAPI-type API entities (requires api-docs-module-crd for CRD-type)
+- **Git Integration**: Seamless integration with GitHub and GitLab through Backstage's SCM integration
 - **Automated PR Creation**: Automatically create pull requests with manifest changes
 - **Flexible Configuration**: Support for both entity annotations and manual URL input
 - **Structure Preservation**: Maintains file paths and directory structure

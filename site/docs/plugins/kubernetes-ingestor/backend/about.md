@@ -57,10 +57,11 @@ Generates software templates for:
 
 ### API Manager
 Handles API-related tasks:  
-- API entity creation  
+- API entity creation (CRD-type or OpenAPI-type)
 - Relationship tracking  
 - Version management  
-- Documentation links  
+- Documentation links
+- Schema extraction and processing
 
 ## Technical Details
 
