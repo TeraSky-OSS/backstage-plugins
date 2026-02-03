@@ -35,6 +35,26 @@ type OpenAPISpec = {
   };
 };
 
+type CRDDefinition = {
+  apiVersion?: string;
+  kind?: string;
+  spec: {
+    versions: Array<{
+      name: string;
+      storage?: boolean;
+      schema?: {
+        openAPIV3Schema?: {
+          properties?: {
+            spec?: {
+              properties?: Record<string, any>;
+            };
+          };
+        };
+      };
+    }>;
+  };
+};
+
 type SchemaProperty = {
   type: string;
   title?: string;
@@ -852,16 +872,51 @@ export const GitOpsManifestUpdaterForm = ({
         }
 
         const apiEntity = entities[0];
-        const openApiSpec = typeof apiEntity?.spec?.definition === 'string' 
-          ? parseYaml(apiEntity.spec.definition) 
-          : apiEntity?.spec?.definition as OpenAPISpec;
+        const apiType = apiEntity?.spec?.type;
+        let specSchema: JsonObject;
 
-        if (!openApiSpec?.components?.schemas?.Resource) {
-          throw new Error('Invalid OpenAPI spec: missing Resource schema');
+        if (apiType === 'crd') {
+          // Handle CRD-type API entity
+          // The definition contains the full CRD YAML with the OpenAPI schema embedded
+          const crdDefinition = (typeof apiEntity?.spec?.definition === 'string'
+            ? parseYaml(apiEntity.spec.definition)
+            : apiEntity?.spec?.definition) as CRDDefinition;
+
+          if (!crdDefinition?.spec?.versions || !Array.isArray(crdDefinition.spec.versions)) {
+            throw new Error('Invalid CRD definition: missing or invalid versions array');
+          }
+
+          // Find the version that matches the yamlContent apiVersion
+          // Format: group/version (e.g., example.clustered.crossplane.io/v1)
+          const requestedVersion = yamlContent.apiVersion.split('/')[1];
+          const crdVersion = crdDefinition.spec.versions.find(v => v.name === requestedVersion)
+            || crdDefinition.spec.versions.find(v => v.storage === true)
+            || crdDefinition.spec.versions[0];
+
+          if (!crdVersion) {
+            throw new Error(`No suitable CRD version found for ${requestedVersion}`);
+          }
+
+          const schemaProps = crdVersion.schema?.openAPIV3Schema?.properties?.spec?.properties;
+          if (!schemaProps) {
+            throw new Error('Invalid CRD schema: missing spec.properties in openAPIV3Schema');
+          }
+
+          specSchema = schemaProps;
+        } else {
+          // Handle OpenAPI-type API entity (legacy behavior)
+          // The definition contains a generated OpenAPI specification
+          const openApiSpec = (typeof apiEntity?.spec?.definition === 'string'
+            ? parseYaml(apiEntity.spec.definition)
+            : apiEntity?.spec?.definition) as OpenAPISpec;
+
+          if (!openApiSpec?.components?.schemas?.Resource) {
+            throw new Error('Invalid OpenAPI spec: missing Resource schema in components.schemas');
+          }
+
+          const resourceSchema = openApiSpec.components.schemas.Resource as any;
+          specSchema = resourceSchema.properties?.spec?.properties || {};
         }
-
-        const resourceSchema = openApiSpec.components.schemas.Resource;
-        const specSchema = resourceSchema.properties?.spec?.properties || {};
 
         setSchema(specSchema);
         setFormData(yamlContent.spec as JsonObject);
