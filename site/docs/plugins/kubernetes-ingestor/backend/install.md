@@ -102,6 +102,7 @@ kubernetesIngestor:
       - group: pkg.crossplane.io
         apiVersion: v1
         plural: providers
+        defaultType: service  # Optional: fallback component type when annotation is missing 
 
   # Crossplane integration
   crossplane:
