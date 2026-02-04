@@ -65,6 +65,7 @@ kubernetesIngestor:
         apiVersion: v1
         plural: providers
         # singular: provider # explicit singular form - needed when auto-detection fails
+        # defaultType: provider # Optional: fallback component type when annotation is missing. Default is service
     # By default all standard kubernetes workload types are ingested. This allows you to disable this behavior
     disableDefaultWorkloadTypes: false
     # Allows ingestion to be opt-in or opt-out by either requiring or not a dedicated annotation to ingest a resource (terasky.backstage.io/add-to-catalog or terasky.backstage.io/exclude-from-catalog)
@@ -837,12 +838,22 @@ components:
       apiVersion: v1
       plural: applications
       singular: application
-  
+      defaultType: app  # Optional: fallback component type when annotation is missing. Default is service
+
   # Exclude system namespaces
   excludedNamespaces:
     - kube-system
     - kube-public
 ```
+
+#### Default Type for Custom Workloads
+
+The `defaultType` field allows you to specify a fallback Backstage component type for custom workload types when the `terasky.backstage.io/component-type` annotation is not present on the resource.
+
+**Component type resolution priority:**
+1. **Annotation**: Use `terasky.backstage.io/component-type` annotation if present on the resource
+2. **defaultType**: Use the `defaultType` value from the custom workload configuration (if set)
+3. **Fallback**: Use `service` as the final default
 
 ## Crossplane Integration
 
