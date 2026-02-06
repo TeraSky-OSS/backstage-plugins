@@ -1,6 +1,6 @@
 {
   "name": "@terasky/backstage-plugin-api-docs-module-crd",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Additional functionalities for the api-docs plugin that renders Kubernetes CRDs",
   "license": "Apache-2.0",
   "main": "src/index.ts",
@@ -26,9 +26,9 @@
     "postpack": "backstage-cli package postpack"
   },
   "dependencies": {
-    "@backstage/catalog-model": "^1.7.2",
+    "@backstage/catalog-model": "^1.7.6",
     "@backstage/core-components": "^0.18.6",
-    "@backstage/core-plugin-api": "^1.10.2",
+    "@backstage/core-plugin-api": "^1.12.2",
     "@backstage/frontend-plugin-api": "^0.13.4",
     "@backstage/theme": "^0.7.1",
     "@material-ui/core": "^4.9.13",
@@ -39,7 +39,7 @@
     "react-use": "^17.2.4"
   },
   "peerDependencies": {
-    "@backstage/plugin-api-docs": "*",
+    "@backstage/plugin-api-docs": "^0.13.3",
     "react": "^16.13.1 || ^17.0.0 || ^18.0.0",
     "react-dom": "^16.13.1 || ^17.0.0 || ^18.0.0"
   },
