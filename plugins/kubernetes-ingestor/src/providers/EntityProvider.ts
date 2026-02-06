@@ -61,8 +61,8 @@ export class XRDTemplateEntityProvider implements EntityProvider {
       info: logger.info.bind(logger),
       debug: logger.debug.bind(logger),
       transports: [],
-      exceptions: { handle() {} },
-      rejections: { handle() {} },
+      exceptions: { handle() { } },
+      rejections: { handle() { } },
       profilers: {},
       exitOnError: false,
       log: (level: string, msg: string) => {
@@ -106,7 +106,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
    */
   private getNormalizedClusterName(clusterName: string): string {
     const mappingConfig = this.config.getOptionalConfig('kubernetesIngestor.clusterNameMapping');
-    
+
     if (!mappingConfig) {
       return clusterName;
     }
@@ -121,7 +121,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
       if (sourcePrefix && clusterName.startsWith(sourcePrefix)) {
         return clusterName.substring(sourcePrefix.length);
       }
-      
+
       // Strip target prefix if present
       if (targetPrefix && clusterName.startsWith(targetPrefix)) {
         return clusterName.substring(targetPrefix.length);
@@ -140,7 +140,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
             return clusterName.substring(commonPrefixLength);
           }
         }
-        
+
         // Check if this cluster is a value (target) in the mappings
         const allKeys = mappings.keys();
         for (const key of allKeys) {
@@ -195,7 +195,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
     }
     try {
       const isCrossplaneEnabled = this.config.getOptionalBoolean('kubernetesIngestor.crossplane.enabled') ?? true;
-      
+
       if (!isCrossplaneEnabled) {
         await this.connection.applyMutation({
           type: 'full',
@@ -224,13 +224,13 @@ export class XRDTemplateEntityProvider implements EntityProvider {
       if (this.config.getOptionalBoolean('kubernetesIngestor.crossplane.xrds.enabled')) {
         const xrdData = await templateDataProvider.fetchXRDObjects();
         const xrdIngestOnlyAsAPI = this.config.getOptionalBoolean('kubernetesIngestor.crossplane.xrds.ingestOnlyAsAPI') ?? false;
-        
+
         // Only generate templates if not ingestOnlyAsAPI
         if (!xrdIngestOnlyAsAPI) {
           const xrdEntities = xrdData.flatMap((xrd: any) => this.translateXRDVersionsToTemplates(xrd));
           allEntities = allEntities.concat(xrdEntities);
         }
-        
+
         // Always generate API entities
         const APIEntities = xrdData.flatMap((xrd: any) => this.translateXRDVersionsToAPI(xrd));
         allEntities = allEntities.concat(APIEntities);
@@ -238,13 +238,13 @@ export class XRDTemplateEntityProvider implements EntityProvider {
 
       // Add CRD template generation
       const crdIngestOnlyAsAPI = this.config.getOptionalBoolean('kubernetesIngestor.genericCRDTemplates.ingestOnlyAsAPI') ?? false;
-      
+
       // Only generate templates if not ingestOnlyAsAPI
       if (!crdIngestOnlyAsAPI) {
         const crdEntities = crdData.flatMap(crd => this.translateCRDToTemplate(crd));
         allEntities = allEntities.concat(crdEntities);
       }
-      
+
       // Always generate API entities
       const CRDAPIEntities = crdData.flatMap(crd => this.translateCRDVersionsToAPI(crd));
       allEntities = allEntities.concat(CRDAPIEntities);
@@ -266,7 +266,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
       this.logger.warn(`Skipping XRD ${xrd?.metadata?.name || 'unknown'} due to missing metadata or spec`);
       return [];
     }
-    
+
     if (!Array.isArray(xrd.spec.versions) || xrd.spec.versions.length === 0) {
       this.logger.warn(`Skipping XRD ${xrd.metadata.name} due to missing or empty versions array`);
       return [];
@@ -390,7 +390,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
       this.logger.warn(`Skipping XRD API generation for ${xrd?.metadata?.name || 'unknown'} due to missing metadata or spec`);
       return [];
     }
-    
+
     if (!Array.isArray(xrd.spec.versions) || xrd.spec.versions.length === 0) {
       this.logger.warn(`Skipping XRD API generation for ${xrd.metadata.name} due to missing or empty versions array`);
       return [];
@@ -415,13 +415,13 @@ export class XRDTemplateEntityProvider implements EntityProvider {
       let crdSchemaProps = undefined;
       if (xrd.generatedCRD) {
         const crdVersion = xrd.generatedCRD.spec.versions.find((v: any) => v.name === version.name) ||
-                           xrd.generatedCRD.spec.versions.find((v: any) => v.storage) ||
-                           xrd.generatedCRD.spec.versions[0];
+          xrd.generatedCRD.spec.versions.find((v: any) => v.storage) ||
+          xrd.generatedCRD.spec.versions[0];
         crdSchemaProps = crdVersion?.schema?.openAPIV3Schema?.properties;
       }
       const schemaProps = crdSchemaProps || version.schema.openAPIV3Schema.properties;
 
-      let xrdOpenAPIDoc: any = {};
+      const xrdOpenAPIDoc: any = {};
       xrdOpenAPIDoc.openapi = "3.0.0";
       xrdOpenAPIDoc.info = {
         title: `${resourcePlural}.${xrd.spec.group}`,
@@ -607,7 +607,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
 
       // Check if we should ingest as CRD type or OpenAPI type
       const ingestAsCRD = this.config.getOptionalBoolean('kubernetesIngestor.ingestAPIsAsCRDs') ?? true;
-      
+
       if (ingestAsCRD && xrd.generatedCRD) {
         // Use CRD type with the actual CRD YAML as definition
         // Ensure apiVersion and kind are set
@@ -616,7 +616,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
           kind: xrd.generatedCRD.kind || 'CustomResourceDefinition',
           ...xrd.generatedCRD
         };
-        
+
         return {
           apiVersion: 'backstage.io/v1alpha1',
           kind: 'API',
@@ -637,29 +637,29 @@ export class XRDTemplateEntityProvider implements EntityProvider {
             definition: yaml.dump(crdWithMetadata),
           },
         };
-      } else {
-        // Use OpenAPI type with generated OpenAPI definition
-        return {
-          apiVersion: 'backstage.io/v1alpha1',
-          kind: 'API',
-          metadata: {
-            name: `${resourceKind?.toLowerCase()}-${xrd.spec.group}--${version.name}`,
-            title: `${resourceKind?.toLowerCase()}-${xrd.spec.group}--${version.name}`,
-            tags: ['crossplane'],
-            annotations: {
-              'backstage.io/managed-by-location': `cluster origin: ${xrd.clusterName}`,
-              'backstage.io/managed-by-origin-location': `cluster origin: ${xrd.clusterName}`,
-            },
-          },
-          spec: {
-            type: "openapi",
-            lifecycle: "production",
-            owner: this.getDefaultOwner(),
-            system: "kubernetes-auto-ingested",
-            definition: yaml.dump(xrdOpenAPIDoc),
-          },
-        };
       }
+      // Use OpenAPI type with generated OpenAPI definition
+      return {
+        apiVersion: 'backstage.io/v1alpha1',
+        kind: 'API',
+        metadata: {
+          name: `${resourceKind?.toLowerCase()}-${xrd.spec.group}--${version.name}`,
+          title: `${resourceKind?.toLowerCase()}-${xrd.spec.group}--${version.name}`,
+          tags: ['crossplane'],
+          annotations: {
+            'backstage.io/managed-by-location': `cluster origin: ${xrd.clusterName}`,
+            'backstage.io/managed-by-origin-location': `cluster origin: ${xrd.clusterName}`,
+          },
+        },
+        spec: {
+          type: "openapi",
+          lifecycle: "production",
+          owner: this.getDefaultOwner(),
+          system: "kubernetes-auto-ingested",
+          definition: yaml.dump(xrdOpenAPIDoc),
+        },
+      };
+
     });
 
     // Filter out invalid APIs
@@ -669,7 +669,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
   private extractParameters(version: any, clusters: string[], xrd: any): any[] {
     // Normalize cluster names for template display
     const normalizedClusters = clusters.map(cluster => this.getNormalizedClusterName(cluster));
-    
+
     // --- BEGIN VERSION/SCOPE LOGIC REFACTOR ---
     // Use presence of xrd.spec.scope to determine v2, otherwise v1
     const isV2 = !!xrd.spec?.scope;
@@ -679,7 +679,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
     const isNamespaced = scope === 'Namespaced';
     // --- END VERSION/SCOPE LOGIC REFACTOR ---
     // Main parameter group
-    let mainParameterGroup: any = {
+    const mainParameterGroup: any = {
       title: 'Resource Metadata',
       required: ['xrName', 'owner'],
       properties: {
@@ -720,7 +720,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
       const processedProperties: Record<string, any> = {};
       for (const [key, value] of Object.entries(properties)) {
         const typedValue = value as Record<string, any>;
-        
+
         // Handle fields with x-kubernetes-preserve-unknown-fields: true
         if (typedValue['x-kubernetes-preserve-unknown-fields'] === true && !typedValue.type) {
           processedProperties[key] = {
@@ -807,27 +807,27 @@ export class XRDTemplateEntityProvider implements EntityProvider {
                   },
                   ...(xrd.compositions && xrd.compositions.length > 0
                     ? [
-                        {
-                          properties: {
-                            compositionSelectionStrategy: { enum: ['direct-reference'] },
-                            compositionRef: {
-                              title: 'Composition Reference',
-                              properties: {
-                                name: {
-                                  type: 'string',
-                                  title: 'Select A Composition By Name',
-                                  enum: xrd.compositions,
-                                  ...(xrd.spec?.defaultCompositionRef?.name && {
-                                    default: xrd.spec.defaultCompositionRef.name,
-                                  }),
-                                },
+                      {
+                        properties: {
+                          compositionSelectionStrategy: { enum: ['direct-reference'] },
+                          compositionRef: {
+                            title: 'Composition Reference',
+                            properties: {
+                              name: {
+                                type: 'string',
+                                title: 'Select A Composition By Name',
+                                enum: xrd.compositions,
+                                ...(xrd.spec?.defaultCompositionRef?.name && {
+                                  default: xrd.spec.defaultCompositionRef.name,
+                                }),
                               },
-                              required: ['name'],
-                              type: 'object',
                             },
+                            required: ['name'],
+                            type: 'object',
                           },
                         },
-                      ]
+                      },
+                    ]
                     : []),
                   {
                     properties: {
@@ -901,27 +901,27 @@ export class XRDTemplateEntityProvider implements EntityProvider {
               },
               ...(xrd.compositions && xrd.compositions.length > 0
                 ? [
-                    {
-                      properties: {
-                        compositionSelectionStrategy: { enum: ['direct-reference'] },
-                        compositionRef: {
-                          title: 'Composition Reference',
-                          properties: {
-                            name: {
-                              type: 'string',
-                              title: 'Select A Composition By Name',
-                              enum: xrd.compositions,
-                              ...(xrd.spec?.defaultCompositionRef?.name && {
-                                default: xrd.spec.defaultCompositionRef.name,
-                              }),
-                            },
+                  {
+                    properties: {
+                      compositionSelectionStrategy: { enum: ['direct-reference'] },
+                      compositionRef: {
+                        title: 'Composition Reference',
+                        properties: {
+                          name: {
+                            type: 'string',
+                            title: 'Select A Composition By Name',
+                            enum: xrd.compositions,
+                            ...(xrd.spec?.defaultCompositionRef?.name && {
+                              default: xrd.spec.defaultCompositionRef.name,
+                            }),
                           },
-                          required: ['name'],
-                          type: 'object',
                         },
+                        required: ['name'],
+                        type: 'object',
                       },
                     },
-                  ]
+                  },
+                ]
                 : []),
               {
                 properties: {
@@ -1087,14 +1087,14 @@ export class XRDTemplateEntityProvider implements EntityProvider {
                   pushToGit: { enum: [true] },
                   ...(requestUserCredentials
                     ? {
-                        repoUrl: {
-                          content: { type: 'string' },
-                          description: 'Name of repository',
-                          'ui:field': 'RepoUrlPicker',
-                          'ui:options': repoUrlUiOptions,
-                          ...(defaultRepoUrl && { default: defaultRepoUrl }),
-                        },
-                      }
+                      repoUrl: {
+                        content: { type: 'string' },
+                        description: 'Name of repository',
+                        'ui:field': 'RepoUrlPicker',
+                        'ui:options': repoUrlUiOptions,
+                        ...(defaultRepoUrl && { default: defaultRepoUrl }),
+                      },
+                    }
                     : {}),
                   manifestLayout: {
                     type: 'string',
@@ -1170,19 +1170,18 @@ export class XRDTemplateEntityProvider implements EntityProvider {
     if (isV2 && (isCluster || isNamespaced) && !isLegacyCluster) {
       // v2 Cluster/Namespaced: no claim, use resource template action, only set namespaceParam if Namespaced
       baseStepsYaml =
-        '- id: generateManifest\n' +
-        '  name: Generate Kubernetes Resource Manifest\n' +
-        '  action: terasky:claim-template\n' +
-        '  input:\n' +
-        '    parameters: ${{ parameters }}\n' +
-        '    nameParam: xrName\n' +
-        (isNamespaced ? '    namespaceParam: xrNamespace\n' : '    namespaceParam: ""\n') +
-        '    ownerParam: owner\n' +
-        '    excludeParams: [\'crossplane.compositionSelectionStrategy\',\'owner\',\'pushToGit\',\'basePath\',\'manifestLayout\',\'_editData\',\'targetBranch\',\'repoUrl\',\'clusters\',\'xrName\'' + (isNamespaced ? ', \'xrNamespace\'' : '') + ']\n' +
-        '    apiVersion: {API_VERSION}\n' +
-        '    kind: {KIND}\n' +
-        '    clusters: ${{ parameters.clusters if parameters.manifestLayout === \'cluster-scoped\' and parameters.pushToGit else [\'temp\'] }}\n' +
-        '    removeEmptyParams: true\n';
+        `- id: generateManifest\n` +
+        `  name: Generate Kubernetes Resource Manifest\n` +
+        `  action: terasky:claim-template\n` +
+        `  input:\n` +
+        `    parameters: \${{ parameters }}\n` +
+        `    nameParam: xrName\n${isNamespaced ? '    namespaceParam: xrNamespace\n' : '    namespaceParam: ""\n'
+        }    ownerParam: owner\n` +
+        `    excludeParams: ['crossplane.compositionSelectionStrategy','owner','pushToGit','basePath','manifestLayout','_editData','targetBranch','repoUrl','clusters','xrName'${isNamespaced ? ', \'xrNamespace\'' : ''}]\n` +
+        `    apiVersion: {API_VERSION}\n` +
+        `    kind: {KIND}\n` +
+        `    clusters: \${{ parameters.clusters if parameters.manifestLayout === 'cluster-scoped' and parameters.pushToGit else ['temp'] }}\n` +
+        `    removeEmptyParams: true\n`;
     } else {
       // v1 or v2 LegacyCluster: keep current logic
       baseStepsYaml =
@@ -1223,17 +1222,16 @@ export class XRDTemplateEntityProvider implements EntityProvider {
       ? '    token: ${{ secrets.USER_OAUTH_TOKEN }}\n'
       : '';
     const repoSelectionStepsYaml =
-      '- id: create-pull-request\n' +
-      '  name: create-pull-request\n' +
+      `- id: create-pull-request\n` +
+      `  name: create-pull-request\n` +
       `  action: ${action}\n` +
-      '  if: ${{ parameters.pushToGit }}\n' +
-      '  input:\n' +
-      '    repoUrl: ${{ parameters.repoUrl }}\n' +
-      '    branchName: create-${{ parameters.xrName }}-resource\n' +
-      '    title: Create {KIND} Resource ${{ parameters.xrName }}\n' +
-      '    description: Create {KIND} Resource ${{ parameters.xrName }}\n' +
-      '    targetBranchName: ${{ parameters.targetBranch }}\n' +
-      userOAuthTokenInput;
+      `  if: \${{ parameters.pushToGit }}\n` +
+      `  input:\n` +
+      `    repoUrl: \${{ parameters.repoUrl }}\n` +
+      `    branchName: create-\${{ parameters.xrName }}-resource\n` +
+      `    title: Create {KIND} Resource \${{ parameters.xrName }}\n` +
+      `    description: Create {KIND} Resource \${{ parameters.xrName }}\n` +
+      `    targetBranchName: \${{ parameters.targetBranch }}\n${userOAuthTokenInput}`;
 
     let defaultStepsYaml = baseStepsYaml;
 
@@ -1243,17 +1241,16 @@ export class XRDTemplateEntityProvider implements EntityProvider {
       }
       else {
         const repoHardcodedStepsYaml =
-          '- id: create-pull-request\n' +
-          '  name: create-pull-request\n' +
+          `- id: create-pull-request\n` +
+          `  name: create-pull-request\n` +
           `  action: ${action}\n` +
-          '  if: ${{ parameters.pushToGit }}\n' +
-          '  input:\n' +
+          `  if: \${{ parameters.pushToGit }}\n` +
+          `  input:\n` +
           `    repoUrl: ${this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.git.repoUrl')}\n` +
-          '    branchName: create-${{ parameters.xrName }}-resource\n' +
-          '    title: Create {KIND} Resource ${{ parameters.xrName }}\n' +
-          '    description: Create {KIND} Resource ${{ parameters.xrName }}\n' +
-          `    targetBranchName: ${this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.git.targetBranch')}\n` +
-          userOAuthTokenInput;
+          `    branchName: create-\${{ parameters.xrName }}-resource\n` +
+          `    title: Create {KIND} Resource \${{ parameters.xrName }}\n` +
+          `    description: Create {KIND} Resource \${{ parameters.xrName }}\n` +
+          `    targetBranchName: ${this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.git.targetBranch')}\n${userOAuthTokenInput}`;
         defaultStepsYaml += repoHardcodedStepsYaml;
       }
     }
@@ -1283,7 +1280,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
 
   private getPullRequestUrl(): string {
     const publishPhaseTarget = this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.target')?.toLowerCase();
-    
+
     switch (publishPhaseTarget) {
       case 'gitlab':
         return '${{ steps["create-pull-request"].output.mergeRequestUrl }}';
@@ -1362,7 +1359,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
     }
 
     const apis = crd.spec.versions.map((version: any = {}) => {
-      let crdOpenAPIDoc: any = {};
+      const crdOpenAPIDoc: any = {};
       crdOpenAPIDoc.openapi = "3.0.0";
       crdOpenAPIDoc.info = {
         title: `${crd.spec.names.plural}.${crd.spec.group}`,
@@ -1652,7 +1649,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
 
       // Check if we should ingest as CRD type or OpenAPI type
       const ingestAsCRD = this.config.getOptionalBoolean('kubernetesIngestor.ingestAPIsAsCRDs') ?? true;
-      
+
       if (ingestAsCRD) {
         // Use CRD type with the actual CRD YAML as definition
         // Ensure apiVersion and kind are set
@@ -1661,7 +1658,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
           kind: crd.kind || 'CustomResourceDefinition',
           ...crd
         };
-        
+
         return {
           apiVersion: 'backstage.io/v1alpha1',
           kind: 'API',
@@ -1682,29 +1679,29 @@ export class XRDTemplateEntityProvider implements EntityProvider {
             definition: yaml.dump(crdWithMetadata),
           },
         };
-      } else {
-        // Use OpenAPI type with generated OpenAPI definition
-        return {
-          apiVersion: 'backstage.io/v1alpha1',
-          kind: 'API',
-          metadata: {
-            name: `${crd.spec.names.kind.toLowerCase()}-${crd.spec.group}--${version.name}`,
-            title: `${crd.spec.names.kind.toLowerCase()}-${crd.spec.group}--${version.name}`,
-            tags: ['crd'],
-            annotations: {
-              'backstage.io/managed-by-location': `cluster origin: ${crd.clusterName}`,
-              'backstage.io/managed-by-origin-location': `cluster origin: ${crd.clusterName}`,
-            },
-          },
-          spec: {
-            type: "openapi",
-            lifecycle: "production",
-            owner: this.getDefaultOwner(),
-            system: "kubernetes-auto-ingested",
-            definition: yaml.dump(crdOpenAPIDoc),
-          },
-        };
       }
+      // Use OpenAPI type with generated OpenAPI definition
+      return {
+        apiVersion: 'backstage.io/v1alpha1',
+        kind: 'API',
+        metadata: {
+          name: `${crd.spec.names.kind.toLowerCase()}-${crd.spec.group}--${version.name}`,
+          title: `${crd.spec.names.kind.toLowerCase()}-${crd.spec.group}--${version.name}`,
+          tags: ['crd'],
+          annotations: {
+            'backstage.io/managed-by-location': `cluster origin: ${crd.clusterName}`,
+            'backstage.io/managed-by-origin-location': `cluster origin: ${crd.clusterName}`,
+          },
+        },
+        spec: {
+          type: "openapi",
+          lifecycle: "production",
+          owner: this.getDefaultOwner(),
+          system: "kubernetes-auto-ingested",
+          definition: yaml.dump(crdOpenAPIDoc),
+        },
+      };
+
     }
     );
 
@@ -1715,7 +1712,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
   private extractCRDParameters(version: any, clusters: string[], crd: any): any[] {
     // Normalize cluster names for template display
     const normalizedClusters = clusters.map(cluster => this.getNormalizedClusterName(cluster));
-    
+
     const mainParameterGroup = {
       title: 'Resource Metadata',
       required: ['name'],
@@ -1756,7 +1753,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
 
       for (const [key, value] of Object.entries(properties)) {
         const typedValue = value as Record<string, any>;
-        
+
         // Handle fields with x-kubernetes-preserve-unknown-fields: true
         if (typedValue['x-kubernetes-preserve-unknown-fields'] === true && !typedValue.type) {
           const { required: _, ...restValue } = typedValue;
@@ -1935,14 +1932,14 @@ export class XRDTemplateEntityProvider implements EntityProvider {
                   pushToGit: { enum: [true] },
                   ...(requestUserCredentials
                     ? {
-                        repoUrl: {
-                          content: { type: "string" },
-                          description: "Name of repository",
-                          "ui:field": "RepoUrlPicker",
-                          "ui:options": repoUrlUiOptions,
-                          ...(defaultRepoUrl && { default: defaultRepoUrl })
-                        }
+                      repoUrl: {
+                        content: { type: "string" },
+                        description: "Name of repository",
+                        "ui:field": "RepoUrlPicker",
+                        "ui:options": repoUrlUiOptions,
+                        ...(defaultRepoUrl && { default: defaultRepoUrl })
                       }
+                    }
                     : {}),
                   manifestLayout: {
                     type: "string",
@@ -2001,19 +1998,18 @@ export class XRDTemplateEntityProvider implements EntityProvider {
   }
 
   private extractCRDSteps(version: any, crd: any): any[] {
-    let baseStepsYaml =
-      '- id: generateManifest\n' +
-      '  name: Generate Kubernetes Resource Manifest\n' +
-      '  action: terasky:crd-template\n' +
-      '  input:\n' +
-      '    parameters: ${{ parameters }}\n' +
-      '    nameParam: name\n' +
-      (crd.spec.scope === 'Namespaced' ? '    namespaceParam: namespace\n' : '    namespaceParam: ""\n') +
-      '    excludeParams: [\'compositionSelectionStrategy\',\'pushToGit\',\'basePath\',\'manifestLayout\',\'_editData\', \'targetBranch\', \'repoUrl\', \'clusters\', \'name\', \'namespace\', \'owner\']\n' +
+    const baseStepsYaml =
+      `- id: generateManifest\n` +
+      `  name: Generate Kubernetes Resource Manifest\n` +
+      `  action: terasky:crd-template\n` +
+      `  input:\n` +
+      `    parameters: \${{ parameters }}\n` +
+      `    nameParam: name\n${crd.spec.scope === 'Namespaced' ? '    namespaceParam: namespace\n' : '    namespaceParam: ""\n'
+      }    excludeParams: ['compositionSelectionStrategy','pushToGit','basePath','manifestLayout','_editData', 'targetBranch', 'repoUrl', 'clusters', 'name', 'namespace', 'owner']\n` +
       `    apiVersion: ${crd.spec.group}/${version.name}\n` +
       `    kind: ${crd.spec.names.kind}\n` +
-      '    clusters: ${{ parameters.clusters if parameters.manifestLayout === \'cluster-scoped\' and parameters.pushToGit else [\'temp\'] }}\n' +
-      '    removeEmptyParams: true\n';
+      `    clusters: \${{ parameters.clusters if parameters.manifestLayout === 'cluster-scoped' and parameters.pushToGit else ['temp'] }}\n` +
+      `    removeEmptyParams: true\n`;
 
     const publishPhaseTarget = this.config.getOptionalString('kubernetesIngestor.genericCRDTemplates.publishPhase.target')?.toLowerCase();
     let action = '';
@@ -2043,30 +2039,28 @@ export class XRDTemplateEntityProvider implements EntityProvider {
     if (publishPhaseTarget !== 'yaml') {
       if (allowRepoSelection) {
         defaultStepsYaml +=
-          '- id: create-pull-request\n' +
-          '  name: create-pull-request\n' +
+          `- id: create-pull-request\n` +
+          `  name: create-pull-request\n` +
           `  action: ${action}\n` +
-          '  if: ${{ parameters.pushToGit }}\n' +
-          '  input:\n' +
-          '    repoUrl: ${{ parameters.repoUrl }}\n' +
-          '    branchName: create-${{ parameters.name }}-resource\n' +
+          `  if: \${{ parameters.pushToGit }}\n` +
+          `  input:\n` +
+          `    repoUrl: \${{ parameters.repoUrl }}\n` +
+          `    branchName: create-\${{ parameters.name }}-resource\n` +
           `    title: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}\n` +
           `    description: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}\n` +
-          '    targetBranchName: ${{ parameters.targetBranch }}\n' +
-          userOAuthTokenInput;
+          `    targetBranchName: \${{ parameters.targetBranch }}\n${userOAuthTokenInput}`;
       } else {
         defaultStepsYaml +=
-          '- id: create-pull-request\n' +
-          '  name: create-pull-request\n' +
+          `- id: create-pull-request\n` +
+          `  name: create-pull-request\n` +
           `  action: ${action}\n` +
-          '  if: ${{ parameters.pushToGit }}\n' +
-          '  input:\n' +
+          `  if: \${{ parameters.pushToGit }}\n` +
+          `  input:\n` +
           `    repoUrl: ${this.config.getOptionalString('kubernetesIngestor.genericCRDTemplates.publishPhase.git.repoUrl')}\n` +
-          '    branchName: create-${{ parameters.name }}-resource\n' +
+          `    branchName: create-\${{ parameters.name }}-resource\n` +
           `    title: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}\n` +
           `    description: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}\n` +
-          `    targetBranchName: ${this.config.getOptionalString('kubernetesIngestor.genericCRDTemplates.publishPhase.git.targetBranch')}\n` +
-          userOAuthTokenInput;
+          `    targetBranchName: ${this.config.getOptionalString('kubernetesIngestor.genericCRDTemplates.publishPhase.git.targetBranch')}\n${userOAuthTokenInput}`;
       }
     }
     return yaml.load(defaultStepsYaml) as any[];
@@ -2074,7 +2068,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
 
   private getCRDPullRequestUrl(): string {
     const publishPhaseTarget = this.config.getOptionalString('kubernetesIngestor.genericCRDTemplates.publishPhase.target')?.toLowerCase();
-    
+
     switch (publishPhaseTarget) {
       case 'gitlab':
         return '${{ steps["create-pull-request"].output.mergeRequestUrl }}';
@@ -2109,8 +2103,8 @@ export class KubernetesEntityProvider implements EntityProvider {
       info: logger.info.bind(logger),
       debug: logger.debug.bind(logger),
       transports: [],
-      exceptions: { handle() {} },
-      rejections: { handle() {} },
+      exceptions: { handle() { } },
+      rejections: { handle() { } },
       profilers: {},
       exitOnError: false,
       log: (level: string, msg: string) => {
@@ -2146,7 +2140,7 @@ export class KubernetesEntityProvider implements EntityProvider {
    */
   private mapClusterName(clusterName: string): string {
     const mappingConfig = this.config.getOptionalConfig('kubernetesIngestor.clusterNameMapping');
-    
+
     if (!mappingConfig) {
       return clusterName;
     }
@@ -2182,7 +2176,7 @@ export class KubernetesEntityProvider implements EntityProvider {
    */
   private getNormalizedClusterName(clusterName: string): string {
     const mappingConfig = this.config.getOptionalConfig('kubernetesIngestor.clusterNameMapping');
-    
+
     if (!mappingConfig) {
       return clusterName;
     }
@@ -2197,7 +2191,7 @@ export class KubernetesEntityProvider implements EntityProvider {
       if (sourcePrefix && clusterName.startsWith(sourcePrefix)) {
         return clusterName.substring(sourcePrefix.length);
       }
-      
+
       // Strip target prefix if present
       if (targetPrefix && clusterName.startsWith(targetPrefix)) {
         return clusterName.substring(targetPrefix.length);
@@ -2216,7 +2210,7 @@ export class KubernetesEntityProvider implements EntityProvider {
             return clusterName.substring(commonPrefixLength);
           }
         }
-        
+
         // Check if this cluster is a value (target) in the mappings
         const allKeys = mappings.keys();
         for (const key of allKeys) {
@@ -2273,7 +2267,7 @@ export class KubernetesEntityProvider implements EntityProvider {
       const isCrossplaneEnabled = this.config.getOptionalBoolean('kubernetesIngestor.crossplane.enabled') ?? true;
       const isKROEnabled = this.config.getOptionalBoolean('kubernetesIngestor.kro.enabled') ?? false;
       const componentsEnabled = this.config.getOptionalBoolean('kubernetesIngestor.components.enabled') ?? true;
-      
+
       if (componentsEnabled) {
         // Initialize providers
         const kubernetesDataProvider = new KubernetesDataProvider(
@@ -2286,7 +2280,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         let rgdLookup: { [key: string]: any } = {};
         let xrdDataProvider;
         let rgdDataProvider;
-        
+
         // Only initialize Crossplane providers if enabled
         if (isCrossplaneEnabled) {
           xrdDataProvider = new XRDDataProvider(
@@ -2320,11 +2314,14 @@ export class KubernetesEntityProvider implements EntityProvider {
         // Fetch all Kubernetes resources and build a CRD mapping
         const kubernetesData = await kubernetesDataProvider.fetchKubernetesObjects();
         const crdMapping = await kubernetesDataProvider.fetchCRDMapping();
-        let claimCount = 0, compositeCount = 0, k8sCount = 0, kroCount = 0;
-        
+        let claimCount = 0;
+        let compositeCount = 0;
+        let k8sCount = 0;
+        let kroCount = 0;
+
         // Process resources and collect entities (including API entities)
         const allEntities: Entity[] = [];
-        
+
         for (const k8s of kubernetesData) {
           if (!isCrossplaneEnabled) {
             // When Crossplane is disabled, treat everything as regular K8s resources
@@ -2476,7 +2473,7 @@ export class KubernetesEntityProvider implements EntityProvider {
 
     // Add custom workload URI
     if (resource.apiVersion) {
-      const [apiGroup, version] = resource.apiVersion.includes('/') 
+      const [apiGroup, version] = resource.apiVersion.includes('/')
         ? resource.apiVersion.split('/')
         : ['', resource.apiVersion];
       const kindPlural = pluralize(resource.kind);
@@ -2501,6 +2498,15 @@ export class KubernetesEntityProvider implements EntityProvider {
       }
     }
 
+    // Resolve owner with namespace inheritance support
+    const systemOwner = await this.resolveOwnerWithInheritance(
+      annotations,
+      namespace,
+      resource.clusterName,
+      systemReferencesNamespaceValue,
+      this.getDefaultOwner(),
+    );
+
     const systemEntity: Entity = {
       apiVersion: 'backstage.io/v1alpha1',
       kind: 'System',
@@ -2510,7 +2516,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         annotations: customAnnotations,
       },
       spec: {
-        owner: resolveOwnerRef(annotations[`${prefix}/owner`], systemReferencesNamespaceValue, this.getDefaultOwner()),
+        owner: systemOwner,
         type: annotations[`${prefix}/system-type`] || 'kubernetes-namespace',
         ...(annotations[`${prefix}/domain`]
           ? { domain: annotations[`${prefix}/domain`] }
@@ -2526,13 +2532,19 @@ export class KubernetesEntityProvider implements EntityProvider {
     const componentName = annotations[`${prefix}/name`] || nameValue;
     const componentTitle = annotations[`${prefix}/title`] || titleValue;
     const componentNamespace = annotations[`${prefix}/backstage-namespace`] || systemNamespaceValue;
-    const componentOwner = resolveOwnerRef(annotations[`${prefix}/owner`], systemReferencesNamespaceValue, this.getDefaultOwner());
+    const componentOwner = await this.resolveOwnerWithInheritance(
+      annotations,
+      namespace,
+      resource.clusterName,
+      systemReferencesNamespaceValue,
+      this.getDefaultOwner(),
+    );
     const componentSystem = annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`;
 
     // Try to fetch API definition from annotations
     let apiEntity: Entity | undefined;
     let apiRef: string | undefined;
-    
+
     if (entityKind === 'Component') {
       const apiResult = await this.fetchAndCreateApiEntity(
         annotations,
@@ -2544,7 +2556,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         componentOwner,
         componentSystem,
       );
-      
+
       if (apiResult) {
         apiEntity = apiResult.entity;
         apiRef = apiResult.ref;
@@ -2728,13 +2740,19 @@ export class KubernetesEntityProvider implements EntityProvider {
     const componentName = annotations[`${prefix}/name`] || nameValue;
     const componentTitle = annotations[`${prefix}/title`] || titleValue;
     const componentNamespace = annotations[`${prefix}/backstage-namespace`] || systemNamespaceValue;
-    const componentOwner = resolveOwnerRef(annotations[`${prefix}/owner`], systemReferencesNamespaceValue, this.getDefaultOwner());
+    const componentOwner = await this.resolveOwnerWithInheritance(
+      annotations,
+      claim.metadata.namespace,
+      clusterName,
+      systemReferencesNamespaceValue,
+      this.getDefaultOwner(),
+    );
     const componentSystem = annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`;
 
     // Try to fetch API definition from annotations
     let apiEntity: Entity | undefined;
     let apiRef: string | undefined;
-    
+
     if (entityKind === 'Component') {
       const apiResult = await this.fetchAndCreateApiEntity(
         annotations,
@@ -2746,7 +2764,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         componentOwner,
         componentSystem,
       );
-      
+
       if (apiResult) {
         apiEntity = apiResult.entity;
         apiRef = apiResult.ref;
@@ -2827,7 +2845,7 @@ export class KubernetesEntityProvider implements EntityProvider {
     // Extract RGD and CRD info from lookup data
     const rgd = rgdData.rgd;
     const crdSpec = rgdData.spec;
-    
+
     // Generate CRD name from spec
     const crdName = crdSpec?.names?.plural ? `${crdSpec.names.plural}.${crdSpec.group}` : undefined;
 
@@ -2915,13 +2933,19 @@ export class KubernetesEntityProvider implements EntityProvider {
     const componentName = annotations[`${prefix}/name`] || nameValue;
     const componentTitle = annotations[`${prefix}/title`] || titleValue;
     const componentNamespace = annotations[`${prefix}/backstage-namespace`] || systemNamespaceValue;
-    const componentOwner = resolveOwnerRef(annotations[`${prefix}/owner`], systemReferencesNamespaceValue, this.getDefaultOwner());
+    const componentOwner = await this.resolveOwnerWithInheritance(
+      annotations,
+      instance.metadata.namespace,
+      clusterName,
+      systemReferencesNamespaceValue,
+      this.getDefaultOwner(),
+    );
     const componentSystem = annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`;
 
     // Try to fetch API definition from annotations
     let apiEntity: Entity | undefined;
     let apiRef: string | undefined;
-    
+
     if (entityKind === 'Component') {
       const apiResult = await this.fetchAndCreateApiEntity(
         annotations,
@@ -2933,7 +2957,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         componentOwner,
         componentSystem,
       );
-      
+
       if (apiResult) {
         apiEntity = apiResult.entity;
         apiRef = apiResult.ref;
@@ -3102,13 +3126,19 @@ export class KubernetesEntityProvider implements EntityProvider {
     const componentName = annotations[`${prefix}/name`] || nameValue;
     const componentTitle = annotations[`${prefix}/title`] || titleValue;
     const componentNamespace = annotations[`${prefix}/backstage-namespace`] || systemNamespaceValue;
-    const componentOwner = annotations[`${prefix}/owner`] || this.getDefaultOwner();
+    const componentOwner = await this.resolveOwnerWithInheritance(
+      annotations,
+      xr.metadata.namespace,
+      clusterName,
+      systemReferencesNamespaceValue,
+      this.getDefaultOwner(),
+    );
     const componentSystem = annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`;
 
     // Try to fetch API definition from annotations
     let apiEntity: Entity | undefined;
     let apiRef: string | undefined;
-    
+
     if (entityKind === 'Component') {
       const apiResult = await this.fetchAndCreateApiEntity(
         annotations,
@@ -3120,7 +3150,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         componentOwner,
         componentSystem,
       );
-      
+
       if (apiResult) {
         apiEntity = apiResult.entity;
         apiRef = apiResult.ref;
@@ -3203,7 +3233,7 @@ export class KubernetesEntityProvider implements EntityProvider {
       }
       return acc;
     }, defaultAnnotations);
-    
+
     return customAnnotations;
   }
 
@@ -3215,9 +3245,63 @@ export class KubernetesEntityProvider implements EntityProvider {
     return this.config.getOptionalString('kubernetesIngestor.defaultOwner') || 'kubernetes-auto-ingested';
   }
 
+  /**
+   * Fetches namespace annotations for owner inheritance.
+   * Returns the namespace resource annotations if found, null otherwise.
+   */
+  private async fetchNamespaceAnnotations(
+    namespaceName: string,
+    clusterName: string,
+  ): Promise<Record<string, string> | null> {
+    try {
+      // Namespaces are in the core API, so we use /api/v1/ instead of /apis/
+      const namespace = await this.resourceFetcher.proxyKubernetesRequest(clusterName, {
+        path: `/api/v1/namespaces/${namespaceName}`,
+      });
+      return namespace?.metadata?.annotations || null;
+    } catch (error) {
+      this.logger.debug(
+        `Failed to fetch namespace ${namespaceName} from cluster ${clusterName} for owner inheritance: ${error}`,
+      );
+      return null;
+    }
+  }
+
+  /**
+   * Resolves owner with namespace inheritance support.
+   * Precedence: Workload annotation > Namespace annotation > Plugin default owner
+   */
+  private async resolveOwnerWithInheritance(
+    workloadAnnotations: Record<string, string>,
+    namespaceName: string | undefined,
+    clusterName: string,
+    namespacePrefix: string,
+    defaultOwner: string,
+  ): Promise<string> {
+    const prefix = this.getAnnotationPrefix();
+    const ownerKey = `${prefix}/owner`;
+
+    // First check: Workload annotation (highest priority)
+    if (workloadAnnotations[ownerKey]) {
+      return resolveOwnerRef(workloadAnnotations[ownerKey], namespacePrefix, defaultOwner);
+    }
+
+    // Second check: Namespace annotation (if inheritance is enabled and resource is namespaced)
+    const inheritOwnerFromNamespace = this.config.getOptionalBoolean('kubernetesIngestor.inheritOwnerFromNamespace') ?? false;
+    if (inheritOwnerFromNamespace && namespaceName) {
+      const namespaceAnnotations = await this.fetchNamespaceAnnotations(namespaceName, clusterName);
+      if (namespaceAnnotations?.[ownerKey]) {
+        return resolveOwnerRef(namespaceAnnotations[ownerKey], namespacePrefix, defaultOwner);
+      }
+    }
+
+    // Third check: Plugin default owner (lowest priority)
+    return resolveOwnerRef(undefined, namespacePrefix, defaultOwner);
+  }
+
   private extractArgoAppName(annotations: Record<string, string>): Record<string, string> {
     const argoIntegrationEnabled = this.config.getOptionalBoolean('kubernetesIngestor.argoIntegration') ?? true;
-    
+
     if (!argoIntegrationEnabled) {
       return {};
     }
@@ -3276,12 +3360,12 @@ export class KubernetesEntityProvider implements EntityProvider {
   ): Entity | undefined {
     try {
       const prefix = this.getAnnotationPrefix();
-      
+
       // Determine the definition value - either embedded content or $text reference
-      const definitionValue = useTextReference 
+      const definitionValue = useTextReference
         ? { $text: definition }
         : definition;
-      
+
       const apiEntity: Entity = {
         apiVersion: 'backstage.io/v1alpha1',
         kind: 'API',
@@ -3369,8 +3453,8 @@ export class KubernetesEntityProvider implements EntityProvider {
       );
 
       if (apiEntity) {
-        const apiRef = componentNamespace === 'default' 
-          ? componentName 
+        const apiRef = componentNamespace === 'default'
+          ? componentName
           : `${componentNamespace}/${componentName}`;
         return { entity: apiEntity, ref: apiRef };
       }

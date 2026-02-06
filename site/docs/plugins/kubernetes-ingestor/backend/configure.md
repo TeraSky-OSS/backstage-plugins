@@ -817,6 +817,46 @@ kubernetesIngestor:
   defaultOwner: platform-engineering-team
 ```
 
+### Owner Inheritance from Namespace
+
+When `inheritOwnerFromNamespace` is enabled, Components created from workloads will automatically inherit the owner annotation from their Namespace if the workload doesn't have an explicit owner annotation.
+
+**Owner annotation precedence (highest to lowest):**
+1. **Workload annotation** - Explicit override on the workload resource
+2. **Namespace annotation** - Inherited from the Namespace (when enabled)
+3. **Plugin default owner** - Fallback to `kubernetesIngestor.defaultOwner`
+
+Default: `false`
+
+```yaml
+kubernetesIngestor:
+  inheritOwnerFromNamespace: false
+  defaultOwner: platform-engineering-team
+```
+
+**Use Case:**
+In organizations where namespaces represent team boundaries, this feature allows you to set the owner annotation once at the Namespace level instead of on each individual workload. For example, if all workloads in the `team-platform` namespace should be owned by `group:default/team-platform`, you can:
+
+1. Set the annotation on the Namespace:
+   ```yaml
+   apiVersion: v1
+   kind: Namespace
+   metadata:
+     name: team-platform
+     annotations:
+       terasky.backstage.io/owner: group:default/team-platform
+   ```
+
+2. Enable inheritance in the configuration:
+   ```yaml
+   kubernetesIngestor:
+     inheritOwnerFromNamespace: true
+   ```
+
+3. All workloads in that namespace will automatically inherit the owner from the namespace. Workload-level annotations can override the namespace-level owner if needed.
+
+**Note:** This feature only applies to namespaced resources. Cluster-scoped resources will continue to use the plugin default owner if no explicit annotation is set.
+
 ## Component Configuration
 
 ### Task Runner Settings
