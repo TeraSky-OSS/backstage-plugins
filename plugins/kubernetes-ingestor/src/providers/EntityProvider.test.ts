@@ -65,6 +65,8 @@ describe('KubernetesEntityProvider', () => {
 
   const mockResourceFetcher = {
     fetchResource: jest.fn(),
+    fetchResources: jest.fn(),
+    proxyKubernetesRequest: jest.fn(),
     fetchClusters: jest.fn().mockResolvedValue([
       { name: 'test-cluster', url: 'http://k8s.example.com' },
     ]),
@@ -349,7 +351,7 @@ describe('KubernetesEntityProvider', () => {
 
       expect(entities).toBeDefined();
       expect(entities.length).toBeGreaterThan(0);
-      
+
       const componentEntity = entities.find((e: any) => e.kind === 'Component');
       expect(componentEntity).toBeDefined();
       expect(componentEntity.spec.type).toBe('workflow');
@@ -671,6 +673,613 @@ describe('KubernetesEntityProvider', () => {
       expect(entities[0].spec.type).toBe('crossplane-claim');
     });
   });
+
+  describe('namespace owner inheritance', () => {
+    const createProviderWithConfig = (configOverrides: any = {}) => {
+      const config = new ConfigReader({
+        kubernetesIngestor: {
+          components: {
+            enabled: true,
+            taskRunner: { frequency: 60, timeout: 600 },
+          },
+          crossplane: {
+            enabled: true,
+          },
+          kro: {
+            enabled: false,
+          },
+          annotationPrefix: 'terasky.backstage.io',
+          defaultOwner: 'kubernetes-auto-ingested',
+          ...configOverrides,
+        },
+        kubernetes: {
+          clusterLocatorMethods: [
+            {
+              type: 'config',
+              clusters: [
+                { name: 'test-cluster', url: 'http://k8s.example.com' },
+              ],
+            },
+          ],
+        },
+      });
+
+      return new KubernetesEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        config,
+        mockResourceFetcher as any,
+      );
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockResourceFetcher.proxyKubernetesRequest.mockResolvedValue({
+        metadata: {
+          annotations: {},
+        },
+      });
+    });
+
+    describe('Given regular Kubernetes workloads', () => {
+      const createMockWorkload = (annotations: any = {}, namespace: string = 'test-namespace') => ({
+        apiVersion: 'apps/v1',
+        kind: 'Deployment',
+        metadata: {
+          name: 'test-deployment',
+          namespace,
+          annotations,
+        },
+        spec: {},
+        clusterName: 'test-cluster',
+      });
+
+      it('When inheritOwnerFromNamespace is enabled and workload has no owner annotation, Then it inherits owner from namespace', async () => {
+        const provider = createProviderWithConfig({
+          inheritOwnerFromNamespace: true,
+        });
+
+        // Mock namespace object: team-platform namespace with owner annotation
+        // Namespace: team-platform
+        // Annotations: { 'terasky.backstage.io/owner': 'group:default/team-platform' }
+        mockResourceFetcher.proxyKubernetesRequest.mockResolvedValue({
+          metadata: {
+            name: 'team-platform',
+            annotations: {
+              'terasky.backstage.io/owner': 'group:default/team-platform',
+            },
+          },
+        });
+
+        const mockResource = createMockWorkload({}, 'team-platform');
+        const entities = await (provider as any).translateKubernetesObjectsToEntities(mockResource);
+
+        expect(entities.length).toBeGreaterThan(0);
+        const componentEntity = entities.find((e: any) => e.kind === 'Component');
+        expect(componentEntity).toBeDefined();
+        expect(componentEntity.spec.owner).toBe('group:default/team-platform');
+        expect(mockResourceFetcher.proxyKubernetesRequest).toHaveBeenCalledWith('test-cluster', {
+          path: '/api/v1/namespaces/team-platform',
+        });
+      });
+
+      it('When workload has owner annotation, Then workload annotation takes precedence over namespace', async () => {
+        const provider = createProviderWithConfig({
+          inheritOwnerFromNamespace: true,
+        });
+
+        // Mock namespace object: team-platform namespace with owner annotation (not used due to workload override)
+        // Namespace: team-platform
+        // Annotations: { 'terasky.backstage.io/owner': 'group:default/team-platform' }
+        mockResourceFetcher.proxyKubernetesRequest.mockResolvedValue({
+          metadata: {
+            name: 'team-platform',
+            annotations: {
+              'terasky.backstage.io/owner': 'group:default/team-platform',
+            },
+          },
+        });
+
+        const mockResource = createMockWorkload({
+          'terasky.backstage.io/owner': 'group:default/team-backend',
+        }, 'team-platform');
+        const entities = await (provider as any).translateKubernetesObjectsToEntities(mockResource);
+
+        expect(entities.length).toBeGreaterThan(0);
+        const componentEntity = entities.find((e: any) => e.kind === 'Component');
+        expect(componentEntity).toBeDefined();
+        expect(componentEntity.spec.owner).toBe('group:default/team-backend');
+        // Workload annotation takes precedence, so namespace should not be fetched
+        expect(mockResourceFetcher.proxyKubernetesRequest).not.toHaveBeenCalled();
+      });
+
+      it('When inheritOwnerFromNamespace is disabled, Then it uses default owner and does not fetch namespace', async () => {
+        const provider = createProviderWithConfig({
+          inheritOwnerFromNamespace: false,
+        });
+
+        // Note: Namespace should not be fetched when feature is disabled
+
+        const mockResource = createMockWorkload({}, 'team-platform');
+        const entities = await (provider as any).translateKubernetesObjectsToEntities(mockResource);
+
+        expect(entities.length).toBeGreaterThan(0);
+        const componentEntity = entities.find((e: any) => e.kind === 'Component');
+        expect(componentEntity).toBeDefined();
+        expect(componentEntity.spec.owner).toContain('kubernetes-auto-ingested');
+        expect(mockResourceFetcher.proxyKubernetesRequest).not.toHaveBeenCalled();
+      });
+
+      it('When namespace has no owner annotation, Then it uses default owner', async () => {
+        const provider = createProviderWithConfig({
+          inheritOwnerFromNamespace: true,
+        });
+
+        // Mock namespace object: team-platform namespace without owner annotation
+        // Namespace: team-platform
+        // Annotations: {}
+        mockResourceFetcher.proxyKubernetesRequest.mockResolvedValue({
+          metadata: {
+            name: 'team-platform',
+            annotations: {},
+          },
+        });
+
+        const mockResource = createMockWorkload({}, 'team-platform');
+        const entities = await (provider as any).translateKubernetesObjectsToEntities(mockResource);
+
+        expect(entities.length).toBeGreaterThan(0);
+        const componentEntity = entities.find((e: any) => e.kind === 'Component');
+        expect(componentEntity).toBeDefined();
+        expect(componentEntity.spec.owner).toContain('kubernetes-auto-ingested');
+      });
+
+      it('When resource is cluster-scoped, Then it does not fetch namespace and uses default owner', async () => {
+        const provider = createProviderWithConfig({
+          inheritOwnerFromNamespace: true,
+        });
+
+        const mockResource = {
+          apiVersion: 'v1',
+          kind: 'Namespace',
+          metadata: {
+            name: 'test-namespace',
+            // No namespace field = cluster-scoped
+          },
+          spec: {},
+          clusterName: 'test-cluster',
+        };
+
+        const entities = await (provider as any).translateKubernetesObjectsToEntities(mockResource);
+
+        expect(entities.length).toBeGreaterThan(0);
+        expect(mockResourceFetcher.proxyKubernetesRequest).toHaveBeenCalledWith('test-cluster', {
+          path: '/api/v1/namespaces/default',
+        });
+
+        const componentEntity = entities.find((e: any) => e.kind === 'Component');
+        expect(componentEntity).toBeDefined();
+        expect(componentEntity.spec.owner).toContain('kubernetes-auto-ingested');
+      });
+
+      it('When namespace fetch fails, Then it falls back to default owner', async () => {
+        const provider = createProviderWithConfig({
+          inheritOwnerFromNamespace: true,
+        });
+
+        mockResourceFetcher.proxyKubernetesRequest.mockRejectedValue(new Error('Namespace not found'));
+
+        const mockResource = createMockWorkload({}, 'team-platform');
+        const entities = await (provider as any).translateKubernetesObjectsToEntities(mockResource);
+
+        expect(entities.length).toBeGreaterThan(0);
+        const componentEntity = entities.find((e: any) => e.kind === 'Component');
+        expect(componentEntity).toBeDefined();
+        // Should fall back to default owner when namespace fetch fails
+        expect(componentEntity.spec.owner).toContain('kubernetes-auto-ingested');
+      });
+    });
+
+    describe('Given Crossplane claims', () => {
+      const createMockClaim = (annotations: any = {}, namespace: string = 'test-namespace') => ({
+        apiVersion: 'database.example.com/v1alpha1',
+        kind: 'PostgreSQLInstance',
+        metadata: {
+          name: 'my-db',
+          namespace,
+          annotations,
+        },
+        spec: {
+          resourceRef: {
+            apiVersion: 'database.example.com/v1alpha1',
+            kind: 'XPostgreSQLInstance',
+            name: 'my-db-abc123',
+          },
+        },
+        clusterName: 'test-cluster',
+      });
+
+      const crdMapping = {
+        'PostgreSQLInstance': 'postgresqlinstances',
+        'XPostgreSQLInstance': 'xpostgresqlinstances',
+      };
+
+      it('When translating claim with namespace owner, Then it inherits owner from namespace', async () => {
+        const provider = createProviderWithConfig({
+          inheritOwnerFromNamespace: true,
+        });
+
+        // Mock namespace object: team-database namespace with owner annotation
+        // Namespace: team-database
+        // Annotations: { 'terasky.backstage.io/owner': 'group:default/team-database' }
+        mockResourceFetcher.proxyKubernetesRequest.mockResolvedValue({
+          metadata: {
+            name: 'team-database',
+            annotations: {
+              'terasky.backstage.io/owner': 'group:default/team-database',
+            },
+          },
+        });
+
+        const mockClaim = createMockClaim({}, 'team-database');
+        const entities = await (provider as any).translateCrossplaneClaimToEntity(
+          mockClaim,
+          'test-cluster',
+          crdMapping,
+        );
+
+        expect(entities.length).toBeGreaterThan(0);
+        expect(entities[0].spec.owner).toBe('group:default/team-database');
+        expect(mockResourceFetcher.proxyKubernetesRequest).toHaveBeenCalledWith('test-cluster', {
+          path: '/api/v1/namespaces/team-database',
+        });
+      });
+
+      it('When claim has owner annotation, Then claim annotation takes precedence over namespace', async () => {
+        const provider = createProviderWithConfig({
+          inheritOwnerFromNamespace: true,
+        });
+
+        // Mock namespace object: team-database namespace with owner annotation (not used due to claim override)
+        // Namespace: team-database
+        // Annotations: { 'terasky.backstage.io/owner': 'group:default/team-database' }
+        mockResourceFetcher.proxyKubernetesRequest.mockResolvedValue({
+          metadata: {
+            name: 'team-database',
+            annotations: {
+              'terasky.backstage.io/owner': 'group:default/team-database',
+            },
+          },
+        });
+
+        const mockClaim = createMockClaim({
+          'terasky.backstage.io/owner': 'group:default/team-backend',
+        }, 'team-database');
+        const entities = await (provider as any).translateCrossplaneClaimToEntity(
+          mockClaim,
+          'test-cluster',
+          crdMapping,
+        );
+
+        expect(entities.length).toBeGreaterThan(0);
+        expect(entities[0].spec.owner).toBe('group:default/team-backend');
+      });
+    });
+
+    describe('Given Crossplane composites (XRs)', () => {
+      const createMockXR = (annotations: any = {}, namespace: string = 'test-namespace') => ({
+        apiVersion: 'database.example.com/v1alpha1',
+        kind: 'XPostgreSQLInstance',
+        metadata: {
+          name: 'my-db-abc123',
+          namespace,
+          annotations,
+        },
+        spec: {
+          crossplane: {
+            compositionRef: {
+              name: 'my-composition',
+            },
+          },
+        },
+        clusterName: 'test-cluster',
+      });
+
+      const compositeKindLookup = {
+        'XPostgreSQLInstance|database.example.com|v1alpha1': {
+          scope: 'Namespaced',
+          spec: {
+            names: {
+              plural: 'xpostgresqlinstances',
+            },
+          },
+        },
+      };
+
+      it('When translating composite with namespace owner, Then it inherits owner from namespace', async () => {
+        const provider = createProviderWithConfig({
+          inheritOwnerFromNamespace: true,
+        });
+
+        // Mock namespace object: team-infra namespace with owner annotation
+        // Namespace: team-infra
+        // Annotations: { 'terasky.backstage.io/owner': 'group:default/team-infra' }
+        mockResourceFetcher.proxyKubernetesRequest.mockResolvedValue({
+          metadata: {
+            name: 'team-infra',
+            annotations: {
+              'terasky.backstage.io/owner': 'group:default/team-infra',
+            },
+          },
+        });
+
+        const mockXR = createMockXR({}, 'team-infra');
+        const entities = await (provider as any).translateCrossplaneCompositeToEntity(
+          mockXR,
+          'test-cluster',
+          compositeKindLookup,
+        );
+
+        expect(entities.length).toBeGreaterThan(0);
+        expect(entities[0].spec.owner).toBe('group:default/team-infra');
+        expect(mockResourceFetcher.proxyKubernetesRequest).toHaveBeenCalledWith('test-cluster', {
+          path: '/api/v1/namespaces/team-infra',
+        });
+      });
+
+      it('When composite has owner annotation, Then composite annotation takes precedence over namespace', async () => {
+        const provider = createProviderWithConfig({
+          inheritOwnerFromNamespace: true,
+        });
+
+        // Mock namespace object: team-infra namespace with owner annotation (not used due to composite override)
+        // Namespace: team-infra
+        // Annotations: { 'terasky.backstage.io/owner': 'group:default/team-infra' }
+        mockResourceFetcher.proxyKubernetesRequest.mockResolvedValue({
+          metadata: {
+            name: 'team-infra',
+            annotations: {
+              'terasky.backstage.io/owner': 'group:default/team-infra',
+            },
+          },
+        });
+
+        const mockXR = createMockXR({
+          'terasky.backstage.io/owner': 'group:default/team-platform',
+        }, 'team-infra');
+        const entities = await (provider as any).translateCrossplaneCompositeToEntity(
+          mockXR,
+          'test-cluster',
+          compositeKindLookup,
+        );
+
+        expect(entities.length).toBeGreaterThan(0);
+        expect(entities[0].spec.owner).toBe('group:default/team-platform');
+      });
+    });
+
+    describe('Given KRO instances', () => {
+      const createMockKROInstance = (annotations: any = {}, namespace: string = 'test-namespace') => ({
+        apiVersion: 'kro.example.com/v1alpha1',
+        kind: 'ApplicationInstance',
+        metadata: {
+          name: 'my-app',
+          namespace,
+          annotations,
+          labels: {
+            'kro.run/resource-graph-definition-id': 'app-instance-rgd',
+          },
+        },
+        spec: {},
+        clusterName: 'test-cluster',
+      });
+
+      const kroRgdLookup = {
+        'ApplicationInstance|kro.example.com|v1alpha1': {
+          rgd: {
+            metadata: {
+              name: 'applicationinstances',
+            },
+            spec: {
+              schema: {
+                kind: 'ApplicationInstance',
+                plural: 'applicationinstances',
+                group: 'kro.example.com',
+                version: 'v1alpha1',
+              },
+              resources: [],
+            },
+          },
+          spec: {
+            names: {
+              kind: 'ApplicationInstance',
+              plural: 'applicationinstances',
+            },
+            group: 'kro.example.com',
+            version: 'v1alpha1',
+          },
+        },
+      };
+
+      it('When translating instance with namespace owner, Then it inherits owner from namespace', async () => {
+        const provider = createProviderWithConfig({
+          inheritOwnerFromNamespace: true,
+          kro: {
+            enabled: true,
+          },
+        });
+
+        // Mock namespace object: team-app namespace with owner annotation
+        // Namespace: team-app
+        // Annotations: { 'terasky.backstage.io/owner': 'group:default/team-app' }
+        mockResourceFetcher.proxyKubernetesRequest.mockResolvedValue({
+          metadata: {
+            name: 'team-app',
+            annotations: {
+              'terasky.backstage.io/owner': 'group:default/team-app',
+            },
+          },
+        });
+
+        const mockInstance = createMockKROInstance({}, 'team-app');
+        const entities = await (provider as any).translateKROInstanceToEntity(
+          mockInstance,
+          'test-cluster',
+          kroRgdLookup,
+        );
+
+        expect(entities.length).toBeGreaterThan(0);
+        expect(entities[0].spec.owner).toBe('group:default/team-app');
+        expect(mockResourceFetcher.proxyKubernetesRequest).toHaveBeenCalledWith('test-cluster', {
+          path: '/api/v1/namespaces/team-app',
+        });
+      });
+
+      it('When instance has owner annotation, Then instance annotation takes precedence over namespace', async () => {
+        const provider = createProviderWithConfig({
+          inheritOwnerFromNamespace: true,
+          kro: {
+            enabled: true,
+          },
+        });
+
+        // Mock namespace object: team-app namespace with owner annotation (not used due to instance override)
+        // Namespace: team-app
+        // Annotations: { 'terasky.backstage.io/owner': 'group:default/team-app' }
+        mockResourceFetcher.proxyKubernetesRequest.mockResolvedValue({
+          metadata: {
+            name: 'team-app',
+            annotations: {
+              'terasky.backstage.io/owner': 'group:default/team-app',
+            },
+          },
+        });
+
+        const mockInstance = createMockKROInstance({
+          'terasky.backstage.io/owner': 'group:default/team-frontend',
+        }, 'team-app');
+        const entities = await (provider as any).translateKROInstanceToEntity(
+          mockInstance,
+          'test-cluster',
+          kroRgdLookup,
+        );
+
+        expect(entities.length).toBeGreaterThan(0);
+        expect(entities[0].spec.owner).toBe('group:default/team-frontend');
+      });
+    });
+
+    describe('Given System entities', () => {
+      it('When translating Kubernetes workload, Then System entity inherits owner from namespace', async () => {
+        const provider = createProviderWithConfig({
+          inheritOwnerFromNamespace: true,
+        });
+
+        // Mock namespace object: team-platform namespace with owner annotation
+        // Namespace: team-platform
+        // Annotations: { 'terasky.backstage.io/owner': 'group:default/team-platform' }
+        mockResourceFetcher.proxyKubernetesRequest.mockResolvedValue({
+          metadata: {
+            name: 'team-platform',
+            annotations: {
+              'terasky.backstage.io/owner': 'group:default/team-platform',
+            },
+          },
+        });
+
+        const mockResource = {
+          apiVersion: 'apps/v1',
+          kind: 'Deployment',
+          metadata: {
+            name: 'test-deployment',
+            namespace: 'team-platform',
+            annotations: {},
+          },
+          spec: {},
+          clusterName: 'test-cluster',
+        };
+
+        const entities = await (provider as any).translateKubernetesObjectsToEntities(mockResource);
+
+        const systemEntity = entities.find((e: any) => e.kind === 'System');
+        expect(systemEntity).toBeDefined();
+        expect(systemEntity.spec.owner).toBe('group:default/team-platform');
+      });
+    });
+
+    describe('Given custom annotation prefix configuration', () => {
+      it('When namespace has owner annotation with custom prefix, Then it inherits owner correctly', async () => {
+        const provider = createProviderWithConfig({
+          inheritOwnerFromNamespace: true,
+          annotationPrefix: 'custom.backstage.io',
+        });
+
+        // Mock namespace object: team-platform namespace with custom prefix owner annotation
+        mockResourceFetcher.proxyKubernetesRequest.mockResolvedValue({
+          metadata: {
+            name: 'team-platform',
+            annotations: {
+              'custom.backstage.io/owner': 'group:default/team-platform',
+            },
+          },
+        });
+
+        const mockResource = {
+          apiVersion: 'apps/v1',
+          kind: 'Deployment',
+          metadata: {
+            name: 'test-deployment',
+            namespace: 'team-platform',
+            annotations: {},
+          },
+          spec: {},
+          clusterName: 'test-cluster',
+        };
+
+        const entities = await (provider as any).translateKubernetesObjectsToEntities(mockResource);
+
+        const componentEntity = entities.find((e: any) => e.kind === 'Component');
+        expect(componentEntity).toBeDefined();
+        expect(componentEntity.spec.owner).toBe('group:default/team-platform');
+      });
+    });
+
+    describe('Given namespace annotation without expected prefix', () => {
+      it('When namespace has owner annotation without prefix, Then it does not inherit owner and uses default', async () => {
+        const provider = createProviderWithConfig({
+          inheritOwnerFromNamespace: true,
+        });
+
+        // Mock namespace object: team-platform namespace with owner annotation missing the expected prefix
+        mockResourceFetcher.proxyKubernetesRequest.mockResolvedValue({
+          metadata: {
+            name: 'team-platform',
+            annotations: {
+              'owner': 'group:default/team-platform', // Missing 'terasky.backstage.io' prefix
+            },
+          },
+        });
+
+        const mockResource = {
+          apiVersion: 'apps/v1',
+          kind: 'Deployment',
+          metadata: {
+            name: 'test-deployment',
+            namespace: 'team-platform',
+            annotations: {},
+          },
+          spec: {},
+          clusterName: 'test-cluster',
+        };
+
+        const entities = await (provider as any).translateKubernetesObjectsToEntities(mockResource);
+
+        const componentEntity = entities.find((e: any) => e.kind === 'Component');
+        expect(componentEntity).toBeDefined();
+        expect(componentEntity.spec.owner).toContain('kubernetes-auto-ingested');
+      });
+    });
+  });
 });
 
 describe('XRDTemplateEntityProvider', () => {
@@ -700,6 +1309,8 @@ describe('XRDTemplateEntityProvider', () => {
 
   const mockResourceFetcher = {
     fetchResource: jest.fn(),
+    fetchResources: jest.fn(),
+    proxyKubernetesRequest: jest.fn(),
     fetchClusters: jest.fn().mockResolvedValue([]),
     fetchAllNamespaces: jest.fn().mockResolvedValue([]),
     fetchAllNamespacesAllClusters: jest.fn().mockResolvedValue([]),

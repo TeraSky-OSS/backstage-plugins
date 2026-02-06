@@ -2501,6 +2501,15 @@ export class KubernetesEntityProvider implements EntityProvider {
       }
     }
 
+    // Resolve owner with namespace inheritance support
+    const systemOwner = await this.resolveOwnerWithInheritance(
+      annotations,
+      namespace,
+      resource.clusterName,
+      systemReferencesNamespaceValue,
+      this.getDefaultOwner(),
+    );
+
     const systemEntity: Entity = {
       apiVersion: 'backstage.io/v1alpha1',
       kind: 'System',
@@ -2510,7 +2519,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         annotations: customAnnotations,
       },
       spec: {
-        owner: resolveOwnerRef(annotations[`${prefix}/owner`], systemReferencesNamespaceValue, this.getDefaultOwner()),
+        owner: systemOwner,
         type: annotations[`${prefix}/system-type`] || 'kubernetes-namespace',
         ...(annotations[`${prefix}/domain`]
           ? { domain: annotations[`${prefix}/domain`] }
@@ -2526,7 +2535,13 @@ export class KubernetesEntityProvider implements EntityProvider {
     const componentName = annotations[`${prefix}/name`] || nameValue;
     const componentTitle = annotations[`${prefix}/title`] || titleValue;
     const componentNamespace = annotations[`${prefix}/backstage-namespace`] || systemNamespaceValue;
-    const componentOwner = resolveOwnerRef(annotations[`${prefix}/owner`], systemReferencesNamespaceValue, this.getDefaultOwner());
+    const componentOwner = await this.resolveOwnerWithInheritance(
+      annotations,
+      namespace,
+      resource.clusterName,
+      systemReferencesNamespaceValue,
+      this.getDefaultOwner(),
+    );
     const componentSystem = annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`;
 
     // Try to fetch API definition from annotations
@@ -2728,7 +2743,13 @@ export class KubernetesEntityProvider implements EntityProvider {
     const componentName = annotations[`${prefix}/name`] || nameValue;
     const componentTitle = annotations[`${prefix}/title`] || titleValue;
     const componentNamespace = annotations[`${prefix}/backstage-namespace`] || systemNamespaceValue;
-    const componentOwner = resolveOwnerRef(annotations[`${prefix}/owner`], systemReferencesNamespaceValue, this.getDefaultOwner());
+    const componentOwner = await this.resolveOwnerWithInheritance(
+      annotations,
+      claim.metadata.namespace,
+      clusterName,
+      systemReferencesNamespaceValue,
+      this.getDefaultOwner(),
+    );
     const componentSystem = annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`;
 
     // Try to fetch API definition from annotations
@@ -2915,7 +2936,13 @@ export class KubernetesEntityProvider implements EntityProvider {
     const componentName = annotations[`${prefix}/name`] || nameValue;
     const componentTitle = annotations[`${prefix}/title`] || titleValue;
     const componentNamespace = annotations[`${prefix}/backstage-namespace`] || systemNamespaceValue;
-    const componentOwner = resolveOwnerRef(annotations[`${prefix}/owner`], systemReferencesNamespaceValue, this.getDefaultOwner());
+    const componentOwner = await this.resolveOwnerWithInheritance(
+      annotations,
+      instance.metadata.namespace,
+      clusterName,
+      systemReferencesNamespaceValue,
+      this.getDefaultOwner(),
+    );
     const componentSystem = annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`;
 
     // Try to fetch API definition from annotations
@@ -3102,7 +3129,13 @@ export class KubernetesEntityProvider implements EntityProvider {
     const componentName = annotations[`${prefix}/name`] || nameValue;
     const componentTitle = annotations[`${prefix}/title`] || titleValue;
     const componentNamespace = annotations[`${prefix}/backstage-namespace`] || systemNamespaceValue;
-    const componentOwner = annotations[`${prefix}/owner`] || this.getDefaultOwner();
+    const componentOwner = await this.resolveOwnerWithInheritance(
+      annotations,
+      xr.metadata.namespace,
+      clusterName,
+      systemReferencesNamespaceValue,
+      this.getDefaultOwner(),
+    );
     const componentSystem = annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`;
 
     // Try to fetch API definition from annotations
@@ -3178,6 +3211,60 @@ export class KubernetesEntityProvider implements EntityProvider {
       entities.push(apiEntity);
     }
     return entities;
+  }
+
+  /**
+   * Fetches namespace annotations for owner inheritance.
+   * Returns the namespace resource annotations if found, null otherwise.
+   */
+  private async fetchNamespaceAnnotations(
+    namespaceName: string,
+    clusterName: string,
+  ): Promise<Record<string, string> | null> {
+    try {
+      // Namespaces are in the core API, so we use /api/v1/ instead of /apis/
+      const namespace = await this.resourceFetcher.proxyKubernetesRequest(clusterName, {
+        path: `/api/v1/namespaces/${namespaceName}`,
+      });
+      return namespace?.metadata?.annotations || null;
+    } catch (error) {
+      this.logger.debug(
+        `Failed to fetch namespace ${namespaceName} from cluster ${clusterName} for owner inheritance: ${error}`,
+      );
+      return null;
+    }
+  }
+
+  /**
+   * Resolves owner with namespace inheritance support.
+   * Precedence: Workload annotation > Namespace annotation > Plugin default owner
+   */
+  private async resolveOwnerWithInheritance(
+    workloadAnnotations: Record<string, string>,
+    namespaceName: string | undefined,
+    clusterName: string,
+    namespacePrefix: string,
+    defaultOwner: string,
+  ): Promise<string> {
+    const prefix = this.getAnnotationPrefix();
+    const ownerKey = `${prefix}/owner`;
+
+    // First check: Workload annotation (highest priority)
+    if (workloadAnnotations[ownerKey]) {
+      return resolveOwnerRef(workloadAnnotations[ownerKey], namespacePrefix, defaultOwner);
+    }
+
+    // Second check: Namespace annotation (if inheritance is enabled and resource is namespaced)
+    const inheritOwnerFromNamespace = this.config.getOptionalBoolean('kubernetesIngestor.inheritOwnerFromNamespace') ?? false;
+    if (inheritOwnerFromNamespace && namespaceName) {
+      const namespaceAnnotations = await this.fetchNamespaceAnnotations(namespaceName, clusterName);
+      if (namespaceAnnotations?.[ownerKey]) {
+        return resolveOwnerRef(namespaceAnnotations[ownerKey], namespacePrefix, defaultOwner);
+      }
+    }
+
+    // Third check: Plugin default owner (lowest priority)
+    return resolveOwnerRef(undefined, namespacePrefix, defaultOwner);
   }
 
   private extractCustomAnnotations(annotations: Record<string, string>, clusterName: string): Record<string, string> {
