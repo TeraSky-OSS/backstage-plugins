@@ -24,6 +24,15 @@ export interface Config {
      */
     defaultOwner?: string;
     /**
+     * Inherit owner annotation from Namespace when not set on workload
+     * When enabled, Components created from workloads will inherit the owner annotation
+     * from their Namespace if the workload doesn't have an explicit owner annotation.
+     * Annotation precedence: Workload annotation > Namespace annotation > Plugin default owner
+     * @default false
+     * @visibility frontend
+     */
+    inheritOwnerFromNamespace?: boolean;
+    /**
      * Ingest API entities as CRD type instead of OpenAPI type
      * When true, API entities will have type "crd" with the CRD YAML as definition
      * When false, API entities will have type "openapi" with generated OpenAPI spec
