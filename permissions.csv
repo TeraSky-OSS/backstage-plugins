@@ -71,3 +71,4 @@ p, role:default/platformteam, spectrocloud.cluster.view-pack-manifests, read, al
 p, role:default/platformteam, spectrocloud.profile.view-info, read, allow
 p, role:default/platformteam, spectrocloud.profile.view-clusters, read, allow
 g, group:default/all_users, role:default/platformteam
+g, user:default/shlomofan_gmail.com, role:default/platformteam

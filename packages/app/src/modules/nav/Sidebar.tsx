@@ -17,6 +17,7 @@ import SearchIcon from '@material-ui/icons/Search';
 import { Administration } from '@backstage-community/plugin-rbac';
 import LibraryBooks from '@material-ui/icons/LibraryBooks';
 import ListIcon from '@material-ui/icons/List';
+import AddCircleIcon from '@material-ui/icons/AddCircle';
 import { SiKubernetes } from "react-icons/si";
 import { FaCloud, FaObjectGroup, FaProjectDiagram, FaServer } from "react-icons/fa";
 import { SiOpenapiinitiative } from "react-icons/si";
@@ -37,6 +38,18 @@ export const SidebarContent: ReturnType<typeof NavContentBlueprint.make> = NavCo
       <SidebarDivider />
       <SidebarGroup label="Menu" icon={<MenuIcon />}>
         {/* Global nav, not org-specific */}
+        <SidebarItem icon={SiKubernetes} text="Spectro" to="/spectrocloud/deploy">
+          <SidebarSubmenu title="Spectro Cloud">
+            <Typography variant="subtitle2" style={{ padding: '32px 16px 16px 16px', fontWeight: 'bold' }}>
+              Spectro Cloud Palette
+            </Typography>
+            <SidebarSubmenuItem
+              title="Create Cluster"
+              to="/spectrocloud/deploy"
+              icon={AddCircleIcon}
+            />
+          </SidebarSubmenu>
+        </SidebarItem>
         <SidebarItem icon={ListIcon} text="Catalog" to="/catalog">
           <SidebarSubmenu title="Catalog">
             <Typography variant="subtitle2" style={{ padding: '32px 16px 16px 16px', fontWeight: 'bold' }}>
