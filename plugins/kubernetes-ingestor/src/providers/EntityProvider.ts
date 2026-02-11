@@ -42,6 +42,25 @@ export function resolveOwnerRef(
   return `${namespacePrefix}/${ownerAnnotation}`;
 }
 
+/**
+ * Splits annotation values that can be either comma-separated or newline-separated.
+ * Trims whitespace from each entry and filters out empty entries.
+ * A trailing newline at the end of the string is ignored.
+ * An empty string returns an empty array.
+ *
+ * @param value - The annotation string to split, or undefined
+ * @returns The split and trimmed array, or undefined if input is undefined
+ */
+export function splitAnnotationValues(value: string | undefined): string[] | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  return value
+    .split(/[,\n]/)
+    .map(s => s.trim())
+    .filter(Boolean);
+}
+
 export class XRDTemplateEntityProvider implements EntityProvider {
   private connection?: EntityProviderConnection;
 
@@ -2569,7 +2588,7 @@ export class KubernetesEntityProvider implements EntityProvider {
     // Build providesApis list - combine existing annotation with auto-generated API
     let providesApis: string[] | undefined;
     if (entityKind === 'Component') {
-      const existingApis = annotations[`${prefix}/providesApis`]?.split(',').filter(Boolean) || [];
+      const existingApis = splitAnnotationValues(annotations[`${prefix}/providesApis`]) || [];
       if (apiRef) {
         providesApis = [...existingApis, apiRef];
       } else if (existingApis.length > 0) {
@@ -2607,10 +2626,10 @@ export class KubernetesEntityProvider implements EntityProvider {
         lifecycle: annotations[`${prefix}/lifecycle`] || 'production',
         owner: componentOwner,
         system: annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`,
-        dependsOn: annotations[`${prefix}/dependsOn`]?.split(','),
+        dependsOn: splitAnnotationValues(annotations[`${prefix}/dependsOn`]),
         ...(entityKind === 'Component' ? {
           providesApis: providesApis,
-          consumesApis: annotations[`${prefix}/consumesApis`]?.split(','),
+          consumesApis: splitAnnotationValues(annotations[`${prefix}/consumesApis`]),
         } : {}),
         ...(annotations[`${prefix}/subcomponent-of`] && {
           subcomponentOf: annotations[`${prefix}/subcomponent-of`],
@@ -2808,7 +2827,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         lifecycle: annotations[`${prefix}/lifecycle`] || 'production',
         owner: componentOwner,
         system: annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`,
-        dependsOn: annotations[`${prefix}/dependsOn`]?.split(','),
+        dependsOn: splitAnnotationValues(annotations[`${prefix}/dependsOn`]),
         ...(entityKind === 'Component' ? {
           providesApis: providesApis,
           consumesApis: [`${systemReferencesNamespaceValue}/${claim.kind}-${claim.apiVersion.split('/').join('--')}`],
@@ -3000,7 +3019,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         lifecycle: annotations[`${prefix}/lifecycle`] || 'production',
         owner: componentOwner,
         system: annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`,
-        dependsOn: annotations[`${prefix}/dependsOn`]?.split(','),
+        dependsOn: splitAnnotationValues(annotations[`${prefix}/dependsOn`]),
         ...(entityKind === 'Component' ? {
           providesApis: providesApis,
           consumesApis: [`${systemReferencesNamespaceValue}/${instance.kind}-${instance.apiVersion.split('/').join('--')}`],
@@ -3191,7 +3210,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         lifecycle: annotations[`${prefix}/lifecycle`] || 'production',
         owner: componentOwner,
         system: annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`,
-        dependsOn: annotations[`${prefix}/dependsOn`]?.split(','),
+        dependsOn: splitAnnotationValues(annotations[`${prefix}/dependsOn`]),
         ...(entityKind === 'Component' ? {
           providesApis: providesApis,
           consumesApis: [`${systemReferencesNamespaceValue}/${xr.kind}-${xr.apiVersion.split('/').join('--')}`],
@@ -3279,7 +3298,7 @@ export class KubernetesEntityProvider implements EntityProvider {
       return defaultAnnotations;
     }
 
-    const customAnnotations = annotations[customAnnotationsKey].split(',').reduce((acc, pair) => {
+    const customAnnotations = (splitAnnotationValues(annotations[customAnnotationsKey]) || []).reduce((acc, pair) => {
       const separatorIndex = pair.indexOf('=');
       if (separatorIndex !== -1) {
         const key = pair.substring(0, separatorIndex).trim();
