@@ -88,11 +88,12 @@ Workload Resource Annotations:
   terasky.backstage.io/component-type: string
   terasky.backstage.io/subcomponent-of: string
   terasky.backstage.io/lifecycle: string
-  terasky.backstage.io/dependsOn: string
-  terasky.backstage.io/providesApis: string
-  terasky.backstage.io/consumesApis: string
-  terasky.backstage.io/component-annotations: string
-  terasky.backstage.io/links: string
+  terasky.backstage.io/dependsOn: string              # comma or newline separated
+  terasky.backstage.io/providesApis: string           # comma or newline separated
+  terasky.backstage.io/consumesApis: string           # comma or newline separated
+  terasky.backstage.io/component-annotations: string  # comma or newline separated (key=value)
+  terasky.backstage.io/links: string                  # JSON array. Each element must match: { "url": string, "title"?: string, "icon"?: string }
+                                                      #   Example: [{"url": "https://docs.example.com", "title": "Docs"}]
   terasky.backstage.io/title: string
   terasky.backstage.io/name: string
   terasky.backstage.io/description: string
@@ -101,6 +102,26 @@ API Auto-Registration Annotations:
   terasky.backstage.io/provides-api-from-def: string      # URL for $text reference (runtime fetch)
   terasky.backstage.io/provides-api-from-url: string      # URL to fetch and embed at ingestion
   terasky.backstage.io/provides-api-from-resource-ref: JSON  # K8s resource reference
+```
+
+For multiline annotations, you can use the YAML block style `|`. Example:
+
+```yaml
+terasky.backstage.io/dependsOn: |
+  resource:default/my-resource
+  component:default/my-component
+terasky.backstage.io/links: |
+  [
+    {
+      "url": "https://docs.example.com",
+      "title": "Docs",
+    },
+    {
+      "url": "https://dashboard.example.com",
+      "title": "Dashboard",
+      "icon": "dashboard"
+    }
+  ]
 ```
 
 ## Getting Started

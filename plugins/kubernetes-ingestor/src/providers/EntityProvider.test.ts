@@ -1,4 +1,4 @@
-import { KubernetesEntityProvider, XRDTemplateEntityProvider, resolveOwnerRef } from './EntityProvider';
+import { KubernetesEntityProvider, XRDTemplateEntityProvider, resolveOwnerRef, splitAnnotationValues } from './EntityProvider';
 import { mockServices } from '@backstage/backend-test-utils';
 import { ConfigReader } from '@backstage/config';
 
@@ -31,6 +31,48 @@ describe('resolveOwnerRef', () => {
   it('should prefix with namespace when annotation does not contain colon', () => {
     const result = resolveOwnerRef('my-owner', 'group:default', 'kubernetes-auto-ingested');
     expect(result).toBe('group:default/my-owner');
+  });
+});
+
+describe('splitAnnotationValues', () => {
+  it('should return undefined for undefined input', () => {
+    expect(splitAnnotationValues(undefined)).toBeUndefined();
+  });
+
+  it('should split comma-separated values', () => {
+    expect(splitAnnotationValues('a,b,c')).toEqual(['a', 'b', 'c']);
+  });
+
+  it('should split newline-separated values', () => {
+    expect(splitAnnotationValues('a\nb\nc')).toEqual(['a', 'b', 'c']);
+  });
+
+  it('should handle mixed comma and newline separators', () => {
+    expect(splitAnnotationValues('a,b\nc')).toEqual(['a', 'b', 'c']);
+  });
+
+  it('should ignore a trailing newline', () => {
+    expect(splitAnnotationValues('a\nb\n')).toEqual(['a', 'b']);
+  });
+
+  it('should trim whitespace from each entry', () => {
+    expect(splitAnnotationValues(' a , b \n c ')).toEqual(['a', 'b', 'c']);
+  });
+
+  it('should filter out empty entries', () => {
+    expect(splitAnnotationValues('a,,b,\n\nc')).toEqual(['a', 'b', 'c']);
+  });
+
+  it('should return an empty array for an empty string', () => {
+    expect(splitAnnotationValues('')).toEqual([]);
+  });
+
+  it('should return a single-element array for a single value', () => {
+    expect(splitAnnotationValues('only-one')).toEqual(['only-one']);
+  });
+
+  it('should handle a single value with trailing newline', () => {
+    expect(splitAnnotationValues('only-one\n')).toEqual(['only-one']);
   });
 });
 
@@ -671,6 +713,149 @@ describe('KubernetesEntityProvider', () => {
       expect(entities).toBeDefined();
       expect(entities.length).toBeGreaterThan(0);
       expect(entities[0].spec.type).toBe('crossplane-claim');
+    });
+  });
+
+  describe('dependsOn annotation splitting', () => {
+    it('should split comma-separated dependsOn values', async () => {
+      const provider = new KubernetesEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+      );
+
+      const mockResource = {
+        apiVersion: 'apps/v1',
+        kind: 'Deployment',
+        metadata: {
+          name: 'test-deployment',
+          namespace: 'default',
+          annotations: {
+            'terasky.backstage.io/dependsOn': 'component:default/foo,component:default/bar',
+          },
+        },
+        spec: {},
+        clusterName: 'test-cluster',
+      };
+
+      const entities = await (provider as any).translateKubernetesObjectsToEntities(mockResource);
+      const componentEntity = entities.find((e: any) => e.kind === 'Component');
+      expect(componentEntity).toBeDefined();
+      expect(componentEntity.spec.dependsOn).toEqual(['component:default/foo', 'component:default/bar']);
+    });
+
+    it('should split newline-separated dependsOn values', async () => {
+      const provider = new KubernetesEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+      );
+
+      const mockResource = {
+        apiVersion: 'apps/v1',
+        kind: 'Deployment',
+        metadata: {
+          name: 'test-deployment',
+          namespace: 'default',
+          annotations: {
+            'terasky.backstage.io/dependsOn': 'component:default/foo\ncomponent:default/bar\n',
+          },
+        },
+        spec: {},
+        clusterName: 'test-cluster',
+      };
+
+      const entities = await (provider as any).translateKubernetesObjectsToEntities(mockResource);
+      const componentEntity = entities.find((e: any) => e.kind === 'Component');
+      expect(componentEntity).toBeDefined();
+      expect(componentEntity.spec.dependsOn).toEqual(['component:default/foo', 'component:default/bar']);
+    });
+
+    it('should return undefined when dependsOn annotation is not set', async () => {
+      const provider = new KubernetesEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+      );
+
+      const mockResource = {
+        apiVersion: 'apps/v1',
+        kind: 'Deployment',
+        metadata: {
+          name: 'test-deployment',
+          namespace: 'default',
+        },
+        spec: {},
+        clusterName: 'test-cluster',
+      };
+
+      const entities = await (provider as any).translateKubernetesObjectsToEntities(mockResource);
+      const componentEntity = entities.find((e: any) => e.kind === 'Component');
+      expect(componentEntity).toBeDefined();
+      expect(componentEntity.spec.dependsOn).toBeUndefined();
+    });
+  });
+
+  describe('component-annotations splitting', () => {
+    it('should split comma-separated component-annotations', async () => {
+      const provider = new KubernetesEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+      );
+
+      const mockResource = {
+        apiVersion: 'apps/v1',
+        kind: 'Deployment',
+        metadata: {
+          name: 'test-deployment',
+          namespace: 'default',
+          annotations: {
+            'terasky.backstage.io/component-annotations': 'custom.io/foo=bar,custom.io/baz=qux',
+          },
+        },
+        spec: {},
+        clusterName: 'test-cluster',
+      };
+
+      const entities = await (provider as any).translateKubernetesObjectsToEntities(mockResource);
+      const componentEntity = entities.find((e: any) => e.kind === 'Component');
+      expect(componentEntity).toBeDefined();
+      expect(componentEntity.metadata.annotations['custom.io/foo']).toBe('bar');
+      expect(componentEntity.metadata.annotations['custom.io/baz']).toBe('qux');
+    });
+
+    it('should split newline-separated component-annotations', async () => {
+      const provider = new KubernetesEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+      );
+
+      const mockResource = {
+        apiVersion: 'apps/v1',
+        kind: 'Deployment',
+        metadata: {
+          name: 'test-deployment',
+          namespace: 'default',
+          annotations: {
+            'terasky.backstage.io/component-annotations': 'custom.io/foo=bar\ncustom.io/baz=qux\n',
+          },
+        },
+        spec: {},
+        clusterName: 'test-cluster',
+      };
+
+      const entities = await (provider as any).translateKubernetesObjectsToEntities(mockResource);
+      const componentEntity = entities.find((e: any) => e.kind === 'Component');
+      expect(componentEntity).toBeDefined();
+      expect(componentEntity.metadata.annotations['custom.io/foo']).toBe('bar');
+      expect(componentEntity.metadata.annotations['custom.io/baz']).toBe('qux');
     });
   });
 
