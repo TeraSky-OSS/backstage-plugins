@@ -72,7 +72,7 @@ describe('spectrocloud-common', () => {
     });
 
     it('should export spectroCloudPermissions array with all permissions', () => {
-      expect(spectroCloudPermissions).toHaveLength(6);
+      expect(spectroCloudPermissions).toHaveLength(7);
       expect(spectroCloudPermissions).toContain(viewClusterInfoPermission);
       expect(spectroCloudPermissions).toContain(downloadKubeconfigPermission);
     });

@@ -4,8 +4,9 @@ import fetch, { Response } from 'node-fetch';
 export interface SpectroCloudClientOptions {
   url: string;
   tenant: string;
-  apiToken: string;
+  apiToken?: string; // Optional - used as fallback if no user token provided
   instanceName?: string;
+  userToken?: string; // User's OIDC/OAuth token
 }
 
 export interface ClusterProfilePack {
@@ -121,15 +122,119 @@ export interface SpectroCloudClusterProfile {
   };
 }
 
+export interface SpectroCloudAccount {
+  metadata: {
+    uid: string;
+    name: string;
+    annotations?: {
+      scope?: string;
+      projectUid?: string;
+    };
+  };
+  spec?: {
+    cloudType?: string;
+    [key: string]: any;
+  };
+}
+
+export interface ProfilePackMeta {
+  metadata: {
+    name: string;
+    uid: string;
+  };
+  spec: {
+    name: string;
+    layer: string;
+    version: string;
+    type: string;
+    values?: string;
+    schema?: any;
+    presets?: any[];
+  };
+}
+
+export interface CreateClusterRequest {
+  metadata: {
+    name: string;
+    labels?: Record<string, string>;
+  };
+  spec: {
+    cloudType: string;
+    cloudAccountUid: string;
+    cloudConfig: any;
+    profiles: Array<{
+      uid: string;
+      packValues?: Array<{
+        name: string;
+        values?: string;
+      }>;
+    }>;
+    clusterConfig?: {
+      kubernetesVersion?: string;
+      ntpServers?: string[];
+      sshKeys?: string[];
+      location?: {
+        countryCode?: string;
+        countryName?: string;
+        geoLoc?: {
+          lat?: number;
+          long?: number;
+        };
+        latitude?: number;
+        longitude?: number;
+        regionCode?: string;
+        regionName?: string;
+      };
+    };
+    policies?: {
+      scanPolicy?: {
+        configurationScanning?: {
+          deployAfter?: string;
+          interval?: number;
+          schedule?: string;
+        };
+        penetrationScanning?: {
+          deployAfter?: string;
+          interval?: number;
+          schedule?: string;
+        };
+        conformanceScanning?: {
+          deployAfter?: string;
+          interval?: number;
+          schedule?: string;
+        };
+      };
+      backupPolicy?: {
+        backupConfig?: {
+          backupLocationName?: string;
+          backupLocationUid?: string;
+          backupName?: string;
+          backupPrefix?: string;
+          durationInHours?: number;
+          includeAllDisks?: boolean;
+          includeClusterResources?: boolean;
+          locationType?: string;
+          namespaces?: string[];
+          schedule?: {
+            scheduledRunTime?: string;
+          };
+        };
+      };
+    };
+  };
+}
+
 export class SpectroCloudClient {
   private readonly baseUrl: string;
-  private readonly apiToken: string;
+  private readonly apiToken?: string; // Static API token (fallback)
+  private readonly userToken?: string; // User's OIDC/OAuth token (preferred)
   private readonly logger: LoggerService;
   private readonly instanceName?: string;
 
   constructor(options: SpectroCloudClientOptions, logger: LoggerService) {
     this.baseUrl = options.url;
     this.apiToken = options.apiToken;
+    this.userToken = options.userToken;
     this.logger = logger;
     this.instanceName = options.instanceName;
   }
@@ -267,7 +372,7 @@ export class SpectroCloudClient {
   /**
    * Get cluster profiles for a specific project
    */
-  async getProjectClusterProfiles(projectUid: string): Promise<SpectroCloudClusterProfile[]> {
+  async getProjectClusterProfiles(projectUid: string, cloudType?: string, profileType?: string): Promise<SpectroCloudClusterProfile[]> {
     const MAX_PAGES = 100; // Safeguard against infinite loops
     try {
       const allProfiles: SpectroCloudClusterProfile[] = [];
@@ -286,9 +391,21 @@ export class SpectroCloudClient {
         
         const body: any = {
           filter: {
-            scope: 'project',
+            profileType: profileType ? [profileType] : ['infra', 'cluster'],
+            resourceType: 'spectrocluster',
           },
+          sort: [
+            {
+              field: 'lastModifiedTimestamp',
+              order: 'desc',
+            },
+          ],
         };
+
+        // Add cloud type filter if provided (using 'environment' as per Palette UI)
+        if (cloudType) {
+          body.filter.environment = [cloudType];
+        }
         
         if (continueToken) {
           // Check for infinite loop - same continue token
@@ -459,6 +576,373 @@ export class SpectroCloudClient {
     }
   }
 
+  /**
+   * Get cloud accounts for a specific cloud type (aws, azure, vsphere, etc.)
+   */
+  async getCloudAccounts(
+    cloudType: string,
+    projectUid?: string,
+  ): Promise<SpectroCloudAccount[]> {
+    try {
+      const headers: Record<string, string> = {};
+      if (projectUid) {
+        headers.ProjectUid = projectUid;
+      }
+
+      const response = await this.makeRequest(`/v1/cloudaccounts/${cloudType}`, 'GET', headers);
+      const result = await response.json() as any;
+      
+      // API returns either array directly or wrapped in items
+      return Array.isArray(result) ? result : (result.items || []);
+    } catch (error) {
+      this.logger.error(`Failed to fetch ${cloudType} cloud accounts: ${error}`);
+      return [];
+    }
+  }
+
+  /**
+   * Get a specific cloud account by UID
+   */
+  async getCloudAccount(
+    cloudType: string,
+    accountUid: string,
+    projectUid?: string,
+  ): Promise<SpectroCloudAccount | undefined> {
+    try {
+      const headers: Record<string, string> = {};
+      if (projectUid) {
+        headers.ProjectUid = projectUid;
+      }
+
+      const response = await this.makeRequest(
+        `/v1/cloudaccounts/${cloudType}/${accountUid}`,
+        'GET',
+        headers
+      );
+      return await response.json() as SpectroCloudAccount;
+    } catch (error) {
+      this.logger.debug(`Failed to fetch ${cloudType} account ${accountUid}: ${error}`);
+      return undefined;
+    }
+  }
+
+  /**
+   * Get profile with pack details including schemas and values
+   */
+  async getProfileWithPacks(
+    profileUid: string,
+    versionUid?: string,
+    projectUid?: string,
+  ): Promise<any> {
+    try {
+      const headers: Record<string, string> = {};
+      if (projectUid) {
+        headers.ProjectUid = projectUid;
+      }
+
+      // Only use versionUid if it's different from profileUid
+      // Sometimes the version UID is the same as the profile UID, indicating the latest version
+      let endpoint = `/v1/clusterprofiles/${profileUid}`;
+      if (versionUid && versionUid !== profileUid) {
+        endpoint = `/v1/clusterprofiles/${profileUid}/versions/${versionUid}`;
+      }
+
+      const response = await this.makeRequest(endpoint, 'GET', headers);
+      return await response.json();
+    } catch (error) {
+      this.logger.error(`Failed to fetch profile ${profileUid} with packs: ${error}`);
+      return null;
+    }
+  }
+
+  /**
+   * Get profile variables
+   */
+  async getProfileVariables(profileUid: string, projectUid?: string): Promise<any> {
+    try {
+      const headers: Record<string, string> = {};
+      if (projectUid) {
+        headers.ProjectUid = projectUid;
+      }
+
+      const response = await this.makeRequest(
+        `/v1/clusterprofiles/${profileUid}/variables`,
+        'GET',
+        headers
+      );
+
+      return await response.json();
+    } catch (error) {
+      this.logger.error(`Failed to fetch profile variables for ${profileUid}: ${error}`);
+      return { variables: [] };
+    }
+  }
+
+  /**
+   * Get vSphere cloud account metadata (datacenters, folders, networks, etc.)
+   */
+  async getVSphereCloudAccountMetadata(accountUid: string, projectUid?: string): Promise<any> {
+    try {
+      const headers: Record<string, string> = {};
+      if (projectUid) {
+        headers.ProjectUid = projectUid;
+      }
+
+      const response = await this.makeRequest(
+        `/v1/cloudaccounts/vsphere/${accountUid}/properties/datacenters`,
+        'GET',
+        headers
+      );
+
+      return await response.json();
+    } catch (error) {
+      this.logger.error(`Failed to fetch vSphere cloud account metadata for ${accountUid}: ${error}`);
+      return { items: [] };
+    }
+  }
+
+  /**
+   * Get vSphere compute cluster resources (datastores, networks, resource pools)
+   */
+  async getVSphereComputeClusterResources(
+    accountUid: string,
+    datacenter: string,
+    computecluster: string,
+    projectUid?: string
+  ): Promise<any> {
+    try {
+      const headers: Record<string, string> = {};
+      if (projectUid) {
+        headers.ProjectUid = projectUid;
+      }
+
+      const params = new URLSearchParams({
+        datacenter,
+        computecluster,
+      });
+
+      const response = await this.makeRequest(
+        `/v1/cloudaccounts/vsphere/${accountUid}/properties/computecluster/resources?${params.toString()}`,
+        'GET',
+        headers
+      );
+
+      return await response.json();
+    } catch (error) {
+      this.logger.error(`Failed to fetch vSphere compute cluster resources: ${error}`);
+      return { computecluster: { datastores: [], networks: [], resourcePools: [] } };
+    }
+  }
+
+  /**
+   * Get user SSH keys
+   */
+  async getUserSSHKeys(projectUid?: string): Promise<any> {
+    try {
+      const headers: Record<string, string> = {};
+      if (projectUid) {
+        headers.ProjectUid = projectUid;
+      }
+
+      const response = await this.makeRequest(
+        `/v1/users/assets/sshkeys`,
+        'GET',
+        headers
+      );
+
+      return await response.json();
+    } catch (error) {
+      this.logger.error(`Failed to fetch SSH keys: ${error}`);
+      return { items: [] };
+    }
+  }
+
+  /**
+   * Get overlords (PCGs)
+   */
+  async getOverlords(projectUid?: string): Promise<any> {
+    try {
+      const headers: Record<string, string> = {};
+      if (projectUid) {
+        headers.ProjectUid = projectUid;
+      }
+
+      const response = await this.makeRequest(
+        `/v1/overlords`,
+        'GET',
+        headers
+      );
+
+      return await response.json();
+    } catch (error) {
+      this.logger.error(`Failed to fetch overlords: ${error}`);
+      return { items: [] };
+    }
+  }
+
+  /**
+   * Get vSphere IP pools from overlord/PCG
+   */
+  async getVSphereIPPools(overlordUid: string, projectUid?: string): Promise<any> {
+    try {
+      const headers: Record<string, string> = {};
+      if (projectUid) {
+        headers.ProjectUid = projectUid;
+      }
+
+      const response = await this.makeRequest(
+        `/v1/overlords/vsphere/${overlordUid}/pools`,
+        'GET',
+        headers
+      );
+
+      return await response.json();
+    } catch (error) {
+      this.logger.error(`Failed to fetch vSphere IP pools: ${error}`);
+      return { items: [] };
+    }
+  }
+
+  /**
+   * Create an EKS cluster
+   */
+  async createEKSCluster(
+    clusterConfig: CreateClusterRequest,
+    projectUid?: string,
+  ): Promise<{ uid: string }> {
+    try {
+      const headers: Record<string, string> = {};
+      if (projectUid) {
+        headers.ProjectUid = projectUid;
+      }
+
+      const response = await this.makeRequest(
+        '/v1/spectroclusters/eks',
+        'POST',
+        headers,
+        false,
+        JSON.stringify(clusterConfig),
+      );
+      
+      return await response.json() as { uid: string };
+    } catch (error) {
+      this.logger.error(`Failed to create EKS cluster: ${error}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Create an AWS PXK cluster
+   */
+  async createAWSCluster(
+    clusterConfig: CreateClusterRequest,
+    projectUid?: string,
+  ): Promise<{ uid: string }> {
+    try {
+      const headers: Record<string, string> = {};
+      if (projectUid) {
+        headers.ProjectUid = projectUid;
+      }
+
+      const response = await this.makeRequest(
+        '/v1/spectroclusters/aws',
+        'POST',
+        headers,
+        false,
+        JSON.stringify(clusterConfig),
+      );
+      
+      return await response.json() as { uid: string };
+    } catch (error) {
+      this.logger.error(`Failed to create AWS cluster: ${error}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Create an AKS cluster
+   */
+  async createAKSCluster(
+    clusterConfig: CreateClusterRequest,
+    projectUid?: string,
+  ): Promise<{ uid: string }> {
+    try {
+      const headers: Record<string, string> = {};
+      if (projectUid) {
+        headers.ProjectUid = projectUid;
+      }
+
+      const response = await this.makeRequest(
+        '/v1/spectroclusters/aks',
+        'POST',
+        headers,
+        false,
+        JSON.stringify(clusterConfig),
+      );
+      
+      return await response.json() as { uid: string };
+    } catch (error) {
+      this.logger.error(`Failed to create AKS cluster: ${error}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Create an Azure PXK cluster
+   */
+  async createAzureCluster(
+    clusterConfig: CreateClusterRequest,
+    projectUid?: string,
+  ): Promise<{ uid: string }> {
+    try {
+      const headers: Record<string, string> = {};
+      if (projectUid) {
+        headers.ProjectUid = projectUid;
+      }
+
+      const response = await this.makeRequest(
+        '/v1/spectroclusters/azure',
+        'POST',
+        headers,
+        false,
+        JSON.stringify(clusterConfig),
+      );
+      
+      return await response.json() as { uid: string };
+    } catch (error) {
+      this.logger.error(`Failed to create Azure cluster: ${error}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Create a vSphere PXK cluster
+   */
+  async createVSphereCluster(
+    clusterConfig: CreateClusterRequest,
+    projectUid?: string,
+  ): Promise<{ uid: string }> {
+    try {
+      const headers: Record<string, string> = {};
+      if (projectUid) {
+        headers.ProjectUid = projectUid;
+      }
+
+      const response = await this.makeRequest(
+        '/v1/spectroclusters/vsphere',
+        'POST',
+        headers,
+        false,
+        JSON.stringify(clusterConfig),
+      );
+      
+      return await response.json() as { uid: string };
+    } catch (error) {
+      this.logger.error(`Failed to create vSphere cluster: ${error}`);
+      throw error;
+    }
+  }
+
   getInstanceName(): string | undefined {
     return this.instanceName;
   }
@@ -471,9 +955,18 @@ export class SpectroCloudClient {
     body?: string,
   ): Promise<Response> {
     const url = `${this.baseUrl}${path}`;
-    const defaultHeaders: Record<string, string> = {
-      ApiKey: this.apiToken,
-    };
+    const defaultHeaders: Record<string, string> = {};
+
+    // Prefer user token (OIDC/OAuth) over static API token
+    // NOTE: Try both Authorization and ApiKey headers with user token
+    if (this.userToken) {
+      // Try Authorization header first (for OIDC tokens)
+      defaultHeaders.Authorization = this.userToken;
+    } else if (this.apiToken) {
+      defaultHeaders.ApiKey = this.apiToken;
+    } else {
+      throw new Error('No authentication credentials provided (neither user token nor API token)');
+    }
 
     if (!skipJsonHeaders) {
       defaultHeaders.Accept = 'application/json';

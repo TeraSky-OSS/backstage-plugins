@@ -67,6 +67,14 @@ export const viewPackManifestsPermission = createPermission({
   attributes: { action: 'read' },
 });
 
+/**
+ * Permission to create/deploy new clusters
+ */
+export const createClusterPermission = createPermission({
+  name: 'spectrocloud.cluster.create',
+  attributes: { action: 'create' },
+});
+
 // =====================
 // Profile Permissions
 // =====================
@@ -95,6 +103,7 @@ export const spectroCloudPermissions = [
   downloadKubeconfigPermission,
   viewPackValuesPermission,
   viewPackManifestsPermission,
+  createClusterPermission,
   viewProfileInfoPermission,
   viewProfileClustersPermission,
 ];
@@ -105,6 +114,7 @@ export const SPECTROCLOUD_PERMISSION_NAMES = {
   DOWNLOAD_KUBECONFIG: 'spectrocloud.cluster.download-kubeconfig',
   VIEW_PACK_VALUES: 'spectrocloud.cluster.view-pack-values',
   VIEW_PACK_MANIFESTS: 'spectrocloud.cluster.view-pack-manifests',
+  CREATE_CLUSTER: 'spectrocloud.cluster.create',
   VIEW_PROFILE_INFO: 'spectrocloud.profile.view-info',
   VIEW_PROFILE_CLUSTERS: 'spectrocloud.profile.view-clusters',
 } as const;

@@ -1,12 +1,18 @@
+// React import not needed for JSX in React 17+
 import {
   createFrontendPlugin,
   ApiBlueprint,
+  PageBlueprint,
+  NavItemBlueprint,
   discoveryApiRef,
   fetchApiRef,
 } from '@backstage/frontend-plugin-api';
 import { EntityCardBlueprint } from '@backstage/plugin-catalog-react/alpha';
 import { Entity } from '@backstage/catalog-model';
+import CloudQueueIcon from '@material-ui/icons/CloudQueue';
 import { spectroCloudApiRef, SpectroCloudApiClient } from './api';
+import { spectroCloudAuthApiRef } from '@terasky/backstage-plugin-spectrocloud-auth';
+import { clusterDeploymentRouteRef } from './routes';
 
 /**
  * Check if entity is a SpectroCloud cluster
@@ -24,16 +30,17 @@ const isSpectroCloudClusterProfile = (entity: Entity): boolean => {
 
 /** @alpha */
 export const spectroCloudApi = ApiBlueprint.make({
-  name: 'spectroCloudApi',
-  params: defineParams => defineParams({
-    api: spectroCloudApiRef,
-    deps: {
-      discoveryApi: discoveryApiRef,
-      fetchApi: fetchApiRef,
-    },
-    factory: ({ discoveryApi, fetchApi }) => new SpectroCloudApiClient({ discoveryApi, fetchApi }),
-  }),
-  disabled: false,
+  params: defineParams =>
+    defineParams({
+      api: spectroCloudApiRef,
+      deps: { 
+        discoveryApi: discoveryApiRef, 
+        fetchApi: fetchApiRef,
+        spectroCloudAuthApi: spectroCloudAuthApiRef,
+      },
+      factory: ({ discoveryApi, fetchApi, spectroCloudAuthApi }) =>
+        new SpectroCloudApiClient({ discoveryApi, fetchApi, spectroCloudAuthApi }),
+    }),
 });
 
 /** @alpha */
@@ -57,12 +64,36 @@ export const spectroCloudClusterProfileCard = EntityCardBlueprint.make({
 });
 
 /** @alpha */
+export const spectroCloudClusterDeploymentPage = PageBlueprint.make({
+  name: 'spectrocloud.cluster-deployment',
+  params: {
+    path: '/spectrocloud/deploy',
+    routeRef: clusterDeploymentRouteRef,
+    loader: () => import('./components/ClusterDeployment').then(m => <m.ClusterDeploymentPage />),
+  },
+  disabled: false,
+});
+
+/** @alpha */
+export const spectroCloudClusterDeploymentNavItem = NavItemBlueprint.make({
+  name: 'spectrocloud.deploy-cluster',
+  params: {
+    title: 'Deploy Cluster',
+    routeRef: clusterDeploymentRouteRef,
+    icon: CloudQueueIcon,
+  },
+  disabled: false,
+});
+
+/** @alpha */
 export const spectroCloudPlugin = createFrontendPlugin({
   pluginId: 'spectrocloud',
   extensions: [
     spectroCloudApi,
     spectroCloudClusterCard,
     spectroCloudClusterProfileCard,
+    spectroCloudClusterDeploymentPage,
+    spectroCloudClusterDeploymentNavItem,
   ],
 });
 

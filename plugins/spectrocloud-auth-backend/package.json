@@ -1,6 +1,6 @@
 {
   "name": "@terasky/backstage-plugin-spectrocloud-auth-backend",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "SpectroCloud OIDC authentication provider module for Backstage auth backend",
   "license": "Apache-2.0",
   "main": "src/index.ts",

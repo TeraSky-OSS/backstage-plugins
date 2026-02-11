@@ -1,4 +1,5 @@
 import { createOAuthAuthenticator } from '@backstage/plugin-auth-node';
+import { storeSessionToken } from './tokenCache';
 
 /**
  * Decodes a JWT token without verification.
@@ -95,6 +96,51 @@ export const spectroCloudAuthenticator = createOAuthAuthenticator({
       throw new Error('No code received from SpectroCloud');
     }
 
+    // CRITICAL: The authorization code itself IS the HS256 session token!
+    // SpectroCloud uses the session token as the authorization code
+    let sessionToken: string | undefined;
+    
+    // Check if the code is an HS256 JWT
+    try {
+      const codeHeaderB64 = code.split('.')[0];
+      const codeHeader = JSON.parse(Buffer.from(codeHeaderB64.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString());
+      
+      if (codeHeader.alg === 'HS256') {
+        sessionToken = code; // Use the code directly as the session token
+      }
+    } catch (e) {
+      // Not a JWT, continue
+    }
+    
+    // Also check cookies and other locations as fallback
+    if (!sessionToken) {
+      sessionToken = req.query.Authorization as string 
+        || req.query.authorization as string
+        || req.query.token as string
+        || req.query.session_token as string
+        || req.query.auth_token as string
+        || req.cookies?.Authorization
+        || req.headers.authorization;
+      
+      // Check for token in cookies
+      if (req.cookies) {
+        Object.keys(req.cookies).forEach(key => {
+          // Check if any cookie looks like a JWT
+          if (req.cookies[key]?.startsWith('eyJ')) {
+            try {
+              const headerB64 = req.cookies[key].split('.')[0];
+              const header = JSON.parse(Buffer.from(headerB64.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString());
+              if (header.alg === 'HS256' && !sessionToken) {
+                sessionToken = req.cookies[key];
+              }
+            } catch (e) {
+              // Not a valid JWT
+            }
+          }
+        });
+      }
+    }
+
     // Get configuration from helpers (returned by initialize)
     const { clientId, clientSecret, tokenUrl, callbackUrl } = helpers;
 
@@ -119,18 +165,39 @@ export const spectroCloudAuthenticator = createOAuthAuthenticator({
     }
 
     const tokenData = await tokenResponse.json();
-    const { access_token, id_token, expires_in } = tokenData;
+    const { id_token, expires_in, refresh_token } = tokenData;
 
     if (!id_token) {
       throw new Error('No id_token received from SpectroCloud');
     }
+    
+    // Check if refresh_token contains the HS256 session token
+    if (refresh_token) {
+      try {
+        const refreshHeader = JSON.parse(Buffer.from(refresh_token.split('.')[0].replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString());
+        
+        // CRITICAL: Spectro Cloud returns the HS256 session token as refresh_token!
+        if (refreshHeader.alg === 'HS256') {
+          sessionToken = refresh_token;
+        }
+      } catch (e) {
+        // Not a JWT, continue
+      }
+    }
 
     // Decode the ID token to get user info
     const claims = decodeJWT(id_token);
-    
-    // IMPORTANT: Use id_token for refresh since SpectroCloud's refresh_token
-    // is not a proper OIDC token (it's an internal session token)
-    const tokenToStore = id_token;
+
+    // Store the HS256 token in server-side cache keyed by user email
+    if (sessionToken) {
+      // This allows the backend to use the correct API token for each user
+      const userEmail = claims.email || claims.sub;
+      const expiresAt = claims.exp || (Math.floor(Date.now() / 1000) + (expires_in || 3600));
+      storeSessionToken(userEmail, sessionToken, expiresAt);
+      console.log(`[SpectroCloud Auth] Cached HS256 token for user: ${userEmail}`);
+    } else {
+      console.warn('[SpectroCloud Auth] No HS256 token found - user will need to use fallback API token');
+    }
 
     return {
       fullProfile: {
@@ -148,9 +215,10 @@ export const spectroCloudAuthenticator = createOAuthAuthenticator({
         },
       },
       session: {
-        accessToken: access_token || id_token,
-        idToken: id_token, // The actual OIDC ID token for Kubernetes
-        refreshToken: tokenToStore, // Use id_token since refresh_token is wrong (HS256)
+        // Store the HS256 session token as BOTH accessToken and idToken
+        accessToken: sessionToken || id_token,  // HS256 session token (or RS256 fallback)
+        idToken: sessionToken || id_token, // HS256 session token (or RS256 fallback)
+        refreshToken: id_token, // RS256 - Backstage can use this for validation
         tokenType: 'Bearer',
         scope: 'openid profile email',
         expiresInSeconds: expires_in || 3600,

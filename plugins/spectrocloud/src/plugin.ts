@@ -5,6 +5,7 @@ import {
   discoveryApiRef,
   fetchApiRef,
 } from '@backstage/core-plugin-api';
+import { spectroCloudAuthApiRef } from '@terasky/backstage-plugin-spectrocloud-auth';
 import { rootRouteRef } from './routes';
 import { spectroCloudApiRef, SpectroCloudApiClient } from './api';
 
@@ -16,8 +17,13 @@ export const spectroCloudPlugin = createPlugin({
   apis: [
     createApiFactory({
       api: spectroCloudApiRef,
-      deps: { discoveryApi: discoveryApiRef, fetchApi: fetchApiRef },
-      factory: ({ discoveryApi, fetchApi }) => new SpectroCloudApiClient({ discoveryApi, fetchApi }),
+      deps: { 
+        discoveryApi: discoveryApiRef, 
+        fetchApi: fetchApiRef,
+        spectroCloudAuthApi: spectroCloudAuthApiRef,
+      },
+      factory: ({ discoveryApi, fetchApi, spectroCloudAuthApi }) =>
+        new SpectroCloudApiClient({ discoveryApi, fetchApi, spectroCloudAuthApi }),
     }),
   ],
 });

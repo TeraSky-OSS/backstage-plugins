@@ -17,3 +17,4 @@ export {
   isSpectroCloudProfile,
   getAnnotationPrefix,
 } from './PermissionGuards';
+export { ClusterDeploymentPage } from './ClusterDeployment';

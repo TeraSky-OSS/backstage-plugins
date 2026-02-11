@@ -11,5 +11,8 @@ export type {
   SpectroCloudPackWithMeta,
   SpectroCloudManifest,
   SpectroCloudManifestContent,
+  SpectroCloudProject,
+  SpectroCloudAccount,
+  ClusterCreationRequest,
 } from './SpectroCloudApi';
 

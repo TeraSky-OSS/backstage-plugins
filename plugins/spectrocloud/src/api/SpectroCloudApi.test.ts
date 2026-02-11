@@ -33,6 +33,7 @@ describe('SpectroCloudApi', () => {
         const mockKubeconfig = 'apiVersion: v1\nclusters: []';
 
         mockFetchApi.fetch.mockResolvedValue({
+          headers: new Headers(),
           ok: true,
           text: () => Promise.resolve(mockKubeconfig),
         });
@@ -41,15 +42,18 @@ describe('SpectroCloudApi', () => {
 
         expect(mockFetchApi.fetch).toHaveBeenCalledWith(
           expect.stringContaining('/clusters/cluster-123/kubeconfig'),
+          expect.any(Object),
         );
         expect(mockFetchApi.fetch).toHaveBeenCalledWith(
           expect.stringContaining('frp=true'),
+          expect.any(Object),
         );
         expect(result).toBe(mockKubeconfig);
       });
 
       it('should include projectUid when provided', async () => {
         mockFetchApi.fetch.mockResolvedValue({
+          headers: new Headers(),
           ok: true,
           text: () => Promise.resolve(''),
         });
@@ -58,11 +62,13 @@ describe('SpectroCloudApi', () => {
 
         expect(mockFetchApi.fetch).toHaveBeenCalledWith(
           expect.stringContaining('projectUid=project-456'),
+          expect.any(Object),
         );
       });
 
       it('should include instance when provided', async () => {
         mockFetchApi.fetch.mockResolvedValue({
+          headers: new Headers(),
           ok: true,
           text: () => Promise.resolve(''),
         });
@@ -71,11 +77,13 @@ describe('SpectroCloudApi', () => {
 
         expect(mockFetchApi.fetch).toHaveBeenCalledWith(
           expect.stringContaining('instance=test-instance'),
+          expect.any(Object),
         );
       });
 
       it('should pass frp parameter', async () => {
         mockFetchApi.fetch.mockResolvedValue({
+          headers: new Headers(),
           ok: true,
           text: () => Promise.resolve(''),
         });
@@ -84,11 +92,13 @@ describe('SpectroCloudApi', () => {
 
         expect(mockFetchApi.fetch).toHaveBeenCalledWith(
           expect.stringContaining('frp=false'),
+          expect.any(Object),
         );
       });
 
       it('should throw error on failure', async () => {
         mockFetchApi.fetch.mockResolvedValue({
+          headers: new Headers(),
           ok: false,
           text: () => Promise.resolve('Not Found'),
         });
@@ -107,6 +117,7 @@ describe('SpectroCloudApi', () => {
         };
 
         mockFetchApi.fetch.mockResolvedValue({
+          headers: new Headers(),
           ok: true,
           json: () => Promise.resolve(mockCluster),
         });
@@ -115,12 +126,14 @@ describe('SpectroCloudApi', () => {
 
         expect(mockFetchApi.fetch).toHaveBeenCalledWith(
           expect.stringContaining('/clusters/cluster-123?'),
+          expect.any(Object),
         );
         expect(result.metadata.name).toBe('test-cluster');
       });
 
       it('should include projectUid when provided', async () => {
         mockFetchApi.fetch.mockResolvedValue({
+          headers: new Headers(),
           ok: true,
           json: () => Promise.resolve({ metadata: { uid: '123', name: 'test' } }),
         });
@@ -129,11 +142,13 @@ describe('SpectroCloudApi', () => {
 
         expect(mockFetchApi.fetch).toHaveBeenCalledWith(
           expect.stringContaining('projectUid=project-456'),
+          expect.any(Object),
         );
       });
 
       it('should include instance when provided', async () => {
         mockFetchApi.fetch.mockResolvedValue({
+          headers: new Headers(),
           ok: true,
           json: () => Promise.resolve({ metadata: { uid: '123', name: 'test' } }),
         });
@@ -142,11 +157,13 @@ describe('SpectroCloudApi', () => {
 
         expect(mockFetchApi.fetch).toHaveBeenCalledWith(
           expect.stringContaining('instance=test-instance'),
+          expect.any(Object),
         );
       });
 
       it('should throw error on failure', async () => {
         mockFetchApi.fetch.mockResolvedValue({
+          headers: new Headers(),
           ok: false,
           text: () => Promise.resolve('Cluster not found'),
         });
@@ -164,6 +181,7 @@ describe('SpectroCloudApi', () => {
         ];
 
         mockFetchApi.fetch.mockResolvedValue({
+          headers: new Headers(),
           ok: true,
           json: () => Promise.resolve({ profiles: mockProfiles }),
         });
@@ -174,7 +192,6 @@ describe('SpectroCloudApi', () => {
           expect.stringContaining('/profiles/search'),
           expect.objectContaining({
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ names: ['Profile 1'] }),
           }),
         );
@@ -183,6 +200,7 @@ describe('SpectroCloudApi', () => {
 
       it('should include projectUid when provided', async () => {
         mockFetchApi.fetch.mockResolvedValue({
+          headers: new Headers(),
           ok: true,
           json: () => Promise.resolve({ profiles: [] }),
         });
@@ -197,6 +215,7 @@ describe('SpectroCloudApi', () => {
 
       it('should include instance when provided', async () => {
         mockFetchApi.fetch.mockResolvedValue({
+          headers: new Headers(),
           ok: true,
           json: () => Promise.resolve({ profiles: [] }),
         });
@@ -211,6 +230,7 @@ describe('SpectroCloudApi', () => {
 
       it('should return empty array when profiles is undefined', async () => {
         mockFetchApi.fetch.mockResolvedValue({
+          headers: new Headers(),
           ok: true,
           json: () => Promise.resolve({}),
         });
@@ -222,6 +242,7 @@ describe('SpectroCloudApi', () => {
 
       it('should throw error on failure', async () => {
         mockFetchApi.fetch.mockResolvedValue({
+          headers: new Headers(),
           ok: false,
           text: () => Promise.resolve('Search failed'),
         });
@@ -244,6 +265,7 @@ describe('SpectroCloudApi', () => {
         };
 
         mockFetchApi.fetch.mockResolvedValue({
+          headers: new Headers(),
           ok: true,
           json: () => Promise.resolve(mockProfiles),
         });
@@ -252,12 +274,14 @@ describe('SpectroCloudApi', () => {
 
         expect(mockFetchApi.fetch).toHaveBeenCalledWith(
           expect.stringContaining('/clusters/cluster-123/profiles'),
+          expect.any(Object),
         );
         expect(result.profiles).toHaveLength(1);
       });
 
       it('should include projectUid when provided', async () => {
         mockFetchApi.fetch.mockResolvedValue({
+          headers: new Headers(),
           ok: true,
           json: () => Promise.resolve({ profiles: [] }),
         });
@@ -266,11 +290,13 @@ describe('SpectroCloudApi', () => {
 
         expect(mockFetchApi.fetch).toHaveBeenCalledWith(
           expect.stringContaining('projectUid=project-456'),
+          expect.any(Object),
         );
       });
 
       it('should include instance when provided', async () => {
         mockFetchApi.fetch.mockResolvedValue({
+          headers: new Headers(),
           ok: true,
           json: () => Promise.resolve({ profiles: [] }),
         });
@@ -279,11 +305,13 @@ describe('SpectroCloudApi', () => {
 
         expect(mockFetchApi.fetch).toHaveBeenCalledWith(
           expect.stringContaining('instance=test-instance'),
+          expect.any(Object),
         );
       });
 
       it('should throw error on failure', async () => {
         mockFetchApi.fetch.mockResolvedValue({
+          headers: new Headers(),
           ok: false,
           text: () => Promise.resolve('Failed to fetch profiles'),
         });
@@ -302,6 +330,7 @@ describe('SpectroCloudApi', () => {
         };
 
         mockFetchApi.fetch.mockResolvedValue({
+          headers: new Headers(),
           ok: true,
           json: () => Promise.resolve(mockManifest),
         });
@@ -310,12 +339,14 @@ describe('SpectroCloudApi', () => {
 
         expect(mockFetchApi.fetch).toHaveBeenCalledWith(
           expect.stringContaining('/clusters/cluster-123/pack/manifests/manifest-123'),
+          expect.any(Object),
         );
         expect(result.metadata.name).toBe('test-manifest');
       });
 
       it('should include projectUid when provided', async () => {
         mockFetchApi.fetch.mockResolvedValue({
+          headers: new Headers(),
           ok: true,
           json: () => Promise.resolve({ metadata: {}, spec: {} }),
         });
@@ -324,11 +355,13 @@ describe('SpectroCloudApi', () => {
 
         expect(mockFetchApi.fetch).toHaveBeenCalledWith(
           expect.stringContaining('projectUid=project-456'),
+          expect.any(Object),
         );
       });
 
       it('should include instance when provided', async () => {
         mockFetchApi.fetch.mockResolvedValue({
+          headers: new Headers(),
           ok: true,
           json: () => Promise.resolve({ metadata: {}, spec: {} }),
         });
@@ -337,11 +370,13 @@ describe('SpectroCloudApi', () => {
 
         expect(mockFetchApi.fetch).toHaveBeenCalledWith(
           expect.stringContaining('instance=test-instance'),
+          expect.any(Object),
         );
       });
 
       it('should throw error on failure', async () => {
         mockFetchApi.fetch.mockResolvedValue({
+          headers: new Headers(),
           ok: false,
           text: () => Promise.resolve('Manifest not found'),
         });
