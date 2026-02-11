@@ -1,0 +1,28 @@
+/* Ensure Monaco editor stays in its container with proper sizing */
+.monaco-editor {
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* CRITICAL: Autocomplete popup MUST be above React Flow canvas (z-index: 10) */
+body .monaco-editor .suggest-widget,
+body .suggest-widget.editor-widget,
+body .editor-widget.suggest-widget {
+  z-index: 999999 !important;
+}
+
+body .monaco-editor .parameter-hints-widget {
+  z-index: 999999 !important;
+}
+
+body .monaco-editor .editor-hover-widget {
+  z-index: 999999 !important;
+}
+
+/* Ensure all parts of the suggest widget are above canvas */
+body .suggest-widget .monaco-list,
+body .suggest-widget .monaco-scrollable-element,
+body .monaco-list-row {
+  z-index: 999999 !important;
+}

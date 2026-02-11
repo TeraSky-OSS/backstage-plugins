@@ -1,0 +1,50 @@
+/* GLOBAL STYLES - Force Monaco widgets above everything */
+
+/* Override Monaco editor widget z-index with maximum priority */
+.monaco-editor .suggest-widget,
+.monaco-editor .parameter-hints-widget,
+.monaco-editor .editor-hover-widget,
+.monaco-editor .context-view,
+.monaco-editor .monaco-hover,
+.monaco-editor .editor-widget,
+.suggest-widget,
+.editor-widget.suggest-widget,
+.monaco-list,
+.monaco-scrollable-element,
+div[class*="suggest"],
+div[class*="monaco-list"] {
+  z-index: 2147483647 !important; /* Maximum 32-bit integer */
+  position: fixed !important;
+}
+
+/* Force all Monaco containers to allow overflow */
+.monaco-editor,
+.monaco-editor .overflow-guard,
+.monaco-editor .monaco-scrollable-element,
+.monaco-editor-background,
+.monaco-editor .margin,
+.monaco-editor .view-lines {
+  overflow: visible !important;
+}
+
+/* Ensure suggest widget is always visible */
+.suggest-widget.visible,
+.editor-widget.suggest-widget.visible {
+  z-index: 2147483647 !important;
+  position: fixed !important;
+  display: block !important;
+  visibility: visible !important;
+}
+
+/* Make sure list items are visible */
+.monaco-list-row,
+.monaco-list .monaco-list-row,
+.suggest-widget .monaco-list .monaco-list-row {
+  z-index: 2147483647 !important;
+}
+
+/* Details panel */
+.suggest-widget .details,
+.suggest-widget .docs {
+  z-index: 2147483647 !important;
+}

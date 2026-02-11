@@ -1,0 +1,78 @@
+/* Ensure React Flow has proper height */
+.react-flow {
+  width: 100%;
+  height: 100%;
+}
+
+.react-flow__renderer {
+  width: 100%;
+  height: 100%;
+}
+
+.react-flow__viewport {
+  width: 100%;
+  height: 100%;
+}
+
+/* Make sure controls and minimap are visible but below editor widgets */
+.react-flow__controls {
+  z-index: 10 !important;
+}
+
+.react-flow__minimap {
+  z-index: 10 !important;
+}
+
+.react-flow__panel {
+  z-index: 5 !important;
+}
+
+/* Ensure React Flow pane doesn't interfere with Monaco editor widgets */
+.react-flow__pane {
+  z-index: 1;
+}
+
+/* Edge label styling for better visibility */
+.react-flow__edge-text {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  fill: #1976d2 !important;
+}
+
+.react-flow__edge-textbg {
+  fill: white !important;
+  opacity: 0.9 !important;
+  rx: 4 !important;
+  ry: 4 !important;
+}
+
+/* React Flow edge styling */
+.react-flow__edge-path {
+  stroke-width: 2px !important;
+}
+
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke-width: 3px !important;
+}
+
+/* Z-index hierarchy:
+   - Group nodes: z-index 1
+   - Parameter/Output edges: z-index 10  
+   - Action nodes: z-index 100
+   - Action-to-action edges: z-index 500
+*/
+
+/* CRITICAL FIX: React Flow renders edges in SVG and nodes in HTML as siblings.
+   We MUST ensure the edges container is BELOW the nodes container. */
+.react-flow__edges {
+  z-index: 0 !important;
+}
+
+.react-flow__nodes {
+  z-index: 1 !important;
+}
+
+/* Node selection styling */
+.react-flow__node.selected {
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.4) !important;
+}
