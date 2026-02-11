@@ -14584,7 +14584,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-api-docs-module-crd@npm:^0.1.0, @terasky/backstage-plugin-api-docs-module-crd@workspace:plugins/api-docs-module-crd":
+"@terasky/backstage-plugin-api-docs-module-crd@npm:^0.1.1, @terasky/backstage-plugin-api-docs-module-crd@workspace:plugins/api-docs-module-crd":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-api-docs-module-crd@workspace:plugins/api-docs-module-crd"
   dependencies:
@@ -18157,7 +18157,7 @@ __metadata:
     "@material-ui/icons": "npm:^4.9.1"
     "@playwright/test": "npm:^1.32.3"
     "@terasky/backstage-plugin-ai-rules": "npm:^1.5.0"
-    "@terasky/backstage-plugin-api-docs-module-crd": "npm:^0.1.0"
+    "@terasky/backstage-plugin-api-docs-module-crd": "npm:^0.1.1"
     "@terasky/backstage-plugin-app-module-global-signin-page": "npm:^0.3.0"
     "@terasky/backstage-plugin-crossplane-resources-frontend": "npm:^2.11.0"
     "@terasky/backstage-plugin-devpod": "npm:^1.7.0"
