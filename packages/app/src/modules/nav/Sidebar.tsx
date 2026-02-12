@@ -16,6 +16,7 @@ import MenuIcon from '@material-ui/icons/Menu';
 import SearchIcon from '@material-ui/icons/Search';
 import { Administration } from '@backstage-community/plugin-rbac';
 import LibraryBooks from '@material-ui/icons/LibraryBooks';
+import EditIcon from '@material-ui/icons/Edit';
 import ListIcon from '@material-ui/icons/List';
 import AddCircleIcon from '@material-ui/icons/AddCircle';
 import { SiKubernetes } from "react-icons/si";
@@ -38,18 +39,6 @@ export const SidebarContent: ReturnType<typeof NavContentBlueprint.make> = NavCo
       <SidebarDivider />
       <SidebarGroup label="Menu" icon={<MenuIcon />}>
         {/* Global nav, not org-specific */}
-        <SidebarItem icon={SiKubernetes} text="Spectro" to="/spectrocloud/deploy">
-          <SidebarSubmenu title="Spectro Cloud">
-            <Typography variant="subtitle2" style={{ padding: '32px 16px 16px 16px', fontWeight: 'bold' }}>
-              Spectro Cloud Palette
-            </Typography>
-            <SidebarSubmenuItem
-              title="Create Cluster"
-              to="/spectrocloud/deploy"
-              icon={AddCircleIcon}
-            />
-          </SidebarSubmenu>
-        </SidebarItem>
         <SidebarItem icon={ListIcon} text="Catalog" to="/catalog">
           <SidebarSubmenu title="Catalog">
             <Typography variant="subtitle2" style={{ padding: '32px 16px 16px 16px', fontWeight: 'bold' }}>
@@ -140,6 +129,23 @@ export const SidebarContent: ReturnType<typeof NavContentBlueprint.make> = NavCo
             <SidebarSubmenuItem title="RGDs" to="/catalog?filters[kind]=api&filters[tags]=kro" icon={SiOpenapiinitiative} />
           </SidebarSubmenu>
         </SidebarItem>
+        <SidebarItem icon={SiKubernetes} text="Spectro" to="/spectrocloud/deploy">
+          <SidebarSubmenu title="Spectro Cloud">
+            <Typography variant="subtitle2" style={{ padding: '32px 16px 16px 16px', fontWeight: 'bold' }}>
+              Spectro Cloud Palette
+            </Typography>
+            <SidebarSubmenuItem
+              title="Clusters"
+              to="/spectrocloud/clusters"
+              icon={SiKubernetes}
+            />
+            <SidebarSubmenuItem
+              title="Create Cluster"
+              to="/spectrocloud/deploy"
+              icon={AddCircleIcon}
+            />
+          </SidebarSubmenu>
+        </SidebarItem>
         <SidebarItem icon={FaCloud} text="VCF Automation">
           <SidebarSubmenu title="VCF Automation">
             <Typography variant="subtitle2" style={{ padding: '32px 16px 16px 16px', fontWeight: 'bold' }}>
@@ -153,8 +159,15 @@ export const SidebarContent: ReturnType<typeof NavContentBlueprint.make> = NavCo
             <SidebarSubmenuItem title="Other Resources" to="/catalog?filters[kind]=resource&filters[tags]=vcf-automation-resource" icon={FaCloud} />
           </SidebarSubmenu>
         </SidebarItem>
-        
-        <SidebarItem icon={CreateComponentIcon} to="/create" text="Create..." />
+        <SidebarItem icon={CreateComponentIcon} text="Scaffolder">
+          <SidebarSubmenu title="VCF Automation">
+            <Typography variant="subtitle2" style={{ padding: '32px 16px 16px 16px', fontWeight: 'bold' }}>
+              Software Templates
+            </Typography>
+            <SidebarSubmenuItem title="Create..." to="/create" icon={CreateComponentIcon} />
+            <SidebarSubmenuItem title="Design..." to="/template-builder" icon={EditIcon} />
+          </SidebarSubmenu>
+        </SidebarItem>
         <SidebarItem icon={SchoolIcon} to="/educates" text="Workshops" />
         {/* End global nav */}
         <SidebarDivider />
