@@ -14991,7 +14991,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-kubernetes-ingestor@npm:^3.6.0, @terasky/backstage-plugin-kubernetes-ingestor@workspace:plugins/kubernetes-ingestor":
+"@terasky/backstage-plugin-kubernetes-ingestor@npm:^3.7.0, @terasky/backstage-plugin-kubernetes-ingestor@workspace:plugins/kubernetes-ingestor":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kubernetes-ingestor@workspace:plugins/kubernetes-ingestor"
   dependencies:
@@ -15365,7 +15365,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-spectrocloud-ingestor@npm:^0.2.0, @terasky/backstage-plugin-spectrocloud-ingestor@workspace:plugins/spectrocloud-ingestor":
+"@terasky/backstage-plugin-spectrocloud-ingestor@npm:^0.3.0, @terasky/backstage-plugin-spectrocloud-ingestor@workspace:plugins/spectrocloud-ingestor":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-spectrocloud-ingestor@workspace:plugins/spectrocloud-ingestor"
   dependencies:
@@ -15419,6 +15419,7 @@ __metadata:
     file-saver: "npm:^2.0.5"
     msw: "npm:^1.0.0"
     react: "npm:^18.3.1"
+    react-flow-renderer: "npm:^10.3.17"
     react-syntax-highlighter: "npm:^15.6.1"
     react-use: "npm:^17.6.0"
     typescript: "npm:^5.8.3"
@@ -18835,7 +18836,7 @@ __metadata:
     "@terasky/backstage-plugin-crossplane-resources-backend": "npm:^1.10.1"
     "@terasky/backstage-plugin-educates-backend": "npm:^1.6.0"
     "@terasky/backstage-plugin-kro-resources-backend": "npm:^0.9.0"
-    "@terasky/backstage-plugin-kubernetes-ingestor": "npm:^3.6.0"
+    "@terasky/backstage-plugin-kubernetes-ingestor": "npm:^3.7.0"
     "@terasky/backstage-plugin-kubernetes-resources-permissions-backend": "npm:^0.7.1"
     "@terasky/backstage-plugin-kyverno-policy-reports-backend": "npm:^1.8.1"
     "@terasky/backstage-plugin-scaffolder-backend-module-spring-initializer": "npm:^0.1.0"
@@ -18843,7 +18844,7 @@ __metadata:
     "@terasky/backstage-plugin-spectrocloud-auth-backend": "npm:^0.2.0"
     "@terasky/backstage-plugin-spectrocloud-backend": "npm:^0.3.0"
     "@terasky/backstage-plugin-spectrocloud-cluster-provider": "npm:^0.5.0"
-    "@terasky/backstage-plugin-spectrocloud-ingestor": "npm:^0.2.0"
+    "@terasky/backstage-plugin-spectrocloud-ingestor": "npm:^0.3.0"
     "@terasky/backstage-plugin-vcf-automation-backend": "npm:^1.10.1"
     "@terasky/backstage-plugin-vcf-automation-ingestor": "npm:^1.10.1"
     "@terasky/backstage-plugin-vcf-operations-backend": "npm:^0.7.1"
