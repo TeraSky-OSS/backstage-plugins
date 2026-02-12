@@ -25,7 +25,7 @@ kubernetesIngestor:
   # referencesNamespaceModel: 'default' # default, same
   mappings:
     namespaceModel: 'cluster' # cluster, namespace, default
-    nameModel: 'name-cluster' # name-cluster, name-namespace, name-kind, name
+    nameModel: 'name-cluster' # name-cluster, name-namespace, name-kind, name, uid
     titleModel: 'name' # name, name-cluster, name-namespace
     systemModel: 'namespace' # cluster, namespace, cluster-namespace, default
     referencesNamespaceModel: 'default' # default, same
@@ -791,6 +791,7 @@ Determines entity name generation:
 - `name-namespace`: Combine name and namespace  
 - `name-kind`: Combine name and resource kind  
 - `name`: Use resource name only  
+- `uid`: Use the resources UID to ensure no colisions
 
 ### Title Model
 Controls entity title generation:  

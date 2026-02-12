@@ -103,7 +103,12 @@ export interface Config {
       namespaceModel?: string;
       /**
        * Model for determining entity names
-       * Options: name, name-kind, name-cluster, name-kind-cluster
+       * Options: name, name-kind, name-cluster, name-namespace, uid
+       * - name: Use metadata.name
+       * - name-kind: Use metadata.name-kind
+       * - name-cluster: Use metadata.name-cluster
+       * - name-namespace: Use metadata.name-namespace
+       * - uid: Use metadata.uid
        * @default name
        * @visibility frontend
        */

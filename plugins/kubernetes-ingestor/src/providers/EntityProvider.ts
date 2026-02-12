@@ -2460,7 +2460,9 @@ export class KubernetesEntityProvider implements EntityProvider {
     }
     const nameModel = this.config.getOptionalString('kubernetesIngestor.mappings.nameModel')?.toLowerCase() || 'name';
     let nameValue = '';
-    if (nameModel === 'name-kind') {
+    if (nameModel === 'uid') {
+      nameValue = resource.metadata.uid;
+    } else if (nameModel === 'name-kind') {
       nameValue = `${resource.metadata.name}-${resource.kind.toLowerCase()}`;
     } else if (nameModel === 'name-cluster') {
       nameValue = `${resource.metadata.name}-${normalizedClusterName}`;
@@ -2621,6 +2623,9 @@ export class KubernetesEntityProvider implements EntityProvider {
           ...argoAnnotations,
           ...(systemNameModel === 'cluster-namespace' || systemNamespaceModel === 'cluster' ? {
             'backstage.io/kubernetes-cluster': this.mapClusterName(resource.clusterName),
+          } : {}),
+          ...(resource.metadata.namespace ? {
+            'backstage.io/kubernetes-namespace': resource.metadata.namespace,
           } : {})
         },
         tags: [`cluster:${normalizedClusterName}`, `kind:${resource.kind?.toLowerCase()}`],
@@ -2739,7 +2744,9 @@ export class KubernetesEntityProvider implements EntityProvider {
     }
     const nameModel = this.config.getOptionalString('kubernetesIngestor.mappings.nameModel')?.toLowerCase() || 'name';
     let nameValue = '';
-    if (nameModel === 'name-kind') {
+    if (nameModel === 'uid') {
+      nameValue = claim.metadata.uid;
+    } else if (nameModel === 'name-kind') {
       nameValue = `${claim.metadata.name}-${crKind.toLowerCase()}`;
     } else if (nameModel === 'name-cluster') {
       nameValue = `${claim.metadata.name}-${normalizedClusterName}`;
@@ -2820,6 +2827,9 @@ export class KubernetesEntityProvider implements EntityProvider {
           [`${prefix}/component-type`]: 'crossplane-claim',
           ...(systemNameModel === 'cluster-namespace' || systemNamespaceModel === 'cluster' ? {
             'backstage.io/kubernetes-cluster': this.mapClusterName(clusterName),
+          } : {}),
+          ...(claim.metadata.namespace ? {
+            'backstage.io/kubernetes-namespace': claim.metadata.namespace,
           } : {}),
           ...customAnnotations,
           ...argoAnnotations,
@@ -2932,7 +2942,9 @@ export class KubernetesEntityProvider implements EntityProvider {
     }
     const nameModel = this.config.getOptionalString('kubernetesIngestor.mappings.nameModel')?.toLowerCase() || 'name';
     let nameValue = '';
-    if (nameModel === 'name-kind') {
+    if (nameModel === 'uid') {
+      nameValue = instance.metadata.uid;
+    } else if (nameModel === 'name-kind') {
       nameValue = `${instance.metadata.name}-${instance.kind?.toLowerCase()}`;
     } else if (nameModel === 'name-cluster') {
       nameValue = `${instance.metadata.name}-${normalizedClusterName}`;
@@ -3012,6 +3024,9 @@ export class KubernetesEntityProvider implements EntityProvider {
           ),
           ...(systemNameModel === 'cluster-namespace' || systemNamespaceModel === 'cluster' ? {
             'backstage.io/kubernetes-cluster': this.mapClusterName(clusterName),
+          } : {}),
+          ...(instance.metadata.namespace ? {
+            'backstage.io/kubernetes-namespace': instance.metadata.namespace,
           } : {}),
           ...customAnnotations,
           ...argoAnnotations,
@@ -3125,7 +3140,9 @@ export class KubernetesEntityProvider implements EntityProvider {
     }
     const nameModel = this.config.getOptionalString('kubernetesIngestor.mappings.nameModel')?.toLowerCase() || 'name';
     let nameValue = '';
-    if (nameModel === 'name-kind') {
+    if (nameModel === 'uid') {
+      nameValue = xr.metadata.uid;
+    } else if (nameModel === 'name-kind') {
       nameValue = `${xr.metadata.name}-${kind.toLowerCase()}`;
     } else if (nameModel === 'name-cluster') {
       nameValue = `${xr.metadata.name}-${normalizedClusterName}`;
@@ -3204,6 +3221,9 @@ export class KubernetesEntityProvider implements EntityProvider {
             Object.entries(annotations).filter(([key]) => key !== `${prefix}/links`)
           ),
           'backstage.io/kubernetes-cluster': this.mapClusterName(clusterName),
+          ...(xr.metadata.namespace ? {
+            'backstage.io/kubernetes-namespace': xr.metadata.namespace,
+          } : {}),
           ...customAnnotations,
           ...argoAnnotations,
           ...crossplaneAnnotations,
