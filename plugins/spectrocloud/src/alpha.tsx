@@ -7,12 +7,12 @@ import {
   discoveryApiRef,
   fetchApiRef,
 } from '@backstage/frontend-plugin-api';
-import { EntityCardBlueprint } from '@backstage/plugin-catalog-react/alpha';
+import { EntityCardBlueprint, EntityContentBlueprint } from '@backstage/plugin-catalog-react/alpha';
 import { Entity } from '@backstage/catalog-model';
 import CloudQueueIcon from '@material-ui/icons/CloudQueue';
 import { spectroCloudApiRef, SpectroCloudApiClient } from './api';
 import { spectroCloudAuthApiRef } from '@terasky/backstage-plugin-spectrocloud-auth';
-import { clusterDeploymentRouteRef } from './routes';
+import { clusterDeploymentRouteRef, clusterViewerRouteRef } from './routes';
 
 /**
  * Check if entity is a SpectroCloud cluster
@@ -64,6 +64,18 @@ export const spectroCloudClusterProfileCard = EntityCardBlueprint.make({
 });
 
 /** @alpha */
+export const spectroCloudKubernetesResourcesTab = EntityContentBlueprint.make({
+  name: 'spectrocloud.kubernetes-resources',
+  params: {
+    filter: isSpectroCloudCluster,
+    path: '/kubernetes-resources',
+    title: 'Kubernetes Resources',
+    loader: () => import('./components/KubernetesResources').then(m => <m.KubernetesResourcesPage />),
+  },
+  disabled: false,
+});
+
+/** @alpha */
 export const spectroCloudClusterDeploymentPage = PageBlueprint.make({
   name: 'spectrocloud.cluster-deployment',
   params: {
@@ -86,14 +98,39 @@ export const spectroCloudClusterDeploymentNavItem = NavItemBlueprint.make({
 });
 
 /** @alpha */
+export const spectroCloudClusterViewerPage = PageBlueprint.make({
+  name: 'spectrocloud.cluster-viewer',
+  params: {
+    path: '/spectrocloud/clusters',
+    routeRef: clusterViewerRouteRef,
+    loader: () => import('./components/ClusterViewer').then(m => <m.ClusterViewerPage />),
+  },
+  disabled: false,
+});
+
+/** @alpha */
+export const spectroCloudClusterViewerNavItem = NavItemBlueprint.make({
+  name: 'spectrocloud.cluster-viewer',
+  params: {
+    title: 'View Clusters',
+    routeRef: clusterViewerRouteRef,
+    icon: CloudQueueIcon,
+  },
+  disabled: false,
+});
+
+/** @alpha */
 export const spectroCloudPlugin = createFrontendPlugin({
   pluginId: 'spectrocloud',
   extensions: [
     spectroCloudApi,
     spectroCloudClusterCard,
     spectroCloudClusterProfileCard,
+    spectroCloudKubernetesResourcesTab,
     spectroCloudClusterDeploymentPage,
     spectroCloudClusterDeploymentNavItem,
+    spectroCloudClusterViewerPage,
+    spectroCloudClusterViewerNavItem,
   ],
 });
 

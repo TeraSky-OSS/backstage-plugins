@@ -45,6 +45,9 @@ export interface SpectroCloudCluster {
   };
   spec?: {
     cloudType?: string;
+    cloudConfig?: {
+      cloudType?: string;
+    };
     clusterProfileTemplates?: ClusterProfileTemplateRef[];
     clusterConfig?: {
       kubernetesVersion?: string;

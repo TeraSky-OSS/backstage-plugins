@@ -171,6 +171,13 @@ interface VSphereInfrastructureConfigurationProps {
   controlPlaneConfig: Record<string, any>;
   workerPools: WorkerPoolConfig[];
   cloudConfig: Record<string, any>;
+  tfMetadata?: {
+    sshKeyName?: string;
+    sshKeyContext?: 'tenant' | 'project';
+    pcgUid?: string;
+    pcgName?: string;
+    ipPools?: Record<string, string>;
+  };
   onUpdate: (updates: {
     controlPlaneConfig?: Record<string, any>;
     workerPools?: WorkerPoolConfig[];
@@ -179,6 +186,7 @@ interface VSphereInfrastructureConfigurationProps {
       sshKeyName?: string;
       sshKeyContext?: 'tenant' | 'project';
       pcgUid?: string;
+      pcgName?: string;
       ipPools?: Record<string, string>;
     };
   }) => void;
@@ -209,6 +217,7 @@ export const VSphereInfrastructureConfiguration = ({
   controlPlaneConfig,
   workerPools,
   cloudConfig,
+  tfMetadata,
   onUpdate,
 }: VSphereInfrastructureConfigurationProps) => {
   const classes = useStyles();
@@ -250,10 +259,11 @@ export const VSphereInfrastructureConfiguration = ({
     const fetchMetadata = async () => {
       try {
         setLoading(true);
-        const [metadataRes, sshKeysRes, cloudAccountRes] = await Promise.all([
+        const [metadataRes, sshKeysRes, cloudAccountRes, overlordsRes] = await Promise.all([
           spectroCloudApi.getVSphereCloudAccountMetadata(cloudAccountUid, projectUid),
           spectroCloudApi.getUserSSHKeys(projectUid),
           spectroCloudApi.getCloudAccount('vsphere', cloudAccountUid, projectUid),
+          spectroCloudApi.getOverlords(projectUid),
         ]);
 
         // Sort datacenters alphabetically
@@ -280,6 +290,18 @@ export const VSphereInfrastructureConfiguration = ({
         const pcgUid = cloudAccountRes?.metadata?.annotations?.overlordUid;
         setOverlordUid(pcgUid);
 
+        // Find matching PCG name from overlords
+        let pcgName = 'your-pcg-name';
+        if (pcgUid && overlordsRes?.items) {
+          const matchingOverlord = overlordsRes.items.find((overlord: any) => 
+            overlord.metadata?.uid === pcgUid
+          );
+          
+          if (matchingOverlord) {
+            pcgName = matchingOverlord.metadata?.name || pcgName;
+          }
+        }
+
         // Fetch IP pools if we have overlord UID
         if (pcgUid) {
           const ipPoolsRes = await spectroCloudApi.getVSphereIPPools(pcgUid, projectUid);
@@ -291,10 +313,11 @@ export const VSphereInfrastructureConfiguration = ({
             .sort((a: IPPool, b: IPPool) => a.name.localeCompare(b.name));
           setIpPools(sortedPools);
           
-          // Initialize tfMetadata with PCG and IP pools
+          // Initialize tfMetadata with PCG, PCG name, and IP pools
           onUpdate({
             tfMetadata: {
               pcgUid,
+              pcgName,
               ipPools: sortedPools.reduce((acc: Record<string, string>, pool: IPPool) => ({ ...acc, [pool.uid]: pool.name }), {}),
             },
           });
@@ -700,7 +723,10 @@ export const VSphereInfrastructureConfiguration = ({
     if (!cloudConfig.placement?.folder) errors.push('Global: Folder is required');
     if (!cloudConfig.placement?.imageTemplateFolder) errors.push('Global: Image Template Folder is required');
     
-    // SSH Key (optional - removed validation)
+    // SSH Key (required)
+    if (!cloudConfig.sshKeys || cloudConfig.sshKeys.length === 0) {
+      errors.push('Authentication & Network: SSH Key is required');
+    }
     
     // Control Plane
     if (!controlPlaneConfig.size || controlPlaneConfig.size <= 0) {
@@ -917,9 +943,10 @@ export const VSphereInfrastructureConfiguration = ({
                       // Update cloud config with SSH key
                       handleCloudConfigChange('sshKeys', [newValue.publicKey]);
                       
-                      // Update tfMetadata with SSH key info
+                      // Update tfMetadata with SSH key info, preserving existing values
                       onUpdate({
                         tfMetadata: {
+                          ...tfMetadata,
                           sshKeyName: newValue.name,
                           sshKeyContext: (newValue.context === 'tenant' ? 'tenant' : 'project') as 'tenant' | 'project',
                           pcgUid: overlordUid,
@@ -931,8 +958,14 @@ export const VSphereInfrastructureConfiguration = ({
                   renderInput={(params) => (
                     <TextField
                       {...params}
-                      label="Select SSH Key (Optional)"
-                      helperText="Authentication key for SSH access"
+                      label="Select SSH Key *"
+                      required
+                      error={showValidation && (!cloudConfig.sshKeys || cloudConfig.sshKeys.length === 0)}
+                      helperText={
+                        showValidation && (!cloudConfig.sshKeys || cloudConfig.sshKeys.length === 0)
+                          ? "SSH Key is required"
+                          : "Authentication key for SSH access"
+                      }
                     />
                   )}
                 />

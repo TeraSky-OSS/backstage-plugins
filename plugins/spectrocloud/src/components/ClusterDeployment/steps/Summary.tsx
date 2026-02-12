@@ -10,17 +10,21 @@ import {
   AccordionSummary,
   AccordionDetails,
   CircularProgress,
+  IconButton,
+  Tooltip,
 } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles, useTheme } from '@material-ui/core/styles';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
+import GetAppIcon from '@material-ui/icons/GetApp';
+import FileCopyIcon from '@material-ui/icons/FileCopy';
 import { useApi } from '@backstage/core-plugin-api';
 import { spectroCloudApiRef } from '../../../api';
 import { ClusterDeploymentState, CLOUD_TYPE_LABELS, CloudType } from '../types';
 import { ClusterCreationRequest } from '../../../api/SpectroCloudApi';
 import ReactSyntaxHighlighter from 'react-syntax-highlighter';
-import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import { docco, atomOneDark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -87,7 +91,10 @@ const generateTerraformConfig = (state: ClusterDeploymentState): string => {
   // Header
   lines.push(`# Spectro Cloud Cluster - ${state.clusterName}`);
   if (state.clusterDescription) {
-    lines.push(`# Description: ${state.clusterDescription}`);
+    lines.push('# Description:');
+    state.clusterDescription.split('\n').forEach(line => {
+      lines.push(`#   ${line}`);
+    });
   }
   lines.push('# Generated from Backstage Cluster Deployment Wizard');
   lines.push(`# Reference: https://registry.terraform.io/providers/spectrocloud/spectrocloud/latest/docs/resources/cluster_${resourceType}`);
@@ -101,9 +108,10 @@ const generateTerraformConfig = (state: ClusterDeploymentState): string => {
 
   // Private Cloud Gateway (PCG) data source (vSphere)
   if (state.cloudType === 'vsphere' && state.tfMetadata?.pcgUid) {
+    const pcgName = state.tfMetadata?.pcgName || 'your-pcg-name';
+    console.log('[TF Generation] Using PCG name:', pcgName);
     lines.push('data "spectrocloud_private_cloud_gateway" "pcg" {');
-    lines.push('  # Update the name to match your Private Cloud Gateway in Spectro Cloud');
-    lines.push('  name = "your-pcg-name"');
+    lines.push(`  name = "${pcgName}"`);
     lines.push('}');
     lines.push('');
   }
@@ -135,7 +143,8 @@ const generateTerraformConfig = (state: ClusterDeploymentState): string => {
   // Profile data sources
   state.profiles.forEach((profile, idx) => {
     lines.push(`data "spectrocloud_cluster_profile" "profile_${idx}" {`);
-    lines.push(`  name = "${profile.name}"`);
+    lines.push(`  name    = "${profile.name}"`);
+    lines.push(`  context = "${profile.scope || 'project'}"`);
     lines.push('}');
   });
   lines.push('');
@@ -224,24 +233,6 @@ const generateTerraformConfig = (state: ClusterDeploymentState): string => {
         });
         lines.push('    }');
       }
-    }
-    
-    // Add pack values if they exist in the profile
-    if (profile.packs && profile.packs.length > 0) {
-      lines.push('');
-      profile.packs.forEach((pack: any) => {
-        if (pack.values && pack.values.trim()) {
-          lines.push('    pack {');
-          lines.push(`      name   = "${pack.name}"`);
-          if (pack.tag) {
-            lines.push(`      tag    = "${pack.tag}"`);
-          }
-          lines.push('      values = <<-EOT');
-          lines.push(pack.values);
-          lines.push('      EOT');
-          lines.push('    }');
-        }
-      });
     }
     
     lines.push('  }');
@@ -447,16 +438,41 @@ const getResourceType = (cloudType: CloudType): string => {
 
 export const Summary = ({ state, onDeploy }: SummaryProps) => {
   const classes = useStyles();
+  const theme = useTheme();
   const spectroCloudApi = useApi(spectroCloudApiRef);
   const [deploying, setDeploying] = useState(false);
   const [deploySuccess, setDeploySuccess] = useState(false);
   const [deployedClusterUid, setDeployedClusterUid] = useState<string>();
   const [error, setError] = useState<string>();
+  const [tfCopied, setTfCopied] = useState(false);
 
   // Generate Terraform config on the client side
   const tfConfig = useMemo(() => {
     return generateTerraformConfig(state);
   }, [state]);
+
+  const handleDownloadTerraform = () => {
+    const filename = `${state.clusterName || 'cluster'}.tf`;
+    const blob = new Blob([tfConfig], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  };
+
+  const handleCopyTerraform = async () => {
+    try {
+      await navigator.clipboard.writeText(tfConfig);
+      setTfCopied(true);
+      setTimeout(() => setTfCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy to clipboard:', err);
+    }
+  };
 
   const buildClusterConfig = (): ClusterCreationRequest => {
     if (state.cloudType === 'vsphere') {
@@ -767,7 +783,34 @@ export const Summary = ({ state, onDeploy }: SummaryProps) => {
       {/* Terraform Preview */}
       <Accordion defaultExpanded={false}>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h6">Terraform Configuration (Reference)</Typography>
+          <Box display="flex" alignItems="center" justifyContent="space-between" width="100%">
+            <Typography variant="h6">Terraform Configuration (Reference)</Typography>
+            <Box display="flex">
+              <Tooltip title={tfCopied ? "Copied!" : "Copy to clipboard"}>
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCopyTerraform();
+                  }}
+                  color={tfCopied ? "primary" : "default"}
+                >
+                  <FileCopyIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Download as .tf file">
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDownloadTerraform();
+                  }}
+                >
+                  <GetAppIcon />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          </Box>
         </AccordionSummary>
         <AccordionDetails>
           <Box width="100%">
@@ -776,7 +819,10 @@ export const Summary = ({ state, onDeploy }: SummaryProps) => {
               This is for reference only and may need adjustments for production use.
             </Typography>
             <Box className={classes.tfPreview}>
-              <ReactSyntaxHighlighter language="hcl" style={docco}>
+              <ReactSyntaxHighlighter 
+                language="hcl" 
+                style={theme.palette.type === 'dark' ? atomOneDark : docco}
+              >
                 {tfConfig}
               </ReactSyntaxHighlighter>
             </Box>

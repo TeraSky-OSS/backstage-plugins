@@ -11,6 +11,7 @@ export interface ProfileSelection {
   versionUid: string;
   cloudType: string;
   type: string;
+  scope?: string;
   packs?: any[];
 }
 
@@ -161,6 +162,7 @@ export interface ClusterDeploymentState {
     sshKeyName?: string;
     sshKeyContext?: 'tenant' | 'project';
     pcgUid?: string; // Private Cloud Gateway UID (for vSphere IP pools)
+    pcgName?: string; // Private Cloud Gateway name
     ipPools?: Record<string, string>; // Map of IP pool UID to name
   };
 }

@@ -46,6 +46,7 @@
     "@terasky/backstage-plugin-spectrocloud-auth": "^0.2.0",
     "@terasky/backstage-plugin-spectrocloud-common": "^0.2.0",
     "file-saver": "^2.0.5",
+    "react-flow-renderer": "^10.3.17",
     "react-syntax-highlighter": "^15.6.1",
     "react-use": "^17.6.0"
   },

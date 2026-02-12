@@ -9,6 +9,7 @@ import {
   StatusPending,
   Progress,
   ResponseErrorPanel,
+  Link,
 } from '@backstage/core-components';
 import {
   Grid,
@@ -32,6 +33,7 @@ import {
   Tabs,
   Tab,
 } from '@material-ui/core';
+import { Alert } from '@material-ui/lab';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import KeyboardArrowRightIcon from '@material-ui/icons/KeyboardArrowRight';
@@ -630,6 +632,55 @@ export const SpectroCloudClusterCard = () => {
   }
 
   if (error) {
+    // Check if it's a permissions/not found error
+    const errorMessage = error.message || '';
+    const isPermissionError = 
+      errorMessage.includes('Cluster not found') ||
+      errorMessage.includes('not found') ||
+      errorMessage.includes('403') ||
+      errorMessage.includes('Forbidden') ||
+      errorMessage.includes('Unauthorized') ||
+      errorMessage.includes('401');
+
+    if (isPermissionError) {
+      return (
+        <InfoCard title="SpectroCloud Cluster">
+          <Alert severity="info">
+            <Typography variant="body2" gutterBottom>
+              You don't have permission to view this cluster in Spectro Cloud, or it may not exist in your accessible scope.
+            </Typography>
+            <Typography variant="body2">
+              This could be because:
+            </Typography>
+            <Box component="ul" style={{ marginTop: 8, marginBottom: 8 }}>
+              <li>
+                <Typography variant="body2">
+                  The cluster exists in a project you don't have access to
+                </Typography>
+              </li>
+              <li>
+                <Typography variant="body2">
+                  Your Spectro Cloud credentials don't have the required permissions
+                </Typography>
+              </li>
+              <li>
+                <Typography variant="body2">
+                  The cluster has been deleted from Spectro Cloud
+                </Typography>
+              </li>
+            </Box>
+            <Typography variant="body2">
+              Visit the{' '}
+              <Link to="/spectrocloud/clusters">
+                Cluster Viewer
+              </Link>
+              {' '}to see all clusters you have access to.
+            </Typography>
+          </Alert>
+        </InfoCard>
+      );
+    }
+
     return (
       <InfoCard title="SpectroCloud Cluster">
         <ResponseErrorPanel error={error} />

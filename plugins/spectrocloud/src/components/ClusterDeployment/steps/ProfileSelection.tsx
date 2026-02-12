@@ -155,28 +155,22 @@ export const ProfileSelection = ({
   const [profileDetails, setProfileDetails] = useState<any>();
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [loadingProfilePacks, setLoadingProfilePacks] = useState<Record<string, boolean>>({});
+  const [expandedProfiles, setExpandedProfiles] = useState<Set<string>>(new Set());
   const [expandedPacks, setExpandedPacks] = useState<Set<string>>(new Set());
   const [packContents, setPackContents] = useState<Map<string, PackContent>>(new Map());
   const [loadingPacks, setLoadingPacks] = useState<Set<string>>(new Set());
   const [activePackTabs, setActivePackTabs] = useState<Map<string, number>>(new Map());
 
+  // Calculate profile type filter based on selected profiles (but don't trigger on changes)
+  const hasClusterOrInfraProfile = selectedProfiles.some(
+    p => p.type === 'cluster' || p.type === 'infra'
+  );
+  const profileTypeFilter: string | undefined = hasClusterOrInfraProfile ? 'add-on' : undefined;
+
   useEffect(() => {
     const fetchProfiles = async () => {
       try {
         setLoading(true);
-        // Determine which profile types to fetch based on what's already selected
-        let profileTypeFilter: string | undefined;
-        
-        const hasClusterOrInfraProfile = selectedProfiles.some(
-          p => p.type === 'cluster' || p.type === 'infra'
-        );
-        
-        if (hasClusterOrInfraProfile) {
-          // Once a cluster/infra profile is selected, only show addon profiles
-          profileTypeFilter = 'add-on';
-        }
-        // If no profiles selected yet, show cluster and infra profiles only
-        // (addon profiles can only be added after base is selected)
         
         // For addon profiles, don't filter by cloud type (they're cloud-agnostic)
         const cloudTypeFilter = profileTypeFilter === 'add-on' ? undefined : cloudType;
@@ -200,7 +194,8 @@ export const ProfileSelection = ({
     };
 
     fetchProfiles();
-  }, [spectroCloudApi, cloudType, projectUid, selectedProfiles]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spectroCloudApi, cloudType, projectUid, profileTypeFilter]);
 
   const handleAddProfile = () => {
     setDialogOpen(true);
@@ -261,6 +256,7 @@ export const ProfileSelection = ({
       versionUid: selectedVersionUid,
       cloudType: selectedProfile.spec?.published?.cloudType || cloudType,
       type: selectedProfile.spec?.published?.type || 'cluster',
+      scope: selectedProfile.metadata.annotations?.scope || 'project',
       // Don't set packs here - let them load when the accordion is expanded
     };
 
@@ -278,7 +274,18 @@ export const ProfileSelection = ({
     onUpdate(updated);
   };
 
-  const handleProfileExpand = async (profileIndex: number, isExpanded: boolean) => {
+  const handleProfileExpand = async (profileUid: string, profileIndex: number, isExpanded: boolean) => {
+    // Update expanded state
+    setExpandedProfiles(prev => {
+      const newSet = new Set(prev);
+      if (isExpanded) {
+        newSet.add(profileUid);
+      } else {
+        newSet.delete(profileUid);
+      }
+      return newSet;
+    });
+    
     const profile = selectedProfiles[profileIndex];
     
     if (!isExpanded || !profile) {
@@ -290,7 +297,7 @@ export const ProfileSelection = ({
       return;
     }
 
-    setLoadingProfilePacks({ ...loadingProfilePacks, [profileIndex]: true });
+    setLoadingProfilePacks({ ...loadingProfilePacks, [profileUid]: true });
 
     try {
       const details = await spectroCloudApi.getProfileWithPacks(
@@ -309,7 +316,7 @@ export const ProfileSelection = ({
       console.error('Failed to load profile packs:', err);
     } finally {
       const updatedLoading = { ...loadingProfilePacks };
-      delete updatedLoading[profileIndex];
+      delete updatedLoading[profileUid];
       setLoadingProfilePacks(updatedLoading);
     }
   };
@@ -488,10 +495,6 @@ export const ProfileSelection = ({
     );
   }
 
-  const hasClusterOrInfraProfile = selectedProfiles.some(
-    p => p.type === 'cluster' || p.type === 'infra'
-  );
-
   return (
     <Box className={classes.root}>
       <Typography variant="h5" gutterBottom>
@@ -507,8 +510,9 @@ export const ProfileSelection = ({
         <Box className={classes.selectedList}>
           {selectedProfiles.map((profile, index) => (
             <Accordion 
-              key={index}
-              onChange={(_, isExpanded) => handleProfileExpand(index, isExpanded)}
+              key={profile.uid}
+              expanded={expandedProfiles.has(profile.uid)}
+              onChange={(_, isExpanded) => handleProfileExpand(profile.uid, index, isExpanded)}
             >
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Box display="flex" alignItems="center" justifyContent="space-between" width="100%">
@@ -534,7 +538,7 @@ export const ProfileSelection = ({
               </AccordionSummary>
               <AccordionDetails>
                 <Box width="100%">
-                  {loadingProfilePacks[index] ? (
+                  {loadingProfilePacks[profile.uid] ? (
                     <Box display="flex" justifyContent="center" padding={2}>
                       <CircularProgress size={24} />
                     </Box>
@@ -545,12 +549,13 @@ export const ProfileSelection = ({
                         Packs in this profile ({profile.packs.length})
                       </Typography>
                       {profile.packs.map((pack: any, idx: number) => {
-                        const packKey = `${profile.uid}-${pack.uid || idx}`;
+                        const packKey = `${profile.uid}-${pack.uid || pack.name || idx}`;
                         const isPackExpanded = expandedPacks.has(packKey);
                         
                         return (
                           <Accordion 
-                            key={idx} 
+                            key={packKey}
+                            expanded={isPackExpanded}
                             className={classes.packAccordion}
                             onChange={(_, isExpanded) => {
                               if (isExpanded) {

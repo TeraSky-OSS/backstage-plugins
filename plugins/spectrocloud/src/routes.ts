@@ -7,3 +7,7 @@ export const rootRouteRef = createRouteRef({
 export const clusterDeploymentRouteRef = createRouteRef({
   id: 'spectrocloud-cluster-deployment',
 });
+
+export const clusterViewerRouteRef = createRouteRef({
+  id: 'spectrocloud-cluster-viewer',
+});

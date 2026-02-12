@@ -46,6 +46,9 @@ export interface SpectroCloudCluster {
   };
   spec?: {
     cloudType?: string;
+    cloudConfig?: {
+      cloudType?: string;
+    };
     clusterProfileTemplates?: ClusterProfileTemplateRef[];
     clusterConfig?: {
       kubernetesVersion?: string;
@@ -240,16 +243,139 @@ export class SpectroCloudClient {
   }
 
   /**
-   * Get all clusters from SpectroCloud (basic metadata)
+   * Get user info including project permissions
+   */
+  async getUserInfo(): Promise<any> {
+    try {
+      const response = await this.makeRequest('/v1/users/me');
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch user info: ${response.status} ${response.statusText}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      this.logger.error(`Failed to fetch user info: ${error}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Get clusters for a specific project
+   */
+  async getClustersForProject(projectUid: string): Promise<SpectroCloudCluster[]> {
+    try {
+      const headers = {
+        'ProjectUid': projectUid,
+      };
+      
+      const response = await this.makeRequest('/v1/dashboard/spectroclusters/meta', 'GET', headers);
+      
+      if (!response.ok) {
+        this.logger.warn(`Failed to fetch clusters for project ${projectUid}: ${response.status}`);
+        return [];
+      }
+      
+      const data = await response.json();
+      
+      // Handle different response formats
+      if (Array.isArray(data)) {
+        return data as SpectroCloudCluster[];
+      } else if (data.items && Array.isArray(data.items)) {
+        return data.items as SpectroCloudCluster[];
+      }
+      
+      return [];
+    } catch (error) {
+      this.logger.error(`Failed to fetch clusters for project ${projectUid}: ${error}`);
+      return [];
+    }
+  }
+
+  /**
+   * Get tenant-scoped clusters
+   */
+  async getTenantClusters(): Promise<SpectroCloudCluster[]> {
+    try {
+      // Don't pass ProjectUid header to get tenant-scoped clusters
+      const response = await this.makeRequest('/v1/dashboard/spectroclusters/meta', 'GET');
+      
+      if (!response.ok) {
+        this.logger.warn(`Failed to fetch tenant clusters: ${response.status}`);
+        return [];
+      }
+      
+      const data = await response.json();
+      
+      // Handle different response formats and filter to only tenant-scoped
+      let clusters: SpectroCloudCluster[] = [];
+      if (Array.isArray(data)) {
+        clusters = data as SpectroCloudCluster[];
+      } else if (data.items && Array.isArray(data.items)) {
+        clusters = data.items as SpectroCloudCluster[];
+      }
+      
+      // Filter to only tenant-scoped clusters
+      return clusters.filter(c => c.metadata.annotations?.scope === 'tenant');
+    } catch (error) {
+      this.logger.error(`Failed to fetch tenant clusters: ${error}`);
+      return [];
+    }
+  }
+
+  /**
+   * Get all clusters from SpectroCloud (basic metadata) that the user has access to
    */
   async getAllClusters(): Promise<SpectroCloudCluster[]> {
     try {
-      const response = await this.makeRequest('/v1/dashboard/spectroclusters/meta');
-      const clusters = await response.json() as SpectroCloudCluster[];
-      return clusters;
+      // First get user info to find which projects they have access to
+      const userInfo = await this.getUserInfo();
+      const projectPermissions = userInfo.status?.projectPermissions || {};
+      const tenantPermissions = userInfo.status?.tenantPermissions || {};
+      const projectUids = Object.keys(projectPermissions);
+      
+      this.logger.info(`User has access to ${projectUids.length} projects`);
+      
+      // Fetch clusters for each project
+      const clusterPromises = projectUids.map(projectUid => 
+        this.getClustersForProject(projectUid)
+      );
+      
+      const clusterArrays = await Promise.all(clusterPromises);
+      
+      // Flatten and deduplicate clusters by UID
+      const clusterMap = new Map<string, SpectroCloudCluster>();
+      for (const clusters of clusterArrays) {
+        for (const cluster of clusters) {
+          if (cluster.metadata?.uid) {
+            clusterMap.set(cluster.metadata.uid, cluster);
+          }
+        }
+      }
+      
+      // Check if user has tenant-level cluster permissions
+      const hasTenantClusterPermissions = 
+        tenantPermissions.tenant?.includes('cluster.list') || 
+        tenantPermissions.tenant?.includes('cluster.get');
+      
+      if (hasTenantClusterPermissions) {
+        this.logger.info('User has tenant-level cluster permissions, fetching tenant-scoped clusters');
+        const tenantClusters = await this.getTenantClusters();
+        for (const cluster of tenantClusters) {
+          if (cluster.metadata?.uid && !clusterMap.has(cluster.metadata.uid)) {
+            clusterMap.set(cluster.metadata.uid, cluster);
+          }
+        }
+        this.logger.info(`Added ${tenantClusters.length} tenant-scoped clusters`);
+      }
+      
+      const allClusters = Array.from(clusterMap.values());
+      this.logger.info(`Found ${allClusters.length} unique clusters total (project + tenant scoped)`);
+      
+      return allClusters;
     } catch (error) {
       this.logger.error(`Failed to fetch SpectroCloud clusters: ${error}`);
-      return [];
+      throw error;
     }
   }
 

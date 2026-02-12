@@ -63,7 +63,7 @@
     "@terasky/backstage-plugin-spectrocloud-auth-backend": "^0.2.0",
     "@terasky/backstage-plugin-spectrocloud-backend": "^0.3.0",
     "@terasky/backstage-plugin-spectrocloud-cluster-provider": "^0.5.0",
-    "@terasky/backstage-plugin-spectrocloud-ingestor": "^0.2.0",
+    "@terasky/backstage-plugin-spectrocloud-ingestor": "^0.3.0",
     "@terasky/backstage-plugin-vcf-automation-backend": "^1.10.1",
     "@terasky/backstage-plugin-vcf-automation-ingestor": "^1.10.1",
     "@terasky/backstage-plugin-vcf-operations-backend": "^0.7.1",

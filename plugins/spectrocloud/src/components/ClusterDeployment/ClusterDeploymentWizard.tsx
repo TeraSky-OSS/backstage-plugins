@@ -78,7 +78,17 @@ export const ClusterDeploymentWizard = () => {
   };
 
   const updateState = (updates: Partial<ClusterDeploymentState>) => {
-    setState(prev => ({ ...prev, ...updates }));
+    setState(prev => {
+      // Deep merge tfMetadata to preserve existing fields
+      const newState = {
+        ...prev,
+        ...updates,
+        tfMetadata: updates.tfMetadata 
+          ? { ...prev.tfMetadata, ...updates.tfMetadata }
+          : prev.tfMetadata,
+      };
+      return newState;
+    });
   };
 
   const canProceed = (): boolean => {
@@ -102,6 +112,9 @@ export const ClusterDeploymentWizard = () => {
             !!state.cloudConfig.placement?.datacenter &&
             !!state.cloudConfig.placement?.folder &&
             !!state.cloudConfig.placement?.imageTemplateFolder;
+          
+          // Validate SSH key
+          const hasSSHKey = !!state.cloudConfig.sshKeys && state.cloudConfig.sshKeys.length > 0;
           
           // Validate control plane
           const controlPlane = state.controlPlaneConfig;
@@ -143,6 +156,7 @@ export const ClusterDeploymentWizard = () => {
           });
           
           return hasGlobalPlacement && 
+                 hasSSHKey &&
                  hasControlPlaneSize && 
                  hasControlPlaneInstance && 
                  hasControlPlanePlacement && 
@@ -224,6 +238,7 @@ export const ClusterDeploymentWizard = () => {
             controlPlaneConfig={state.controlPlaneConfig}
             workerPools={state.workerPools}
             cloudConfig={state.cloudConfig}
+            tfMetadata={state.tfMetadata}
             onUpdate={(updates: any) => updateState(updates)}
           />
         ) : (

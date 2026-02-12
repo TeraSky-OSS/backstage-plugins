@@ -28,19 +28,34 @@ export interface SpectroCloudClusterDetails {
   metadata: {
     uid: string;
     name: string;
-    annotations?: Record<string, string>;
+    annotations?: {
+      scope?: string;
+      projectUid?: string;
+      overlordUid?: string;
+      tenantUid?: string;
+      [key: string]: string | undefined;
+    };
   };
   spec?: {
+    cloudType?: string;
     cloudConfig?: {
       cloudType?: string;
+      [key: string]: any;
     };
     clusterProfileTemplates?: SpectroCloudProfileTemplate[];
+    clusterConfig?: {
+      kubernetesVersion?: string;
+      [key: string]: any;
+    };
+    [key: string]: any;
   };
   status?: {
     state?: string;
     kubeMeta?: {
       kubernetesVersion?: string;
+      [key: string]: any;
     };
+    [key: string]: any;
   };
 }
 
@@ -53,6 +68,10 @@ export interface SpectroCloudProfile {
   metadata: {
     uid: string;
     name: string;
+    annotations?: {
+      scope?: string;
+      projectUid?: string;
+    };
   };
   specSummary?: {
     version?: string;
@@ -175,6 +194,20 @@ export interface ClusterCreationRequest {
 }
 
 export interface SpectroCloudApi {
+  /**
+   * Get user accessible projects
+   */
+  getUserProjects(
+    instanceName?: string,
+  ): Promise<{ uid: string; name?: string }[]>;
+
+  /**
+   * Get all clusters (basic metadata only) that the user has access to
+   */
+  getAllClusters(
+    instanceName?: string,
+  ): Promise<SpectroCloudClusterDetails[]>;
+
   /**
    * Download kubeconfig for a cluster
    */
@@ -592,6 +625,46 @@ export class SpectroCloudApiClient implements SpectroCloudApi {
     } catch (error) {
       return { hasToken: false, error: String(error) };
     }
+  }
+
+  async getUserProjects(instanceName?: string): Promise<{ uid: string; name?: string }[]> {
+    const baseUrl = await this.discoveryApi.getBaseUrl('spectrocloud');
+    
+    const params = new URLSearchParams();
+    if (instanceName) params.append('instance', instanceName);
+
+    const response = await this.fetchWithAuthCheck(
+      `${baseUrl}/users/me/projects?${params.toString()}`,
+      await this.addAuthHeaders(),
+    );
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Failed to fetch user projects: ${error}`);
+    }
+
+    const result = await response.json();
+    return result.projects || [];
+  }
+
+  async getAllClusters(instanceName?: string): Promise<SpectroCloudClusterDetails[]> {
+    const baseUrl = await this.discoveryApi.getBaseUrl('spectrocloud');
+    
+    const params = new URLSearchParams();
+    if (instanceName) params.append('instance', instanceName);
+
+    const response = await this.fetchWithAuthCheck(
+      `${baseUrl}/clusters?${params.toString()}`,
+      await this.addAuthHeaders(),
+    );
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Failed to fetch clusters: ${error}`);
+    }
+
+    const result = await response.json();
+    return result.clusters || [];
   }
 
   async getProjects(instanceName?: string): Promise<SpectroCloudProject[]> {

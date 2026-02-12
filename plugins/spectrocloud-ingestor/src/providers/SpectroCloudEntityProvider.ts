@@ -209,15 +209,21 @@ export class SpectroCloudEntityProvider implements EntityProvider {
     // Fetch full cluster details
     const clusters: SpectroCloudCluster[] = [];
     if (shouldFetchClusters && clustersMeta.length > 0) {
+      this.logger.info(`[INGESTOR] Fetching full details for ${clustersMeta.length} clusters...`);
       for (const clusterMeta of clustersMeta) {
         try {
           const projectUid = clusterMeta.metadata.annotations?.projectUid;
           const fullCluster = await client.getCluster(clusterMeta.metadata.uid, projectUid);
+          if (fullCluster) {
+            this.logger.info(`[INGESTOR] Cluster ${fullCluster.metadata.name} - cloudType from spec: ${fullCluster.spec?.cloudType}, from cloudConfig: ${(fullCluster.spec as any)?.cloudConfig?.cloudType}, projectUid: ${fullCluster.metadata.annotations?.projectUid}`);
+          }
           clusters.push(fullCluster || clusterMeta);
         } catch (error) {
+          this.logger.warn(`[INGESTOR] Failed to fetch details for cluster ${clusterMeta.metadata.name}: ${error}`);
           clusters.push(clusterMeta);
         }
       }
+      this.logger.info(`[INGESTOR] Fetched full details for ${clusters.length} clusters`);
     }
 
     // Create entities
@@ -424,10 +430,11 @@ export class SpectroCloudEntityProvider implements EntityProvider {
     const scope = cluster.metadata.annotations?.scope || 'tenant';
     const clusterProjectUid = cluster.metadata.annotations?.projectUid;
     let entityName: string;
+    let projectName = 'tenant';
     
     if (scope === 'project' && clusterProjectUid && projects) {
       const project = projects.find(p => p.metadata.uid === clusterProjectUid);
-      const projectName = project ? project.metadata.name : clusterProjectUid;
+      projectName = project ? project.metadata.name : clusterProjectUid;
       entityName = this.getEntityName(`${projectName}-${cluster.metadata.name}`, instanceName);
     } else {
       entityName = this.getEntityName(`tenant-${cluster.metadata.name}`, instanceName);
@@ -435,6 +442,11 @@ export class SpectroCloudEntityProvider implements EntityProvider {
 
     const ownerNamespace = cfg.catalogProvider?.ownerNamespace || 'group';
     const defaultOwner = cfg.catalogProvider?.defaultOwner || 'spectrocloud-auto-ingested';
+
+    // Extract cloud type - check cloudConfig.cloudType first as that's where the API usually returns it
+    const cloudType = (cluster.spec as any)?.cloudConfig?.cloudType || cluster.spec?.cloudType || 'unknown';
+    
+    this.logger.info(`Creating entity for cluster ${cluster.metadata.name}: projectName=${projectName}, cloudType=${cloudType}, spec.cloudType=${cluster.spec?.cloudType}, spec.cloudConfig.cloudType=${(cluster.spec as any)?.cloudConfig?.cloudType}`);
 
     const entity: Entity = {
       apiVersion: 'backstage.io/v1alpha1',
@@ -449,12 +461,14 @@ export class SpectroCloudEntityProvider implements EntityProvider {
           [`${annotationPrefix}/cluster-id`]: cluster.metadata.uid,
           [`${annotationPrefix}/scope`]: cluster.metadata.annotations?.scope || 'project',
           [`${annotationPrefix}/project-id`]: cluster.metadata.annotations?.projectUid || '',
+          [`${annotationPrefix}/project-name`]: projectName,
           [`${annotationPrefix}/overlord-id`]: cluster.metadata.annotations?.overlordUid || '',
           [`${annotationPrefix}/tenant-id`]: cluster.metadata.annotations?.tenantUid || '',
-          [`${annotationPrefix}/cloud-type`]: cluster.spec?.cloudType || 'unknown',
+          [`${annotationPrefix}/cloud-type`]: cloudType,
           [`${annotationPrefix}/state`]: cluster.status?.state || 'unknown',
+          [`${annotationPrefix}/kubernetes-version`]: cluster.status?.kubeMeta?.kubernetesVersion || cluster.spec?.clusterConfig?.kubernetesVersion || 'N/A',
         },
-        tags: ['spectrocloud', 'cluster', (cluster.spec?.cloudType || 'unknown').toLowerCase()],
+        tags: ['spectrocloud', 'cluster', cloudType.toLowerCase()],
       },
       spec: {
         type: 'spectrocloud-cluster',

@@ -46,6 +46,15 @@ describe('SpectroCloudClient', () => {
 
   describe('getAllClusters', () => {
     it('should return clusters when API call succeeds', async () => {
+      const mockUserInfo = {
+        status: {
+          projectPermissions: {
+            'project-1': ['cluster.list'],
+          },
+          tenantPermissions: {},
+        },
+      };
+
       const mockClusters = [
         {
           metadata: { uid: 'cluster-1', name: 'test-cluster-1' },
@@ -53,16 +62,23 @@ describe('SpectroCloudClient', () => {
         },
       ];
 
+      // Mock getUserInfo call
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => mockClusters,
+        json: async () => mockUserInfo,
+      } as any);
+
+      // Mock getClustersForProject call
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ items: mockClusters }),
       } as any);
 
       const clusters = await client.getAllClusters();
 
       expect(clusters).toEqual(mockClusters);
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.spectrocloud.com/v1/dashboard/spectroclusters/meta',
+        'https://api.spectrocloud.com/v1/users/me',
         expect.objectContaining({
           method: 'GET',
           headers: expect.objectContaining({
@@ -70,9 +86,19 @@ describe('SpectroCloudClient', () => {
           }),
         }),
       );
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.spectrocloud.com/v1/dashboard/spectroclusters/meta',
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            ApiKey: 'test-token',
+            ProjectUid: 'project-1',
+          }),
+        }),
+      );
     });
 
-    it('should return empty array when API call fails', async () => {
+    it('should throw error when API call fails', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 500,
@@ -80,9 +106,7 @@ describe('SpectroCloudClient', () => {
         text: async () => 'Server Error',
       } as any);
 
-      const clusters = await client.getAllClusters();
-
-      expect(clusters).toEqual([]);
+      await expect(client.getAllClusters()).rejects.toThrow();
     });
   });
 

@@ -18,3 +18,4 @@ export {
   getAnnotationPrefix,
 } from './PermissionGuards';
 export { ClusterDeploymentPage } from './ClusterDeployment';
+export { ClusterViewerPage } from './ClusterViewer';

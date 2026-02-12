@@ -159,6 +159,70 @@ export async function createRouter(
     });
   });
 
+  // Get user's accessible projects
+  router.get('/users/me/projects', async (req, res) => {
+    const instanceName = req.query.instance as string | undefined;
+
+    const client = await getClient(req, res, instanceName);
+    
+    if (!client) {
+      logger.error('No SpectroCloud configuration found');
+      return res.status(500).json({ error: 'No SpectroCloud configuration found' });
+    }
+
+    try {
+      const userInfo = await client.getUserInfo();
+      const projectPermissions = userInfo.status?.projectPermissions || {};
+      const projectUids = Object.keys(projectPermissions);
+      
+      // Get project names from the projects API
+      const allProjects = await client.getAllProjects();
+      const accessibleProjects = allProjects
+        .filter(p => projectUids.includes(p.metadata.uid))
+        .map(p => ({
+          uid: p.metadata.uid,
+          name: p.metadata.name,
+        }));
+      
+      logger.info(`User has access to ${accessibleProjects.length} projects`);
+      return res.json({ projects: accessibleProjects });
+    } catch (error) {
+      logger.error(`Failed to get user projects: ${error}`);
+      return res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Failed to get user projects' 
+      });
+    }
+  });
+
+  // Get all clusters (basic metadata)
+  router.get('/clusters', async (req, res) => {
+    // Check permission
+    if (!await checkPermission(viewClusterInfoPermission)) {
+      return res.status(403).json({ error: 'Permission denied: cluster info view not allowed' });
+    }
+
+    const instanceName = req.query.instance as string | undefined;
+
+    const client = await getClient(req, res, instanceName);
+    
+    if (!client) {
+      logger.error('No SpectroCloud configuration found');
+      return res.status(500).json({ error: 'No SpectroCloud configuration found' });
+    }
+
+    try {
+      const clusters = await client.getAllClusters();
+      logger.info(`Successfully fetched ${clusters.length} clusters from SpectroCloud API`);
+      logger.debug(`Cluster UIDs: ${clusters.map(c => c.metadata.uid).join(', ')}`);
+      return res.json({ clusters });
+    } catch (error) {
+      logger.error(`Failed to get clusters: ${error}`);
+      return res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Failed to get clusters' 
+      });
+    }
+  });
+
   // Get kubeconfig for a cluster
   router.get('/clusters/:clusterUid/kubeconfig', async (req, res) => {
     // Check permission
