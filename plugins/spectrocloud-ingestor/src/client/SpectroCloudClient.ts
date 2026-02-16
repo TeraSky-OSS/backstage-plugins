@@ -166,10 +166,16 @@ export class SpectroCloudClient {
     try {
       const allProjects: SpectroCloudProject[] = [];
       let continueToken: string | undefined;
+      const seenTokens = new Set<string>();
       
       do {
         const body: any = { filter: {} };
         if (continueToken) {
+          if (seenTokens.has(continueToken)) {
+            this.logger.warn('Duplicate continue token detected in getAllProjects, stopping pagination');
+            break;
+          }
+          seenTokens.add(continueToken);
           body.continue = continueToken;
         }
 
@@ -210,10 +216,16 @@ export class SpectroCloudClient {
     try {
       const allProfiles: SpectroCloudClusterProfile[] = [];
       let continueToken: string | undefined;
+      const seenTokens = new Set<string>();
       
       do {
         const body: any = { filter: {} };
         if (continueToken) {
+          if (seenTokens.has(continueToken)) {
+            this.logger.warn('Duplicate continue token detected in getAllClusterProfiles, stopping pagination');
+            break;
+          }
+          seenTokens.add(continueToken);
           body.continue = continueToken;
         }
 

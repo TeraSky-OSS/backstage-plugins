@@ -135,6 +135,26 @@ describe('SpectroCloudClient', () => {
       const result = await client.getAllProjects();
       expect(result).toEqual([]);
     });
+
+    it('should detect duplicate continue token and stop pagination', async () => {
+      const page = [{ metadata: { uid: 'p1' } }];
+
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ items: page, listmeta: { continue: 'same-token' } }),
+        } as any)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ items: page, listmeta: { continue: 'same-token' } }),
+        } as any);
+
+      const result = await client.getAllProjects();
+      expect(result.length).toBeGreaterThanOrEqual(1);
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('Duplicate continue token detected in getAllProjects'),
+      );
+    });
   });
 
   describe('getProject', () => {
@@ -173,11 +193,49 @@ describe('SpectroCloudClient', () => {
       expect(result).toEqual(mockProfiles);
     });
 
+    it('should handle pagination', async () => {
+      const page1 = [{ metadata: { uid: 'prof1' } }];
+      const page2 = [{ metadata: { uid: 'prof2' } }];
+
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ items: page1, listmeta: { continue: 'token1' } }),
+        } as any)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ items: page2 }),
+        } as any);
+
+      const result = await client.getAllClusterProfiles();
+      expect(result).toHaveLength(2);
+    });
+
     it('should return empty array on error', async () => {
       mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
       const result = await client.getAllClusterProfiles();
       expect(result).toEqual([]);
+    });
+
+    it('should detect duplicate continue token and stop pagination', async () => {
+      const page = [{ metadata: { uid: 'prof1' } }];
+
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ items: page, listmeta: { continue: 'same-token' } }),
+        } as any)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ items: page, listmeta: { continue: 'same-token' } }),
+        } as any);
+
+      const result = await client.getAllClusterProfiles();
+      expect(result.length).toBeGreaterThanOrEqual(1);
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('Duplicate continue token detected in getAllClusterProfiles'),
+      );
     });
   });
 
