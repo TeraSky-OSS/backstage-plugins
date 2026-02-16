@@ -2110,6 +2110,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
 export class KubernetesEntityProvider implements EntityProvider {
   private connection?: EntityProviderConnection;
   private readonly apiDefinitionFetcher: ApiDefinitionFetcher;
+  private namespaceAnnotationsCache: Map<string, Promise<Record<string, string> | null>> = new Map();
 
   constructor(
     private readonly taskRunner: SchedulerServiceTaskRunner,
@@ -2289,10 +2290,13 @@ export class KubernetesEntityProvider implements EntityProvider {
       throw new Error('Connection not initialized');
     }
     try {
+      // Clear namespace annotations cache for each run cycle
+      this.namespaceAnnotationsCache.clear();
+
       const isCrossplaneEnabled = this.config.getOptionalBoolean('kubernetesIngestor.crossplane.enabled') ?? true;
       const isKROEnabled = this.config.getOptionalBoolean('kubernetesIngestor.kro.enabled') ?? false;
       const componentsEnabled = this.config.getOptionalBoolean('kubernetesIngestor.components.enabled') ?? true;
-      
+
       if (componentsEnabled) {
         // Initialize providers
         const kubernetesDataProvider = new KubernetesDataProvider(
@@ -3240,18 +3244,29 @@ export class KubernetesEntityProvider implements EntityProvider {
     namespaceName: string,
     clusterName: string,
   ): Promise<Record<string, string> | null> {
-    try {
-      // Namespaces are in the core API, so we use /api/v1/ instead of /apis/
-      const namespace = await this.resourceFetcher.proxyKubernetesRequest(clusterName, {
-        path: `/api/v1/namespaces/${namespaceName}`,
-      });
-      return namespace?.metadata?.annotations || null;
-    } catch (error) {
-      this.logger.debug(
-        `Failed to fetch namespace ${namespaceName} from cluster ${clusterName} for owner inheritance: ${error}`,
-      );
-      return null;
+    const cacheKey = `${clusterName}/${namespaceName}`;
+    const cached = this.namespaceAnnotationsCache.get(cacheKey);
+    if (cached !== undefined) {
+      return cached;
     }
+
+    const promise = (async (): Promise<Record<string, string> | null> => {
+      try {
+        // Namespaces are in the core API, so we use /api/v1/ instead of /apis/
+        const namespace = await this.resourceFetcher.proxyKubernetesRequest(clusterName, {
+          path: `/api/v1/namespaces/${namespaceName}`,
+        });
+        return namespace?.metadata?.annotations || null;
+      } catch (error) {
+        this.logger.debug(
+          `Failed to fetch namespace ${namespaceName} from cluster ${clusterName} for owner inheritance: ${error}`,
+        );
+        return null;
+      }
+    })();
+
+    this.namespaceAnnotationsCache.set(cacheKey, promise);
+    return promise;
   }
 
   /**
