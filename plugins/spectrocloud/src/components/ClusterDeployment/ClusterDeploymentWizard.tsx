@@ -17,8 +17,9 @@ import { ProfileVariables } from './steps/ProfileVariables';
 import { ClusterConfiguration } from './steps/ClusterConfiguration';
 import { InfrastructureConfiguration } from './steps/InfrastructureConfiguration';
 import { VSphereInfrastructureConfiguration } from './steps/VSphereInfrastructureConfiguration';
+import { VirtualClusterInfrastructureConfiguration } from './steps/VirtualClusterInfrastructureConfiguration';
 import { Summary } from './steps/Summary';
-import { ClusterDeploymentState, initialDeploymentState } from './types';
+import { ClusterDeploymentState, initialDeploymentState, CloudType } from './types';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -43,16 +44,28 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-const STEPS = [
-  'Cloud Type',
-  'Project',
-  'Cloud Account',
-  'Profiles',
-  'Profile Variables',
-  'Cluster Configuration',
-  'Infrastructure',
-  'Review & Deploy',
-];
+const getStepsForCloudType = (cloudType?: CloudType): string[] => {
+  if (cloudType === 'virtual') {
+    return [
+      'Cloud Type',
+      'Project',
+      'Virtual Cluster Setup',
+      'Review & Deploy',
+    ];
+  }
+  
+  // Default steps for other cloud types (vSphere, EKS, etc.)
+  return [
+    'Cloud Type',
+    'Project',
+    'Cloud Account',
+    'Profiles',
+    'Profile Variables',
+    'Cluster Configuration',
+    'Infrastructure',
+    'Review & Deploy',
+  ];
+};
 
 export const ClusterDeploymentWizard = () => {
   const classes = useStyles();
@@ -60,8 +73,10 @@ export const ClusterDeploymentWizard = () => {
   const [state, setState] = useState<ClusterDeploymentState>(initialDeploymentState);
   const [profileVariablesValid, setProfileVariablesValid] = useState(true);
 
+  const steps = getStepsForCloudType(state.cloudType);
+
   const handleNext = () => {
-    if (activeStep < STEPS.length - 1) {
+    if (activeStep < steps.length - 1) {
       setActiveStep(prev => prev + 1);
     }
   };
@@ -79,6 +94,27 @@ export const ClusterDeploymentWizard = () => {
 
   const updateState = (updates: Partial<ClusterDeploymentState>) => {
     setState(prev => {
+      // If cloudType changes, reset to initial state to avoid conflicts
+      if (updates.cloudType && updates.cloudType !== prev.cloudType) {
+        setActiveStep(0); // Reset to cloud type selection
+        const newState = {
+          ...initialDeploymentState,
+          cloudType: updates.cloudType,
+        };
+        
+        // Initialize virtual cluster defaults
+        if (updates.cloudType === 'virtual') {
+          newState.cloudConfig = {
+            cpuCores: 4,
+            memoryGiB: 8,
+            storageGiB: 20,
+            endpointType: 'LoadBalancer',
+          };
+        }
+        
+        return newState;
+      }
+      
       // Deep merge tfMetadata to preserve existing fields
       const newState = {
         ...prev,
@@ -92,6 +128,30 @@ export const ClusterDeploymentWizard = () => {
   };
 
   const canProceed = (): boolean => {
+    if (state.cloudType === 'virtual') {
+      // Virtual cluster steps: Cloud Type, Project, Virtual Setup, Review
+      switch (activeStep) {
+        case 0: // Cloud Type
+          return !!state.cloudType;
+        case 1: // Project
+          return !!state.projectUid;
+        case 2: // Virtual Cluster Setup (name + cluster group + quotas)
+          const hasClusterName = !!state.clusterName && state.clusterName.length > 0 && 
+                                 /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/.test(state.clusterName);
+          const hasClusterGroup = !!state.cloudConfig.clusterGroupUid;
+          const hasValidQuotas = 
+            (state.cloudConfig.cpuCores ?? 0) > 0 &&
+            (state.cloudConfig.memoryGiB ?? 0) > 0 &&
+            (state.cloudConfig.storageGiB ?? 0) > 0;
+          return hasClusterName && hasClusterGroup && hasValidQuotas;
+        case 3: // Review & Deploy
+          return true;
+        default:
+          return false;
+      }
+    }
+
+    // Other cloud types: Cloud Type, Project, Cloud Account, Profiles, Profile Variables, Cluster Config, Infrastructure, Review
     switch (activeStep) {
       case 0: // Cloud Type
         return !!state.cloudType;
@@ -173,6 +233,45 @@ export const ClusterDeploymentWizard = () => {
   };
 
   const renderStepContent = () => {
+    if (state.cloudType === 'virtual') {
+      // Virtual cluster flow: Cloud Type, Project, Virtual Setup (name + cluster group + quotas), Review
+      switch (activeStep) {
+        case 0:
+          return (
+            <CloudTypeSelection
+              selectedCloudType={state.cloudType}
+              onSelect={cloudType => updateState({ cloudType })}
+            />
+          );
+        case 1:
+          return (
+            <ProjectSelection
+              selectedProjectUid={state.projectUid}
+              onSelect={(projectUid: string, projectName: string) =>
+                updateState({ projectUid, projectName })
+              }
+            />
+          );
+        case 2:
+          return (
+            <VirtualClusterInfrastructureConfiguration
+              state={state}
+              onChange={(updates: any) => updateState(updates)}
+            />
+          );
+        case 3:
+          return (
+            <Summary
+              state={state}
+              onDeploy={handleReset}
+            />
+          );
+        default:
+          return <Typography>Unknown step</Typography>;
+      }
+    }
+
+    // Other cloud types: Cloud Type, Project, Cloud Account, Profiles, Profile Variables, Cluster Config, Infrastructure, Review
     switch (activeStep) {
       case 0:
         return (
@@ -231,25 +330,29 @@ export const ClusterDeploymentWizard = () => {
           />
         );
       case 6:
-        return state.cloudType === 'vsphere' ? (
-          <VSphereInfrastructureConfiguration
-            cloudAccountUid={state.cloudAccountUid!}
-            projectUid={state.projectUid!}
-            controlPlaneConfig={state.controlPlaneConfig}
-            workerPools={state.workerPools}
-            cloudConfig={state.cloudConfig}
-            tfMetadata={state.tfMetadata}
-            onUpdate={(updates: any) => updateState(updates)}
-          />
-        ) : (
-          <InfrastructureConfiguration
-            cloudType={state.cloudType!}
-            controlPlaneConfig={state.controlPlaneConfig}
-            workerPools={state.workerPools}
-            cloudConfig={state.cloudConfig}
-            onUpdate={(updates: any) => updateState(updates)}
-          />
-        );
+        if (state.cloudType === 'vsphere') {
+          return (
+            <VSphereInfrastructureConfiguration
+              cloudAccountUid={state.cloudAccountUid!}
+              projectUid={state.projectUid!}
+              controlPlaneConfig={state.controlPlaneConfig}
+              workerPools={state.workerPools}
+              cloudConfig={state.cloudConfig}
+              tfMetadata={state.tfMetadata}
+              onUpdate={(updates: any) => updateState(updates)}
+            />
+          );
+        } else {
+          return (
+            <InfrastructureConfiguration
+              cloudType={state.cloudType!}
+              controlPlaneConfig={state.controlPlaneConfig}
+              workerPools={state.workerPools}
+              cloudConfig={state.cloudConfig}
+              onUpdate={(updates: any) => updateState(updates)}
+            />
+          );
+        }
       case 7:
         return (
           <Summary
@@ -266,7 +369,7 @@ export const ClusterDeploymentWizard = () => {
     <Box className={classes.root}>
       <Paper>
         <Stepper activeStep={activeStep} className={classes.stepper}>
-          {STEPS.map(label => (
+          {steps.map(label => (
             <Step key={label}>
               <StepLabel>{label}</StepLabel>
             </Step>
@@ -284,7 +387,7 @@ export const ClusterDeploymentWizard = () => {
             Back
           </Button>
           <Box>
-            {activeStep < STEPS.length - 1 && (
+            {activeStep < steps.length - 1 && (
               <Button
                 variant="contained"
                 color="primary"

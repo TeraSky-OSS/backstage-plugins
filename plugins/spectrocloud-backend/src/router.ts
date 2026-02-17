@@ -729,6 +729,10 @@ export async function createRouter(
         case 'vsphere':
           result = await client.createVSphereCluster(clusterConfig, projectUid);
           break;
+        case 'nested':
+        case 'virtual':
+          result = await client.createVirtualCluster(clusterConfig, projectUid);
+          break;
         default:
           return res.status(400).json({ error: `Unsupported cloud type: ${cloudType}` });
       }
@@ -738,6 +742,69 @@ export async function createRouter(
       logger.error(`Failed to create cluster: ${error}`);
       return res.status(500).json({ 
         error: error instanceof Error ? error.message : 'Failed to create cluster' 
+      });
+    }
+  });
+
+  // Create a virtual cluster
+  router.post('/virtualclusters', async (req, res) => {
+    // Check permission
+    if (!await checkPermission(createClusterPermission)) {
+      return res.status(403).json({ error: 'Permission denied: virtual cluster creation not allowed' });
+    }
+
+    const { clusterConfig } = req.body;
+    const projectUid = req.query.projectUid as string | undefined;
+    const instanceName = req.query.instance as string | undefined;
+
+    // Validate required fields
+    if (!clusterConfig?.metadata?.name) {
+      return res.status(400).json({ error: 'Cluster name is required' });
+    }
+
+    if (!clusterConfig?.spec?.clusterConfig?.hostClusterConfig?.clusterGroup?.uid) {
+      return res.status(400).json({ error: 'Cluster group UID is required' });
+    }
+
+    const client = await getClient(req, res, instanceName);
+    
+    if (!client) {
+      logger.error('No SpectroCloud configuration found');
+      return res.status(500).json({ error: 'No SpectroCloud configuration found' });
+    }
+
+    try {
+      const result = await client.createVirtualCluster(clusterConfig, projectUid);
+      
+      logger.info(`Virtual cluster created: ${clusterConfig.metadata.name}`);
+      return res.status(201).json(result);
+    } catch (error) {
+      logger.error(`Failed to create virtual cluster: ${error}`);
+      return res.status(500).json({
+        error: error instanceof Error ? error.message : 'Failed to create virtual cluster'
+      });
+    }
+  });
+
+  // List cluster groups
+  router.get('/clustergroups', async (req, res) => {
+    const projectUid = req.query.projectUid as string | undefined;
+    const instanceName = req.query.instance as string | undefined;
+
+    const client = await getClient(req, res, instanceName);
+    
+    if (!client) {
+      logger.error('No SpectroCloud configuration found');
+      return res.status(500).json({ error: 'No SpectroCloud configuration found' });
+    }
+
+    try {
+      const clusterGroups = await client.getClusterGroups(projectUid);
+      return res.json(clusterGroups);
+    } catch (error) {
+      logger.error(`Failed to list cluster groups: ${error}`);
+      return res.status(500).json({
+        error: error instanceof Error ? error.message : 'Failed to list cluster groups'
       });
     }
   });

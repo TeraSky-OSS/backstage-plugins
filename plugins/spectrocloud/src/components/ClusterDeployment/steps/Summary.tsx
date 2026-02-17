@@ -63,6 +63,45 @@ const generateTerraformConfig = (state: ClusterDeploymentState): string => {
   const resourceType = getResourceType(state.cloudType!);
   const lines: string[] = [];
 
+  // Header
+  lines.push(`# Spectro Cloud Cluster - ${state.clusterName}`);
+  if (state.clusterDescription) {
+    lines.push('# Description:');
+    state.clusterDescription.split('\n').forEach(line => {
+      lines.push(`#   ${line}`);
+    });
+  }
+  lines.push('# Generated from Backstage Cluster Deployment Wizard');
+  lines.push(`# Reference: https://registry.terraform.io/providers/spectrocloud/spectrocloud/latest/docs/resources/${resourceType}`);
+  lines.push('');
+
+  // Virtual cluster has a completely different structure
+  if (state.cloudType === 'virtual') {
+    // Data source for cluster group
+    lines.push('data "spectrocloud_cluster_group" "cluster_group" {');
+    lines.push(`  name    = "${state.cloudConfig.clusterGroupName || 'your-cluster-group'}"`);
+    lines.push('  context = "project"');
+    lines.push('}');
+    lines.push('');
+
+    // Virtual cluster resource
+    lines.push('resource "spectrocloud_virtual_cluster" "cluster" {');
+    lines.push(`  name              = "${state.clusterName}"`);
+    lines.push('  cluster_group_uid = data.spectrocloud_cluster_group.cluster_group.id');
+    lines.push('');
+    lines.push('  resources {');
+    lines.push(`    max_cpu            = ${state.cloudConfig.cpuCores || 4}`);
+    lines.push(`    max_mem_in_mb      = ${(state.cloudConfig.memoryGiB || 8) * 1024}`);
+    lines.push(`    max_storage_in_gb  = ${state.cloudConfig.storageGiB || 20}`);
+    lines.push('    min_cpu            = 0');
+    lines.push('    min_mem_in_mb      = 0');
+    lines.push('    min_storage_in_gb  = 0');
+    lines.push('  }');
+    lines.push('}');
+    
+    return lines.join('\n');
+  }
+
   // Collect unique IP pools used across all placements
   const ipPoolUids = new Set<string>();
   if (state.cloudType === 'vsphere') {
@@ -87,18 +126,6 @@ const generateTerraformConfig = (state: ClusterDeploymentState): string => {
   Array.from(ipPoolUids).forEach((uid, idx) => {
     ipPoolUidToIndex.set(uid, idx);
   });
-
-  // Header
-  lines.push(`# Spectro Cloud Cluster - ${state.clusterName}`);
-  if (state.clusterDescription) {
-    lines.push('# Description:');
-    state.clusterDescription.split('\n').forEach(line => {
-      lines.push(`#   ${line}`);
-    });
-  }
-  lines.push('# Generated from Backstage Cluster Deployment Wizard');
-  lines.push(`# Reference: https://registry.terraform.io/providers/spectrocloud/spectrocloud/latest/docs/resources/cluster_${resourceType}`);
-  lines.push('');
 
   // Data sources
   lines.push(`data "spectrocloud_cloudaccount_${state.cloudType}" "account" {`);
@@ -431,6 +458,8 @@ const getResourceType = (cloudType: CloudType): string => {
       return 'azure';
     case 'vsphere':
       return 'vsphere';
+    case 'virtual':
+      return 'virtual_cluster';
     default:
       return cloudType;
   }
@@ -475,6 +504,50 @@ export const Summary = ({ state, onDeploy }: SummaryProps) => {
   };
 
   const buildClusterConfig = (): ClusterCreationRequest => {
+    if (state.cloudType === 'virtual') {
+      // Virtual cluster configuration (no tags or description support)
+      const memoryMiB = state.cloudConfig.memoryGiB * 1024;
+      
+      return {
+        metadata: {
+          name: state.clusterName,
+        },
+        spec: {
+          cloudType: 'nested', // Virtual clusters use 'nested' in the API
+          cloudAccountUid: state.cloudAccountUid || '', // Virtual clusters may not require a cloud account
+          cloudConfig: {
+            kubernetesVersion: state.cloudConfig.kubernetesVersion,
+          },
+          clusterConfig: {
+            hostClusterConfig: {
+              clusterGroup: {
+                kind: 'ClusterGroup',
+                name: state.cloudConfig.clusterGroupName!,
+                uid: state.cloudConfig.clusterGroupUid!,
+              },
+              clusterEndpoint: {
+                type: state.cloudConfig.endpointType || 'LoadBalancer',
+                config: {},
+              },
+            },
+          },
+          machinePoolConfig: [{
+            cloudConfig: {
+              instanceType: {
+                minCPU: state.cloudConfig.cpuCores,
+                maxCPU: state.cloudConfig.cpuCores,
+                minMemInMiB: memoryMiB,
+                maxMemInMiB: memoryMiB,
+                minStorageGiB: state.cloudConfig.storageGiB,
+                maxStorageGiB: state.cloudConfig.storageGiB,
+              },
+            },
+          }],
+          profiles: [], // Virtual clusters inherit profiles from cluster group
+        },
+      };
+    }
+    
     if (state.cloudType === 'vsphere') {
       // vSphere has a different structure with machinePoolConfig
       const machinePoolConfig = [];

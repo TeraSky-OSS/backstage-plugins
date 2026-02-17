@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Header, Page, Content, Progress, Link } from '@backstage/core-components';
-import { useApi, configApiRef } from '@backstage/core-plugin-api';
+import { useApi, configApiRef, useRouteRef } from '@backstage/core-plugin-api';
 import { catalogApiRef } from '@backstage/plugin-catalog-react';
 import { Entity } from '@backstage/catalog-model';
+import { clusterDeploymentRouteRef } from '../../routes';
 import {
   Box,
   Card,
@@ -36,6 +37,7 @@ import ViewModuleIcon from '@material-ui/icons/ViewModule';
 import ViewListIcon from '@material-ui/icons/ViewList';
 import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
 import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
+import AddCircleIcon from '@material-ui/icons/AddCircle';
 import {
   StatusOK,
   StatusError,
@@ -148,6 +150,7 @@ export const VirtualClusterViewerPage = () => {
   const catalogApi = useApi(catalogApiRef);
   const spectroCloudApi = useApi(spectroCloudApiRef);
   const configApi = useApi(configApiRef);
+  const clusterDeploymentRoute = useRouteRef(clusterDeploymentRouteRef);
   
   const [virtualClusters, setVirtualClusters] = useState<Entity[]>([]);
   const [loading, setLoading] = useState(true);
@@ -604,6 +607,15 @@ export const VirtualClusterViewerPage = () => {
                   <Typography variant="body2" color="textSecondary">
                     {filteredAndSortedVirtualClusters.length} / {virtualClusters.length}
                   </Typography>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    size="small"
+                    startIcon={<AddCircleIcon />}
+                    onClick={() => window.location.href = clusterDeploymentRoute()}
+                  >
+                    Create Cluster
+                  </Button>
                   <Tooltip title="Refresh virtual clusters">
                     <IconButton onClick={fetchVirtualClusters} size="small">
                       <RefreshIcon />

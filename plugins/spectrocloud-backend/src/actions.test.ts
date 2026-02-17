@@ -305,7 +305,7 @@ describe('registerMcpActions', () => {
                 title: 'Cluster 1',
                 annotations: {
                   'terasky.backstage.io/cluster-id': 'cluster-1-id',
-                  'terasky.backstage.io/cluster-profiles': JSON.stringify([{ name: 'my-profile', uid: 'profile-123' }]),
+                  'terasky.backstage.io/cluster-profile-refs': JSON.stringify([{ name: 'my-profile', uid: 'profile-123' }]),
                 },
               },
             },
@@ -315,7 +315,7 @@ describe('registerMcpActions', () => {
                 title: 'Cluster 2',
                 annotations: {
                   'terasky.backstage.io/cluster-id': 'cluster-2-id',
-                  'terasky.backstage.io/cluster-profiles': JSON.stringify([{ name: 'other-profile', uid: 'profile-456' }]),
+                  'terasky.backstage.io/cluster-profile-refs': JSON.stringify([{ name: 'other-profile', uid: 'profile-456' }]),
                 },
               },
             },
@@ -331,7 +331,7 @@ describe('registerMcpActions', () => {
       expect(result.output.clusters[0].name).toBe('Cluster 1');
     });
 
-    it('should handle invalid JSON in cluster-profiles annotation', async () => {
+    it('should handle invalid JSON in cluster-profile-refs annotation', async () => {
       mockCatalogApi.getEntities
         .mockResolvedValueOnce({
           items: [{
@@ -349,7 +349,7 @@ describe('registerMcpActions', () => {
               metadata: {
                 name: 'cluster-1',
                 annotations: {
-                  'terasky.backstage.io/cluster-profiles': 'invalid-json',
+                  'terasky.backstage.io/cluster-profile-refs': 'invalid-json',
                 },
               },
             },

@@ -1401,6 +1401,65 @@ export class SpectroCloudClient {
     }
   }
 
+  /**
+   * Create a virtual cluster
+   */
+  async createVirtualCluster(clusterConfig: any, projectUid?: string): Promise<any> {
+    try {
+      const headers: Record<string, string> = {};
+      if (projectUid) {
+        headers.ProjectUid = projectUid;
+      }
+
+      const response = await this.makeRequest(
+        '/v1/spectroclusters/virtual',
+        'POST',
+        headers,
+        false,
+        JSON.stringify(clusterConfig)
+      );
+
+      return await response.json();
+    } catch (error) {
+      this.logger.error(`Failed to create virtual cluster: ${error}`);
+      throw error;
+    }
+  }
+
+  /**
+   * List cluster groups
+   */
+  async getClusterGroups(projectUid?: string): Promise<any> {
+    try {
+      const headers: Record<string, string> = {};
+      if (projectUid) {
+        headers.ProjectUid = projectUid;
+      }
+
+      const response = await this.makeRequest(
+        '/v1/clustergroups/hostCluster',
+        'GET',
+        headers
+      );
+
+      const result = await response.json();
+      
+      // The API returns cluster groups in a 'summaries' property
+      if (result.summaries && Array.isArray(result.summaries)) {
+        return { items: result.summaries };
+      } else if (Array.isArray(result)) {
+        return { items: result };
+      } else if (result.items && Array.isArray(result.items)) {
+        return result;
+      }
+      
+      return { items: [] };
+    } catch (error) {
+      this.logger.error(`Failed to list cluster groups: ${error}`);
+      throw error;
+    }
+  }
+
   getInstanceName(): string | undefined {
     return this.instanceName;
   }

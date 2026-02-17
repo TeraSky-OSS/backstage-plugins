@@ -51,8 +51,8 @@ interface CloudTypeSelectionProps {
   onSelect: (cloudType: CloudType) => void;
 }
 
-// Only vSphere is supported for now - other cloud types will be added later
-const CLOUD_TYPES: CloudType[] = ['vsphere'];
+// Supported cloud types for deployment
+const CLOUD_TYPES: CloudType[] = ['vsphere', 'virtual'];
 
 export const CloudTypeSelection = ({
   selectedCloudType,

@@ -396,6 +396,23 @@ export interface SpectroCloudApi {
     projectUid?: string,
     instanceName?: string,
   ): Promise<any>;
+
+  /**
+   * Create a virtual cluster
+   */
+  createVirtualCluster(
+    clusterConfig: any,
+    projectUid?: string,
+    instanceName?: string,
+  ): Promise<{ uid: string }>;
+
+  /**
+   * List cluster groups
+   */
+  getClusterGroups(
+    projectUid?: string,
+    instanceName?: string,
+  ): Promise<any>;
 }
 
 export const spectroCloudApiRef = createApiRef<SpectroCloudApi>({
@@ -946,6 +963,59 @@ export class SpectroCloudApiClient implements SpectroCloudApi {
     if (!response.ok) {
       const error = await response.text();
       throw new Error(`Failed to create cluster: ${error}`);
+    }
+
+    return response.json();
+  }
+
+  async createVirtualCluster(
+    clusterConfig: any,
+    projectUid?: string,
+    instanceName?: string,
+  ): Promise<{ uid: string }> {
+    const baseUrl = await this.discoveryApi.getBaseUrl('spectrocloud');
+    
+    const params = new URLSearchParams();
+    if (projectUid) params.append('projectUid', projectUid);
+    if (instanceName) params.append('instance', instanceName);
+
+    const response = await this.fetchApi.fetch(
+      `${baseUrl}/virtualclusters?${params.toString()}`,
+      await this.addAuthHeaders({
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ clusterConfig }),
+      }),
+    );
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Failed to create virtual cluster: ${error}`);
+    }
+
+    return response.json();
+  }
+
+  async getClusterGroups(
+    projectUid?: string,
+    instanceName?: string,
+  ): Promise<any> {
+    const baseUrl = await this.discoveryApi.getBaseUrl('spectrocloud');
+    
+    const params = new URLSearchParams();
+    if (projectUid) params.append('projectUid', projectUid);
+    if (instanceName) params.append('instance', instanceName);
+
+    const response = await this.fetchApi.fetch(
+      `${baseUrl}/clustergroups?${params.toString()}`,
+      await this.addAuthHeaders(),
+    );
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Failed to list cluster groups: ${error}`);
     }
 
     return response.json();

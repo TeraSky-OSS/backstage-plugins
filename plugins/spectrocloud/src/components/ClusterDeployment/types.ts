@@ -2,7 +2,7 @@
  * Types for the cluster deployment wizard
  */
 
-export type CloudType = 'eks' | 'aws' | 'aks' | 'azure' | 'vsphere';
+export type CloudType = 'eks' | 'aws' | 'aks' | 'azure' | 'vsphere' | 'virtual';
 
 export interface ProfileSelection {
   uid: string;
@@ -173,6 +173,7 @@ export const CLOUD_TYPE_LABELS: Record<CloudType, string> = {
   aks: 'Azure AKS',
   azure: 'Azure (Palette eXtended Kubernetes)',
   vsphere: 'vSphere (Palette eXtended Kubernetes)',
+  virtual: 'Virtual Cluster',
 };
 
 export const CLOUD_TYPE_DESCRIPTIONS: Record<CloudType, string> = {
@@ -181,6 +182,7 @@ export const CLOUD_TYPE_DESCRIPTIONS: Record<CloudType, string> = {
   aks: 'Deploy a managed Kubernetes cluster on Azure AKS',
   azure: 'Deploy a Palette-managed Kubernetes cluster on Azure',
   vsphere: 'Deploy a Palette-managed Kubernetes cluster on vSphere',
+  virtual: 'Deploy a virtual cluster within an existing cluster group',
 };
 
 export const initialDeploymentState: ClusterDeploymentState = {
