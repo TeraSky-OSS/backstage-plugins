@@ -302,7 +302,7 @@ export class SpectroCloudClusterSupplier implements KubernetesClustersSupplier {
       try {
         await k8sApi.readNamespace({ name: namespace });
       } catch (error: any) {
-        if (error.statusCode === 404) {
+        if (error.statusCode === 404 || error.code === 404) {
           await k8sApi.createNamespace({ body: { metadata: { name: namespace } } });
         } else if (error.code === 'ETIMEDOUT' || error.code === 'ECONNREFUSED' || error.code === 'EHOSTUNREACH') {
           throw new Error(`Cannot reach cluster ${clusterName}: ${error.code}`);
@@ -315,7 +315,7 @@ export class SpectroCloudClusterSupplier implements KubernetesClustersSupplier {
       try {
         await k8sApi.readNamespacedServiceAccount({ name: serviceAccountName, namespace });
       } catch (error: any) {
-        if (error.statusCode === 404) {
+        if (error.statusCode === 404 || error.code === 404) {
           await k8sApi.createNamespacedServiceAccount({
             namespace,
             body: { metadata: { name: serviceAccountName } },
@@ -329,7 +329,7 @@ export class SpectroCloudClusterSupplier implements KubernetesClustersSupplier {
       try {
         await k8sApi.readNamespacedSecret({ name: secretName, namespace });
       } catch (error: any) {
-        if (error.statusCode === 404) {
+        if (error.statusCode === 404 || error.code === 404) {
           await k8sApi.createNamespacedSecret({
             namespace,
             body: {
@@ -351,7 +351,7 @@ export class SpectroCloudClusterSupplier implements KubernetesClustersSupplier {
       try {
         await rbacApi.readClusterRole({ name: clusterRoleName });
       } catch (error: any) {
-        if (error.statusCode === 404) {
+        if (error.statusCode === 404 || error.code === 404) {
           // Use custom rules if provided, otherwise use default read-only rules
           let rules = clusterRoleRules || [
             {
@@ -382,7 +382,7 @@ export class SpectroCloudClusterSupplier implements KubernetesClustersSupplier {
       try {
         await rbacApi.readClusterRoleBinding({ name: clusterRoleBindingName });
       } catch (error: any) {
-        if (error.statusCode === 404) {
+        if (error.statusCode === 404 || error.code === 404) {
           await rbacApi.createClusterRoleBinding({
             body: {
               metadata: { name: clusterRoleBindingName },
