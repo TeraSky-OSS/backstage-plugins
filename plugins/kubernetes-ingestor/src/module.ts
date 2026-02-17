@@ -4,7 +4,7 @@ import {
 } from '@backstage/backend-plugin-api';
 import {
   catalogProcessingExtensionPoint,
-} from '@backstage/plugin-catalog-node/alpha';
+} from '@backstage/plugin-catalog-node';
 import { KubernetesEntityProvider, RGDTemplateEntityProvider, XRDTemplateEntityProvider } from './providers';
 import { DefaultKubernetesResourceFetcher } from './services';
 

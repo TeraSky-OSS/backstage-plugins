@@ -1,6 +1,6 @@
 {
   "name": "@terasky/backstage-plugin-spectrocloud-auth-backend",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "SpectroCloud OIDC authentication provider module for Backstage auth backend",
   "license": "Apache-2.0",
   "main": "src/index.ts",
@@ -32,13 +32,13 @@
     "postpack": "backstage-cli package postpack"
   },
   "dependencies": {
-    "@backstage/backend-plugin-api": "^1.6.2",
+    "@backstage/backend-plugin-api": "^1.7.0",
     "@backstage/catalog-model": "^1.7.6",
-    "@backstage/plugin-auth-node": "^0.6.12"
+    "@backstage/plugin-auth-node": "^0.6.13"
   },
   "devDependencies": {
-    "@backstage/backend-test-utils": "^1.10.4",
-    "@backstage/cli": "^0.35.3",
+    "@backstage/backend-test-utils": "^1.11.0",
+    "@backstage/cli": "^0.35.4",
     "typescript": "^5.8.3"
   },
   "files": [

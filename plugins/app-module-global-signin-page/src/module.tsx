@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import { 
   createFrontendModule, 
-  SignInPageBlueprint,
   githubAuthApiRef,
   gitlabAuthApiRef,
   microsoftAuthApiRef,
@@ -14,6 +13,7 @@ import {
   bitbucketServerAuthApiRef,
   vmwareCloudAuthApiRef,
 } from '@backstage/frontend-plugin-api';
+import { SignInPageBlueprint } from '@backstage/plugin-app-react';
 import { SignInPage } from '@backstage/core-components';
 import { useApi, configApiRef } from '@backstage/core-plugin-api';
 import { spectroCloudAuthApiRef } from '@terasky/backstage-plugin-spectrocloud-auth';
