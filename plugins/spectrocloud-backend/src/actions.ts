@@ -394,9 +394,9 @@ export function registerMcpActions(
           },
         }, { token });
 
-        // Filter clusters that have this profile in their cluster-profiles annotation
+        // Filter clusters that have this profile in their cluster-profile-refs annotation
         const clustersUsingProfile = items.filter(cluster => {
-          const profilesAnnotation = cluster.metadata.annotations?.[`${annotationPrefix}/cluster-profiles`];
+          const profilesAnnotation = cluster.metadata.annotations?.[`${annotationPrefix}/cluster-profile-refs`];
           if (!profilesAnnotation) return false;
           
           try {
