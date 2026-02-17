@@ -138,8 +138,24 @@ backend:
 | `get_spectrocloud_kubeconfig_for_cluster` | Generate kubeconfig file (client/OIDC access) | `clusterName` (string - entity title), `frp` (boolean, optional, default true) | `downloadKubeconfig` |
 | `get_spectrocloud_pack_details_for_profile` | Show packs and versions in a cluster profile | `profileName` (string - entity title) | `viewPackValues` |
 | `find_spectrocloud_clusters_for_profile` | List all clusters using this cluster profile | `profileName` (string - entity title) | `viewProfileClusters` |
+| `list_spectrocloud_clusters` | List all SpectroCloud clusters (optionally by project) | `instanceName` (optional), `projectUid` (optional) | `viewClusterInfo` |
+| `list_spectrocloud_virtual_clusters` | List all SpectroCloud virtual clusters | `instanceName` (optional) | `viewClusterInfo` |
+| `list_spectrocloud_projects` | List all SpectroCloud projects | `instanceName` (optional) | `viewClusterInfo` |
+| `list_spectrocloud_cluster_groups` | List cluster groups (optionally by project) | `instanceName` (optional), `projectUid` (optional) | `viewClusterInfo` |
+| `list_spectrocloud_cloud_accounts` | List cloud accounts by type (e.g. aws, azure, vsphere) | `cloudType` (string), `projectUid` (optional), `instanceName` (optional) | `viewClusterInfo` |
+| `search_spectrocloud_profiles_by_names` | Resolve profile UIDs and details by profile names | `names` (string array), `projectUid` (optional), `instanceName` (optional) | `viewProfileInfo` |
+| `get_spectrocloud_profile_variables` | Get variable definitions for a cluster profile | `profileName` (optional - entity title) or `profileUid` (optional), `projectUid` (optional), `instanceName` (optional) | `viewProfileInfo` |
+| `list_spectrocloud_profiles_for_project` | List cluster profiles in a project | `projectUid` (string), `cloudType` (optional), `profileType` (optional), `instanceName` (optional) | `viewProfileInfo` |
+| `get_spectrocloud_pack_manifest_for_cluster` | Get manifest content for a pack on a cluster | `clusterName` (optional) or `clusterUid` (optional), `manifestUid` (string), `projectUid` (optional), `instanceName` (optional) | `viewPackManifests` |
+| `get_spectrocloud_cluster_profiles` | Get profiles and pack metadata attached to a cluster | `clusterName` (optional) or `clusterUid` (optional), `projectUid` (optional), `instanceName` (optional) | `viewPackValues` |
+| `get_spectrocloud_virtual_cluster_details` | Get health and details for a virtual cluster | `virtualClusterUid` (string), `projectUid` (optional), `instanceName` (optional) | `viewClusterInfo` |
+| `get_spectrocloud_kubeconfig_for_virtual_cluster` | Generate kubeconfig for a virtual cluster (client/OIDC access) | `virtualClusterUid` (string), `projectUid` (optional), `frp` (optional), `instanceName` (optional) | `downloadKubeconfig` |
+| `get_spectrocloud_cluster_group` | Get cluster group details by UID | `clusterGroupUid` (string), `projectUid` (optional), `instanceName` (optional) | `viewClusterInfo` |
 
-**Note**: All MCP actions use entity titles (`metadata.title`) to look up entities in the catalog, not entity names. They search for entities with `kind: Resource` and `spec.type` of either `spectrocloud-cluster` or `spectrocloud-cluster-profile`.
+**Notes**:
+
+- **Entity-centric actions** (e.g. `get_spectrocloud_health_for_cluster`, `get_spectrocloud_pack_details_for_profile`) use entity titles (`metadata.title`) to look up entities in the catalog, not entity names. They search for entities with `kind: Resource` and `spec.type` of either `spectrocloud-cluster` or `spectrocloud-cluster-profile`.
+- **List and UID-based actions** use the backend API token. When multiple SpectroCloud environments are configured, pass `instanceName` to target a specific instance.
 
 ## Multi-Instance Configuration
 

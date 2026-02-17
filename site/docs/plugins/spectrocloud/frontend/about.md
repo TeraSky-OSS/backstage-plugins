@@ -153,7 +153,7 @@ Available for `spectrocloud-cluster-group` entities:
 ### Standalone Pages
 
 #### Cluster Deployment Page
-A comprehensive wizard for deploying new SpectroCloud clusters:
+A comprehensive wizard for deploying new SpectroCloud clusters and virtual clusters:
 
 **Supported Cloud Types**:
 - Amazon EKS
@@ -161,8 +161,9 @@ A comprehensive wizard for deploying new SpectroCloud clusters:
 - Azure AKS
 - Azure (Palette eXtended Kubernetes)
 - VMware vSphere
+- Virtual Cluster (nested within cluster groups)
 
-**Deployment Steps**:
+**Physical Cluster Deployment Steps**:
 1. **Cloud Type Selection**: Choose target cloud provider
 2. **Project Selection**: Select SpectroCloud project
 3. **Cloud Account Selection**: Choose configured cloud account
@@ -174,6 +175,22 @@ A comprehensive wizard for deploying new SpectroCloud clusters:
    - Worker pool configuration (instance types, sizes, labels, taints)
    - vSphere-specific: datacenters, datastores, networks, IP pools
 8. **Review and Deploy**: Review configuration and create cluster
+
+**Virtual Cluster Deployment Steps**:
+1. **Cloud Type Selection**: Choose "Virtual Cluster"
+2. **Project Selection**: Select SpectroCloud project
+3. **Virtual Cluster Setup**:
+   - Virtual cluster name (lowercase alphanumeric and hyphens)
+   - Cluster group selection (autocomplete with search)
+   - Resource quotas configuration:
+     - CPU cores (numeric with validation)
+     - Memory in GiB (numeric with validation)
+     - Storage in GiB (numeric with validation)
+   - Display cluster group limits for reference
+4. **Review and Deploy**: 
+   - Review all configuration settings
+   - View and download generated Terraform configuration
+   - Deploy virtual cluster with a single click
 
 #### Cluster Viewer Page
 Browse and manage all accessible SpectroCloud clusters:
@@ -207,6 +224,7 @@ Browse and manage all accessible SpectroCloud virtual clusters:
   - Resource quotas (CPU and memory usage)
   - Attached profiles (clickable links)
 - **Actions**:
+  - Create new clusters (redirects to deployment wizard)
   - Download kubeconfig
   - Navigate to virtual cluster entity page
   - Refresh list
@@ -247,8 +265,8 @@ The plugin provides a comprehensive API client (`SpectroCloudApiClient`) with me
 
 - **User & Projects**: `getUserProjects()`, `getProjects()`
 - **Clusters**: `getAllClusters()`, `getClusterDetails()`, `createCluster()`
-- **Virtual Clusters**: `getAllVirtualClusters()`, `getVirtualClusterDetails()`
-- **Cluster Groups**: `getClusterGroupDetails()`
+- **Virtual Clusters**: `getAllVirtualClusters()`, `getVirtualClusterDetails()`, `createVirtualCluster()`
+- **Cluster Groups**: `getClusterGroupDetails()`, `getClusterGroups()`
 - **Kubeconfig**: `getKubeconfig()`, `getVirtualClusterKubeconfig()`
 - **Profiles**: `getClusterProfiles()`, `searchProfiles()`, `getProjectProfiles()`, `getProfileWithPacks()`, `getProfileVariables()`
 - **Packs**: `getPackManifest()`
@@ -318,9 +336,11 @@ The plugin integrates with `@terasky/backstage-plugin-spectrocloud-auth`:
 ### Cluster Deployment
 - Self-service cluster creation through Backstage
 - Deploy to multiple cloud types (EKS, AWS, AKS, Azure, vSphere)
+- Create virtual clusters within existing cluster groups
 - Configure infrastructure and add-on profiles
 - Set up worker pools with custom configurations
 - vSphere deployments with PCG/overlord selection
+- Define resource quotas for virtual clusters (CPU, memory, storage)
 
 ### Profile Tracking
 - Track which clusters use which profile versions

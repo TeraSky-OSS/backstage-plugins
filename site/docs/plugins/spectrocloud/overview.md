@@ -14,6 +14,7 @@ The SpectroCloud plugin suite consists of several components for resource manage
   - Kubeconfig download functionality (clusters and virtual clusters)
   - Pack/layer visualization with YAML viewer
   - Cluster group settings viewer with parsed Helm values
+  - Cluster deployment wizard for physical and virtual clusters
   - Virtual cluster viewer page with filtering
   - Permission-based access control
 
