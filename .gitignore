@@ -1,6 +1,8 @@
 .vscode/mcp.json
 # macOS
 .DS_Store
+# API Dev Docs
+api-dev-docs/
 
 # Logs
 logs
