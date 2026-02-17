@@ -10,6 +10,12 @@
     "main": "dist/index.esm.js",
     "types": "dist/index.d.ts"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TeraSky-OSS/backstage-plugins.git",
+    "directory": "plugins/api-docs-module-crd"
+  },
+  "homepage": "https://terasky.com",
   "backstage": {
     "role": "frontend-plugin-module",
     "pluginId": "api-docs",
