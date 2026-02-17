@@ -18,7 +18,7 @@ import { Administration } from '@backstage-community/plugin-rbac';
 import LibraryBooks from '@material-ui/icons/LibraryBooks';
 import EditIcon from '@material-ui/icons/Edit';
 import ListIcon from '@material-ui/icons/List';
-import AddCircleIcon from '@material-ui/icons/AddCircle';
+// import AddCircleIcon from '@material-ui/icons/AddCircle';
 import { SiKubernetes } from "react-icons/si";
 import { FaCloud, FaObjectGroup, FaProjectDiagram, FaServer } from "react-icons/fa";
 import { SiOpenapiinitiative } from "react-icons/si";
@@ -144,11 +144,11 @@ export const SidebarContent: ReturnType<typeof NavContentBlueprint.make> = NavCo
               to="/spectrocloud/virtualclusters"
               icon={SiKubernetes}
             />
-            <SidebarSubmenuItem
+            {/* <SidebarSubmenuItem
               title="Create Cluster"
               to="/spectrocloud/deploy"
               icon={AddCircleIcon}
-            />
+            /> */}
           </SidebarSubmenu>
         </SidebarItem>
         <SidebarItem icon={FaCloud} text="VCF Automation">
