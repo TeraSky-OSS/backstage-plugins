@@ -1392,6 +1392,210 @@ describe('KubernetesEntityProvider', () => {
       });
     });
 
+    describe('Given namespace annotations cache', () => {
+      const createMockWorkload = (annotations: any = {}, namespace: string = 'test-namespace', name: string = 'test-deployment') => ({
+        apiVersion: 'apps/v1',
+        kind: 'Deployment',
+        metadata: {
+          name,
+          namespace,
+          annotations,
+        },
+        spec: {},
+        clusterName: 'test-cluster',
+      });
+
+      it('When multiple workloads share the same namespace and cluster, Then the namespace is fetched only once', async () => {
+        const provider = createProviderWithConfig({
+          inheritOwnerFromNamespace: true,
+        });
+
+        mockResourceFetcher.proxyKubernetesRequest.mockResolvedValue({
+          metadata: {
+            name: 'shared-ns',
+            annotations: {
+              'terasky.backstage.io/owner': 'group:default/team-shared',
+            },
+          },
+        });
+
+        const workload1 = createMockWorkload({}, 'shared-ns', 'deploy-a');
+        const workload2 = createMockWorkload({}, 'shared-ns', 'deploy-b');
+
+        const entities1 = await (provider as any).translateKubernetesObjectsToEntities(workload1);
+        const entities2 = await (provider as any).translateKubernetesObjectsToEntities(workload2);
+
+        // Both should inherit the namespace owner
+        const comp1 = entities1.find((e: any) => e.kind === 'Component');
+        const comp2 = entities2.find((e: any) => e.kind === 'Component');
+        expect(comp1.spec.owner).toBe('group:default/team-shared');
+        expect(comp2.spec.owner).toBe('group:default/team-shared');
+
+        // Namespace should only be fetched once due to caching
+        const namespaceCalls = mockResourceFetcher.proxyKubernetesRequest.mock.calls.filter(
+          (call: any[]) => call[1]?.path === '/api/v1/namespaces/shared-ns',
+        );
+        expect(namespaceCalls).toHaveLength(1);
+      });
+
+      it('When workloads are in different namespaces, Then each namespace is fetched separately', async () => {
+        const provider = createProviderWithConfig({
+          inheritOwnerFromNamespace: true,
+        });
+
+        mockResourceFetcher.proxyKubernetesRequest.mockImplementation((_cluster: string, opts: any) => {
+          if (opts.path === '/api/v1/namespaces/ns-alpha') {
+            return Promise.resolve({
+              metadata: {
+                name: 'ns-alpha',
+                annotations: { 'terasky.backstage.io/owner': 'group:default/team-alpha' },
+              },
+            });
+          }
+          if (opts.path === '/api/v1/namespaces/ns-beta') {
+            return Promise.resolve({
+              metadata: {
+                name: 'ns-beta',
+                annotations: { 'terasky.backstage.io/owner': 'group:default/team-beta' },
+              },
+            });
+          }
+          return Promise.resolve({ metadata: { annotations: {} } });
+        });
+
+        const workloadA = createMockWorkload({}, 'ns-alpha', 'deploy-a');
+        const workloadB = createMockWorkload({}, 'ns-beta', 'deploy-b');
+
+        const entitiesA = await (provider as any).translateKubernetesObjectsToEntities(workloadA);
+        const entitiesB = await (provider as any).translateKubernetesObjectsToEntities(workloadB);
+
+        const compA = entitiesA.find((e: any) => e.kind === 'Component');
+        const compB = entitiesB.find((e: any) => e.kind === 'Component');
+        expect(compA.spec.owner).toBe('group:default/team-alpha');
+        expect(compB.spec.owner).toBe('group:default/team-beta');
+
+        // Each namespace fetched exactly once
+        const alphaCalls = mockResourceFetcher.proxyKubernetesRequest.mock.calls.filter(
+          (call: any[]) => call[1]?.path === '/api/v1/namespaces/ns-alpha',
+        );
+        const betaCalls = mockResourceFetcher.proxyKubernetesRequest.mock.calls.filter(
+          (call: any[]) => call[1]?.path === '/api/v1/namespaces/ns-beta',
+        );
+        expect(alphaCalls).toHaveLength(1);
+        expect(betaCalls).toHaveLength(1);
+      });
+
+      it('When same namespace exists on different clusters, Then each cluster/namespace pair is fetched separately', async () => {
+        const provider = createProviderWithConfig({
+          inheritOwnerFromNamespace: true,
+        });
+
+        mockResourceFetcher.proxyKubernetesRequest.mockImplementation((cluster: string, opts: any) => {
+          if (cluster === 'cluster-a' && opts.path === '/api/v1/namespaces/shared-ns') {
+            return Promise.resolve({
+              metadata: {
+                name: 'shared-ns',
+                annotations: { 'terasky.backstage.io/owner': 'group:default/team-a' },
+              },
+            });
+          }
+          if (cluster === 'cluster-b' && opts.path === '/api/v1/namespaces/shared-ns') {
+            return Promise.resolve({
+              metadata: {
+                name: 'shared-ns',
+                annotations: { 'terasky.backstage.io/owner': 'group:default/team-b' },
+              },
+            });
+          }
+          return Promise.resolve({ metadata: { annotations: {} } });
+        });
+
+        const workloadClusterA = {
+          ...createMockWorkload({}, 'shared-ns', 'deploy-a'),
+          clusterName: 'cluster-a',
+        };
+        const workloadClusterB = {
+          ...createMockWorkload({}, 'shared-ns', 'deploy-b'),
+          clusterName: 'cluster-b',
+        };
+
+        const entitiesA = await (provider as any).translateKubernetesObjectsToEntities(workloadClusterA);
+        const entitiesB = await (provider as any).translateKubernetesObjectsToEntities(workloadClusterB);
+
+        const compA = entitiesA.find((e: any) => e.kind === 'Component');
+        const compB = entitiesB.find((e: any) => e.kind === 'Component');
+        expect(compA.spec.owner).toBe('group:default/team-a');
+        expect(compB.spec.owner).toBe('group:default/team-b');
+
+        // Each cluster/namespace pair fetched exactly once
+        const clusterACalls = mockResourceFetcher.proxyKubernetesRequest.mock.calls.filter(
+          (call: any[]) => call[0] === 'cluster-a' && call[1]?.path === '/api/v1/namespaces/shared-ns',
+        );
+        const clusterBCalls = mockResourceFetcher.proxyKubernetesRequest.mock.calls.filter(
+          (call: any[]) => call[0] === 'cluster-b' && call[1]?.path === '/api/v1/namespaces/shared-ns',
+        );
+        expect(clusterACalls).toHaveLength(1);
+        expect(clusterBCalls).toHaveLength(1);
+      });
+
+      it('When namespace fetch fails, Then the error is cached and not retried within the same run', async () => {
+        const provider = createProviderWithConfig({
+          inheritOwnerFromNamespace: true,
+        });
+
+        mockResourceFetcher.proxyKubernetesRequest.mockRejectedValue(new Error('Namespace not found'));
+
+        const workload1 = createMockWorkload({}, 'missing-ns', 'deploy-a');
+        const workload2 = createMockWorkload({}, 'missing-ns', 'deploy-b');
+
+        const entities1 = await (provider as any).translateKubernetesObjectsToEntities(workload1);
+        const entities2 = await (provider as any).translateKubernetesObjectsToEntities(workload2);
+
+        // Both should fall back to default owner
+        const comp1 = entities1.find((e: any) => e.kind === 'Component');
+        const comp2 = entities2.find((e: any) => e.kind === 'Component');
+        expect(comp1.spec.owner).toContain('kubernetes-auto-ingested');
+        expect(comp2.spec.owner).toContain('kubernetes-auto-ingested');
+
+        // Namespace fetch attempted only once (failure is cached)
+        const namespaceCalls = mockResourceFetcher.proxyKubernetesRequest.mock.calls.filter(
+          (call: any[]) => call[1]?.path === '/api/v1/namespaces/missing-ns',
+        );
+        expect(namespaceCalls).toHaveLength(1);
+      });
+
+      it('When cache is cleared between runs, Then namespace is re-fetched', async () => {
+        const provider = createProviderWithConfig({
+          inheritOwnerFromNamespace: true,
+        });
+
+        mockResourceFetcher.proxyKubernetesRequest.mockResolvedValue({
+          metadata: {
+            name: 'team-ns',
+            annotations: {
+              'terasky.backstage.io/owner': 'group:default/team-ns',
+            },
+          },
+        });
+
+        const workload = createMockWorkload({}, 'team-ns', 'deploy-a');
+
+        // First access populates the cache
+        await (provider as any).translateKubernetesObjectsToEntities(workload);
+
+        // Clear cache (simulates what run() does at the start of each cycle)
+        (provider as any).namespaceAnnotationsCache.clear();
+
+        // Second access after cache clear should re-fetch
+        await (provider as any).translateKubernetesObjectsToEntities(workload);
+
+        const namespaceCalls = mockResourceFetcher.proxyKubernetesRequest.mock.calls.filter(
+          (call: any[]) => call[1]?.path === '/api/v1/namespaces/team-ns',
+        );
+        expect(namespaceCalls).toHaveLength(2);
+      });
+    });
+
     describe('Given custom annotation prefix configuration', () => {
       it('When namespace has owner annotation with custom prefix, Then it inherits owner correctly', async () => {
         const provider = createProviderWithConfig({
