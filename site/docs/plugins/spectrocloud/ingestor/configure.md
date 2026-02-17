@@ -15,16 +15,18 @@ spectrocloud:
       catalogProvider:
         enabled: true
         refreshIntervalSeconds: 600
-        ingestProjects: true
-        ingestClusterProfiles: true
-        ingestClusters: true
+        defaultOwner: spectrocloud-auto-ingested
+        ownerNamespace: group
         includeProjects:
           - production
           - staging
         excludeProjects:
           - sandbox
-        excludeTenantScopedProfiles: false
-        excludeTenantScopedClusters: false
+        excludeTenantScopedResources: false
+        resources:
+          projects: true
+          clusterProfiles: true
+          clusters: true
 ```
 
 ## Configuration Parameters
@@ -49,14 +51,15 @@ spectrocloud:
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `enabled` | boolean | `true` | Enable/disable the provider |
-| `refreshIntervalSeconds` | number | `600` | Refresh interval in seconds |
-| `ingestProjects` | boolean | `true` | Ingest project entities |
-| `ingestClusterProfiles` | boolean | `true` | Ingest cluster profile entities |
-| `ingestClusters` | boolean | `true` | Ingest cluster entities |
+| `refreshIntervalSeconds` | number | `600` | Refresh interval in seconds (10 minutes) |
+| `defaultOwner` | string | `spectrocloud-auto-ingested` | Default owner for ingested entities |
+| `ownerNamespace` | string | `group` | Owner namespace (`group` or `user`) |
 | `includeProjects` | string[] | `[]` | Projects to include (empty = all) |
 | `excludeProjects` | string[] | `[]` | Projects to exclude |
-| `excludeTenantScopedProfiles` | boolean | `false` | Exclude tenant-scoped profiles |
-| `excludeTenantScopedClusters` | boolean | `false` | Exclude tenant-scoped clusters |
+| `excludeTenantScopedResources` | boolean | `false` | Exclude tenant-scoped resources (profiles and clusters) |
+| `resources.projects` | boolean | `true` | Ingest project entities |
+| `resources.clusterProfiles` | boolean | `true` | Ingest cluster profile entities |
+| `resources.clusters` | boolean | `true` | Ingest cluster entities |
 
 ## Configuration Examples
 
@@ -128,9 +131,24 @@ spectrocloud:
       apiToken: ${SPECTROCLOUD_API_TOKEN}
       catalogProvider:
         enabled: true
-        ingestProjects: false
-        ingestClusterProfiles: false
-        ingestClusters: true
+        resources:
+          projects: false
+          clusterProfiles: false
+          clusters: true
+```
+
+### Custom Owner Configuration
+
+```yaml
+spectrocloud:
+  environments:
+    - url: https://api.spectrocloud.com
+      tenant: my-tenant
+      apiToken: ${SPECTROCLOUD_API_TOKEN}
+      catalogProvider:
+        enabled: true
+        defaultOwner: platform-team
+        ownerNamespace: group  # Entities will be owned by group:default/platform-team
 ```
 
 ## Entity Naming Convention
@@ -173,29 +191,84 @@ catalogProvider:
 ```
 
 ### Tenant-Scoped Exclusion
-Exclude tenant-scoped resources:
+Exclude all tenant-scoped resources (both profiles and clusters):
 ```yaml
 catalogProvider:
-  excludeTenantScopedProfiles: true
-  excludeTenantScopedClusters: true
+  excludeTenantScopedResources: true
+```
+
+**Note**: This replaces the separate `excludeTenantScopedProfiles` and `excludeTenantScopedClusters` options.
+
+## Entity Relationships
+
+The ingestor creates proper entity relationships:
+
+### System Relationships
+- **Projects** (System entities) contain profiles and clusters
+- Project-scoped profiles have `spec.system` pointing to the project
+- Project-scoped clusters have `spec.system` pointing to the project
+
+### Dependency Relationships
+- **Clusters** have `spec.dependsOn` referencing attached profile entities
+- Profile references use the profile version UID for exact version tracking
+
+### Example Relationships
+
+```yaml
+# Project (System)
+kind: System
+metadata:
+  name: my-project
+spec:
+  owner: group:default/platform-team
+
+---
+# Profile (Resource)
+kind: Resource
+metadata:
+  name: my-project-infra-profile
+spec:
+  type: spectrocloud-cluster-profile
+  owner: group:default/platform-team
+  system: my-project  # Links to project
+
+---
+# Cluster (Resource)
+kind: Resource
+metadata:
+  name: my-project-prod-cluster
+spec:
+  type: spectrocloud-cluster
+  owner: group:default/platform-team
+  system: my-project  # Links to project
+  dependsOn:
+    - resource:default/my-project-infra-profile  # Links to profile
 ```
 
 ## Best Practices
 
 ### Performance
 1. Set appropriate refresh intervals (not too frequent)
+   - Default 600 seconds (10 minutes) is suitable for most use cases
+   - Reduce for rapidly changing environments
+   - Increase for large, stable environments
 2. Use project filtering to limit scope
 3. Monitor catalog size growth
+4. Disable ingestion of unused resource types via `resources.*` settings
 
 ### Security
 1. Use environment variables for API tokens
 2. Limit API token permissions to read-only
 3. Use project filtering for sensitive environments
+4. Use `excludeTenantScopedResources` to prevent exposure of tenant-level resources
+5. Configure appropriate owner and namespace for ingested entities
 
 ### Organization
-1. Use meaningful instance names
-2. Consistent annotation prefix across plugins
+1. Use meaningful instance names for multi-instance setups
+2. Maintain consistent annotation prefix across all plugins
 3. Document project naming conventions
+4. Use descriptive titles for entities (set in entity metadata)
+5. Apply consistent tagging strategies
 
 ## Troubleshooting
 
@@ -220,4 +293,20 @@ catalogProvider:
    - Reduce `refreshIntervalSeconds`
    - Check scheduler is running
    - Review backend logs
+   - Verify API token has not expired
+
+5. **Relationship Errors**
+   - Verify parent entities (projects) are created before children
+   - Check `spec.system` and `spec.dependsOn` references
+   - Ensure entity names are unique
+
+6. **Owner Resolution Issues**
+   - Check `defaultOwner` entity exists in catalog
+   - Verify `ownerNamespace` is correct (`group` or `user`)
+   - Confirm owner entity has correct format (e.g., `group:default/team-name`)
+
+7. **Resource Type Toggle Not Working**
+   - Verify `resources.projects`, `resources.clusterProfiles`, `resources.clusters` settings
+   - Check logs for ingestion skipping messages
+   - Ensure config changes are loaded (restart backend if needed)
 

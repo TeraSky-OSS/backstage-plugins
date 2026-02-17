@@ -98,32 +98,45 @@ spec:
 
 ## Annotations Reference
 
+**Note**: All annotations use the configured `annotationPrefix` (default: `terasky.backstage.io`). The prefix is shown as `{prefix}` below.
+
 ### Project Annotations
-| Annotation | Description |
-|------------|-------------|
-| `project-id` | SpectroCloud project UID |
-| `scope` | Always `tenant` for projects |
-| `instance` | SpectroCloud instance name |
+| Annotation | Description | Example |
+|------------|-------------|---------|
+| `{prefix}/project-id` | SpectroCloud project UID | `abc123` |
+| `{prefix}/scope` | Always `project` for projects | `project` |
+| `{prefix}/tenant-id` | Parent tenant UID | `tenant456` |
+| `{prefix}/instance` | SpectroCloud instance name | `production` |
 
 ### Profile Annotations
-| Annotation | Description |
-|------------|-------------|
-| `profile-id` | SpectroCloud profile UID |
-| `scope` | `tenant` or `project` |
-| `project-id` | Parent project UID (if project-scoped) |
-| `cloud-type` | Target cloud type |
-| `profile-versions` | JSON array of available versions |
+| Annotation | Description | Example |
+|------------|-------------|---------|
+| `{prefix}/profile-id` | SpectroCloud profile UID | `prof789` |
+| `{prefix}/scope` | `tenant` or `project` | `project` |
+| `{prefix}/project-id` | Parent project UID (if project-scoped) | `abc123` |
+| `{prefix}/overlord-id` | Overlord/PCG UID (if applicable) | `overlord123` |
+| `{prefix}/profile-type` | Profile type | `infra`, `add-on`, `cluster` |
+| `{prefix}/cloud-type` | Target cloud type | `eks`, `aws`, `aks`, `azure`, `vsphere` |
+| `{prefix}/profile-status` | Profile publication status | `published`, `draft` |
+| `{prefix}/version` | Current version | `1.0.0` |
+| `{prefix}/latest-version` | Latest available version | `1.1.0` |
+| `{prefix}/profile-versions` | JSON array of all versions | `[{"uid":"v1","version":"1.0.0"}]` |
+| `{prefix}/instance` | SpectroCloud instance name | `production` |
 
 ### Cluster Annotations
-| Annotation | Description |
-|------------|-------------|
-| `cluster-id` | SpectroCloud cluster UID |
-| `scope` | `tenant` or `project` |
-| `project-id` | Parent project UID (if project-scoped) |
-| `cloud-type` | Cloud provider type |
-| `state` | Cluster state (Running, Pending, etc.) |
-| `kubernetes-version` | Kubernetes version |
-| `cluster-profile-refs` | JSON array of attached profile references |
+| Annotation | Description | Example |
+|------------|-------------|---------|
+| `{prefix}/cluster-id` | SpectroCloud cluster UID | `cluster789` |
+| `{prefix}/scope` | `tenant` or `project` | `project` |
+| `{prefix}/project-id` | Parent project UID (if project-scoped) | `abc123` |
+| `{prefix}/project-name` | Parent project name | `My Project` |
+| `{prefix}/overlord-id` | Overlord/PCG UID | `overlord123` |
+| `{prefix}/tenant-id` | Parent tenant UID | `tenant456` |
+| `{prefix}/cloud-type` | Cloud provider type | `eks`, `aws`, `aks`, `azure`, `vsphere` |
+| `{prefix}/state` | Cluster state | `Running`, `Pending`, `Failed`, etc. |
+| `{prefix}/kubernetes-version` | Kubernetes version | `1.28.5` |
+| `{prefix}/cluster-profile-refs` | JSON array of attached profiles | `[{"name":"my-profile","uid":"version-uid"}]` |
+| `{prefix}/instance` | SpectroCloud instance name | `production` |
 
 ## Use Cases
 
