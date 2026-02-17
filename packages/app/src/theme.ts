@@ -6,7 +6,7 @@ import {
     shapes,
     UnifiedThemeProvider,
   } from '@backstage/theme';
-import { ThemeBlueprint } from '@backstage/frontend-plugin-api';
+import { ThemeBlueprint } from '@backstage/plugin-app-react';
 import LightIcon from '@material-ui/icons/WbSunny';
 import Brightness2Icon from '@material-ui/icons/Brightness2';
 import React from 'react';
