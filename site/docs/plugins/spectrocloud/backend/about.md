@@ -18,6 +18,14 @@ The SpectroCloud Backend plugin provides comprehensive HTTP API endpoints for th
 - **Pack Manifests**: Fetch pack manifest content
 - **Cluster Creation**: Deploy new clusters to multiple cloud types (EKS, AWS, AKS, Azure, vSphere)
 
+#### Virtual Cluster Operations
+- **List Virtual Clusters**: Fetch all accessible virtual clusters with metadata
+- **Virtual Cluster Details**: Get complete virtual cluster information including resource quotas
+- **Virtual Cluster Kubeconfig**: Download kubeconfig for virtual clusters
+
+#### Cluster Group Operations
+- **Cluster Group Details**: Fetch cluster group configuration including Helm values and settings
+
 #### Profile Operations
 - **Profile Details**: Fetch profile information
 - **Profile Search**: Search profiles by name across instances
@@ -115,6 +123,10 @@ All routes are under the `spectrocloud` backend plugin base path.
 | GET | `/clusters/:clusterUid/profiles` | Cluster profiles with packs | `viewPackValues` |
 | GET | `/clusters/:clusterUid/pack/manifests/:manifestUid` | Pack manifest | `viewPackManifests` |
 | POST | `/clusters` | Create cluster | `createCluster` |
+| GET | `/virtualclusters` | List virtual clusters | `viewClusterInfo` |
+| GET | `/virtualclusters/:clusterUid` | Virtual cluster details | `viewClusterInfo` |
+| GET | `/virtualclusters/:clusterUid/kubeconfig` | Download virtual cluster kubeconfig | `downloadKubeconfig` |
+| GET | `/clustergroups/:clusterGroupUid` | Cluster group details | `viewClusterInfo` |
 | GET | `/projects` | List projects | `viewClusterInfo` |
 | GET | `/profiles/:profileUid` | Profile details | `viewProfileInfo` |
 | POST | `/profiles/search` | Search profiles by name | `viewProfileInfo` |
@@ -148,6 +160,8 @@ The `SpectroCloudClient` provides methods for interacting with SpectroCloud Pale
 **Core Methods**:
 - User & Projects: `getUserInfo()`, `getAllProjects()`, `getProject()`
 - Clusters: `getAllClusters()`, `getCluster()`, `getClustersForProject()`, `getTenantClusters()`, `getClientKubeConfig()`
+git ad- Virtual Clusters: `getAllVirtualClusters()`, `getVirtualCluster()`, `getVirtualClusterKubeConfig()`
+- Cluster Groups: `getClusterGroup()`
 - Profiles: `getClusterProfile()`, `getProjectClusterProfiles()`, `searchClusterProfilesByName()`, `getClusterProfiles()`, `getProfileWithPacks()`, `getProfileVariables()`, `getPackManifest()`
 - Cloud Accounts: `getCloudAccounts()`, `getCloudAccount()`, `getVSphereCloudAccountMetadata()`, `getVSphereComputeClusterResources()`
 - Infrastructure: `getUserSSHKeys()`, `getOverlords()`, `getVSphereIPPools()`
@@ -190,11 +204,12 @@ The `SpectroCloudClient` provides methods for interacting with SpectroCloud Pale
 ## Use Cases
 
 ### Frontend Integration
-- Power the cluster and profile cards
+- Power the cluster, profile, virtual cluster, and cluster group cards
 - Provide real-time data fetching
-- Handle kubeconfig downloads securely
+- Handle kubeconfig downloads securely (clusters and virtual clusters)
 - Enable cluster deployment wizard
-- Support cluster viewer/browser
+- Support cluster viewer and virtual cluster viewer pages
+- Provide cluster group configuration details
 
 ### Cluster Lifecycle Management
 - Self-service cluster creation

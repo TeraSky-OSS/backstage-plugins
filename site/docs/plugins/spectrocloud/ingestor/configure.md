@@ -27,6 +27,8 @@ spectrocloud:
           projects: true
           clusterProfiles: true
           clusters: true
+          clusterGroups: true
+          virtualClusters: true
 ```
 
 ## Configuration Parameters
@@ -60,6 +62,8 @@ spectrocloud:
 | `resources.projects` | boolean | `true` | Ingest project entities |
 | `resources.clusterProfiles` | boolean | `true` | Ingest cluster profile entities |
 | `resources.clusters` | boolean | `true` | Ingest cluster entities |
+| `resources.clusterGroups` | boolean | `true` | Ingest cluster group entities |
+| `resources.virtualClusters` | boolean | `true` | Ingest virtual cluster entities |
 
 ## Configuration Examples
 
@@ -135,7 +139,29 @@ spectrocloud:
           projects: false
           clusterProfiles: false
           clusters: true
+          clusterGroups: false
+          virtualClusters: false
 ```
+
+### Virtual Clusters and Cluster Groups Only
+
+```yaml
+spectrocloud:
+  environments:
+    - url: https://api.spectrocloud.com
+      tenant: my-tenant
+      apiToken: ${SPECTROCLOUD_API_TOKEN}
+      catalogProvider:
+        enabled: true
+        resources:
+          projects: true
+          clusterProfiles: true
+          clusters: true
+          clusterGroups: true
+          virtualClusters: true
+```
+
+**Note**: When ingesting virtual clusters and cluster groups, it's recommended to also ingest regular clusters and profiles to ensure all dependencies are available in the catalog.
 
 ### Custom Owner Configuration
 
@@ -168,6 +194,16 @@ The plugin uses smart naming conventions to ensure uniqueness:
 - Project-scoped: `<project-name>-<cluster-name>`
 - Tenant-scoped: `tenant-<cluster-name>`
 - Title: Original cluster name
+
+### Cluster Groups
+- Project-scoped: `<project-name>-<cluster-group-name>`
+- Tenant-scoped: `tenant-<cluster-group-name>`
+- Title: Original cluster group name
+
+### Virtual Clusters
+- Project-scoped: `<project-name>-<virtual-cluster-name>`
+- Tenant-scoped: `tenant-<virtual-cluster-name>`
+- Title: Original virtual cluster name
 
 ## Filtering Strategies
 
@@ -210,6 +246,13 @@ The ingestor creates proper entity relationships:
 
 ### Dependency Relationships
 - **Clusters** have `spec.dependsOn` referencing attached profile entities
+- **Cluster Groups** have `spec.dependsOn` referencing:
+  - Member clusters (host clusters in the group)
+  - Add-on profiles attached to the cluster group
+- **Virtual Clusters** have `spec.dependsOn` referencing:
+  - Host cluster (physical cluster hosting the virtual cluster)
+  - Cluster group (group the virtual cluster belongs to)
+  - Attached cluster profiles (directly attached to virtual cluster)
 - Profile references use the profile version UID for exact version tracking
 
 ### Example Relationships
@@ -243,6 +286,33 @@ spec:
   system: my-project  # Links to project
   dependsOn:
     - resource:default/my-project-infra-profile  # Links to profile
+
+---
+# Cluster Group (Resource)
+kind: Resource
+metadata:
+  name: my-project-vcluster-group
+spec:
+  type: spectrocloud-cluster-group
+  owner: group:default/platform-team
+  system: my-project
+  dependsOn:
+    - resource:default/my-project-prod-cluster  # Member cluster
+    - resource:default/my-project-addon-profile  # Add-on profile
+
+---
+# Virtual Cluster (Resource)
+kind: Resource
+metadata:
+  name: my-project-dev-vcluster
+spec:
+  type: spectrocloud-virtual-cluster
+  owner: group:default/platform-team
+  system: my-project
+  dependsOn:
+    - resource:default/my-project-prod-cluster  # Host cluster
+    - resource:default/my-project-vcluster-group  # Cluster group
+    - resource:default/my-project-vcluster-profile  # Attached profile
 ```
 
 ## Best Practices

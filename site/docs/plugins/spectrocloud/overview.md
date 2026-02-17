@@ -7,11 +7,14 @@ The SpectroCloud plugins for Backstage provide comprehensive integration with Sp
 The SpectroCloud plugin suite consists of several components for resource management and authentication:
 
 - **Frontend Plugin (`@terasky/backstage-plugin-spectrocloud`)**: 
-  - Entity cards for clusters and cluster profiles
+  - Entity cards for clusters, cluster profiles, cluster groups, and virtual clusters
   - Cluster information display (K8s version, cloud type, state)
+  - Virtual cluster resource quota and usage metrics
   - Profile version tracking and upgrade indicators
-  - Kubeconfig download functionality
+  - Kubeconfig download functionality (clusters and virtual clusters)
   - Pack/layer visualization with YAML viewer
+  - Cluster group settings viewer with parsed Helm values
+  - Virtual cluster viewer page with filtering
   - Permission-based access control
 
 - **Backend Plugin (`@terasky/backstage-plugin-spectrocloud-backend`)**:
@@ -22,9 +25,10 @@ The SpectroCloud plugin suite consists of several components for resource manage
 
 - **Ingestor Plugin (`@terasky/backstage-plugin-spectrocloud-ingestor`)**:
   - Catalog entity provider
-  - Project, cluster profile, and cluster ingestion
-  - Relationship mapping between entities
+  - Project, cluster profile, cluster, cluster group, and virtual cluster ingestion
+  - Relationship mapping between entities (dependencies, profiles, host clusters)
   - Scheduled refresh of resources
+  - Configurable resource type filtering
 
 - **Cluster Provider Plugin (`@terasky/backstage-plugin-spectrocloud-cluster-provider`)**:
   - Kubernetes cluster discovery from Palette
@@ -67,7 +71,9 @@ The SpectroCloud plugin suite consists of several components for resource manage
   - Projects as System entities
   - Cluster Profiles as Resource entities
   - Clusters as Resource entities
-  - Automatic relationship mapping
+  - Cluster Groups as Resource entities
+  - Virtual Clusters as Resource entities
+  - Automatic relationship mapping and dependency tracking
 
 ### Frontend Visualization
 - **Cluster Cards**:
@@ -81,6 +87,25 @@ The SpectroCloud plugin suite consists of several components for resource manage
   - Version listing with cluster counts
   - Expandable cluster lists per version
   - Profile type and scope display
+
+- **Cluster Group Cards**:
+  - Member clusters list with clickable links
+  - Add-on profiles with catalog links
+  - Scope and endpoint type information
+
+- **Virtual Cluster Cards**:
+  - CPU and memory quotas (requests, limits, usage)
+  - Host cluster and cluster group references
+  - Attached profiles with links
+  - Project links to system entities
+  - Kubeconfig download support
+  - Resource usage visualization with progress bars
+
+- **Virtual Cluster Viewer Page**:
+  - Card and table views
+  - Filter by project and status
+  - Update availability detection
+  - Clickable references to related resources
 
 ### Pack/Layer Details
 - **YAML Viewer**:

@@ -44,7 +44,45 @@ The SpectroCloud Frontend plugin provides comprehensive integration with Spectro
   - Expandable cluster lists
   - Direct links to cluster entities
 
-#### Kubernetes Resources Tab
+#### Cluster Group Card
+- **Basic Information**:
+  - Cluster group name and ID
+  - Scope (project or tenant)
+  - Project name with link to system entity
+  - Endpoint type (Ingress, LoadBalancer)
+
+- **Member Clusters**:
+  - List of clusters in the group
+  - Clickable links to cluster entities
+
+- **Add-on Profiles**:
+  - List of add-on profiles attached to the group
+  - Clickable links to profile entities
+
+#### Virtual Cluster Card
+- **Basic Information**:
+  - Virtual cluster name, ID, and state
+  - Scope and project (linked to system entity)
+  - Cloud type (always "nested")
+
+- **Resource Quotas**:
+  - CPU quotas: requests, limits, and usage
+  - Memory quotas: requests, limits, and usage
+  - Visual progress bars with usage percentages
+  - Color-coded warnings when usage exceeds limits
+
+- **References**:
+  - Host cluster (clickable link)
+  - Cluster group (clickable link)
+  - Attached profiles (clickable links)
+
+- **Actions**:
+  - Download kubeconfig
+  - Permission-controlled access
+
+#### Entity Content Tabs
+
+##### Kubernetes Resources Tab
 - **Resource Visualization**:
   - View Kubernetes resources for SpectroCloud clusters
   - Integration with `backstage.io/kubernetes-cluster` annotation
@@ -64,6 +102,53 @@ The SpectroCloud Frontend plugin provides comprehensive integration with Spectro
   - Flat grouped view (default)
   - Optional graph view
   - Optional hierarchical table view
+
+##### Cluster Group Settings Tab
+Available for `spectrocloud-cluster-group` entities:
+
+- **Version Information**:
+  - Kubernetes version
+  - vCluster version
+  - Kubernetes distribution
+
+- **Basic Configuration**:
+  - Endpoint type (Ingress, LoadBalancer)
+  - Member clusters count
+  - Metrics Server integration status
+
+- **Resource Limits**:
+  - CPU limits per virtual cluster
+  - Memory limits per virtual cluster
+  - Storage limits
+  - Over-subscription percentage
+
+- **Deployed Components**:
+  - Local Path Provisioner status
+  - CNI (Flannel) status
+  - Kube Proxy status
+  - MetalLB status
+  - Ingress NGINX status
+  - Metrics Server status
+
+- **Resource Sync Configuration**:
+  - Resources synced to host cluster (table)
+  - Resources synced from host cluster (table)
+
+- **Policies**:
+  - Resource Quota: enabled/disabled with detailed limits table
+  - Limit Range: enabled/disabled with default requests/limits tables
+  - Network Policy: enabled/disabled with:
+    - Fallback DNS settings
+    - Outgoing connections CIDR and exceptions
+    - Extra control plane rules
+    - Extra workload rules
+
+- **vCluster Plugins**:
+  - List of configured plugins with image and version
+
+- **Raw Configuration**:
+  - Collapsible Helm values YAML
+  - Syntax-highlighted display
 
 ### Standalone Pages
 
@@ -94,17 +179,38 @@ A comprehensive wizard for deploying new SpectroCloud clusters:
 Browse and manage all accessible SpectroCloud clusters:
 
 - **View Modes**: Card view and list view
-- **Filtering**:
+- **Filtering**: Modal-based filtering with:
   - Filter by project
   - Filter by cloud type
   - Filter by cluster status
   - Filter by Kubernetes version
-  - Show only clusters with updates available
+  - Show only clusters with updates available (checkbox)
 - **Actions**:
+  - Create new clusters (redirects to deployment wizard)
   - Download kubeconfig
   - Navigate to cluster entity page
   - Sort by various fields
 - **Updates Detection**: Identifies clusters where profile versions are behind latest
+
+#### Virtual Cluster Viewer Page
+Browse and manage all accessible SpectroCloud virtual clusters:
+
+- **View Modes**: Card view and table view
+- **Filtering**:
+  - Filter by project
+  - Filter by status
+  - Show only clusters with updates available (checkbox)
+- **Display Information**:
+  - Virtual cluster name and state
+  - Project (clickable link to system entity)
+  - Host cluster and cluster group (clickable links)
+  - Resource quotas (CPU and memory usage)
+  - Attached profiles (clickable links)
+- **Actions**:
+  - Download kubeconfig
+  - Navigate to virtual cluster entity page
+  - Refresh list
+- **Updates Detection**: Identifies virtual clusters where profile versions are behind latest
 
 ### Pack/Layer Viewer
 - **Configuration Display**:
@@ -141,7 +247,9 @@ The plugin provides a comprehensive API client (`SpectroCloudApiClient`) with me
 
 - **User & Projects**: `getUserProjects()`, `getProjects()`
 - **Clusters**: `getAllClusters()`, `getClusterDetails()`, `createCluster()`
-- **Kubeconfig**: `getKubeconfig()`
+- **Virtual Clusters**: `getAllVirtualClusters()`, `getVirtualClusterDetails()`
+- **Cluster Groups**: `getClusterGroupDetails()`
+- **Kubeconfig**: `getKubeconfig()`, `getVirtualClusterKubeconfig()`
 - **Profiles**: `getClusterProfiles()`, `searchProfiles()`, `getProjectProfiles()`, `getProfileWithPacks()`, `getProfileVariables()`
 - **Packs**: `getPackManifest()`
 - **Cloud Accounts**: `getCloudAccounts()`, `getCloudAccount()`
@@ -179,6 +287,7 @@ Permissions are controlled by the `spectrocloud.enablePermissions` configuration
 | `rootRouteRef` | `/spectrocloud` | Root route |
 | `clusterDeploymentRouteRef` | `/spectrocloud/deploy` | Cluster deployment wizard |
 | `clusterViewerRouteRef` | `/spectrocloud/clusters` | Cluster viewer/browser |
+| `virtualClusterViewerRouteRef` | `/spectrocloud/virtual-clusters` | Virtual cluster viewer/browser |
 
 ### Data Flow
 
@@ -230,4 +339,20 @@ The plugin integrates with `@terasky/backstage-plugin-spectrocloud-auth`:
 - Support for Crossplane and KRO resources
 - Filter and search capabilities
 - Category-based organization
+
+### Virtual Cluster Management
+- Browse all virtual clusters across projects
+- Monitor resource quotas and usage
+- Track CPU and memory consumption
+- Identify virtual clusters needing updates
+- Access kubeconfig for virtual clusters
+- Navigate between virtual clusters, host clusters, and cluster groups
+
+### Cluster Group Configuration
+- Review cluster group settings and policies
+- Understand resource sync configurations
+- View resource quotas and limit ranges
+- Inspect network policy settings
+- Analyze deployed components and integrations
+- Examine vCluster plugin configurations
 

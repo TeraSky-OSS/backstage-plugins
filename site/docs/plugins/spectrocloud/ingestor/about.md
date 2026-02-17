@@ -12,11 +12,20 @@ The SpectroCloud Ingestor plugin is a catalog entity provider that automatically
 - **Projects**: Imported as System entities
 - **Cluster Profiles**: Imported as Resource entities with type `spectrocloud-cluster-profile`
 - **Clusters**: Imported as Resource entities with type `spectrocloud-cluster`
+- **Cluster Groups**: Imported as Resource entities with type `spectrocloud-cluster-group`
+- **Virtual Clusters**: Imported as Resource entities with type `spectrocloud-virtual-cluster`
 
 ### Relationship Mapping
-- Clusters are linked to their parent project
-- Cluster profiles are linked to their parent project
-- Cross-references between clusters and attached profiles
+- Clusters are linked to their parent project (system)
+- Cluster profiles are linked to their parent project (system)
+- Clusters have `dependsOn` relationships to attached profiles
+- Cluster groups have `dependsOn` relationships to:
+  - Member clusters (host clusters in the group)
+  - Add-on cluster profiles attached to the group
+- Virtual clusters have `dependsOn` relationships to:
+  - Host cluster (physical cluster hosting the virtual cluster)
+  - Cluster group (group the virtual cluster belongs to)
+  - Attached cluster profiles (directly attached to the virtual cluster)
 
 ### Smart Naming Conventions
 - Prevents name conflicts across multiple instances
@@ -96,6 +105,62 @@ spec:
   system: my-project
 ```
 
+### Cluster Groups (Resource)
+Cluster groups are imported as Resource entities:
+
+```yaml
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: my-project-my-cluster-group
+  title: my-cluster-group
+  annotations:
+    terasky.backstage.io/cluster-group-id: cg123
+    terasky.backstage.io/scope: project
+    terasky.backstage.io/project-id: abc123
+    terasky.backstage.io/endpoint-type: Ingress
+    terasky.backstage.io/cluster-profile-refs: '[{"name":"addon-profile","uid":"addon123"}]'
+spec:
+  type: spectrocloud-cluster-group
+  owner: spectrocloud
+  system: my-project
+  dependsOn:
+    - resource:default/my-project-host-cluster
+    - resource:default/my-project-addon-profile
+```
+
+### Virtual Clusters (Resource)
+Virtual clusters are imported as Resource entities:
+
+```yaml
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: my-project-my-vcluster
+  title: my-vcluster
+  annotations:
+    terasky.backstage.io/cluster-id: vc456
+    terasky.backstage.io/scope: project
+    terasky.backstage.io/project-id: abc123
+    terasky.backstage.io/cloud-type: nested
+    terasky.backstage.io/state: Running
+    terasky.backstage.io/host-cluster-id: ghi789
+    terasky.backstage.io/cluster-group-id: cg123
+    terasky.backstage.io/cpu-limit: 6000
+    terasky.backstage.io/cpu-limit-unit: MilliCore
+    terasky.backstage.io/memory-limit: 8388608
+    terasky.backstage.io/memory-limit-unit: KiB
+    terasky.backstage.io/cluster-profile-refs: '[{"name":"vcluster-profile","uid":"vcp123"}]'
+spec:
+  type: spectrocloud-virtual-cluster
+  owner: spectrocloud
+  system: my-project
+  dependsOn:
+    - resource:default/my-project-my-cluster
+    - resource:default/my-project-my-cluster-group
+    - resource:default/my-project-vcluster-profile
+```
+
 ## Annotations Reference
 
 **Note**: All annotations use the configured `annotationPrefix` (default: `terasky.backstage.io`). The prefix is shown as `{prefix}` below.
@@ -136,6 +201,36 @@ spec:
 | `{prefix}/state` | Cluster state | `Running`, `Pending`, `Failed`, etc. |
 | `{prefix}/kubernetes-version` | Kubernetes version | `1.28.5` |
 | `{prefix}/cluster-profile-refs` | JSON array of attached profiles | `[{"name":"my-profile","uid":"version-uid"}]` |
+| `{prefix}/instance` | SpectroCloud instance name | `production` |
+
+### Cluster Group Annotations
+| Annotation | Description | Example |
+|------------|-------------|---------|
+| `{prefix}/cluster-group-id` | SpectroCloud cluster group UID | `cg123` |
+| `{prefix}/scope` | `tenant` or `project` | `project` |
+| `{prefix}/project-id` | Parent project UID (if project-scoped) | `abc123` |
+| `{prefix}/tenant-id` | Parent tenant UID | `tenant456` |
+| `{prefix}/endpoint-type` | Virtual cluster endpoint type | `Ingress`, `LoadBalancer` |
+| `{prefix}/cluster-profile-refs` | JSON array of add-on profiles | `[{"name":"addon","uid":"addon123"}]` |
+| `{prefix}/instance` | SpectroCloud instance name | `production` |
+
+### Virtual Cluster Annotations
+| Annotation | Description | Example |
+|------------|-------------|---------|
+| `{prefix}/cluster-id` | SpectroCloud virtual cluster UID | `vc456` |
+| `{prefix}/scope` | `tenant` or `project` | `project` |
+| `{prefix}/project-id` | Parent project UID (if project-scoped) | `abc123` |
+| `{prefix}/project-name` | Parent project name | `My Project` |
+| `{prefix}/tenant-id` | Parent tenant UID | `tenant456` |
+| `{prefix}/cloud-type` | Always `nested` for virtual clusters | `nested` |
+| `{prefix}/state` | Virtual cluster state | `Running`, `Pending`, `Failed`, etc. |
+| `{prefix}/host-cluster-id` | UID of host cluster | `ghi789` |
+| `{prefix}/cluster-group-id` | UID of cluster group | `cg123` |
+| `{prefix}/cpu-limit` | CPU limit value | `6000` |
+| `{prefix}/cpu-limit-unit` | CPU limit unit | `MilliCore` |
+| `{prefix}/memory-limit` | Memory limit value | `8388608` |
+| `{prefix}/memory-limit-unit` | Memory limit unit | `KiB` |
+| `{prefix}/cluster-profile-refs` | JSON array of attached profiles | `[{"name":"vcluster-profile","uid":"vcp123"}]` |
 | `{prefix}/instance` | SpectroCloud instance name | `production` |
 
 ## Use Cases
