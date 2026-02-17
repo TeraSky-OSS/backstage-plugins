@@ -1,5 +1,7 @@
 export { SpectroCloudClusterCard } from './SpectroCloudClusterCard';
 export { SpectroCloudClusterProfileCard } from './SpectroCloudClusterProfileCard';
+export { SpectroCloudClusterGroupCard } from './SpectroCloudClusterGroupCard';
+export { SpectroCloudVirtualClusterCard } from './SpectroCloudVirtualClusterCard';
 export {
   IfCanViewClusterInfo,
   IfCanDownloadKubeconfig,
@@ -19,3 +21,4 @@ export {
 } from './PermissionGuards';
 export { ClusterDeploymentPage } from './ClusterDeployment';
 export { ClusterViewerPage } from './ClusterViewer';
+export { ClusterGroupSettingsTab } from './ClusterGroupSettings';

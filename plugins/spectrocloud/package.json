@@ -46,7 +46,9 @@
     "@terasky/backstage-plugin-spectrocloud-auth": "^0.2.0",
     "@terasky/backstage-plugin-spectrocloud-common": "^0.2.0",
     "file-saver": "^2.0.5",
+    "js-yaml": "^4.1.0",
     "react-flow-renderer": "^10.3.17",
+    "react-icons": "^5.5.0",
     "react-syntax-highlighter": "^15.6.1",
     "react-use": "^17.6.0"
   },
@@ -62,6 +64,7 @@
     "@testing-library/react": "^14.0.0",
     "@testing-library/user-event": "^14.0.0",
     "@types/file-saver": "^2",
+    "@types/js-yaml": "^4",
     "@types/react-syntax-highlighter": "^15",
     "msw": "^1.0.0",
     "react": "^18.3.1",

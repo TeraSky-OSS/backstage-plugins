@@ -9,10 +9,11 @@ import {
 } from '@backstage/frontend-plugin-api';
 import { EntityCardBlueprint, EntityContentBlueprint } from '@backstage/plugin-catalog-react/alpha';
 import { Entity } from '@backstage/catalog-model';
-import CloudQueueIcon from '@material-ui/icons/CloudQueue';
+import { SiKubernetes } from "react-icons/si";
 import { spectroCloudApiRef, SpectroCloudApiClient } from './api';
 import { spectroCloudAuthApiRef } from '@terasky/backstage-plugin-spectrocloud-auth';
-import { clusterDeploymentRouteRef, clusterViewerRouteRef } from './routes';
+import { clusterDeploymentRouteRef, clusterViewerRouteRef, virtualClusterViewerRouteRef } from './routes';
+import AddCircleIcon from '@material-ui/icons/AddCircle';
 
 /**
  * Check if entity is a SpectroCloud cluster
@@ -26,6 +27,20 @@ const isSpectroCloudCluster = (entity: Entity): boolean => {
  */
 const isSpectroCloudClusterProfile = (entity: Entity): boolean => {
   return entity.spec?.type === 'spectrocloud-cluster-profile';
+};
+
+/**
+ * Check if entity is a SpectroCloud cluster group
+ */
+const isSpectroCloudClusterGroup = (entity: Entity): boolean => {
+  return entity.spec?.type === 'spectrocloud-cluster-group';
+};
+
+/**
+ * Check if entity is a SpectroCloud virtual cluster
+ */
+const isSpectroCloudVirtualCluster = (entity: Entity): boolean => {
+  return entity.spec?.type === 'spectrocloud-virtual-cluster';
 };
 
 /** @alpha */
@@ -64,6 +79,26 @@ export const spectroCloudClusterProfileCard = EntityCardBlueprint.make({
 });
 
 /** @alpha */
+export const spectroCloudClusterGroupCard = EntityCardBlueprint.make({
+  name: 'spectrocloud.cluster-group-overview',
+  params: {
+    filter: isSpectroCloudClusterGroup,
+    loader: () => import('./components/SpectroCloudClusterGroupCard').then(m => <m.SpectroCloudClusterGroupCard />),
+  },
+  disabled: false,
+});
+
+/** @alpha */
+export const spectroCloudVirtualClusterCard = EntityCardBlueprint.make({
+  name: 'spectrocloud.virtual-cluster-overview',
+  params: {
+    filter: isSpectroCloudVirtualCluster,
+    loader: () => import('./components/SpectroCloudVirtualClusterCard').then(m => <m.SpectroCloudVirtualClusterCard />),
+  },
+  disabled: false,
+});
+
+/** @alpha */
 export const spectroCloudKubernetesResourcesTab = EntityContentBlueprint.make({
   name: 'spectrocloud.kubernetes-resources',
   params: {
@@ -71,6 +106,18 @@ export const spectroCloudKubernetesResourcesTab = EntityContentBlueprint.make({
     path: '/kubernetes-resources',
     title: 'Kubernetes Resources',
     loader: () => import('./components/KubernetesResources').then(m => <m.KubernetesResourcesPage />),
+  },
+  disabled: false,
+});
+
+/** @alpha */
+export const spectroCloudClusterGroupSettingsTab = EntityContentBlueprint.make({
+  name: 'spectrocloud.cluster-group-settings',
+  params: {
+    filter: isSpectroCloudClusterGroup,
+    path: '/cluster-group-settings',
+    title: 'Settings',
+    loader: () => import('./components/ClusterGroupSettings').then(m => <m.ClusterGroupSettingsTab />),
   },
   disabled: false,
 });
@@ -92,7 +139,7 @@ export const spectroCloudClusterDeploymentNavItem = NavItemBlueprint.make({
   params: {
     title: 'Deploy Cluster',
     routeRef: clusterDeploymentRouteRef,
-    icon: CloudQueueIcon,
+    icon: AddCircleIcon,
   },
   disabled: false,
 });
@@ -114,7 +161,29 @@ export const spectroCloudClusterViewerNavItem = NavItemBlueprint.make({
   params: {
     title: 'View Clusters',
     routeRef: clusterViewerRouteRef,
-    icon: CloudQueueIcon,
+    icon: SiKubernetes,
+  },
+  disabled: false,
+});
+
+/** @alpha */
+export const spectroCloudVirtualClusterViewerPage = PageBlueprint.make({
+  name: 'spectrocloud.virtual-cluster-viewer',
+  params: {
+    path: '/spectrocloud/virtualclusters',
+    routeRef: virtualClusterViewerRouteRef,
+    loader: () => import('./components/VirtualClusterViewer').then(m => <m.VirtualClusterViewerPage />),
+  },
+  disabled: false,
+});
+
+/** @alpha */
+export const spectroCloudVirtualClusterViewerNavItem = NavItemBlueprint.make({
+  name: 'spectrocloud.virtual-cluster-viewer',
+  params: {
+    title: 'View Virtual Clusters',
+    routeRef: virtualClusterViewerRouteRef,
+    icon: SiKubernetes,
   },
   disabled: false,
 });
@@ -126,11 +195,16 @@ export const spectroCloudPlugin = createFrontendPlugin({
     spectroCloudApi,
     spectroCloudClusterCard,
     spectroCloudClusterProfileCard,
+    spectroCloudClusterGroupCard,
+    spectroCloudVirtualClusterCard,
     spectroCloudKubernetesResourcesTab,
+    spectroCloudClusterGroupSettingsTab,
     spectroCloudClusterDeploymentPage,
     spectroCloudClusterDeploymentNavItem,
     spectroCloudClusterViewerPage,
     spectroCloudClusterViewerNavItem,
+    spectroCloudVirtualClusterViewerPage,
+    spectroCloudVirtualClusterViewerNavItem,
   ],
 });
 

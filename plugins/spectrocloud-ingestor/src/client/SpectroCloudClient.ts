@@ -58,6 +58,22 @@ export interface SpectroCloudCluster {
     kubeMeta?: {
       kubernetesVersion?: string;
     };
+    metrics?: {
+      cpu?: {
+        limit?: number;
+        request?: number;
+        total?: number;
+        usage?: number;
+        unit?: string;
+      };
+      memory?: {
+        limit?: number;
+        request?: number;
+        total?: number;
+        usage?: number;
+        unit?: string;
+      };
+    };
   };
 }
 
@@ -121,6 +137,53 @@ export interface SpectroCloudClusterProfile {
         values?: string;
       }>;
     };
+  };
+}
+
+export interface SpectroCloudClusterGroup {
+  metadata: {
+    uid: string;
+    name: string;
+    annotations?: {
+      scope?: string;
+      projectUid?: string;
+      tenantUid?: string;
+    };
+  };
+  spec?: {
+    clusterRefs?: Array<{
+      clusterName?: string;
+      clusterUid?: string;
+    }>;
+    clustersConfig?: {
+      endpointType?: string;
+    };
+    clusterProfileTemplates?: ClusterProfileTemplateRef[];
+  };
+  status?: {
+    state?: string;
+  };
+}
+
+export interface SpectroCloudVirtualCluster extends SpectroCloudCluster {
+  status?: SpectroCloudCluster['status'] & {
+    virtual?: {
+      clusterGroup?: {
+        uid: string;
+        name: string;
+        projectUid?: string;
+        tenantUid?: string;
+      };
+      hostCluster?: {
+        uid: string;
+        name: string;
+        projectUid?: string;
+        tenantUid?: string;
+      };
+    };
+  };
+  specSummary?: {
+    clusterProfileTemplates?: ClusterProfileTemplateRef[];
   };
 }
 
@@ -350,6 +413,258 @@ export class SpectroCloudClient {
     } catch (error) {
       this.logger.debug(`Failed to fetch client kubeconfig for cluster ${clusterUid}: ${error}`);
       return undefined;
+    }
+  }
+
+  async getAllClusterGroups(): Promise<SpectroCloudClusterGroup[]> {
+    try {
+      const response = await this.makeRequest('/v1/clustergroups/hostCluster');
+      const result = await response.json() as any;
+      
+      // The API returns cluster groups in a 'summaries' property
+      if (result.summaries && Array.isArray(result.summaries)) {
+        this.logger.info(`Fetched ${result.summaries.length} tenant-scoped cluster groups`);
+        return result.summaries;
+      } else if (Array.isArray(result)) {
+        this.logger.info(`Fetched ${result.length} tenant-scoped cluster groups`);
+        return result;
+      } else if (result.items && Array.isArray(result.items)) {
+        this.logger.info(`Fetched ${result.items.length} tenant-scoped cluster groups`);
+        return result.items;
+      }
+      
+      this.logger.warn(`getAllClusterGroups: Unexpected response format`);
+      this.logger.warn(`Response keys: ${result ? Object.keys(result).join(', ') : 'null'}`);
+      return [];
+    } catch (error) {
+      this.logger.error(`Failed to fetch SpectroCloud cluster groups: ${error}`);
+      return [];
+    }
+  }
+
+  async getProjectClusterGroups(projectUid: string): Promise<SpectroCloudClusterGroup[]> {
+    try {
+      const headers: Record<string, string> = { ProjectUid: projectUid };
+      const response = await this.makeRequest('/v1/clustergroups/hostCluster', 'GET', headers);
+      const result = await response.json() as any;
+      
+      // The API returns cluster groups in a 'summaries' property
+      if (result.summaries && Array.isArray(result.summaries)) {
+        this.logger.info(`Fetched ${result.summaries.length} cluster groups for project ${projectUid}`);
+        return result.summaries;
+      } else if (Array.isArray(result)) {
+        this.logger.info(`Fetched ${result.length} cluster groups for project ${projectUid}`);
+        return result;
+      } else if (result.items && Array.isArray(result.items)) {
+        this.logger.info(`Fetched ${result.items.length} cluster groups for project ${projectUid}`);
+        return result.items;
+      }
+      
+      this.logger.warn(`getProjectClusterGroups: Unexpected response format for project ${projectUid}`);
+      this.logger.warn(`Response keys: ${result ? Object.keys(result).join(', ') : 'null'}`);
+      return [];
+    } catch (error) {
+      this.logger.error(`Failed to fetch cluster groups for project ${projectUid}: ${error}`);
+      return [];
+    }
+  }
+
+  async getAllVirtualClusters(): Promise<SpectroCloudVirtualCluster[]> {
+    try {
+      const allVirtualClusters: SpectroCloudVirtualCluster[] = [];
+      let offset = 0;
+      const limit = 50;
+      let continueToken: string | undefined;
+      const seenTokens = new Set<string>();
+
+      do {
+        const body = {
+          filter: {
+            conjunction: 'and',
+            filterGroups: [
+              {
+                conjunction: 'and',
+                filters: [
+                  {
+                    property: 'environment',
+                    type: 'string',
+                    condition: {
+                      string: {
+                        operator: 'eq',
+                        negation: false,
+                        match: {
+                          conjunction: 'or',
+                          values: ['nested'],
+                        },
+                        ignoreCase: false,
+                      },
+                    },
+                  },
+                  {
+                    property: 'isDeleted',
+                    type: 'bool',
+                    condition: {
+                      bool: {
+                        value: false,
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+          sort: [
+            {
+              field: 'lastModifiedTimestamp',
+              order: 'desc',
+            },
+          ],
+        };
+
+        let endpoint = `/v1/dashboard/spectroclusters/search?limit=${limit}&offset=${offset}`;
+        if (continueToken) {
+          if (seenTokens.has(continueToken)) {
+            this.logger.warn('getAllVirtualClusters: Duplicate continue token detected, stopping pagination');
+            break;
+          }
+          seenTokens.add(continueToken);
+          endpoint = `${endpoint}&continue=${encodeURIComponent(continueToken)}`;
+        }
+
+        const response = await this.makeRequest(
+          endpoint,
+          'POST',
+          undefined,
+          false,
+          JSON.stringify(body),
+        );
+
+        const result = (await response.json()) as any;
+        if (result.items && Array.isArray(result.items)) {
+          allVirtualClusters.push(...result.items);
+        }
+
+        continueToken = result.listmeta?.continue;
+        offset += limit;
+
+        // Break if no more items
+        if (!result.items || result.items.length === 0) {
+          break;
+        }
+      } while (continueToken);
+
+      return allVirtualClusters;
+    } catch (error) {
+      this.logger.error(`Failed to fetch SpectroCloud virtual clusters: ${error}`);
+      return [];
+    }
+  }
+
+  async getClusterGroup(clusterGroupUid: string, projectUid?: string): Promise<SpectroCloudClusterGroup | undefined> {
+    try {
+      const headers: Record<string, string> = {};
+      if (projectUid) {
+        headers.ProjectUid = projectUid;
+      }
+
+      const response = await this.makeRequest(`/v1/clustergroups/${clusterGroupUid}`, 'GET', headers);
+      const clusterGroup = await response.json() as SpectroCloudClusterGroup;
+      return clusterGroup;
+    } catch (error) {
+      this.logger.debug(`Failed to fetch cluster group details for ${clusterGroupUid}: ${error}`);
+      return undefined;
+    }
+  }
+
+  async getProjectVirtualClusters(projectUid: string): Promise<SpectroCloudVirtualCluster[]> {
+    try {
+      const allVirtualClusters: SpectroCloudVirtualCluster[] = [];
+      let offset = 0;
+      const limit = 50;
+      let continueToken: string | undefined;
+      const seenTokens = new Set<string>();
+
+      do {
+        const body = {
+          filter: {
+            conjunction: 'and',
+            filterGroups: [
+              {
+                conjunction: 'and',
+                filters: [
+                  {
+                    property: 'environment',
+                    type: 'string',
+                    condition: {
+                      string: {
+                        operator: 'eq',
+                        negation: false,
+                        match: {
+                          conjunction: 'or',
+                          values: ['nested'],
+                        },
+                        ignoreCase: false,
+                      },
+                    },
+                  },
+                  {
+                    property: 'isDeleted',
+                    type: 'bool',
+                    condition: {
+                      bool: {
+                        value: false,
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+          sort: [
+            {
+              field: 'lastModifiedTimestamp',
+              order: 'desc',
+            },
+          ],
+        };
+
+        let endpoint = `/v1/dashboard/spectroclusters/search?limit=${limit}&offset=${offset}`;
+        if (continueToken) {
+          if (seenTokens.has(continueToken)) {
+            this.logger.warn(`getProjectVirtualClusters: Duplicate continue token detected for project ${projectUid}, stopping pagination`);
+            break;
+          }
+          seenTokens.add(continueToken);
+          endpoint = `${endpoint}&continue=${encodeURIComponent(continueToken)}`;
+        }
+
+        const headers: Record<string, string> = { ProjectUid: projectUid };
+        const response = await this.makeRequest(
+          endpoint,
+          'POST',
+          headers,
+          false,
+          JSON.stringify(body),
+        );
+
+        const result = (await response.json()) as any;
+        if (result.items && Array.isArray(result.items)) {
+          allVirtualClusters.push(...result.items);
+        }
+
+        continueToken = result.listmeta?.continue;
+        offset += limit;
+
+        // Break if no more items
+        if (!result.items || result.items.length === 0) {
+          break;
+        }
+      } while (continueToken);
+
+      return allVirtualClusters;
+    } catch (error) {
+      this.logger.error(`Failed to fetch virtual clusters for project ${projectUid}: ${error}`);
+      return [];
     }
   }
 

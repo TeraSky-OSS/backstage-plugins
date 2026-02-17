@@ -228,6 +228,41 @@ export interface SpectroCloudApi {
   ): Promise<SpectroCloudClusterDetails>;
 
   /**
+   * Get all virtual clusters (basic metadata only) that the user has access to
+   */
+  getAllVirtualClusters(
+    instanceName?: string,
+  ): Promise<SpectroCloudClusterDetails[]>;
+
+  /**
+   * Get virtual cluster details
+   */
+  getVirtualClusterDetails(
+    clusterUid: string,
+    projectUid?: string,
+    instanceName?: string,
+  ): Promise<SpectroCloudClusterDetails>;
+
+  /**
+   * Download kubeconfig for a virtual cluster
+   */
+  getVirtualClusterKubeconfig(
+    clusterUid: string,
+    projectUid?: string,
+    instanceName?: string,
+    frp?: boolean,
+  ): Promise<string>;
+
+  /**
+   * Get cluster group details
+   */
+  getClusterGroupDetails(
+    clusterGroupUid: string,
+    projectUid?: string,
+    instanceName?: string,
+  ): Promise<any>;
+
+  /**
    * Search profiles by names to get version info
    */
   searchProfiles(
@@ -522,6 +557,103 @@ export class SpectroCloudApiClient implements SpectroCloudApi {
     if (!response.ok) {
       const error = await response.text();
       throw new Error(`Failed to fetch cluster details: ${error}`);
+    }
+
+    return response.json();
+  }
+
+  async getAllVirtualClusters(instanceName?: string): Promise<SpectroCloudClusterDetails[]> {
+    const baseUrl = await this.discoveryApi.getBaseUrl('spectrocloud');
+    
+    const params = new URLSearchParams();
+    if (instanceName) params.append('instance', instanceName);
+
+    const response = await this.fetchWithAuthCheck(
+      `${baseUrl}/virtualclusters?${params.toString()}`,
+      await this.addAuthHeaders(),
+    );
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Failed to fetch virtual clusters: ${error}`);
+    }
+
+    const result = await response.json();
+    return result.virtualClusters || [];
+  }
+
+  async getVirtualClusterDetails(
+    clusterUid: string,
+    projectUid?: string,
+    instanceName?: string,
+  ): Promise<SpectroCloudClusterDetails> {
+    const baseUrl = await this.discoveryApi.getBaseUrl('spectrocloud');
+    
+    const params = new URLSearchParams();
+    if (projectUid) params.append('projectUid', projectUid);
+    if (instanceName) params.append('instance', instanceName);
+
+    const response = await this.fetchApi.fetch(
+      `${baseUrl}/virtualclusters/${clusterUid}?${params.toString()}`,
+      await this.addAuthHeaders(),
+    );
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Failed to fetch virtual cluster details: ${error}`);
+    }
+
+    return response.json();
+  }
+
+  async getVirtualClusterKubeconfig(
+    clusterUid: string,
+    projectUid?: string,
+    instanceName?: string,
+    frp: boolean = true,
+  ): Promise<string> {
+    const baseUrl = await this.discoveryApi.getBaseUrl('spectrocloud');
+    
+    const params = new URLSearchParams();
+    if (projectUid) params.append('projectUid', projectUid);
+    if (instanceName) params.append('instance', instanceName);
+    params.append('frp', frp.toString());
+
+    const response = await this.fetchApi.fetch(
+      `${baseUrl}/virtualclusters/${clusterUid}/kubeconfig?${params.toString()}`,
+      await this.addAuthHeaders(),
+    );
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Failed to fetch virtual cluster kubeconfig: ${error}`);
+    }
+
+    return response.text();
+  }
+
+  /**
+   * Get cluster group details
+   */
+  async getClusterGroupDetails(
+    clusterGroupUid: string,
+    projectUid?: string,
+    instanceName?: string,
+  ): Promise<any> {
+    const baseUrl = await this.discoveryApi.getBaseUrl('spectrocloud');
+    
+    const params = new URLSearchParams();
+    if (projectUid) params.append('projectUid', projectUid);
+    if (instanceName) params.append('instance', instanceName);
+
+    const response = await this.fetchApi.fetch(
+      `${baseUrl}/clustergroups/${clusterGroupUid}?${params.toString()}`,
+      await this.addAuthHeaders(),
+    );
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Failed to fetch cluster group details: ${error}`);
     }
 
     return response.json();

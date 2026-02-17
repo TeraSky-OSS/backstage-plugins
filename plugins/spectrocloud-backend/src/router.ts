@@ -294,6 +294,145 @@ export async function createRouter(
     }
   });
 
+  // ===== Virtual Clusters Routes =====
+
+  // Get all virtual clusters (filtered by user permissions)
+  router.get('/virtualclusters', async (req, res) => {
+    // Check permission (reuse cluster permission for now)
+    if (!await checkPermission(viewClusterInfoPermission)) {
+      return res.status(403).json({ error: 'Permission denied: virtual cluster info view not allowed' });
+    }
+
+    const instanceName = req.query.instance as string | undefined;
+
+    const client = await getClient(req, res, instanceName);
+    
+    if (!client) {
+      logger.error('No SpectroCloud configuration found');
+      return res.status(500).json({ error: 'No SpectroCloud configuration found' });
+    }
+
+    try {
+      const virtualClusters = await client.getAllVirtualClusters();
+      logger.info(`Successfully fetched ${virtualClusters.length} virtual clusters from SpectroCloud API`);
+      logger.debug(`Virtual Cluster UIDs: ${virtualClusters.map(vc => vc.metadata.uid).join(', ')}`);
+      return res.json({ virtualClusters });
+    } catch (error) {
+      logger.error(`Failed to get virtual clusters: ${error}`);
+      return res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Failed to get virtual clusters' 
+      });
+    }
+  });
+
+  // Get virtual cluster details
+  router.get('/virtualclusters/:clusterUid', async (req, res) => {
+    // Check permission
+    if (!await checkPermission(viewClusterInfoPermission)) {
+      return res.status(403).json({ error: 'Permission denied: virtual cluster info view not allowed' });
+    }
+
+    const { clusterUid } = req.params;
+    const projectUid = req.query.projectUid as string | undefined;
+    const instanceName = req.query.instance as string | undefined;
+
+    const client = await getClient(req, res, instanceName);
+    
+    if (!client) {
+      logger.error('No SpectroCloud configuration found');
+      return res.status(500).json({ error: 'No SpectroCloud configuration found' });
+    }
+
+    try {
+      const virtualCluster = await client.getVirtualCluster(clusterUid, projectUid);
+      
+      if (!virtualCluster) {
+        return res.status(404).json({ error: 'Virtual cluster not found' });
+      }
+
+      return res.json(virtualCluster);
+    } catch (error) {
+      logger.error(`Failed to get virtual cluster ${clusterUid}: ${error}`);
+      return res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Failed to get virtual cluster' 
+      });
+    }
+  });
+
+  /**
+   * Get cluster group details
+   */
+  router.get('/clustergroups/:clusterGroupUid', async (req, res) => {
+    // Check permission
+    if (!await checkPermission(viewClusterInfoPermission)) {
+      return res.status(403).json({ error: 'Permission denied: cluster group view not allowed' });
+    }
+
+    const { clusterGroupUid } = req.params;
+    const projectUid = req.query.projectUid as string | undefined;
+    const instanceName = req.query.instance as string | undefined;
+
+    const client = await getClient(req, res, instanceName);
+    
+    if (!client) {
+      logger.error('No SpectroCloud configuration found');
+      return res.status(500).json({ error: 'No SpectroCloud configuration found' });
+    }
+
+    try {
+      const clusterGroup = await client.getClusterGroup(clusterGroupUid, projectUid);
+      
+      if (!clusterGroup) {
+        return res.status(404).json({ error: 'Cluster group not found' });
+      }
+
+      return res.json(clusterGroup);
+    } catch (error) {
+      logger.error(`Failed to get cluster group ${clusterGroupUid}: ${error}`);
+      return res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Failed to get cluster group' 
+      });
+    }
+  });
+
+  // Get kubeconfig for a virtual cluster
+  router.get('/virtualclusters/:clusterUid/kubeconfig', async (req, res) => {
+    // Check permission
+    if (!await checkPermission(downloadKubeconfigPermission)) {
+      return res.status(403).json({ error: 'Permission denied: kubeconfig download not allowed' });
+    }
+
+    const { clusterUid } = req.params;
+    const projectUid = req.query.projectUid as string | undefined;
+    const instanceName = req.query.instance as string | undefined;
+    const frp = req.query.frp !== 'false'; // Default to true
+
+    const client = await getClient(req, res, instanceName);
+    
+    if (!client) {
+      logger.error('No SpectroCloud configuration found');
+      return res.status(500).json({ error: 'No SpectroCloud configuration found' });
+    }
+
+    try {
+      // Virtual clusters use the same kubeconfig endpoint as regular clusters
+      const kubeconfig = await client.getClientKubeConfig(clusterUid, projectUid, frp);
+      
+      if (!kubeconfig) {
+        return res.status(404).json({ error: 'Kubeconfig not found for virtual cluster' });
+      }
+
+      res.setHeader('Content-Type', 'application/x-yaml');
+      res.setHeader('Content-Disposition', `attachment; filename="${clusterUid}-vcluster-kubeconfig.yaml"`);
+      return res.send(kubeconfig);
+    } catch (error) {
+      logger.error(`Failed to get kubeconfig for virtual cluster ${clusterUid}: ${error}`);
+      return res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Failed to get kubeconfig' 
+      });
+    }
+  });
+
   // Get cluster profile details
   router.get('/profiles/:profileUid', async (req, res) => {
     // Check permission

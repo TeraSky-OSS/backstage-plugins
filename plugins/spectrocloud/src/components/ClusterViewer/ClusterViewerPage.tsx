@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Header, Page, Content, Progress, Link } from '@backstage/core-components';
-import { useApi, configApiRef } from '@backstage/core-plugin-api';
+import { useApi, configApiRef, useRouteRef } from '@backstage/core-plugin-api';
 import { catalogApiRef } from '@backstage/plugin-catalog-react';
 import { Entity } from '@backstage/catalog-model';
+import { clusterDeploymentRouteRef } from '../../routes';
 import {
   Box,
   Card,
@@ -27,6 +28,11 @@ import {
   TableHead,
   TableRow,
   Paper,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Badge,
 } from '@material-ui/core';
 import { Alert, ToggleButtonGroup, ToggleButton } from '@material-ui/lab';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
@@ -36,6 +42,8 @@ import ViewModuleIcon from '@material-ui/icons/ViewModule';
 import ViewListIcon from '@material-ui/icons/ViewList';
 import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
 import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
+import AddCircleIcon from '@material-ui/icons/AddCircle';
+import FilterListIcon from '@material-ui/icons/FilterList';
 import {
   StatusOK,
   StatusError,
@@ -166,6 +174,7 @@ export const ClusterViewerPage = () => {
   const catalogApi = useApi(catalogApiRef);
   const configApi = useApi(configApiRef);
   const spectroCloudApi = useApi(spectroCloudApiRef);
+  const clusterDeploymentRoute = useRouteRef(clusterDeploymentRouteRef);
   
   const [clusters, setClusters] = useState<Entity[]>([]);
   const [loading, setLoading] = useState(true);
@@ -180,6 +189,7 @@ export const ClusterViewerPage = () => {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [downloadingCluster, setDownloadingCluster] = useState<string>();
   const [clustersWithUpdates, setClustersWithUpdates] = useState<Set<string>>(new Set());
+  const [filterDialogOpen, setFilterDialogOpen] = useState(false);
   
   // Get annotation prefix from config
   const annotationPrefix = configApi.getOptionalConfig('spectrocloud')?.getOptionalString('annotationPrefix') ?? 'terasky.backstage.io';
@@ -488,6 +498,15 @@ export const ClusterViewerPage = () => {
     );
   }
 
+  // Count active filters
+  const activeFiltersCount = [
+    selectedProject !== 'all' ? 1 : 0,
+    selectedCloudType !== 'all' ? 1 : 0,
+    selectedStatus !== 'all' ? 1 : 0,
+    selectedK8sVersion !== 'all' ? 1 : 0,
+    showOnlyWithUpdates ? 1 : 0,
+  ].reduce((a, b) => a + b, 0);
+
   return (
     <Page themeId="tool">
       <Header 
@@ -496,124 +515,60 @@ export const ClusterViewerPage = () => {
       />
       <Content>
         <Box className={classes.root}>
-          {/* Filter Bar */}
+          {/* Toolbar */}
           <Box className={classes.filterBar}>
-            <Grid container spacing={2} alignItems="center">
-              <Grid item xs={12} sm={6} md={3}>
-                <TextField
-                  select
-                  fullWidth
-                  label="Project"
-                  value={selectedProject}
-                  onChange={(e) => setSelectedProject(e.target.value)}
-                  variant="outlined"
-                  size="small"
-                >
-                  {projects.map(project => (
-                    <MenuItem key={project} value={project}>
-                      {project === 'all' ? 'All Projects' : project}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
+            <Box display="flex" justifyContent="space-between" alignItems="center">
+              <Box display="flex" alignItems="center" style={{ gap: 8 }}>
+                <Badge badgeContent={activeFiltersCount} color="primary">
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<FilterListIcon />}
+                    onClick={() => setFilterDialogOpen(true)}
+                  >
+                    Filters
+                  </Button>
+                </Badge>
+                <Typography variant="body2" color="textSecondary">
+                  {filteredClusters.length} / {clusters.length} clusters
+                </Typography>
+              </Box>
               
-              <Grid item xs={12} sm={6} md={2}>
-                <TextField
-                  select
-                  fullWidth
-                  label="Cloud Type"
-                  value={selectedCloudType}
-                  onChange={(e) => setSelectedCloudType(e.target.value)}
-                  variant="outlined"
+              <Box display="flex" alignItems="center" style={{ gap: 8 }}>
+                <ToggleButtonGroup
+                  value={viewMode}
+                  exclusive
+                  onChange={(_, newMode) => newMode && setViewMode(newMode)}
                   size="small"
+                  className={classes.viewToggle}
                 >
-                  {cloudTypes.map(type => (
-                    <MenuItem key={type} value={type}>
-                      {type === 'all' ? 'All Types' : type}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
-
-              <Grid item xs={12} sm={6} md={2}>
-                <TextField
-                  select
-                  fullWidth
-                  label="Status"
-                  value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value)}
-                  variant="outlined"
-                  size="small"
-                >
-                  {statuses.map(status => (
-                    <MenuItem key={status} value={status}>
-                      {status === 'all' ? 'All Statuses' : status}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
-
-              <Grid item xs={12} sm={6} md={2}>
-                <TextField
-                  select
-                  fullWidth
-                  label="K8s Version"
-                  value={selectedK8sVersion}
-                  onChange={(e) => setSelectedK8sVersion(e.target.value)}
-                  variant="outlined"
-                  size="small"
-                >
-                  {k8sVersions.map(version => (
-                    <MenuItem key={version} value={version}>
-                      {version === 'all' ? 'All Versions' : version}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
-
-              <Grid item xs={12} sm={12} md={3}>
-                <Box display="flex" justifyContent="space-between" alignItems="center">
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={showOnlyWithUpdates}
-                        onChange={(e) => setShowOnlyWithUpdates(e.target.checked)}
-                        color="primary"
-                      />
-                    }
-                    label="Updates Available"
-                  />
-                  <Box display="flex" alignItems="center">
-                    <ToggleButtonGroup
-                      value={viewMode}
-                      exclusive
-                      onChange={(_, newMode) => newMode && setViewMode(newMode)}
-                      size="small"
-                      className={classes.viewToggle}
-                    >
-                      <ToggleButton value="cards">
-                        <Tooltip title="Card View">
-                          <ViewModuleIcon />
-                        </Tooltip>
-                      </ToggleButton>
-                      <ToggleButton value="list">
-                        <Tooltip title="List View">
-                          <ViewListIcon />
-                        </Tooltip>
-                      </ToggleButton>
-                    </ToggleButtonGroup>
-                    <Typography variant="body2" color="textSecondary" style={{ marginRight: 8 }}>
-                      {filteredClusters.length} / {clusters.length}
-                    </Typography>
-                    <Tooltip title="Refresh clusters">
-                      <IconButton onClick={fetchClusters} size="small">
-                        <RefreshIcon />
-                      </IconButton>
+                  <ToggleButton value="cards">
+                    <Tooltip title="Card View">
+                      <ViewModuleIcon />
                     </Tooltip>
-                  </Box>
-                </Box>
-              </Grid>
-            </Grid>
+                  </ToggleButton>
+                  <ToggleButton value="list">
+                    <Tooltip title="List View">
+                      <ViewListIcon />
+                    </Tooltip>
+                  </ToggleButton>
+                </ToggleButtonGroup>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  size="small"
+                  startIcon={<AddCircleIcon />}
+                  onClick={() => window.location.href = clusterDeploymentRoute()}
+                >
+                  Create Cluster
+                </Button>
+                <Tooltip title="Refresh clusters">
+                  <IconButton onClick={fetchClusters} size="small">
+                    <RefreshIcon />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+            </Box>
           </Box>
 
           {/* Cluster Display */}
@@ -913,6 +868,120 @@ export const ClusterViewerPage = () => {
               </Table>
             </TableContainer>
           )}
+
+          {/* Filter Dialog */}
+          <Dialog 
+            open={filterDialogOpen} 
+            onClose={() => setFilterDialogOpen(false)}
+            maxWidth="md"
+            fullWidth
+          >
+            <DialogTitle>Filter Clusters</DialogTitle>
+            <DialogContent>
+              <Grid container spacing={3} style={{ paddingTop: 8 }}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    select
+                    fullWidth
+                    label="Project"
+                    value={selectedProject}
+                    onChange={(e) => setSelectedProject(e.target.value)}
+                    variant="outlined"
+                  >
+                    {projects.map(project => (
+                      <MenuItem key={project} value={project}>
+                        {project === 'all' ? 'All Projects' : project}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+                
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    select
+                    fullWidth
+                    label="Cloud Type"
+                    value={selectedCloudType}
+                    onChange={(e) => setSelectedCloudType(e.target.value)}
+                    variant="outlined"
+                  >
+                    {cloudTypes.map(type => (
+                      <MenuItem key={type} value={type}>
+                        {type === 'all' ? 'All Types' : type}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    select
+                    fullWidth
+                    label="Status"
+                    value={selectedStatus}
+                    onChange={(e) => setSelectedStatus(e.target.value)}
+                    variant="outlined"
+                  >
+                    {statuses.map(status => (
+                      <MenuItem key={status} value={status}>
+                        {status === 'all' ? 'All Statuses' : status}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    select
+                    fullWidth
+                    label="Kubernetes Version"
+                    value={selectedK8sVersion}
+                    onChange={(e) => setSelectedK8sVersion(e.target.value)}
+                    variant="outlined"
+                  >
+                    {k8sVersions.map(version => (
+                      <MenuItem key={version} value={version}>
+                        {version === 'all' ? 'All Versions' : version}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={showOnlyWithUpdates}
+                        onChange={(e) => setShowOnlyWithUpdates(e.target.checked)}
+                        color="primary"
+                      />
+                    }
+                    label="Show only clusters with updates available"
+                  />
+                </Grid>
+              </Grid>
+            </DialogContent>
+            <DialogActions>
+              <Button 
+                onClick={() => {
+                  setSelectedProject('all');
+                  setSelectedCloudType('all');
+                  setSelectedStatus('all');
+                  setSelectedK8sVersion('all');
+                  setShowOnlyWithUpdates(false);
+                }}
+              >
+                Clear All
+              </Button>
+              <Button 
+                onClick={() => setFilterDialogOpen(false)} 
+                color="primary"
+                variant="contained"
+              >
+                Apply
+              </Button>
+            </DialogActions>
+          </Dialog>
         </Box>
       </Content>
     </Page>
