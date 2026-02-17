@@ -36,6 +36,26 @@ describe('registerMcpActions', () => {
     mockPermissions.authorize.mockResolvedValue([{ result: 'ALLOW' }]);
   });
 
+  const allActionNames = [
+    'get_spectrocloud_health_for_cluster',
+    'get_spectrocloud_kubeconfig_for_cluster',
+    'get_spectrocloud_pack_details_for_profile',
+    'find_spectrocloud_clusters_for_profile',
+    'list_spectrocloud_clusters',
+    'list_spectrocloud_virtual_clusters',
+    'list_spectrocloud_projects',
+    'list_spectrocloud_cluster_groups',
+    'search_spectrocloud_profiles_by_names',
+    'get_spectrocloud_profile_variables',
+    'list_spectrocloud_profiles_for_project',
+    'get_spectrocloud_pack_manifest_for_cluster',
+    'get_spectrocloud_cluster_profiles',
+    'get_spectrocloud_virtual_cluster_details',
+    'get_spectrocloud_kubeconfig_for_virtual_cluster',
+    'get_spectrocloud_cluster_group',
+    'list_spectrocloud_cloud_accounts',
+  ];
+
   it('should register all MCP actions', () => {
     registerMcpActions(
       mockActionsRegistry as any,
@@ -45,16 +65,15 @@ describe('registerMcpActions', () => {
       mockPermissions,
     );
 
-    expect(mockActionsRegistry.register).toHaveBeenCalledTimes(4);
-    
+    expect(mockActionsRegistry.register).toHaveBeenCalledTimes(17);
+
     const registeredActions = mockActionsRegistry.register.mock.calls.map(
       (call: any[]) => call[0].name
     );
-    
-    expect(registeredActions).toContain('get_spectrocloud_health_for_cluster');
-    expect(registeredActions).toContain('get_spectrocloud_kubeconfig_for_cluster');
-    expect(registeredActions).toContain('get_spectrocloud_pack_details_for_profile');
-    expect(registeredActions).toContain('find_spectrocloud_clusters_for_profile');
+
+    for (const name of allActionNames) {
+      expect(registeredActions).toContain(name);
+    }
   });
 
   describe('get_spectrocloud_health_for_cluster action', () => {
@@ -525,6 +544,68 @@ describe('registerMcpActions', () => {
 
       // Should register actions for each instance
       expect(newRegistry.register).toHaveBeenCalled();
+    });
+  });
+
+  describe('new MCP actions - input validation', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockAuth.getOwnServiceCredentials.mockResolvedValue({ $$type: '@backstage/BackstageCredentials', principal: { type: 'service', subject: 'plugin:spectrocloud-backend' } } as any);
+      mockAuth.getPluginRequestToken.mockResolvedValue({ token: 'test-plugin-token' });
+      registerMcpActions(
+        mockActionsRegistry as any,
+        mockConfig,
+        mockCatalogApi as any,
+        mockAuth,
+        mockPermissions,
+      );
+    });
+
+    it('get_spectrocloud_profile_variables throws when neither profileName nor profileUid provided', async () => {
+      const action = mockActionsRegistry.register.mock.calls.find(
+        (call: any[]) => call[0].name === 'get_spectrocloud_profile_variables'
+      )?.[0];
+      await expect(
+        action.action({ input: {} })
+      ).rejects.toThrow(InputError);
+    });
+
+    it('get_spectrocloud_pack_manifest_for_cluster throws when neither clusterName nor clusterUid provided', async () => {
+      const action = mockActionsRegistry.register.mock.calls.find(
+        (call: any[]) => call[0].name === 'get_spectrocloud_pack_manifest_for_cluster'
+      )?.[0];
+      await expect(
+        action.action({ input: { manifestUid: 'some-manifest' } })
+      ).rejects.toThrow(InputError);
+    });
+
+    it('get_spectrocloud_cluster_profiles throws when neither clusterName nor clusterUid provided', async () => {
+      const action = mockActionsRegistry.register.mock.calls.find(
+        (call: any[]) => call[0].name === 'get_spectrocloud_cluster_profiles'
+      )?.[0];
+      await expect(
+        action.action({ input: {} })
+      ).rejects.toThrow(InputError);
+    });
+
+  });
+
+  describe('new MCP actions - no SpectroCloud config', () => {
+    it('list_spectrocloud_clusters throws InputError when no environments configured', async () => {
+      const emptyConfig = new ConfigReader({});
+      registerMcpActions(
+        mockActionsRegistry as any,
+        emptyConfig,
+        mockCatalogApi as any,
+        mockAuth,
+        mockPermissions,
+      );
+      const action = mockActionsRegistry.register.mock.calls.find(
+        (call: any[]) => call[0].name === 'list_spectrocloud_clusters'
+      )?.[0];
+      await expect(
+        action.action({ input: {} })
+      ).rejects.toThrow(InputError);
     });
   });
 });
