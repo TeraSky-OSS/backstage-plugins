@@ -83,7 +83,7 @@ describe('SpectroCloudClient', () => {
       } as any);
 
       await client.getCluster('cluster-1', 'project-1');
-      
+
       const fetchCall = mockFetch.mock.calls[0];
       expect(fetchCall[1]?.headers).toHaveProperty('ProjectUid', 'project-1');
     });
@@ -111,14 +111,14 @@ describe('SpectroCloudClient', () => {
       expect(result).toEqual(mockProjects);
     });
 
-    it('should handle pagination', async () => {
+    it('should handle pagination with continue token as query parameter', async () => {
       const page1 = [{ metadata: { uid: 'p1' } }];
       const page2 = [{ metadata: { uid: 'p2' } }];
 
       mockFetch
         .mockResolvedValueOnce({
           ok: true,
-          json: jest.fn().mockResolvedValue({ items: page1, listmeta: { continue: 'token' } }),
+          json: jest.fn().mockResolvedValue({ items: page1, listmeta: { continue: 'token-abc' } }),
         } as any)
         .mockResolvedValueOnce({
           ok: true,
@@ -127,6 +127,39 @@ describe('SpectroCloudClient', () => {
 
       const result = await client.getAllProjects();
       expect(result).toHaveLength(2);
+
+      // Verify first request goes to base endpoint
+      const firstCallUrl = mockFetch.mock.calls[0][0] as string;
+      expect(firstCallUrl).toBe('https://api.spectrocloud.com/v1/dashboard/projects');
+
+      // Verify second request passes continue token as query parameter
+      const secondCallUrl = mockFetch.mock.calls[1][0] as string;
+      expect(secondCallUrl).toContain('?continue=');
+      expect(secondCallUrl).toContain('token-abc');
+
+      // Verify the POST body does NOT contain the continue token
+      const secondCallBody = JSON.parse(mockFetch.mock.calls[1][1]?.body as string);
+      expect(secondCallBody).not.toHaveProperty('continue');
+    });
+
+    it('should detect duplicate continue tokens and stop pagination', async () => {
+      const page = [{ metadata: { uid: 'p1' } }];
+
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ items: page, listmeta: { continue: 'same-token' } }),
+        } as any)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ items: page, listmeta: { continue: 'same-token' } }),
+        } as any);
+
+      const result = await client.getAllProjects();
+      expect(result.length).toBeGreaterThanOrEqual(1);
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('Duplicate continue token detected'),
+      );
     });
 
     it('should return empty array on error', async () => {
@@ -173,6 +206,57 @@ describe('SpectroCloudClient', () => {
       expect(result).toEqual(mockProfiles);
     });
 
+    it('should handle pagination with continue token as query parameter', async () => {
+      const page1 = [{ metadata: { uid: 'prof1' } }];
+      const page2 = [{ metadata: { uid: 'prof2' } }];
+
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ items: page1, listmeta: { continue: 'token-xyz' } }),
+        } as any)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ items: page2 }),
+        } as any);
+
+      const result = await client.getAllClusterProfiles();
+      expect(result).toHaveLength(2);
+
+      // Verify first request goes to base endpoint
+      const firstCallUrl = mockFetch.mock.calls[0][0] as string;
+      expect(firstCallUrl).toBe('https://api.spectrocloud.com/v1/dashboard/clusterprofiles');
+
+      // Verify second request passes continue token as query parameter
+      const secondCallUrl = mockFetch.mock.calls[1][0] as string;
+      expect(secondCallUrl).toContain('?continue=');
+      expect(secondCallUrl).toContain('token-xyz');
+
+      // Verify the POST body does NOT contain the continue token
+      const secondCallBody = JSON.parse(mockFetch.mock.calls[1][1]?.body as string);
+      expect(secondCallBody).not.toHaveProperty('continue');
+    });
+
+    it('should detect duplicate continue tokens and stop pagination', async () => {
+      const page = [{ metadata: { uid: 'prof1' } }];
+
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ items: page, listmeta: { continue: 'dup-token' } }),
+        } as any)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ items: page, listmeta: { continue: 'dup-token' } }),
+        } as any);
+
+      const result = await client.getAllClusterProfiles();
+      expect(result.length).toBeGreaterThanOrEqual(1);
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('Duplicate continue token detected'),
+      );
+    });
+
     it('should return empty array on error', async () => {
       mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
@@ -203,7 +287,7 @@ describe('SpectroCloudClient', () => {
       } as any);
 
       await client.getClusterProfile('profile-1', 'project-1');
-      
+
       const fetchCall = mockFetch.mock.calls[0];
       expect(fetchCall[1]?.headers).toHaveProperty('ProjectUid', 'project-1');
     });
@@ -231,7 +315,7 @@ describe('SpectroCloudClient', () => {
       expect(result).toEqual(mockProfiles);
     });
 
-    it('should handle pagination', async () => {
+    it('should handle pagination with continue token as query parameter', async () => {
       const page1 = [{ metadata: { uid: 'p1' } }];
       const page2 = [{ metadata: { uid: 'p2' } }];
 
@@ -247,6 +331,15 @@ describe('SpectroCloudClient', () => {
 
       const result = await client.getProjectClusterProfiles('project-1');
       expect(result).toHaveLength(2);
+
+      // Verify second request passes continue token as query parameter
+      const secondCallUrl = mockFetch.mock.calls[1][0] as string;
+      expect(secondCallUrl).toContain('?continue=');
+      expect(secondCallUrl).toContain('token1');
+
+      // Verify the POST body does NOT contain the continue token
+      const secondCallBody = JSON.parse(mockFetch.mock.calls[1][1]?.body as string);
+      expect(secondCallBody).not.toHaveProperty('continue');
     });
 
     it('should detect infinite pagination loop', async () => {
@@ -296,7 +389,7 @@ describe('SpectroCloudClient', () => {
       } as any);
 
       await client.getClientKubeConfig('cluster-1', 'project-1');
-      
+
       const fetchCall = mockFetch.mock.calls[0];
       expect(fetchCall[1]?.headers).toHaveProperty('ProjectUid', 'project-1');
     });
@@ -339,4 +432,3 @@ describe('SpectroCloudClient', () => {
     });
   });
 });
-
