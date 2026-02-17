@@ -140,6 +140,11 @@ export const SidebarContent: ReturnType<typeof NavContentBlueprint.make> = NavCo
               icon={SiKubernetes}
             />
             <SidebarSubmenuItem
+              title="Virtual Clusters"
+              to="/spectrocloud/virtualclusters"
+              icon={SiKubernetes}
+            />
+            <SidebarSubmenuItem
               title="Create Cluster"
               to="/spectrocloud/deploy"
               icon={AddCircleIcon}
