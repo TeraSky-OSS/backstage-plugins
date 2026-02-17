@@ -160,12 +160,25 @@ export const SidebarContent: ReturnType<typeof NavContentBlueprint.make> = NavCo
           </SidebarSubmenu>
         </SidebarItem>
         <SidebarItem icon={CreateComponentIcon} text="Scaffolder">
-          <SidebarSubmenu title="VCF Automation">
+          <SidebarSubmenu title="Scaffolder">
             <Typography variant="subtitle2" style={{ padding: '32px 16px 16px 16px', fontWeight: 'bold' }}>
-              Software Templates
+              Scaffolder
             </Typography>
-            <SidebarSubmenuItem title="Create..." to="/create" icon={CreateComponentIcon} />
-            <SidebarSubmenuItem title="Design..." to="/template-builder" icon={EditIcon} />
+            <SidebarSubmenuItem 
+              title="Create" 
+              to="/create" 
+              icon={CreateComponentIcon} 
+            />
+            <SidebarSubmenuItem 
+              title="Design" 
+              to="/template-builder" 
+              icon={EditIcon} 
+            />
+            <SidebarSubmenuItem
+              title="Templates"
+              to="/catalog?filters[kind]=template"
+              icon={ListIcon}
+            />
           </SidebarSubmenu>
         </SidebarItem>
         <SidebarItem icon={SchoolIcon} to="/educates" text="Workshops" />
