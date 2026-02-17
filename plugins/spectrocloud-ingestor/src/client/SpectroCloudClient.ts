@@ -166,22 +166,31 @@ export class SpectroCloudClient {
     try {
       const allProjects: SpectroCloudProject[] = [];
       let continueToken: string | undefined;
-      
+      const seenTokens = new Set<string>();
+
       do {
         const body: any = { filter: {} };
+        let endpoint = '/v1/dashboard/projects';
         if (continueToken) {
-          body.continue = continueToken;
+          if (seenTokens.has(continueToken)) {
+            this.logger.warn(
+              `getAllProjects: Duplicate continue token detected, stopping pagination`,
+            );
+            break;
+          }
+          seenTokens.add(continueToken);
+          endpoint = `${endpoint}?continue=${encodeURIComponent(continueToken)}`;
         }
 
         const response = await this.makeRequest(
-          '/v1/dashboard/projects',
+          endpoint,
           'POST',
           undefined,
           false,
-          JSON.stringify(body)
+          JSON.stringify(body),
         );
-        
-        const result = await response.json() as any;
+
+        const result = (await response.json()) as any;
         if (result.items && Array.isArray(result.items)) {
           allProjects.push(...result.items);
         }
@@ -210,22 +219,31 @@ export class SpectroCloudClient {
     try {
       const allProfiles: SpectroCloudClusterProfile[] = [];
       let continueToken: string | undefined;
-      
+      const seenTokens = new Set<string>();
+
       do {
         const body: any = { filter: {} };
+        let endpoint = '/v1/dashboard/clusterprofiles';
         if (continueToken) {
-          body.continue = continueToken;
+          if (seenTokens.has(continueToken)) {
+            this.logger.warn(
+              `getAllClusterProfiles: Duplicate continue token detected, stopping pagination`,
+            );
+            break;
+          }
+          seenTokens.add(continueToken);
+          endpoint = `${endpoint}?continue=${encodeURIComponent(continueToken)}`;
         }
 
         const response = await this.makeRequest(
-          '/v1/dashboard/clusterprofiles',
+          endpoint,
           'POST',
           undefined,
           false,
-          JSON.stringify(body)
+          JSON.stringify(body),
         );
-        
-        const result = await response.json() as any;
+
+        const result = (await response.json()) as any;
         if (result.items && Array.isArray(result.items)) {
           allProfiles.push(...result.items);
         }
@@ -234,7 +252,9 @@ export class SpectroCloudClient {
 
       return allProfiles;
     } catch (error) {
-      this.logger.error(`Failed to fetch SpectroCloud cluster profiles: ${error}`);
+      this.logger.error(
+        `Failed to fetch SpectroCloud cluster profiles: ${error}`,
+      );
       return [];
     }
   }
@@ -246,34 +266,39 @@ export class SpectroCloudClient {
       let continueToken: string | undefined;
       let pageCount = 0;
       const seenTokens = new Set<string>();
-      
+
       do {
         pageCount++;
         if (pageCount > MAX_PAGES) {
-          this.logger.warn(`Hit max page limit (${MAX_PAGES}) for project ${projectUid}`);
+          this.logger.warn(
+            `Hit max page limit (${MAX_PAGES}) for project ${projectUid}`,
+          );
           break;
         }
-        
+
         const body: any = { filter: { scope: 'project' } };
+        let endpoint = '/v1/dashboard/clusterprofiles';
         if (continueToken) {
           if (seenTokens.has(continueToken)) {
-            this.logger.error(`Infinite pagination loop detected for project ${projectUid}`);
+            this.logger.error(
+              `Infinite pagination loop detected for project ${projectUid}`,
+            );
             break;
           }
           seenTokens.add(continueToken);
-          body.continue = continueToken;
+          endpoint = `${endpoint}?continue=${encodeURIComponent(continueToken)}`;
         }
 
         const headers: Record<string, string> = { ProjectUid: projectUid };
         const response = await this.makeRequest(
-          '/v1/dashboard/clusterprofiles',
+          endpoint,
           'POST',
           headers,
           false,
-          JSON.stringify(body)
+          JSON.stringify(body),
         );
-        
-        const result = await response.json() as any;
+
+        const result = (await response.json()) as any;
         if (result.items && Array.isArray(result.items)) {
           allProfiles.push(...result.items);
         }
@@ -282,7 +307,9 @@ export class SpectroCloudClient {
 
       return allProfiles;
     } catch (error) {
-      this.logger.error(`Failed to fetch cluster profiles for project ${projectUid}: ${error}`);
+      this.logger.error(
+        `Failed to fetch cluster profiles for project ${projectUid}: ${error}`,
+      );
       return [];
     }
   }
@@ -361,4 +388,3 @@ export class SpectroCloudClient {
     return response;
   }
 }
-
