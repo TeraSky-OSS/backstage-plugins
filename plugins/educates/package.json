@@ -1,6 +1,6 @@
 {
   "name": "@terasky/backstage-plugin-educates",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "main": "src/index.ts",
   "types": "src/index.ts",
   "configSchema": "config.d.ts",
@@ -36,7 +36,7 @@
   "dependencies": {
     "@backstage/core-components": "^0.18.7",
     "@backstage/core-plugin-api": "^1.12.3",
-    "@backstage/frontend-plugin-api": "^0.14.0",
+    "@backstage/frontend-plugin-api": "^0.14.1",
     "@backstage/theme": "^0.7.2",
     "@material-ui/core": "^4.12.4",
     "@material-ui/icons": "^4.9.1",
