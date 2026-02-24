@@ -161,7 +161,7 @@ kubernetesIngestor:
         frequency: 10
         # Max time to process the data per cycle
         timeout: 600
-  # Whether to auto add the argo cd plugins annotation to the ingested components if the ingested resources have the ArgoCD tracking annotation added to them. defaults to false
+  # Whether to auto add the argo cd plugins annotation to the ingested components if the ingested resources have the ArgoCD tracking annotation added to them. defaults to true
   argoIntegration: true
 ```
 

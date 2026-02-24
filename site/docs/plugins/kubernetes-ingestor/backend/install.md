@@ -137,7 +137,7 @@ kubernetesIngestor:
   genericCRDTemplates:
     ingestOnlyAsAPI: false  # Set to true to skip template generation
   
-  argoIntegration: false
+  argoIntegration: true
 ```
 
 ### 5. Configure Git Integration
