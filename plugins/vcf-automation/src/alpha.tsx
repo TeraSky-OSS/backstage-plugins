@@ -194,7 +194,8 @@ export const vcfCCIResourceOverviewCard: ExtensionDefinition =
 });
 
 /** @alpha */
-export const vcfCCIResourceContent = EntityContentBlueprint.make({
+export const vcfCCIResourceContent: ExtensionDefinition =
+  EntityContentBlueprint.make({
   name: 'vcf-automation.cci-resource-details',
   params: {
     path: '/vcf-automation-cci-resource',
