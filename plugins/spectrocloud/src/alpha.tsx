@@ -6,6 +6,8 @@ import {
   NavItemBlueprint,
   discoveryApiRef,
   fetchApiRef,
+  type ExtensionDefinition,
+  type FrontendPlugin,
 } from '@backstage/frontend-plugin-api';
 import { EntityCardBlueprint, EntityContentBlueprint } from '@backstage/plugin-catalog-react/alpha';
 import { Entity } from '@backstage/catalog-model';
@@ -44,7 +46,7 @@ const isSpectroCloudVirtualCluster = (entity: Entity): boolean => {
 };
 
 /** @alpha */
-export const spectroCloudApi = ApiBlueprint.make({
+export const spectroCloudApi: ExtensionDefinition = ApiBlueprint.make({
   params: defineParams =>
     defineParams({
       api: spectroCloudApiRef,
@@ -59,7 +61,8 @@ export const spectroCloudApi = ApiBlueprint.make({
 });
 
 /** @alpha */
-export const spectroCloudClusterCard = EntityCardBlueprint.make({
+export const spectroCloudClusterCard: ExtensionDefinition =
+  EntityCardBlueprint.make({
   name: 'spectrocloud.cluster-overview',
   params: {
     filter: isSpectroCloudCluster,
@@ -69,7 +72,8 @@ export const spectroCloudClusterCard = EntityCardBlueprint.make({
 });
 
 /** @alpha */
-export const spectroCloudClusterProfileCard = EntityCardBlueprint.make({
+export const spectroCloudClusterProfileCard: ExtensionDefinition =
+  EntityCardBlueprint.make({
   name: 'spectrocloud.cluster-profile-overview',
   params: {
     filter: isSpectroCloudClusterProfile,
@@ -79,7 +83,8 @@ export const spectroCloudClusterProfileCard = EntityCardBlueprint.make({
 });
 
 /** @alpha */
-export const spectroCloudClusterGroupCard = EntityCardBlueprint.make({
+export const spectroCloudClusterGroupCard: ExtensionDefinition =
+  EntityCardBlueprint.make({
   name: 'spectrocloud.cluster-group-overview',
   params: {
     filter: isSpectroCloudClusterGroup,
@@ -89,7 +94,8 @@ export const spectroCloudClusterGroupCard = EntityCardBlueprint.make({
 });
 
 /** @alpha */
-export const spectroCloudVirtualClusterCard = EntityCardBlueprint.make({
+export const spectroCloudVirtualClusterCard: ExtensionDefinition =
+  EntityCardBlueprint.make({
   name: 'spectrocloud.virtual-cluster-overview',
   params: {
     filter: isSpectroCloudVirtualCluster,
@@ -99,7 +105,8 @@ export const spectroCloudVirtualClusterCard = EntityCardBlueprint.make({
 });
 
 /** @alpha */
-export const spectroCloudKubernetesResourcesTab = EntityContentBlueprint.make({
+export const spectroCloudKubernetesResourcesTab: ExtensionDefinition =
+  EntityContentBlueprint.make({
   name: 'spectrocloud.kubernetes-resources',
   params: {
     filter: isSpectroCloudCluster,
@@ -111,7 +118,8 @@ export const spectroCloudKubernetesResourcesTab = EntityContentBlueprint.make({
 });
 
 /** @alpha */
-export const spectroCloudClusterGroupSettingsTab = EntityContentBlueprint.make({
+export const spectroCloudClusterGroupSettingsTab: ExtensionDefinition =
+  EntityContentBlueprint.make({
   name: 'spectrocloud.cluster-group-settings',
   params: {
     filter: isSpectroCloudClusterGroup,
@@ -123,7 +131,8 @@ export const spectroCloudClusterGroupSettingsTab = EntityContentBlueprint.make({
 });
 
 /** @alpha */
-export const spectroCloudClusterDeploymentPage = PageBlueprint.make({
+export const spectroCloudClusterDeploymentPage: ExtensionDefinition =
+  PageBlueprint.make({
   name: 'spectrocloud.cluster-deployment',
   params: {
     path: '/spectrocloud/deploy',
@@ -134,7 +143,8 @@ export const spectroCloudClusterDeploymentPage = PageBlueprint.make({
 });
 
 /** @alpha */
-export const spectroCloudClusterDeploymentNavItem = NavItemBlueprint.make({
+export const spectroCloudClusterDeploymentNavItem: ExtensionDefinition =
+  NavItemBlueprint.make({
   name: 'spectrocloud.deploy-cluster',
   params: {
     title: 'Deploy Cluster',
@@ -145,7 +155,8 @@ export const spectroCloudClusterDeploymentNavItem = NavItemBlueprint.make({
 });
 
 /** @alpha */
-export const spectroCloudClusterViewerPage = PageBlueprint.make({
+export const spectroCloudClusterViewerPage: ExtensionDefinition =
+  PageBlueprint.make({
   name: 'spectrocloud.cluster-viewer',
   params: {
     path: '/spectrocloud/clusters',
@@ -156,7 +167,8 @@ export const spectroCloudClusterViewerPage = PageBlueprint.make({
 });
 
 /** @alpha */
-export const spectroCloudClusterViewerNavItem = NavItemBlueprint.make({
+export const spectroCloudClusterViewerNavItem: ExtensionDefinition =
+  NavItemBlueprint.make({
   name: 'spectrocloud.cluster-viewer',
   params: {
     title: 'View Clusters',
@@ -167,7 +179,8 @@ export const spectroCloudClusterViewerNavItem = NavItemBlueprint.make({
 });
 
 /** @alpha */
-export const spectroCloudVirtualClusterViewerPage = PageBlueprint.make({
+export const spectroCloudVirtualClusterViewerPage: ExtensionDefinition =
+  PageBlueprint.make({
   name: 'spectrocloud.virtual-cluster-viewer',
   params: {
     path: '/spectrocloud/virtualclusters',
@@ -178,7 +191,8 @@ export const spectroCloudVirtualClusterViewerPage = PageBlueprint.make({
 });
 
 /** @alpha */
-export const spectroCloudVirtualClusterViewerNavItem = NavItemBlueprint.make({
+export const spectroCloudVirtualClusterViewerNavItem: ExtensionDefinition =
+  NavItemBlueprint.make({
   name: 'spectrocloud.virtual-cluster-viewer',
   params: {
     title: 'View Virtual Clusters',
@@ -189,7 +203,7 @@ export const spectroCloudVirtualClusterViewerNavItem = NavItemBlueprint.make({
 });
 
 /** @alpha */
-export const spectroCloudPlugin = createFrontendPlugin({
+export const spectroCloudPlugin: FrontendPlugin = createFrontendPlugin({
   pluginId: 'spectrocloud',
   extensions: [
     spectroCloudApi,

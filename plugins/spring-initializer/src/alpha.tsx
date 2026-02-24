@@ -1,8 +1,13 @@
-import { createFrontendPlugin } from '@backstage/frontend-plugin-api';
+import {
+  createFrontendPlugin,
+  type ExtensionDefinition,
+  type FrontendPlugin,
+} from '@backstage/frontend-plugin-api';
 import { FormFieldBlueprint } from '@backstage/plugin-scaffolder-react/alpha';
 
 /** @alpha */
-export const springInitializerExtension = FormFieldBlueprint.make({
+export const springInitializerExtension: ExtensionDefinition =
+  FormFieldBlueprint.make({
   name: 'SpringInitializer',
   params: {
     field: () =>
@@ -11,7 +16,8 @@ export const springInitializerExtension = FormFieldBlueprint.make({
 });
 
 /** @alpha */
-export const springInitializerPlugin = createFrontendPlugin({
+export const springInitializerPlugin: FrontendPlugin =
+  createFrontendPlugin({
   pluginId: 'spring-initializer',
   extensions: [springInitializerExtension],
 });

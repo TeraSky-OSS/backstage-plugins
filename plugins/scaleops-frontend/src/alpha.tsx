@@ -1,4 +1,8 @@
-import { createFrontendPlugin } from '@backstage/frontend-plugin-api';
+import {
+  createFrontendPlugin,
+  type ExtensionDefinition,
+  type FrontendPlugin,
+} from '@backstage/frontend-plugin-api';
 import { EntityCardBlueprint, EntityContentBlueprint } from '@backstage/plugin-catalog-react/alpha';
 import { Entity } from '@backstage/catalog-model';
 
@@ -7,7 +11,8 @@ const isScaleopsAvailable = (entity: Entity) => {
 };
 
 /** @alpha */
-export const scaleopsCard = EntityCardBlueprint.make({
+export const scaleopsCard: ExtensionDefinition =
+  EntityCardBlueprint.make({
   name: 'scaleops.overview',
   params: {
     filter: isScaleopsAvailable,
@@ -17,7 +22,8 @@ export const scaleopsCard = EntityCardBlueprint.make({
 });
 
 /** @alpha */
-export const scaleopsContent = EntityContentBlueprint.make({
+export const scaleopsContent: ExtensionDefinition =
+  EntityContentBlueprint.make({
   name: 'scaleops.dashboard',
   params: {
     path: '/scaleops',
@@ -29,7 +35,7 @@ export const scaleopsContent = EntityContentBlueprint.make({
 });
 
 /** @alpha */
-export const scaleopsPlugin = createFrontendPlugin({
+export const scaleopsPlugin: FrontendPlugin = createFrontendPlugin({
   pluginId: 'scaleops',
   extensions: [scaleopsCard, scaleopsContent],
 });

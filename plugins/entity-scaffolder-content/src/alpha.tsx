@@ -1,4 +1,8 @@
-import { createFrontendPlugin } from '@backstage/frontend-plugin-api';
+import {
+  createFrontendPlugin,
+  type ExtensionDefinition,
+  type FrontendPlugin,
+} from '@backstage/frontend-plugin-api';
 import { EntityContentBlueprint } from '@backstage/plugin-catalog-react/alpha';
 import { ScaffolderFieldExtensions } from '@backstage/plugin-scaffolder-react';
 import { EntityPickerFieldExtension, RepoUrlPickerFieldExtension } from '@backstage/plugin-scaffolder';
@@ -6,7 +10,8 @@ import { GitOpsManifestUpdaterExtension } from '@terasky/backstage-plugin-gitops
 import { stringifyEntityRef } from '@backstage/catalog-model';
 
 /** @alpha */
-export const entityScaffolderContentExtension = EntityContentBlueprint.make({
+export const entityScaffolderContentExtension: ExtensionDefinition =
+  EntityContentBlueprint.make({
   name: 'entity-scaffolder-content',
   params: {
     path: '/scaffolder-content',
@@ -40,7 +45,8 @@ export const entityScaffolderContentExtension = EntityContentBlueprint.make({
 });
 
 /** @alpha */
-export const crossplaneEntityScaffolderContentExtension = EntityContentBlueprint.make({
+export const crossplaneEntityScaffolderContentExtension: ExtensionDefinition =
+  EntityContentBlueprint.make({
   name: 'entity-scaffolder-content-crossplane',
   params: {
     path: '/crossplane-scaffolder-content',
@@ -76,7 +82,8 @@ export const crossplaneEntityScaffolderContentExtension = EntityContentBlueprint
 });
 
 /** @alpha */
-export const entityScaffolderContentPlugin = createFrontendPlugin({
+export const entityScaffolderContentPlugin: FrontendPlugin =
+  createFrontendPlugin({
   pluginId: 'entity-scaffolder-content',
   extensions: [entityScaffolderContentExtension, crossplaneEntityScaffolderContentExtension],
 });

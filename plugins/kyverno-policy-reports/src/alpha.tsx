@@ -1,4 +1,11 @@
-import { ApiBlueprint, createFrontendPlugin, discoveryApiRef, fetchApiRef } from '@backstage/frontend-plugin-api';
+import {
+  ApiBlueprint,
+  createFrontendPlugin,
+  discoveryApiRef,
+  fetchApiRef,
+  type ExtensionDefinition,
+  type FrontendPlugin,
+} from '@backstage/frontend-plugin-api';
 import { EntityCardBlueprint, EntityContentBlueprint } from '@backstage/plugin-catalog-react/alpha';
 import { Entity } from '@backstage/catalog-model';
 import { isKubernetesAvailable } from '@backstage/plugin-kubernetes';
@@ -13,7 +20,8 @@ const isCrossplaneAvailable = (entity: Entity) => {
 };
 
 /** @alpha */
-export const kyvernoOverviewCard = EntityCardBlueprint.make({
+export const kyvernoOverviewCard: ExtensionDefinition =
+  EntityCardBlueprint.make({
   name: 'kyverno.overview',
   params: {
     filter: isNonCrossplaneButKyvernoAvailable,
@@ -23,7 +31,8 @@ export const kyvernoOverviewCard = EntityCardBlueprint.make({
 });
 
 /** @alpha */
-export const kyvernoCrossplaneOverviewCard = EntityCardBlueprint.make({
+export const kyvernoCrossplaneOverviewCard: ExtensionDefinition =
+  EntityCardBlueprint.make({
   name: 'kyverno.crossplane-overview',
   params: {
     filter: isCrossplaneAvailable,
@@ -33,7 +42,8 @@ export const kyvernoCrossplaneOverviewCard = EntityCardBlueprint.make({
 });
 
 /** @alpha */
-export const kyvernoPolicyReportsContent = EntityContentBlueprint.make({
+export const kyvernoPolicyReportsContent: ExtensionDefinition =
+  EntityContentBlueprint.make({
   name: 'kyverno.reports',
   params: {
     path: '/kyverno-policy-reports',
@@ -45,7 +55,8 @@ export const kyvernoPolicyReportsContent = EntityContentBlueprint.make({
 });
 
 /** @alpha */
-export const kyvernoCrossplanePolicyReportsContent = EntityContentBlueprint.make({
+export const kyvernoCrossplanePolicyReportsContent: ExtensionDefinition =
+  EntityContentBlueprint.make({
   name: 'kyverno.crossplane-reports',
   params: {
     path: '/kyverno-crossplane-policy-reports',
@@ -57,7 +68,7 @@ export const kyvernoCrossplanePolicyReportsContent = EntityContentBlueprint.make
 });
 
 /** @alpha */
-export const kyvernoApi = ApiBlueprint.make({
+export const kyvernoApi: ExtensionDefinition = ApiBlueprint.make({
   name: 'kyvernoApi',
   params: defineParams => defineParams({
     api: kyvernoApiRef,
@@ -70,7 +81,8 @@ export const kyvernoApi = ApiBlueprint.make({
 });
 
 /** @alpha */
-export const kyvernoPolicyReportsPlugin = createFrontendPlugin({
+export const kyvernoPolicyReportsPlugin: FrontendPlugin =
+  createFrontendPlugin({
   pluginId: 'kyverno-policy-reports',
   extensions: [
     kyvernoOverviewCard,

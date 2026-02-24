@@ -1,8 +1,13 @@
-import { createFrontendPlugin } from '@backstage/frontend-plugin-api';
+import {
+  createFrontendPlugin,
+  type ExtensionDefinition,
+  type FrontendPlugin,
+} from '@backstage/frontend-plugin-api';
 import { FormFieldBlueprint } from '@backstage/plugin-scaffolder-react/alpha';
 
 /** @alpha */
-export const gitopsManifestUpdaterExtension = FormFieldBlueprint.make({
+export const gitopsManifestUpdaterExtension: ExtensionDefinition =
+  FormFieldBlueprint.make({
   name: 'GitOpsManifestUpdater',
   params: {
     field: () =>
@@ -11,7 +16,8 @@ export const gitopsManifestUpdaterExtension = FormFieldBlueprint.make({
 });
 
 /** @alpha */
-export const gitopsManifestUpdaterPlugin = createFrontendPlugin({
+export const gitopsManifestUpdaterPlugin: FrontendPlugin =
+  createFrontendPlugin({
   pluginId: 'gitops-manifest-updater',
   extensions: [gitopsManifestUpdaterExtension],
 });

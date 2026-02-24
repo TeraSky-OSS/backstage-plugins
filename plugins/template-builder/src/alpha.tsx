@@ -5,6 +5,8 @@ import {
   ApiBlueprint,
   discoveryApiRef,
   fetchApiRef,
+  type ExtensionDefinition,
+  type FrontendPlugin,
 } from '@backstage/frontend-plugin-api';
 import { catalogApiRef } from '@backstage/plugin-catalog-react';
 import { EntityCardBlueprint } from '@backstage/plugin-catalog-react/alpha';
@@ -13,7 +15,7 @@ import { rootRouteRef, editTemplateRouteRef } from './routes';
 import { templateBuilderApiRef, DefaultTemplateBuilderApi } from './api';
 import './index.css'; // Global styles for Monaco widgets - MUST load first!
 
-export const templateBuilderApi = ApiBlueprint.make({
+export const templateBuilderApi: ExtensionDefinition = ApiBlueprint.make({
   params: defineParams =>
     defineParams({
       api: templateBuilderApiRef,
@@ -27,7 +29,7 @@ export const templateBuilderApi = ApiBlueprint.make({
     }),
 });
 
-export const templateBuilderPage = PageBlueprint.make({
+export const templateBuilderPage: ExtensionDefinition = PageBlueprint.make({
   name: 'template-builder-page',
   params: {
     path: '/template-builder',
@@ -39,7 +41,8 @@ export const templateBuilderPage = PageBlueprint.make({
   },
 });
 
-export const templateBuilderEditPage = PageBlueprint.make({
+export const templateBuilderEditPage: ExtensionDefinition =
+  PageBlueprint.make({
   name: 'template-builder-edit-page',
   params: {
     path: '/template-builder/edit/:namespace/:kind/:name',
@@ -51,7 +54,8 @@ export const templateBuilderEditPage = PageBlueprint.make({
   },
 });
 
-export const templateBuilderNavItem = NavItemBlueprint.make({
+export const templateBuilderNavItem: ExtensionDefinition =
+  NavItemBlueprint.make({
   name: 'template-builder-nav',
   params: {
     title: 'Template Builder',
@@ -60,7 +64,8 @@ export const templateBuilderNavItem = NavItemBlueprint.make({
   },
 });
 
-export const templateEditorEntityCard = EntityCardBlueprint.make({
+export const templateEditorEntityCard: ExtensionDefinition =
+  EntityCardBlueprint.make({
   name: 'template-editor',
   params: {
     filter: 'kind:template',
@@ -69,7 +74,7 @@ export const templateEditorEntityCard = EntityCardBlueprint.make({
   },
 });
 
-export const templateBuilderPlugin = createFrontendPlugin({
+export const templateBuilderPlugin: FrontendPlugin = createFrontendPlugin({
   pluginId: 'template-builder',
   extensions: [
     templateBuilderApi,

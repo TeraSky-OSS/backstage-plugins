@@ -1,4 +1,9 @@
-import { createFrontendPlugin, ApiBlueprint } from '@backstage/frontend-plugin-api';
+import {
+  createFrontendPlugin,
+  ApiBlueprint,
+  type ExtensionDefinition,
+  type FrontendPlugin,
+} from '@backstage/frontend-plugin-api';
 import { EntityContentBlueprint } from '@backstage/plugin-catalog-react/alpha';
 import { Entity } from '@backstage/catalog-model';
 import { vcfOperationsApiRef, VcfOperationsClient } from './api/VcfOperationsClient';
@@ -11,7 +16,7 @@ const isVCFOperationsAvailable = (entity: Entity) => {
 };
 
 /** @alpha */
-export const vcfOperationsApi = ApiBlueprint.make({
+export const vcfOperationsApi: ExtensionDefinition = ApiBlueprint.make({
   name: 'vcfOperationsApi',
   params: defineParams => defineParams({
     api: vcfOperationsApiRef,
@@ -25,7 +30,8 @@ export const vcfOperationsApi = ApiBlueprint.make({
 });
 
 /** @alpha */
-export const vcfOperationsContent = EntityContentBlueprint.make({
+export const vcfOperationsContent: ExtensionDefinition =
+  EntityContentBlueprint.make({
   name: 'vcf-operations.content',
   params: {
     path: '/vcf-operations',
@@ -37,7 +43,8 @@ export const vcfOperationsContent = EntityContentBlueprint.make({
 });
 
 /** @alpha */
-export const vcfOperationsPlugin = createFrontendPlugin({
+export const vcfOperationsPlugin: FrontendPlugin =
+  createFrontendPlugin({
   pluginId: 'vcf-operations',
   extensions: [vcfOperationsApi, vcfOperationsContent],
 });

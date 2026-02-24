@@ -1,9 +1,14 @@
-import { createFrontendPlugin } from '@backstage/frontend-plugin-api';
+import {
+  createFrontendPlugin,
+  type ExtensionDefinition,
+  type FrontendPlugin,
+} from '@backstage/frontend-plugin-api';
 import { EntityContentBlueprint } from '@backstage/plugin-catalog-react/alpha';
 import { isKubernetesResourcesAvailable } from './components/isKubernetesResourcesAvailable';
 
 /** @alpha */
-export const kubernetesResourcesGraphCard = EntityContentBlueprint.make({
+export const kubernetesResourcesGraphCard: ExtensionDefinition =
+  EntityContentBlueprint.make({
   name: 'kubernetes-resources.graph',
   params: {
     path: '/kubernetes-resources-graph',
@@ -16,7 +21,8 @@ export const kubernetesResourcesGraphCard = EntityContentBlueprint.make({
 });
 
 /** @alpha */
-export const kubernetesResourcesContent = EntityContentBlueprint.make({
+export const kubernetesResourcesContent: ExtensionDefinition =
+  EntityContentBlueprint.make({
   name: 'kubernetes-resources.content',
   params: {
     path: '/kubernetes-resources',
@@ -29,7 +35,8 @@ export const kubernetesResourcesContent = EntityContentBlueprint.make({
 });
 
 /** @alpha */
-export const kubernetesResourcesPlugin = createFrontendPlugin({
+export const kubernetesResourcesPlugin: FrontendPlugin =
+  createFrontendPlugin({
   pluginId: 'kubernetes-resources',
   extensions: [kubernetesResourcesGraphCard, kubernetesResourcesContent],
 });

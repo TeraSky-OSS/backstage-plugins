@@ -1,4 +1,9 @@
-import { createFrontendPlugin, ApiBlueprint } from '@backstage/frontend-plugin-api';
+import {
+  createFrontendPlugin,
+  ApiBlueprint,
+  type ExtensionDefinition,
+  type FrontendPlugin,
+} from '@backstage/frontend-plugin-api';
 import { EntityCardBlueprint, EntityContentBlueprint } from '@backstage/plugin-catalog-react/alpha';
 import { Entity } from '@backstage/catalog-model';
 import { vcfAutomationApiRef, VcfAutomationClient } from './api';
@@ -44,7 +49,7 @@ const isVCFCCIResource = (entity: Entity) => {
 };
 
 /** @alpha */
-export const vcfAutomationApi = ApiBlueprint.make({
+export const vcfAutomationApi: ExtensionDefinition = ApiBlueprint.make({
   name: 'vcfAutomationApi',
   params: defineParams => defineParams({
     api: vcfAutomationApiRef,
@@ -58,7 +63,8 @@ export const vcfAutomationApi = ApiBlueprint.make({
 });
 
 /** @alpha */
-export const vcfDeploymentOverviewCard = EntityCardBlueprint.make({
+export const vcfDeploymentOverviewCard: ExtensionDefinition =
+  EntityCardBlueprint.make({
   name: 'vcf-automation.deployment-overview',
   params: {
     filter: isVCFDeployment,
@@ -68,7 +74,8 @@ export const vcfDeploymentOverviewCard = EntityCardBlueprint.make({
 });
 
 /** @alpha */
-export const vcfDeploymentContent = EntityContentBlueprint.make({
+export const vcfDeploymentContent: ExtensionDefinition =
+  EntityContentBlueprint.make({
   name: 'vcf-automation.deployment-details',
   params: {
     path: '/vcf-automation-deployment',
@@ -80,7 +87,8 @@ export const vcfDeploymentContent = EntityContentBlueprint.make({
 });
 
 /** @alpha */
-export const vcfVSphereVMOverviewCard = EntityCardBlueprint.make({
+export const vcfVSphereVMOverviewCard: ExtensionDefinition =
+  EntityCardBlueprint.make({
   name: 'vcf-automation.vsphere-vm-overview',
   params: {
     filter: isVCFVSphereVM,
@@ -90,7 +98,8 @@ export const vcfVSphereVMOverviewCard = EntityCardBlueprint.make({
 });
 
 /** @alpha */
-export const vcfVSphereVMContent = EntityContentBlueprint.make({
+export const vcfVSphereVMContent: ExtensionDefinition =
+  EntityContentBlueprint.make({
   name: 'vcf-automation.vsphere-vm-details',
   params: {
     path: '/vcf-automation-vsphere-vm',
@@ -102,7 +111,8 @@ export const vcfVSphereVMContent = EntityContentBlueprint.make({
 });
 
 /** @alpha */
-export const vcfProjectOverviewCard = EntityCardBlueprint.make({
+export const vcfProjectOverviewCard: ExtensionDefinition =
+  EntityCardBlueprint.make({
   name: 'vcf-automation.project-overview',
   params: {
     filter: isVCFProject,
@@ -112,7 +122,8 @@ export const vcfProjectOverviewCard = EntityCardBlueprint.make({
 });
 
 /** @alpha */
-export const vcfProjectContent = EntityContentBlueprint.make({
+export const vcfProjectContent: ExtensionDefinition =
+  EntityContentBlueprint.make({
   name: 'vcf-automation.project-details',
   params: {
     path: '/vcf-automation-project',
@@ -124,7 +135,8 @@ export const vcfProjectContent = EntityContentBlueprint.make({
 });
 
 /** @alpha */
-export const vcfGenericResourceOverviewCard = EntityCardBlueprint.make({
+export const vcfGenericResourceOverviewCard: ExtensionDefinition =
+  EntityCardBlueprint.make({
   name: 'vcf-automation.generic-resource-overview',
   params: {
     filter: isVCFGenericResource,
@@ -134,7 +146,8 @@ export const vcfGenericResourceOverviewCard = EntityCardBlueprint.make({
 });
 
 /** @alpha */
-export const vcfGenericResourceContent = EntityContentBlueprint.make({
+export const vcfGenericResourceContent: ExtensionDefinition =
+  EntityContentBlueprint.make({
   name: 'vcf-automation.generic-resource-details',
   params: {
     path: '/vcf-automation-generic-resource',
@@ -146,7 +159,8 @@ export const vcfGenericResourceContent = EntityContentBlueprint.make({
 });
 
 /** @alpha */
-export const vcfCCINamespaceOverviewCard = EntityCardBlueprint.make({
+export const vcfCCINamespaceOverviewCard: ExtensionDefinition =
+  EntityCardBlueprint.make({
   name: 'vcf-automation.cci-namespace-overview',
   params: {
     filter: isVCFCCINamespace,
@@ -156,7 +170,8 @@ export const vcfCCINamespaceOverviewCard = EntityCardBlueprint.make({
 });
 
 /** @alpha */
-export const vcfCCINamespaceContent = EntityContentBlueprint.make({
+export const vcfCCINamespaceContent: ExtensionDefinition =
+  EntityContentBlueprint.make({
   name: 'vcf-automation.cci-namespace-details',
   params: {
     path: '/vcf-automation-cci-namespace',
@@ -168,7 +183,8 @@ export const vcfCCINamespaceContent = EntityContentBlueprint.make({
 });
 
 /** @alpha */
-export const vcfCCIResourceOverviewCard = EntityCardBlueprint.make({
+export const vcfCCIResourceOverviewCard: ExtensionDefinition =
+  EntityCardBlueprint.make({
   name: 'vcf-automation.cci-resource-overview',
   params: {
     filter: isVCFCCIResource,
@@ -190,7 +206,7 @@ export const vcfCCIResourceContent = EntityContentBlueprint.make({
 });
 
 /** @alpha */
-export const vcfAutomationPlugin = createFrontendPlugin({
+export const vcfAutomationPlugin: FrontendPlugin = createFrontendPlugin({
   pluginId: 'vcf-automation',
   extensions: [
     vcfAutomationApi,
