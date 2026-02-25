@@ -3537,7 +3537,8 @@ export class KubernetesEntityProvider implements EntityProvider {
       return linksArray.map((link: BackstageLink) => ({
         url: link.url,
         title: link.title,
-        icon: link.icon
+        icon: link.icon,
+        type: link.type
       }));
     } catch (error) {
       this.logger.warn(`Failed to parse ${prefix}/links annotation: ${error}`)

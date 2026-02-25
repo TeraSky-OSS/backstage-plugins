@@ -1669,6 +1669,77 @@ describe('KubernetesEntityProvider', () => {
       });
     });
   });
+
+  describe('links parsing', () => {
+    it('should parse links including the type field', async () => {
+      const customConfig = new ConfigReader({
+        kubernetesIngestor: {
+          components: {
+            enabled: true,
+            taskRunner: { frequency: 60, timeout: 600 },
+          },
+          crossplane: {
+            enabled: true,
+          },
+          kro: {
+            enabled: false,
+          },
+          annotationPrefix: 'custom.backstage.io',
+        },
+        kubernetes: {
+          clusterLocatorMethods: [
+            {
+              type: 'config',
+              clusters: [
+                { name: 'test-cluster', url: 'http://k8s.example.com' },
+              ],
+            },
+          ],
+        },
+      });
+
+      const provider = new KubernetesEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        customConfig,
+        mockResourceFetcher as any,
+      );
+
+      const mockResource = {
+        apiVersion: 'v1',
+        kind: 'Service',
+        metadata: {
+          name: 'test-service',
+          namespace: 'default',
+          annotations: {
+            'custom.backstage.io/links': JSON.stringify([
+              {
+                url: 'https://example.com',
+                title: 'Example',
+                icon: 'dashboard',
+                type: 'admin-dashboard',
+              },
+            ]),
+          },
+        },
+        spec: {},
+        clusterName: 'test-cluster',
+      };
+
+      const entities = await (provider as any).translateKubernetesObjectsToEntities(mockResource);
+      const componentEntity = entities.find((e: any) => e.kind === 'Component');
+
+      expect(componentEntity).toBeDefined();
+      expect(componentEntity.metadata.links).toBeDefined();
+      expect(componentEntity.metadata.links).toHaveLength(1);
+      expect(componentEntity.metadata.links[0]).toEqual({
+        url: 'https://example.com',
+        title: 'Example',
+        icon: 'dashboard',
+        type: 'admin-dashboard',
+      });
+    });
+  });
 });
 
 describe('XRDTemplateEntityProvider', () => {
