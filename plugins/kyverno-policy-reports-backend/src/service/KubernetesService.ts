@@ -1,6 +1,12 @@
 import { LoggerService, DiscoveryService, AuthService } from '@backstage/backend-plugin-api';
 import { Config } from '@backstage/config';
-import { PolicyReport, GetPolicyReportsRequest, GetCrossplanePolicyReportsRequest } from '@terasky/backstage-plugin-kyverno-common';
+import {
+  PolicyReport,
+  GetPolicyReportsRequest,
+  GetCrossplanePolicyReportsRequest,
+  getPolicyPathsForSource,
+  getAllPolicyFallbackPaths,
+} from '@terasky/backstage-plugin-kyverno-common';
 import fetch from 'node-fetch';
 
 export class KubernetesService {
@@ -111,33 +117,41 @@ export class KubernetesService {
     }
   }
 
-  async getPolicy(clusterName: string, namespace: string | undefined, policyName: string): Promise<any> {
-    try {
-      // Try cluster-scoped policy first
-      try {
-        const policy = await this.proxyKubernetesRequest(
-          clusterName,
-          `/apis/kyverno.io/v1/clusterpolicies/${policyName}`,
-        );
-        return policy;
-      } catch (error) {
-        if (!namespace) throw error;
+  async getPolicy(
+    clusterName: string,
+    namespace: string | undefined,
+    policyName: string,
+    source?: string,
+  ): Promise<any> {
+    // When source is provided, try the known path(s) for that source first.
+    if (source) {
+      const sourcePaths = getPolicyPathsForSource(source, policyName, namespace);
+      if (sourcePaths) {
+        for (const { path } of sourcePaths) {
+          try {
+            const policy = await this.proxyKubernetesRequest(clusterName, path);
+            return policy;
+          } catch {
+            // continue to next path
+          }
+        }
       }
-
-      // If cluster-scoped policy not found and namespace provided, try namespaced policy
-      if (namespace) {
-        const policy = await this.proxyKubernetesRequest(
-          clusterName,
-          `/apis/kyverno.io/v1/namespaces/${namespace}/policies/${policyName}`,
-        );
-        return policy;
-      }
-
-      throw new Error(`Policy ${policyName} not found`);
-    } catch (error) {
-      this.logger.error(`Failed to fetch policy ${policyName}: ${error}`);
-      throw error;
     }
+
+    // Full fallback: try all known policy types in order.
+    const fallbackPaths = getAllPolicyFallbackPaths(policyName, namespace);
+    for (const { path } of fallbackPaths) {
+      try {
+        const policy = await this.proxyKubernetesRequest(clusterName, path);
+        return policy;
+      } catch {
+        // continue to next path
+      }
+    }
+
+    const err = new Error(`Policy ${policyName} not found`);
+    this.logger.error(`Failed to fetch policy ${policyName}: ${err}`);
+    throw err;
   }
 
   async getCrossplanePolicyReports(request: GetCrossplanePolicyReportsRequest): Promise<PolicyReport[]> {

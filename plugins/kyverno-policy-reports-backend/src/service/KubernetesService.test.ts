@@ -160,7 +160,7 @@ describe('KubernetesService', () => {
 
     it('should throw error when policy not found', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/kyverno.io/v1/clusterpolicies/non-existent', (_req, res, ctx) => {
+        rest.get(/http:\/\/kubernetes-backend\/proxy\/.*/, (_req, res, ctx) => {
           return res(ctx.status(404), ctx.text('Not Found'));
         }),
       );
@@ -168,6 +168,109 @@ describe('KubernetesService', () => {
       await expect(
         service.getPolicy('test-cluster', undefined, 'non-existent')
       ).rejects.toThrow();
+    });
+
+    it('should fetch cluster-scoped ValidatingPolicy using source hint', async () => {
+      server.use(
+        rest.get('http://kubernetes-backend/proxy/apis/policies.kyverno.io/v1/validatingpolicies/allowed-annotations', (_req, res, ctx) => {
+          return res(ctx.json({
+            apiVersion: 'policies.kyverno.io/v1',
+            kind: 'ValidatingPolicy',
+            metadata: { name: 'allowed-annotations' },
+            spec: {},
+          }));
+        }),
+      );
+
+      const result = await service.getPolicy('test-cluster', undefined, 'allowed-annotations', 'KyvernoValidatingPolicy');
+
+      expect(result.kind).toBe('ValidatingPolicy');
+      expect(result.apiVersion).toBe('policies.kyverno.io/v1');
+    });
+
+    it('should fetch namespaced NamespacedValidatingPolicy using source hint', async () => {
+      server.use(
+        rest.get('http://kubernetes-backend/proxy/apis/policies.kyverno.io/v1/namespaces/default/namespacedvalidatingpolicies/my-policy', (_req, res, ctx) => {
+          return res(ctx.json({
+            apiVersion: 'policies.kyverno.io/v1',
+            kind: 'NamespacedValidatingPolicy',
+            metadata: { name: 'my-policy', namespace: 'default' },
+            spec: {},
+          }));
+        }),
+      );
+
+      const result = await service.getPolicy('test-cluster', 'default', 'my-policy', 'KyvernoNamespacedValidatingPolicy');
+
+      expect(result.kind).toBe('NamespacedValidatingPolicy');
+      expect(result.metadata.namespace).toBe('default');
+    });
+
+    it('should fall back to full order when source path returns 404', async () => {
+      server.use(
+        rest.get('http://kubernetes-backend/proxy/apis/policies.kyverno.io/v1/validatingpolicies/my-policy', (_req, res, ctx) => {
+          return res(ctx.status(404), ctx.text('Not Found'));
+        }),
+        rest.get('http://kubernetes-backend/proxy/apis/kyverno.io/v1/clusterpolicies/my-policy', (_req, res, ctx) => {
+          return res(ctx.json({
+            apiVersion: 'kyverno.io/v1',
+            kind: 'ClusterPolicy',
+            metadata: { name: 'my-policy' },
+            spec: { rules: [] },
+          }));
+        }),
+      );
+
+      const result = await service.getPolicy('test-cluster', undefined, 'my-policy', 'KyvernoValidatingPolicy');
+
+      expect(result.kind).toBe('ClusterPolicy');
+    });
+
+    it('should throw when all paths are exhausted', async () => {
+      server.use(
+        rest.get(/http:\/\/kubernetes-backend\/proxy\/.*/, (_req, res, ctx) => {
+          return res(ctx.status(404), ctx.text('Not Found'));
+        }),
+      );
+
+      await expect(
+        service.getPolicy('test-cluster', 'default', 'non-existent-policy')
+      ).rejects.toThrow('Policy non-existent-policy not found');
+    });
+
+    it('should fetch MutatingPolicy using source hint', async () => {
+      server.use(
+        rest.get('http://kubernetes-backend/proxy/apis/policies.kyverno.io/v1/mutatingpolicies/add-labels', (_req, res, ctx) => {
+          return res(ctx.json({
+            apiVersion: 'policies.kyverno.io/v1',
+            kind: 'MutatingPolicy',
+            metadata: { name: 'add-labels' },
+            spec: {},
+          }));
+        }),
+      );
+
+      const result = await service.getPolicy('test-cluster', undefined, 'add-labels', 'KyvernoMutatingPolicy');
+
+      expect(result.kind).toBe('MutatingPolicy');
+    });
+
+    it('should fetch deprecated ClusterPolicy using kyverno source hint', async () => {
+      server.use(
+        rest.get('http://kubernetes-backend/proxy/apis/kyverno.io/v1/clusterpolicies/old-policy', (_req, res, ctx) => {
+          return res(ctx.json({
+            apiVersion: 'kyverno.io/v1',
+            kind: 'ClusterPolicy',
+            metadata: { name: 'old-policy' },
+            spec: { rules: [] },
+          }));
+        }),
+      );
+
+      const result = await service.getPolicy('test-cluster', undefined, 'old-policy', 'kyverno');
+
+      expect(result.kind).toBe('ClusterPolicy');
+      expect(result.apiVersion).toBe('kyverno.io/v1');
     });
   });
 

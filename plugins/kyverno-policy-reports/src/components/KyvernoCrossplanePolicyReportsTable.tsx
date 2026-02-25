@@ -17,8 +17,15 @@ import { saveAs } from 'file-saver';
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { dark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
-import { showKyvernoReportsPermission, viewPolicyYAMLPermission, PolicyReport } from '@terasky/backstage-plugin-kyverno-common';
+import {
+  showKyvernoReportsPermission,
+  viewPolicyYAMLPermission,
+  PolicyReport,
+  isDeprecatedPolicy,
+  isDeprecatedPolicySource,
+} from '@terasky/backstage-plugin-kyverno-common';
 import { usePermission } from '@backstage/plugin-permission-react';
+import { Alert } from '@material-ui/lab';
 import { kyvernoApiRef } from '../api/KyvernoApi';
 
 
@@ -40,7 +47,36 @@ const useStyles = makeStyles((theme: any) => ({
     backgroundColor: theme.palette.info.main,
     color: theme.palette.info.contrastText,
   },
+  policyTypeNew: {
+    backgroundColor: theme.palette.primary.main,
+    color: theme.palette.primary.contrastText,
+  },
+  policyTypeDeprecated: {
+    backgroundColor: theme.palette.warning.main,
+    color: theme.palette.warning.contrastText,
+  },
 }));
+
+const SOURCE_LABEL_MAP: Record<string, string> = {
+  kyverno: 'ClusterPolicy / Policy',
+  KyvernoValidatingPolicy: 'ValidatingPolicy',
+  KyvernoNamespacedValidatingPolicy: 'NamespacedValidatingPolicy',
+  KyvernoMutatingPolicy: 'MutatingPolicy',
+  KyvernoNamespacedMutatingPolicy: 'NamespacedMutatingPolicy',
+  KyvernoDeletingPolicy: 'DeletingPolicy',
+  KyvernoNamespacedDeletingPolicy: 'NamespacedDeletingPolicy',
+  KyvernoGeneratingPolicy: 'GeneratingPolicy',
+  KyvernoNamespacedGeneratingPolicy: 'NamespacedGeneratingPolicy',
+  KyvernoImageValidatingPolicy: 'ImageValidatingPolicy',
+  KyvernoNamespacedImageValidatingPolicy: 'NamespacedImageValidatingPolicy',
+};
+
+const PolicyTypeChip = ({ source, classes }: { source?: string; classes: any }) => {
+    if (!source) return null;
+    const label = SOURCE_LABEL_MAP[source] ?? source;
+    const className = isDeprecatedPolicySource(source) ? classes.policyTypeDeprecated : classes.policyTypeNew;
+    return <Chip label={label} size="small" className={className} />;
+};
 
 const removeManagedFields = (resource: KubernetesObject) => {
     const resourceCopy = JSON.parse(JSON.stringify(resource)); // Deep copy the resource
@@ -64,6 +100,7 @@ const KyvernoCrossplanePolicyReportsTable = () => {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [selectedPolicy, setSelectedPolicy] = useState<string | null>(null);
     const [policyYaml, setPolicyYaml] = useState<string | null>(null);
+    const [isPolicyDeprecated, setIsPolicyDeprecated] = useState(false);
     const classes = useStyles();
     const theme = useTheme();
     const config = useApi(configApiRef);
@@ -110,12 +147,14 @@ const KyvernoCrossplanePolicyReportsTable = () => {
         });
     };
 
-    const handlePolicyClick = async (policyName: string, clusterName: string, namespace: string) => {
+    const handlePolicyClick = async (policyName: string, clusterName: string, namespace: string, source?: string) => {
         setDrawerOpen(true);
         setSelectedPolicy(policyName);
+        setIsPolicyDeprecated(false);
         try {
-            const response = await kyvernoApi.getPolicy({ clusterName, namespace, policyName });
+            const response = await kyvernoApi.getPolicy({ clusterName, namespace, policyName, source });
             setPolicyYaml(YAML.dump(removeManagedFields(response.policy)));
+            setIsPolicyDeprecated(isDeprecatedPolicy(response.policy as any));
         } catch (error) {
             console.error(`Failed to fetch policy ${policyName}:`, error);
             setPolicyYaml(null);
@@ -126,6 +165,7 @@ const KyvernoCrossplanePolicyReportsTable = () => {
         setDrawerOpen(false);
         setSelectedPolicy(null);
         setPolicyYaml(null);
+        setIsPolicyDeprecated(false);
     };
 
     const handleDownloadYaml = () => {
@@ -246,37 +286,48 @@ const KyvernoCrossplanePolicyReportsTable = () => {
                                                             <Table size="small">
                                                                 <TableHead>
                                                                     <TableRow>
-                                                                        <TableCell>Category</TableCell>
+                                                                        <TableCell style={{ whiteSpace: 'nowrap' }}>Category</TableCell>
                                                                         <TableCell style={{ whiteSpace: 'nowrap' }}>Result</TableCell>
                                                                         <TableCell style={{ whiteSpace: 'nowrap' }}>Policy</TableCell>
-                                                                        <TableCell style={{ whiteSpace: 'nowrap' }}>Rule</TableCell>
+                                                                        <TableCell style={{ whiteSpace: 'nowrap' }}>Policy Type</TableCell>
                                                                         <TableCell style={{ whiteSpace: 'nowrap' }}>Severity</TableCell>
                                                                         <TableCell style={{ whiteSpace: 'nowrap' }}>Message</TableCell>
-                                                                        <TableCell>Timestamp</TableCell>
+                                                                        <TableCell style={{ whiteSpace: 'nowrap' }}>Timestamp</TableCell>
                                                                     </TableRow>
                                                                 </TableHead>
                                                                 <TableBody>
                                                                     {report.results?.map((result, index) => (
                                                                         <TableRow key={index}>
-                                                                            <TableCell>{result.category}</TableCell>
+                                                                            <TableCell style={{ whiteSpace: 'nowrap' }}>{result.category}</TableCell>
                                                                             <TableCell style={{ whiteSpace: 'nowrap' }}>
                                                                                 <StatusComponent status={result.result} />
                                                                             </TableCell>
                                                                             <TableCell style={{ whiteSpace: 'nowrap' }}>
-                                                                                {canViewYaml ? (
-                                                                                    <Button onClick={() => handlePolicyClick(result.policy, report.clusterName, report.metadata.namespace || '')}>
-                                                                                        {result.policy}
-                                                                                    </Button>
-                                                                                ) : (
-                                                                                    result.policy
-                                                                                )}
+                                                                                <Box display="flex" alignItems="center" style={{ gap: 4 }}>
+                                                                                    {canViewYaml ? (
+                                                                                        <Button size="small" onClick={() => handlePolicyClick(result.policy, report.clusterName, report.metadata.namespace || '', result.source)}>
+                                                                                            {result.policy}
+                                                                                        </Button>
+                                                                                    ) : (
+                                                                                        result.policy
+                                                                                    )}
+                                                                                    {isDeprecatedPolicySource(result.source) && (
+                                                                                        <Chip
+                                                                                            label="deprecated"
+                                                                                            size="small"
+                                                                                            className={classes.warning}
+                                                                                        />
+                                                                                    )}
+                                                                                </Box>
                                                                             </TableCell>
-                                                                            <TableCell style={{ whiteSpace: 'nowrap' }}>{result.rule}</TableCell>
+                                                                            <TableCell style={{ whiteSpace: 'nowrap' }}>
+                                                                                <PolicyTypeChip source={result.source} classes={classes} />
+                                                                            </TableCell>
                                                                             <TableCell style={{ whiteSpace: 'nowrap' }}>
                                                                                 <SeverityComponent severity={result.severity} />
                                                                             </TableCell>
-                                                                            <TableCell>{result.message}</TableCell>
-                                                                            <TableCell>{new Date(result.timestamp.seconds * 1000).toLocaleString()}</TableCell>
+                                                                            <TableCell style={{ maxWidth: 300, wordBreak: 'break-word' }}>{result.message}</TableCell>
+                                                                            <TableCell style={{ whiteSpace: 'nowrap' }}>{new Date(result.timestamp.seconds * 1000).toLocaleString()}</TableCell>
                                                                         </TableRow>
                                                                     )) || (
                                                                         <TableRow>
@@ -304,6 +355,12 @@ const KyvernoCrossplanePolicyReportsTable = () => {
                     </IconButton>
                     {policyYaml && selectedPolicy && (
                         <>
+                            {isPolicyDeprecated && (
+                                <Alert severity="warning" style={{ marginBottom: 16 }}>
+                                    This policy uses the deprecated Kyverno Policy/ClusterPolicy API (kyverno.io/v1).
+                                    Consider migrating to the new policy types (policies.kyverno.io/v1).
+                                </Alert>
+                            )}
                             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                                 <CopyToClipboard text={policyYaml}>
                                     <Button variant="contained" color="primary">Copy to Clipboard</Button>

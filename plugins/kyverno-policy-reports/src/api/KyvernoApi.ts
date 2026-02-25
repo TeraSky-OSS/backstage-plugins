@@ -50,6 +50,7 @@ export class KyvernoApiClient implements KyvernoApi {
       clusterName: request.clusterName,
       policyName: request.policyName,
       ...(request.namespace && { namespace: request.namespace }),
+      ...(request.source && { source: request.source }),
     });
 
     return this.fetch(`/policy?${params.toString()}`);

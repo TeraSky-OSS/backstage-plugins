@@ -47,7 +47,7 @@ export async function createRouter(
       return;
     }
 
-    const { clusterName, namespace, policyName } = req.query;
+    const { clusterName, namespace, policyName, source } = req.query;
     if (!clusterName || !policyName || typeof clusterName !== 'string' || typeof policyName !== 'string') {
       res.status(400).json({ error: 'Missing required query parameters' });
       return;
@@ -57,6 +57,7 @@ export async function createRouter(
       clusterName,
       namespace as string | undefined,
       policyName,
+      typeof source === 'string' ? source : undefined,
     );
     res.json({ policy });
   });
