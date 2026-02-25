@@ -962,6 +962,9 @@ describe('VcfOperationsService', () => {
         rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
           return res(ctx.json({ token: 'test-token' }));
         }),
+        rest.get('http://vcfo.example.com/suite-api/api/resources', (_req, res, ctx) => {
+          return res(ctx.json({ resourceList: [] }));
+        }),
         rest.post('http://vcfo.example.com/suite-api/api/resources/query', (_req, res, ctx) => {
           return res(ctx.json({ resourceList: [{ identifier: 'namespace-res' }] }));
         }),
@@ -977,6 +980,9 @@ describe('VcfOperationsService', () => {
       mswServer.use(
         rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
           return res(ctx.json({ token: 'test-token' }));
+        }),
+        rest.get('http://vcfo.example.com/suite-api/api/resources', (_req, res, ctx) => {
+          return res(ctx.json({ resourceList: [] }));
         }),
         rest.post('http://vcfo.example.com/suite-api/api/resources/query', (_req, res, ctx) => {
           return res(ctx.json({ resourceList: [{ identifier: 'general-res' }] }));
