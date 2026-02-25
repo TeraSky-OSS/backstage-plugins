@@ -1668,6 +1668,167 @@ describe('KubernetesEntityProvider', () => {
         expect(componentEntity.spec.owner).toContain('kubernetes-auto-ingested');
       });
     });
+
+    describe('custom backstage tags', () => {
+      it('extracts backstage-tag annotations for regular k8s resources', async () => {
+        const provider = new KubernetesEntityProvider(
+          { run: jest.fn() } as any,
+          mockLogger,
+          mockConfig,
+          mockResourceFetcher as any,
+        );
+
+        const mockResource = {
+          apiVersion: 'apps/v1',
+          kind: 'Deployment',
+          metadata: {
+            name: 'test-deployment',
+            namespace: 'default',
+            annotations: {
+              'terasky.backstage.io/backstage-tag-team': 'Platform',
+              'terasky.backstage.io/backstage-tag-Env': 'Prod-1',
+              'terasky.backstage.io/backstage-tag-DotEnv': 'Dev.1',
+            },
+          },
+          spec: {},
+          clusterName: 'test-cluster',
+        };
+
+        const entities = await (provider as any).translateKubernetesObjectsToEntities(mockResource);
+        const comp = entities.find((e: any) => e.kind === 'Component');
+        expect(comp).toBeDefined();
+        expect(comp.metadata.tags).toEqual(expect.arrayContaining(['team:platform', 'env:prod-1', 'dotenv:dev-1']));
+      });
+
+      it('extracts backstage-tag annotations for Crossplane claims', async () => {
+        const provider = new KubernetesEntityProvider(
+          { run: jest.fn() } as any,
+          mockLogger,
+          mockConfig,
+          mockResourceFetcher as any,
+        );
+
+        const mockClaim = {
+          apiVersion: 'database.example.com/v1alpha1',
+          kind: 'PostgreSQLInstance',
+          metadata: {
+            name: 'my-db',
+            namespace: 'production',
+            annotations: {
+              'terasky.backstage.io/backstage-tag-owner': 'DBTeam',
+            },
+          },
+          spec: {
+            resourceRef: {
+              apiVersion: 'database.example.com/v1alpha1',
+              kind: 'XPostgreSQLInstance',
+              name: 'my-db-abc123',
+            },
+          },
+          clusterName: 'test-cluster',
+        };
+
+        const crdMapping = {
+          'PostgreSQLInstance': 'postgresqlinstances',
+          'XPostgreSQLInstance': 'xpostgresqlinstances',
+        };
+
+        const entities = await (provider as any).translateCrossplaneClaimToEntity(
+          mockClaim,
+          'test-cluster',
+          crdMapping,
+        );
+        const comp = entities[0];
+        expect(comp).toBeDefined();
+        expect(comp.metadata.tags).toEqual(expect.arrayContaining(['owner:dbteam']));
+      });
+
+      it('extracts backstage-tag annotations for Crossplane XRs', async () => {
+        const provider = new KubernetesEntityProvider(
+          { run: jest.fn() } as any,
+          mockLogger,
+          mockConfig,
+          mockResourceFetcher as any,
+        );
+
+        const mockXR = {
+          apiVersion: 'database.example.com/v1alpha1',
+          kind: 'XPostgreSQLInstance',
+          metadata: {
+            name: 'my-db-abc123',
+            annotations: {
+              'terasky.backstage.io/backstage-tag-tier': 'gold',
+            },
+          },
+          spec: {},
+          clusterName: 'test-cluster',
+        };
+
+        const compositeKindLookup = {
+          'XPostgreSQLInstance|database.example.com|v1alpha1': {
+            scope: 'Cluster',
+            spec: { names: { plural: 'xpostgresqlinstances' } },
+          },
+        };
+
+        const entities = await (provider as any).translateCrossplaneCompositeToEntity(
+          mockXR,
+          'test-cluster',
+          compositeKindLookup,
+        );
+        const comp = entities[0];
+        expect(comp).toBeDefined();
+        expect(comp.metadata.tags).toEqual(expect.arrayContaining(['tier:gold']));
+      });
+
+      it('extracts backstage-tag annotations for KRO instances', async () => {
+        const kroConfig = new ConfigReader({
+          kubernetesIngestor: {
+            components: { enabled: true },
+            kro: { enabled: true },
+            annotationPrefix: 'terasky.backstage.io',
+          },
+          kubernetes: {
+            clusterLocatorMethods: [
+              { type: 'config', clusters: [{ name: 'test-cluster', url: 'http://k8s.example.com' }] },
+            ],
+          },
+        });
+
+        const provider = new KubernetesEntityProvider(
+          { run: jest.fn() } as any,
+          mockLogger,
+          kroConfig,
+          mockResourceFetcher as any,
+        );
+
+        const instance = {
+          apiVersion: 'app.example.com/v1',
+          kind: 'WebApp',
+          metadata: {
+            name: 'app1',
+            namespace: 'apps',
+            uid: 'k1',
+            labels: { 'kro.run/resource-graph-definition-id': 'webapp-rgd' },
+            annotations: { 'terasky.backstage.io/backstage-tag-zone': 'eu-west' },
+          },
+          spec: {},
+          clusterName: 'test-cluster',
+        };
+
+        const rgd = {
+          'WebApp|app.example.com|v1': {
+            rgd: { metadata: { name: 'webapps' }, spec: { names: { kind: 'WebApp', plural: 'webapps' }, resources: [] } },
+            spec: { names: { kind: 'WebApp', plural: 'webapps' }, group: 'app.example.com', version: 'v1' },
+          },
+        };
+
+        const entities = await (provider as any).translateKROInstanceToEntity(instance, 'test-cluster', rgd);
+        const comp = entities[0];
+        expect(comp).toBeDefined();
+        expect(comp.metadata.tags).toEqual(expect.arrayContaining(['zone:eu-west']));
+      });
+    });
   });
 });
 
