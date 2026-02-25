@@ -1,7 +1,7 @@
 import { SpectroCloudClient } from './SpectroCloudClient';
 import { mockServices } from '@backstage/backend-test-utils';
 import { setupServer } from 'msw/node';
-import { rest } from 'msw';
+import { http, HttpResponse } from 'msw';
 
 const server = setupServer();
 beforeAll(() => server.listen());
@@ -40,8 +40,8 @@ describe('SpectroCloudClient', () => {
       ];
 
       server.use(
-        rest.get(`${baseUrl}/v1/dashboard/spectroclusters/meta`, (_req, res, ctx) => {
-          return res(ctx.json(mockClusters));
+        http.get(`${baseUrl}/v1/dashboard/spectroclusters/meta`, () => {
+          return HttpResponse.json(mockClusters);
         }),
       );
 
@@ -58,8 +58,8 @@ describe('SpectroCloudClient', () => {
 
     it('should return empty array on error', async () => {
       server.use(
-        rest.get(`${baseUrl}/v1/dashboard/spectroclusters/meta`, (_req, res, ctx) => {
-          return res(ctx.status(500), ctx.text('Internal Server Error'));
+        http.get(`${baseUrl}/v1/dashboard/spectroclusters/meta`, () => {
+          return new HttpResponse('Internal Server Error', { status: 500 });
         }),
       );
 
@@ -82,8 +82,8 @@ describe('SpectroCloudClient', () => {
       };
 
       server.use(
-        rest.get(`${baseUrl}/v1/projects/project-1`, (_req, res, ctx) => {
-          return res(ctx.json(mockProject));
+        http.get(`${baseUrl}/v1/projects/project-1`, () => {
+          return HttpResponse.json(mockProject);
         }),
       );
 
@@ -99,8 +99,8 @@ describe('SpectroCloudClient', () => {
 
     it('should return undefined on error', async () => {
       server.use(
-        rest.get(`${baseUrl}/v1/projects/not-found`, (_req, res, ctx) => {
-          return res(ctx.status(404), ctx.text('Not Found'));
+        http.get(`${baseUrl}/v1/projects/not-found`, () => {
+          return new HttpResponse('Not Found', { status: 404 });
         }),
       );
 
@@ -127,10 +127,10 @@ clusters:
 `;
 
       server.use(
-        rest.get(`${baseUrl}/v1/spectroclusters/cluster-1/assets/adminKubeconfig`, (req, res, ctx) => {
-          const projectUid = req.url.searchParams.get('ProjectUid');
+        http.get(`${baseUrl}/v1/spectroclusters/cluster-1/assets/adminKubeconfig`, ({ request }) => {
+          const projectUid = new URL(request.url).searchParams.get('ProjectUid');
           expect(projectUid).toBe('project-1');
-          return res(ctx.text(mockKubeconfig));
+          return HttpResponse.text(mockKubeconfig);
         }),
       );
 
@@ -155,9 +155,9 @@ clusters:
 `;
 
       server.use(
-        rest.get(`${baseUrl}/v1/spectroclusters/cluster-2/assets/adminKubeconfig`, (req, res, ctx) => {
-          expect(req.url.searchParams.has('ProjectUid')).toBe(false);
-          return res(ctx.text(mockKubeconfig));
+        http.get(`${baseUrl}/v1/spectroclusters/cluster-2/assets/adminKubeconfig`, ({ request }) => {
+          expect(new URL(request.url).searchParams.has('ProjectUid')).toBe(false);
+          return HttpResponse.text(mockKubeconfig);
         }),
       );
 
@@ -173,8 +173,8 @@ clusters:
 
     it('should return undefined on error', async () => {
       server.use(
-        rest.get(`${baseUrl}/v1/spectroclusters/not-found/assets/adminKubeconfig`, (_req, res, ctx) => {
-          return res(ctx.status(404), ctx.text('Not Found'));
+        http.get(`${baseUrl}/v1/spectroclusters/not-found/assets/adminKubeconfig`, () => {
+          return new HttpResponse('Not Found', { status: 404 });
         }),
       );
 

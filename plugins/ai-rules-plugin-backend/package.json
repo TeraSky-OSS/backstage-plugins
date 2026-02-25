@@ -1,7 +1,7 @@
 {
   "name": "@terasky/backstage-plugin-ai-rules-backend",
   "description": "AI Rules Backend Plugin for Backstage",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "main": "src/index.ts",
   "types": "src/index.ts",
   "configSchema": "config.d.ts",
@@ -57,7 +57,7 @@
     "@types/express": "*",
     "@types/node-fetch": "^2.6.4",
     "@types/supertest": "^6.0.0",
-    "msw": "^1.0.0",
+    "msw": "^2.12.4",
     "supertest": "^6.2.4",
     "typescript": "^5.8.3"
   },

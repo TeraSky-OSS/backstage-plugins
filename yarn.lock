@@ -7519,35 +7519,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mswjs/cookies@npm:^0.2.2":
-  version: 0.2.2
-  resolution: "@mswjs/cookies@npm:0.2.2"
-  dependencies:
-    "@types/set-cookie-parser": "npm:^2.4.0"
-    set-cookie-parser: "npm:^2.4.6"
-  checksum: 10c0/f950062538d431674d581309cf19884fc4d3f57e2a276164cac0c9a3250071d42464ba7825d13be14c703ca5a912d62a62626f4a068d8f36d1629dbb63bde740
-  languageName: node
-  linkType: hard
-
-"@mswjs/interceptors@npm:^0.17.10":
-  version: 0.17.10
-  resolution: "@mswjs/interceptors@npm:0.17.10"
-  dependencies:
-    "@open-draft/until": "npm:^1.0.3"
-    "@types/debug": "npm:^4.1.7"
-    "@xmldom/xmldom": "npm:^0.8.3"
-    debug: "npm:^4.3.3"
-    headers-polyfill: "npm:3.2.5"
-    outvariant: "npm:^1.2.1"
-    strict-event-emitter: "npm:^0.2.4"
-    web-encoding: "npm:^1.1.5"
-  checksum: 10c0/0343a93711b60c321c40733d6bf2720a736d8e0730f5d0d9916ee4a24abfcfca4a83d1e4b2e21c3affef4fc61f04588104be002fbc8258dc4b0d202c384ade33
-  languageName: node
-  linkType: hard
-
-"@mswjs/interceptors@npm:^0.40.0":
-  version: 0.40.0
-  resolution: "@mswjs/interceptors@npm:0.40.0"
+"@mswjs/interceptors@npm:^0.41.2":
+  version: 0.41.3
+  resolution: "@mswjs/interceptors@npm:0.41.3"
   dependencies:
     "@open-draft/deferred-promise": "npm:^2.2.0"
     "@open-draft/logger": "npm:^0.3.0"
@@ -7555,7 +7529,7 @@ __metadata:
     is-node-process: "npm:^1.2.0"
     outvariant: "npm:^1.4.3"
     strict-event-emitter: "npm:^0.5.1"
-  checksum: 10c0/4500f17b65910b2633182fdb15a81ccb6ccd4488a8c45bc2f7acdaaff4621c3cce5362e6b59ddc4fa28d315d0efb0608fd1f0d536bc5345141f8ac03fd7fab22
+  checksum: 10c0/a259bbfc3bb4caada7a9a3529cc830159818e838c152df89ac890e7203df615a5e070ca63aa1e70a39868322ff5c1441ab74bbadb4081ca55b0c3a462e2903c0
   languageName: node
   linkType: hard
 
@@ -8561,13 +8535,6 @@ __metadata:
     is-node-process: "npm:^1.2.0"
     outvariant: "npm:^1.4.0"
   checksum: 10c0/90010647b22e9693c16258f4f9adb034824d1771d3baa313057b9a37797f571181005bc50415a934eaf7c891d90ff71dcd7a9d5048b0b6bb438f31bef2c7c5c1
-  languageName: node
-  linkType: hard
-
-"@open-draft/until@npm:^1.0.3":
-  version: 1.0.3
-  resolution: "@open-draft/until@npm:1.0.3"
-  checksum: 10c0/f88bcd774b55359d14a4fa80f7bfe7d9d6d26a5995e94e823e43b211656daae3663e983f0a996937da286d22f6f5da2087b661845302f236ba27f8529dcd14fb
   languageName: node
   linkType: hard
 
@@ -13522,7 +13489,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@terasky/backstage-plugin-ai-rules-backend@npm:^1.7.0, @terasky/backstage-plugin-ai-rules-backend@workspace:plugins/ai-rules-plugin-backend":
+"@terasky/backstage-plugin-ai-rules-backend@npm:^1.7.1, @terasky/backstage-plugin-ai-rules-backend@workspace:plugins/ai-rules-plugin-backend":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-ai-rules-backend@workspace:plugins/ai-rules-plugin-backend"
   dependencies:
@@ -13543,7 +13510,7 @@ __metadata:
     express: "npm:^4.17.1"
     express-promise-router: "npm:^4.1.1"
     gray-matter: "npm:^4.0.3"
-    msw: "npm:^1.0.0"
+    msw: "npm:^2.12.4"
     node-fetch: "npm:^2.6.7"
     supertest: "npm:^6.2.4"
     typescript: "npm:^5.8.3"
@@ -13552,7 +13519,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-ai-rules@npm:^1.6.1, @terasky/backstage-plugin-ai-rules@workspace:plugins/ai-rules-plugin":
+"@terasky/backstage-plugin-ai-rules@npm:^1.6.2, @terasky/backstage-plugin-ai-rules@workspace:plugins/ai-rules-plugin":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-ai-rules@workspace:plugins/ai-rules-plugin"
   dependencies:
@@ -13572,14 +13539,14 @@ __metadata:
     "@testing-library/jest-dom": "npm:^6.0.0"
     "@testing-library/react": "npm:^14.0.0"
     "@testing-library/user-event": "npm:^14.0.0"
-    msw: "npm:^1.0.0"
+    msw: "npm:^2.12.4"
     typescript: "npm:^5.8.3"
   peerDependencies:
     react: ^16.13.1 || ^17.0.0 || ^18.0.0
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-api-docs-module-crd@npm:^0.2.1, @terasky/backstage-plugin-api-docs-module-crd@workspace:plugins/api-docs-module-crd":
+"@terasky/backstage-plugin-api-docs-module-crd@npm:^0.2.2, @terasky/backstage-plugin-api-docs-module-crd@workspace:plugins/api-docs-module-crd":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-api-docs-module-crd@workspace:plugins/api-docs-module-crd"
   dependencies:
@@ -13600,7 +13567,7 @@ __metadata:
     "@types/js-yaml": "npm:^4.0.5"
     "@types/react-dom": "npm:^16"
     js-yaml: "npm:^4.1.0"
-    msw: "npm:^1.0.0"
+    msw: "npm:^2.12.4"
     react: "npm:^16.13.1 || ^17.0.0 || ^18.0.0"
     react-markdown: "npm:^8.0.0"
     react-use: "npm:^17.2.4"
@@ -13655,7 +13622,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-crossplane-resources-backend@npm:^1.12.0, @terasky/backstage-plugin-crossplane-resources-backend@workspace:plugins/crossplane-resources-backend":
+"@terasky/backstage-plugin-crossplane-resources-backend@npm:^1.12.1, @terasky/backstage-plugin-crossplane-resources-backend@workspace:plugins/crossplane-resources-backend":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-crossplane-resources-backend@workspace:plugins/crossplane-resources-backend"
   dependencies:
@@ -13673,7 +13640,7 @@ __metadata:
     "@types/supertest": "npm:^2.0.12"
     express: "npm:^4.17.1"
     express-promise-router: "npm:^4.1.1"
-    msw: "npm:^1.0.0"
+    msw: "npm:^2.12.4"
     node-fetch: "npm:^2.7.0"
     supertest: "npm:^6.2.4"
     winston: "npm:^3.2.1"
@@ -13681,7 +13648,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-crossplane-resources-frontend@npm:^2.13.0, @terasky/backstage-plugin-crossplane-resources-frontend@workspace:plugins/crossplane-resources":
+"@terasky/backstage-plugin-crossplane-resources-frontend@npm:^2.13.1, @terasky/backstage-plugin-crossplane-resources-frontend@workspace:plugins/crossplane-resources":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-crossplane-resources-frontend@workspace:plugins/crossplane-resources"
   dependencies:
@@ -13715,7 +13682,7 @@ __metadata:
     dagre: "npm:^0.8.5"
     file-saver: "npm:^2.0.5"
     js-yaml: "npm:^4.1.0"
-    msw: "npm:^1.0.0"
+    msw: "npm:^2.12.4"
     pluralize: "npm:^8.0.0"
     react: "npm:^18.3.1"
     react-copy-to-clipboard: "npm:^5.1.0"
@@ -13729,7 +13696,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-devpod@npm:^1.8.1, @terasky/backstage-plugin-devpod@workspace:plugins/devpod-plugin":
+"@terasky/backstage-plugin-devpod@npm:^1.8.2, @terasky/backstage-plugin-devpod@workspace:plugins/devpod-plugin":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-devpod@workspace:plugins/devpod-plugin"
   dependencies:
@@ -13749,14 +13716,14 @@ __metadata:
     "@testing-library/jest-dom": "npm:^6.0.0"
     "@testing-library/react": "npm:^14.0.0"
     "@testing-library/user-event": "npm:^14.0.0"
-    msw: "npm:^1.0.0"
+    msw: "npm:^2.12.4"
     typescript: "npm:^5.8.3"
   peerDependencies:
     react: ^16.13.1 || ^17.0.0 || ^18.0.0
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-educates-backend@npm:^1.7.0, @terasky/backstage-plugin-educates-backend@workspace:plugins/educates-backend":
+"@terasky/backstage-plugin-educates-backend@npm:^1.7.1, @terasky/backstage-plugin-educates-backend@workspace:plugins/educates-backend":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-educates-backend@workspace:plugins/educates-backend"
   dependencies:
@@ -13775,7 +13742,7 @@ __metadata:
     "@types/supertest": "npm:^2.0.8"
     express: "npm:^4.17.1"
     express-promise-router: "npm:^4.1.0"
-    msw: "npm:^1.0.0"
+    msw: "npm:^2.12.4"
     node-fetch: "npm:^2.6.7"
     supertest: "npm:^6.1.6"
     typescript: "npm:^5.8.3"
@@ -13801,7 +13768,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-educates@npm:^1.8.1, @terasky/backstage-plugin-educates@workspace:plugins/educates":
+"@terasky/backstage-plugin-educates@npm:^1.8.2, @terasky/backstage-plugin-educates@workspace:plugins/educates":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-educates@workspace:plugins/educates"
   dependencies:
@@ -13820,7 +13787,7 @@ __metadata:
     "@testing-library/user-event": "npm:^14.0.0"
     "@types/node": "npm:*"
     "@types/react": "npm:^18.0.0"
-    msw: "npm:^1.0.0"
+    msw: "npm:^2.12.4"
     react-use: "npm:^17.2.4"
     typescript: "npm:^5.8.3"
   peerDependencies:
@@ -13828,7 +13795,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-entity-scaffolder-content@npm:^1.7.1, @terasky/backstage-plugin-entity-scaffolder-content@workspace:plugins/entity-scaffolder-content":
+"@terasky/backstage-plugin-entity-scaffolder-content@npm:^1.7.2, @terasky/backstage-plugin-entity-scaffolder-content@workspace:plugins/entity-scaffolder-content":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-entity-scaffolder-content@workspace:plugins/entity-scaffolder-content"
   dependencies:
@@ -13854,7 +13821,7 @@ __metadata:
     "@testing-library/react": "npm:^12.1.3"
     "@testing-library/user-event": "npm:^14.0.0"
     add: "npm:^2.0.6"
-    msw: "npm:^1.0.0"
+    msw: "npm:^2.12.4"
     react-use: "npm:^17.6.0"
     typescript: "npm:^5.8.3"
   peerDependencies:
@@ -13862,7 +13829,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-gitops-manifest-updater@npm:^2.5.1, @terasky/backstage-plugin-gitops-manifest-updater@workspace:plugins/gitops-manifest-updater":
+"@terasky/backstage-plugin-gitops-manifest-updater@npm:^2.5.2, @terasky/backstage-plugin-gitops-manifest-updater@workspace:plugins/gitops-manifest-updater":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-gitops-manifest-updater@workspace:plugins/gitops-manifest-updater"
   dependencies:
@@ -13888,12 +13855,12 @@ __metadata:
     "@testing-library/react": "npm:14.0.0"
     "@testing-library/user-event": "npm:14.0.0"
     "@types/git-url-parse": "npm:9.0.1"
-    "@types/lodash": "npm:4.17.13"
+    "@types/lodash": "npm:4.17.23"
     ansi-to-react: "npm:6.1.6"
     dayjs: "npm:1.11.13"
     git-url-parse: "npm:16.0.0"
-    lodash: "npm:4.17.21"
-    msw: "npm:1.3.5"
+    lodash: "npm:4.17.23"
+    msw: "npm:^2.12.4"
     react: "npm:^18.3.1"
     react-use: "npm:17.6.0"
     typescript: "npm:^5.8.3"
@@ -13913,7 +13880,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-kro-resources-backend@npm:^0.10.0, @terasky/backstage-plugin-kro-resources-backend@workspace:plugins/kro-resources-backend":
+"@terasky/backstage-plugin-kro-resources-backend@npm:^0.10.1, @terasky/backstage-plugin-kro-resources-backend@workspace:plugins/kro-resources-backend":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kro-resources-backend@workspace:plugins/kro-resources-backend"
   dependencies:
@@ -13931,7 +13898,7 @@ __metadata:
     "@types/supertest": "npm:^2.0.12"
     express: "npm:^4.17.1"
     express-promise-router: "npm:^4.1.1"
-    msw: "npm:^1.0.0"
+    msw: "npm:^2.12.4"
     node-fetch: "npm:^2.7.0"
     supertest: "npm:^6.2.4"
     winston: "npm:^3.2.1"
@@ -13939,7 +13906,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-kro-resources-frontend@npm:^0.9.1, @terasky/backstage-plugin-kro-resources-frontend@workspace:plugins/kro-resources":
+"@terasky/backstage-plugin-kro-resources-frontend@npm:^0.9.2, @terasky/backstage-plugin-kro-resources-frontend@workspace:plugins/kro-resources":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kro-resources-frontend@workspace:plugins/kro-resources"
   dependencies:
@@ -13973,7 +13940,7 @@ __metadata:
     dagre: "npm:^0.8.5"
     file-saver: "npm:^2.0.5"
     js-yaml: "npm:^4.1.0"
-    msw: "npm:^1.0.0"
+    msw: "npm:^2.12.4"
     pluralize: "npm:^8.0.0"
     react: "npm:^18.3.1"
     react-copy-to-clipboard: "npm:^5.1.0"
@@ -13987,7 +13954,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-kubernetes-ingestor@npm:^3.9.0, @terasky/backstage-plugin-kubernetes-ingestor@workspace:plugins/kubernetes-ingestor":
+"@terasky/backstage-plugin-kubernetes-ingestor@npm:^3.9.1, @terasky/backstage-plugin-kubernetes-ingestor@workspace:plugins/kubernetes-ingestor":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kubernetes-ingestor@workspace:plugins/kubernetes-ingestor"
   dependencies:
@@ -14014,7 +13981,7 @@ __metadata:
     express: "npm:^4.17.1"
     express-promise-router: "npm:^4.1.1"
     js-yaml: "npm:^4.1.0"
-    msw: "npm:^2.3.1"
+    msw: "npm:^2.12.4"
     node-fetch: "npm:^2.7.0"
     pluralize: "npm:^8.0.0"
     supertest: "npm:^6.2.4"
@@ -14032,7 +13999,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-kubernetes-resources-frontend@npm:^0.11.1, @terasky/backstage-plugin-kubernetes-resources-frontend@workspace:plugins/kubernetes-resources":
+"@terasky/backstage-plugin-kubernetes-resources-frontend@npm:^0.11.2, @terasky/backstage-plugin-kubernetes-resources-frontend@workspace:plugins/kubernetes-resources":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kubernetes-resources-frontend@workspace:plugins/kubernetes-resources"
   dependencies:
@@ -14066,7 +14033,7 @@ __metadata:
     dagre: "npm:^0.8.5"
     file-saver: "npm:^2.0.5"
     js-yaml: "npm:^4.1.0"
-    msw: "npm:^1.0.0"
+    msw: "npm:^2.12.4"
     pluralize: "npm:^8.0.0"
     react: "npm:^18.3.1"
     react-copy-to-clipboard: "npm:^5.1.0"
@@ -14080,7 +14047,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-kubernetes-resources-permissions-backend@npm:^0.8.0, @terasky/backstage-plugin-kubernetes-resources-permissions-backend@workspace:plugins/kubernetes-resources-permissions-backend":
+"@terasky/backstage-plugin-kubernetes-resources-permissions-backend@npm:^0.8.1, @terasky/backstage-plugin-kubernetes-resources-permissions-backend@workspace:plugins/kubernetes-resources-permissions-backend":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kubernetes-resources-permissions-backend@workspace:plugins/kubernetes-resources-permissions-backend"
   dependencies:
@@ -14097,7 +14064,7 @@ __metadata:
     "@types/supertest": "npm:^2.0.12"
     express: "npm:^4.17.1"
     express-promise-router: "npm:^4.1.1"
-    msw: "npm:^1.0.0"
+    msw: "npm:^2.12.4"
     node-fetch: "npm:^2.7.0"
     supertest: "npm:^6.2.4"
     winston: "npm:^3.2.1"
@@ -14115,7 +14082,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-kyverno-policy-reports-backend@npm:^1.10.0, @terasky/backstage-plugin-kyverno-policy-reports-backend@workspace:plugins/kyverno-policy-reports-backend":
+"@terasky/backstage-plugin-kyverno-policy-reports-backend@npm:^1.10.1, @terasky/backstage-plugin-kyverno-policy-reports-backend@workspace:plugins/kyverno-policy-reports-backend":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kyverno-policy-reports-backend@workspace:plugins/kyverno-policy-reports-backend"
   dependencies:
@@ -14133,7 +14100,7 @@ __metadata:
     "@types/supertest": "npm:^2.0.12"
     express: "npm:^4.17.1"
     express-promise-router: "npm:^4.1.1"
-    msw: "npm:^1.0.0"
+    msw: "npm:^2.12.4"
     node-fetch: "npm:^2.7.0"
     supertest: "npm:^6.2.4"
     winston: "npm:^3.2.1"
@@ -14141,7 +14108,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-kyverno-policy-reports@npm:^1.13.0, @terasky/backstage-plugin-kyverno-policy-reports@workspace:plugins/kyverno-policy-reports":
+"@terasky/backstage-plugin-kyverno-policy-reports@npm:^1.13.1, @terasky/backstage-plugin-kyverno-policy-reports@workspace:plugins/kyverno-policy-reports":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kyverno-policy-reports@workspace:plugins/kyverno-policy-reports"
   dependencies:
@@ -14172,7 +14139,7 @@ __metadata:
     dagre: "npm:^0.8.5"
     file-saver: "npm:^2.0.5"
     js-yaml: "npm:^4.1.0"
-    msw: "npm:^1.0.0"
+    msw: "npm:^2.12.4"
     react: "npm:^18.3.1"
     react-copy-to-clipboard: "npm:^5.1.0"
     react-json-view: "npm:^1.21.3"
@@ -14235,7 +14202,7 @@ __metadata:
     "@types/supertest": "npm:^2.0.8"
     express: "npm:^4.17.1"
     express-promise-router: "npm:^4.1.0"
-    msw: "npm:^1.0.0"
+    msw: "npm:^2.12.4"
     node-fetch: "npm:^2.6.7"
     supertest: "npm:^6.1.6"
     typescript: "npm:^5.8.3"
@@ -14243,7 +14210,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-scaleops-frontend@npm:^2.2.1, @terasky/backstage-plugin-scaleops-frontend@workspace:plugins/scaleops-frontend":
+"@terasky/backstage-plugin-scaleops-frontend@npm:^2.2.2, @terasky/backstage-plugin-scaleops-frontend@workspace:plugins/scaleops-frontend":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-scaleops-frontend@workspace:plugins/scaleops-frontend"
   dependencies:
@@ -14263,7 +14230,7 @@ __metadata:
     "@testing-library/jest-dom": "npm:^6.0.0"
     "@testing-library/react": "npm:^14.0.0"
     "@testing-library/user-event": "npm:^14.0.0"
-    msw: "npm:^1.0.0"
+    msw: "npm:^2.12.4"
     react: "npm:^18.3.1"
     react-use: "npm:^17.6.0"
     typescript: "npm:^5.8.3"
@@ -14299,7 +14266,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-spectrocloud-backend@npm:^0.4.0, @terasky/backstage-plugin-spectrocloud-backend@workspace:plugins/spectrocloud-backend":
+"@terasky/backstage-plugin-spectrocloud-backend@npm:^0.4.1, @terasky/backstage-plugin-spectrocloud-backend@workspace:plugins/spectrocloud-backend":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-spectrocloud-backend@workspace:plugins/spectrocloud-backend"
   dependencies:
@@ -14316,7 +14283,7 @@ __metadata:
     "@types/node-fetch": "npm:^2.6.11"
     "@types/supertest": "npm:^6.0.0"
     express: "npm:^4.21.1"
-    msw: "npm:^1.0.0"
+    msw: "npm:^2.12.4"
     node-fetch: "npm:^2.7.0"
     supertest: "npm:^6.3.0"
   languageName: unknown
@@ -14376,7 +14343,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-spectrocloud@npm:^0.4.1, @terasky/backstage-plugin-spectrocloud@workspace:plugins/spectrocloud":
+"@terasky/backstage-plugin-spectrocloud@npm:^0.4.2, @terasky/backstage-plugin-spectrocloud@workspace:plugins/spectrocloud":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-spectrocloud@workspace:plugins/spectrocloud"
   dependencies:
@@ -14404,7 +14371,7 @@ __metadata:
     "@types/react-syntax-highlighter": "npm:^15"
     file-saver: "npm:^2.0.5"
     js-yaml: "npm:^4.1.0"
-    msw: "npm:^1.0.0"
+    msw: "npm:^2.12.4"
     react: "npm:^18.3.1"
     react-flow-renderer: "npm:^10.3.17"
     react-icons: "npm:^5.5.0"
@@ -14445,7 +14412,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-template-builder@npm:^0.2.1, @terasky/backstage-plugin-template-builder@workspace:plugins/template-builder":
+"@terasky/backstage-plugin-template-builder@npm:^0.2.2, @terasky/backstage-plugin-template-builder@workspace:plugins/template-builder":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-template-builder@workspace:plugins/template-builder"
   dependencies:
@@ -14470,7 +14437,7 @@ __metadata:
     "@xyflow/react": "npm:^12.10.0"
     js-yaml: "npm:^4.1.0"
     lodash: "npm:^4.17.21"
-    msw: "npm:^1.0.0"
+    msw: "npm:^2.12.4"
     react: "npm:^16.13.1 || ^17.0.0 || ^18.0.0"
     react-use: "npm:^17.2.4"
     zod: "npm:^3.22.4"
@@ -14479,7 +14446,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-terraform-scaffolder@npm:^0.9.1, @terasky/backstage-plugin-terraform-scaffolder@workspace:plugins/terraform-scaffolder":
+"@terasky/backstage-plugin-terraform-scaffolder@npm:^0.9.2, @terasky/backstage-plugin-terraform-scaffolder@workspace:plugins/terraform-scaffolder":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-terraform-scaffolder@workspace:plugins/terraform-scaffolder"
   dependencies:
@@ -14506,7 +14473,7 @@ __metadata:
     "@testing-library/user-event": "npm:^14.0.0"
     "@types/node": "npm:*"
     "@types/react": "npm:^18"
-    msw: "npm:^1.0.0"
+    msw: "npm:^2.12.4"
     react-use: "npm:^17.2.4"
     typescript: "npm:~5.0.0"
     yaml: "npm:^2.3.1"
@@ -14517,7 +14484,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-vcf-automation-backend@npm:^1.11.0, @terasky/backstage-plugin-vcf-automation-backend@workspace:plugins/vcf-automation-backend":
+"@terasky/backstage-plugin-vcf-automation-backend@npm:^1.11.1, @terasky/backstage-plugin-vcf-automation-backend@workspace:plugins/vcf-automation-backend":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-vcf-automation-backend@workspace:plugins/vcf-automation-backend"
   dependencies:
@@ -14530,7 +14497,7 @@ __metadata:
     "@types/supertest": "npm:^2.0.12"
     express: "npm:^4.17.1"
     express-promise-router: "npm:^4.1.1"
-    msw: "npm:^1.0.0"
+    msw: "npm:^2.12.4"
     node-fetch: "npm:^2.7.0"
     supertest: "npm:^6.2.4"
     winston: "npm:^3.2.1"
@@ -14547,7 +14514,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-vcf-automation-ingestor@npm:^1.11.0, @terasky/backstage-plugin-vcf-automation-ingestor@workspace:plugins/vcf-automation-ingestor":
+"@terasky/backstage-plugin-vcf-automation-ingestor@npm:^1.11.1, @terasky/backstage-plugin-vcf-automation-ingestor@workspace:plugins/vcf-automation-ingestor":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-vcf-automation-ingestor@workspace:plugins/vcf-automation-ingestor"
   dependencies:
@@ -14558,13 +14525,13 @@ __metadata:
     "@backstage/config": "npm:^1.3.6"
     "@backstage/plugin-catalog-node": "npm:^2.0.0"
     "@types/express": "npm:*"
-    msw: "npm:^2.3.1"
+    msw: "npm:^2.12.4"
     node-fetch: "npm:^2.7.0"
     typescript: "npm:^5.8.3"
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-vcf-automation@npm:^1.11.1, @terasky/backstage-plugin-vcf-automation@workspace:plugins/vcf-automation":
+"@terasky/backstage-plugin-vcf-automation@npm:^1.11.2, @terasky/backstage-plugin-vcf-automation@workspace:plugins/vcf-automation":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-vcf-automation@workspace:plugins/vcf-automation"
   dependencies:
@@ -14590,7 +14557,7 @@ __metadata:
     "@types/node": "npm:*"
     "@types/react": "npm:^16.13.1 || ^17.0.0"
     js-yaml: "npm:^4.1.0"
-    msw: "npm:^1.0.0"
+    msw: "npm:^2.12.4"
     react-use: "npm:^17.6.0"
   peerDependencies:
     react: ^16.13.1 || ^17.0.0
@@ -14599,7 +14566,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-vcf-operations-backend@npm:^0.8.1, @terasky/backstage-plugin-vcf-operations-backend@workspace:plugins/vcf-operations-backend":
+"@terasky/backstage-plugin-vcf-operations-backend@npm:^0.8.2, @terasky/backstage-plugin-vcf-operations-backend@workspace:plugins/vcf-operations-backend":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-vcf-operations-backend@workspace:plugins/vcf-operations-backend"
   dependencies:
@@ -14612,7 +14579,7 @@ __metadata:
     "@types/supertest": "npm:^2.0.12"
     express: "npm:^4.17.1"
     express-promise-router: "npm:^4.1.1"
-    msw: "npm:^1.0.0"
+    msw: "npm:^2.12.4"
     node-fetch: "npm:^2.7.0"
     supertest: "npm:^6.2.4"
     winston: "npm:^3.2.1"
@@ -14629,7 +14596,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-vcf-operations@npm:^0.9.1, @terasky/backstage-plugin-vcf-operations@workspace:plugins/vcf-operations":
+"@terasky/backstage-plugin-vcf-operations@npm:^0.9.2, @terasky/backstage-plugin-vcf-operations@workspace:plugins/vcf-operations":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-vcf-operations@workspace:plugins/vcf-operations"
   dependencies:
@@ -14652,7 +14619,7 @@ __metadata:
     "@testing-library/user-event": "npm:^14.0.0"
     "@types/node": "npm:*"
     "@types/react": "npm:^16.13.1 || ^17.0.0"
-    msw: "npm:^1.0.0"
+    msw: "npm:^2.12.4"
     react-use: "npm:^17.6.0"
     recharts: "npm:^2.8.0"
   peerDependencies:
@@ -15147,13 +15114,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/cookie@npm:^0.4.1":
-  version: 0.4.1
-  resolution: "@types/cookie@npm:0.4.1"
-  checksum: 10c0/f96afe12bd51be1ec61410b0641243d93fa3a494702407c787a4c872b5c8bcd39b224471452055e44a9ce42af1a636e87d161994226eaf4c2be9c30f60418409
-  languageName: node
-  linkType: hard
-
 "@types/cookiejar@npm:^2.1.5":
   version: 2.1.5
   resolution: "@types/cookiejar@npm:2.1.5"
@@ -15449,7 +15409,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/debug@npm:^4.0.0, @types/debug@npm:^4.1.7":
+"@types/debug@npm:^4.0.0":
   version: 4.1.12
   resolution: "@types/debug@npm:4.1.12"
   dependencies:
@@ -15671,13 +15631,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/js-levenshtein@npm:^1.1.1":
-  version: 1.1.3
-  resolution: "@types/js-levenshtein@npm:1.1.3"
-  checksum: 10c0/025f2bd8d865cfa7a996799a1a2f2a77fa2fc74a28971aa035a103de35d7c1e3d949721a88f57fdb532815bbcb2bf7019196a608ed0a8bbd1023d64c52bb251b
-  languageName: node
-  linkType: hard
-
 "@types/js-yaml@npm:^4, @types/js-yaml@npm:^4.0.1, @types/js-yaml@npm:^4.0.5":
   version: 4.0.9
   resolution: "@types/js-yaml@npm:4.0.9"
@@ -15729,14 +15682,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash@npm:4.17.13":
-  version: 4.17.13
-  resolution: "@types/lodash@npm:4.17.13"
-  checksum: 10c0/c3d0b7efe7933ac0369b99f2f7bff9240d960680fdb74b41ed4bd1b3ca60cca1e31fe4046d9abbde778f941a41bc2a75eb629abf8659fa6c27b66efbbb0802a9
-  languageName: node
-  linkType: hard
-
-"@types/lodash@npm:^4.14.195":
+"@types/lodash@npm:4.17.23, @types/lodash@npm:^4.14.195":
   version: 4.17.23
   resolution: "@types/lodash@npm:4.17.23"
   checksum: 10c0/9d9cbfb684e064a2b78aab9e220d398c9c2a7d36bc51a07b184ff382fa043a99b3d00c16c7f109b4eb8614118f4869678dbae7d5c6700ed16fb9340e26cc0bf6
@@ -16089,15 +16035,6 @@ __metadata:
     "@types/node": "npm:*"
     "@types/send": "npm:<1"
   checksum: 10c0/842fca14c9e80468f89b6cea361773f2dcd685d4616a9f59013b55e1e83f536e4c93d6d8e3ba5072d40c4e7e64085210edd6646b15d538ded94512940a23021f
-  languageName: node
-  linkType: hard
-
-"@types/set-cookie-parser@npm:^2.4.0":
-  version: 2.4.10
-  resolution: "@types/set-cookie-parser@npm:2.4.10"
-  dependencies:
-    "@types/node": "npm:*"
-  checksum: 10c0/010b0c582ea70a2088618b4725808e80c30cce296c19ec58e51d94e0fd1038201b7b99238bf3ea74e1894163c8037d10a4f1729de62b2801ce240ff070f43e76
   languageName: node
   linkType: hard
 
@@ -16606,13 +16543,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmldom/xmldom@npm:^0.8.3":
-  version: 0.8.11
-  resolution: "@xmldom/xmldom@npm:0.8.11"
-  checksum: 10c0/e768623de72c95d3dae6b5da8e33dda0d81665047811b5498d23a328d45b13feb5536fe921d0308b96a4a8dd8addf80b1f6ef466508051c0b581e63e0dc74ed5
-  languageName: node
-  linkType: hard
-
 "@xobotyi/scrollbar-width@npm:^1.9.5":
   version: 1.9.5
   resolution: "@xobotyi/scrollbar-width@npm:1.9.5"
@@ -16686,13 +16616,6 @@ __metadata:
     js-yaml: "npm:^3.10.0"
     tslib: "npm:^2.4.0"
   checksum: 10c0/70c2fa011bf28a517a8ee4264dd93d7590f6e3d02c6d4feb50533f405ca3b100cb156f11405b9a34f7c51c6893d3d8b051554dddfd5afaae2067f921512447a3
-  languageName: node
-  linkType: hard
-
-"@zxing/text-encoding@npm:0.9.0":
-  version: 0.9.0
-  resolution: "@zxing/text-encoding@npm:0.9.0"
-  checksum: 10c0/d15bff181d46c2ab709e7242801a8d40408aa8c19b44462e5f60e766bf59105b44957914ab6baab60d10d466a5e965f21fe890c67dfdb7d5c7f940df457b4d0d
   languageName: node
   linkType: hard
 
@@ -17141,26 +17064,26 @@ __metadata:
     "@material-ui/core": "npm:^4.12.2"
     "@material-ui/icons": "npm:^4.9.1"
     "@playwright/test": "npm:^1.32.3"
-    "@terasky/backstage-plugin-ai-rules": "npm:^1.6.1"
-    "@terasky/backstage-plugin-api-docs-module-crd": "npm:^0.2.1"
+    "@terasky/backstage-plugin-ai-rules": "npm:^1.6.2"
+    "@terasky/backstage-plugin-api-docs-module-crd": "npm:^0.2.2"
     "@terasky/backstage-plugin-app-module-global-signin-page": "npm:^0.5.0"
-    "@terasky/backstage-plugin-crossplane-resources-frontend": "npm:^2.13.0"
-    "@terasky/backstage-plugin-devpod": "npm:^1.8.1"
-    "@terasky/backstage-plugin-educates": "npm:^1.8.1"
-    "@terasky/backstage-plugin-entity-scaffolder-content": "npm:^1.7.1"
-    "@terasky/backstage-plugin-gitops-manifest-updater": "npm:^2.5.1"
-    "@terasky/backstage-plugin-kro-resources-frontend": "npm:^0.9.1"
-    "@terasky/backstage-plugin-kubernetes-resources-frontend": "npm:^0.11.1"
-    "@terasky/backstage-plugin-kyverno-policy-reports": "npm:^1.13.0"
-    "@terasky/backstage-plugin-scaleops-frontend": "npm:^2.2.1"
-    "@terasky/backstage-plugin-spectrocloud": "npm:^0.4.1"
+    "@terasky/backstage-plugin-crossplane-resources-frontend": "npm:^2.13.1"
+    "@terasky/backstage-plugin-devpod": "npm:^1.8.2"
+    "@terasky/backstage-plugin-educates": "npm:^1.8.2"
+    "@terasky/backstage-plugin-entity-scaffolder-content": "npm:^1.7.2"
+    "@terasky/backstage-plugin-gitops-manifest-updater": "npm:^2.5.2"
+    "@terasky/backstage-plugin-kro-resources-frontend": "npm:^0.9.2"
+    "@terasky/backstage-plugin-kubernetes-resources-frontend": "npm:^0.11.2"
+    "@terasky/backstage-plugin-kyverno-policy-reports": "npm:^1.13.1"
+    "@terasky/backstage-plugin-scaleops-frontend": "npm:^2.2.2"
+    "@terasky/backstage-plugin-spectrocloud": "npm:^0.4.2"
     "@terasky/backstage-plugin-spectrocloud-auth": "npm:^0.4.0"
     "@terasky/backstage-plugin-spectrocloud-kubernetes-auth-module": "npm:^0.2.1"
     "@terasky/backstage-plugin-spring-initializer": "npm:^0.2.1"
-    "@terasky/backstage-plugin-template-builder": "npm:^0.2.1"
-    "@terasky/backstage-plugin-terraform-scaffolder": "npm:^0.9.1"
-    "@terasky/backstage-plugin-vcf-automation": "npm:^1.11.1"
-    "@terasky/backstage-plugin-vcf-operations": "npm:^0.9.1"
+    "@terasky/backstage-plugin-template-builder": "npm:^0.2.2"
+    "@terasky/backstage-plugin-terraform-scaffolder": "npm:^0.9.2"
+    "@terasky/backstage-plugin-vcf-automation": "npm:^1.11.2"
+    "@terasky/backstage-plugin-vcf-operations": "npm:^0.9.2"
     "@testing-library/dom": "npm:^9.0.0"
     "@testing-library/jest-dom": "npm:^6.0.0"
     "@testing-library/react": "npm:^14.0.0"
@@ -17815,28 +17738,28 @@ __metadata:
     "@backstage/plugin-search-backend-node": "npm:^1.4.1"
     "@backstage/plugin-techdocs-backend": "npm:^2.1.5"
     "@roadiehq/scaffolder-backend-module-utils": "npm:^4.1.2"
-    "@terasky/backstage-plugin-ai-rules-backend": "npm:^1.7.0"
+    "@terasky/backstage-plugin-ai-rules-backend": "npm:^1.7.1"
     "@terasky/backstage-plugin-catalog-mcp-backend": "npm:^0.5.0"
-    "@terasky/backstage-plugin-crossplane-resources-backend": "npm:^1.12.0"
-    "@terasky/backstage-plugin-educates-backend": "npm:^1.7.0"
-    "@terasky/backstage-plugin-kro-resources-backend": "npm:^0.10.0"
-    "@terasky/backstage-plugin-kubernetes-ingestor": "npm:^3.9.0"
-    "@terasky/backstage-plugin-kubernetes-resources-permissions-backend": "npm:^0.8.0"
-    "@terasky/backstage-plugin-kyverno-policy-reports-backend": "npm:^1.10.0"
+    "@terasky/backstage-plugin-crossplane-resources-backend": "npm:^1.12.1"
+    "@terasky/backstage-plugin-educates-backend": "npm:^1.7.1"
+    "@terasky/backstage-plugin-kro-resources-backend": "npm:^0.10.1"
+    "@terasky/backstage-plugin-kubernetes-ingestor": "npm:^3.9.1"
+    "@terasky/backstage-plugin-kubernetes-resources-permissions-backend": "npm:^0.8.1"
+    "@terasky/backstage-plugin-kyverno-policy-reports-backend": "npm:^1.10.1"
     "@terasky/backstage-plugin-scaffolder-backend-module-spring-initializer": "npm:^0.2.0"
     "@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils": "npm:^2.4.0"
     "@terasky/backstage-plugin-spectrocloud-auth-backend": "npm:^0.3.0"
-    "@terasky/backstage-plugin-spectrocloud-backend": "npm:^0.4.0"
+    "@terasky/backstage-plugin-spectrocloud-backend": "npm:^0.4.1"
     "@terasky/backstage-plugin-spectrocloud-cluster-provider": "npm:^0.7.0"
     "@terasky/backstage-plugin-spectrocloud-ingestor": "npm:^0.4.0"
-    "@terasky/backstage-plugin-vcf-automation-backend": "npm:^1.11.0"
-    "@terasky/backstage-plugin-vcf-automation-ingestor": "npm:^1.11.0"
-    "@terasky/backstage-plugin-vcf-operations-backend": "npm:^0.8.1"
+    "@terasky/backstage-plugin-vcf-automation-backend": "npm:^1.11.1"
+    "@terasky/backstage-plugin-vcf-automation-ingestor": "npm:^1.11.1"
+    "@terasky/backstage-plugin-vcf-operations-backend": "npm:^0.8.2"
     "@terasky/plugin-rbac-mcp-backend": "npm:^0.6.0"
     "@terasky/plugin-scaffolder-mcp-backend": "npm:^0.6.0"
     app: "link:../app"
     better-sqlite3: "npm:^12.6.2"
-    node-gyp: "npm:^10.3.1"
+    node-gyp: "npm:^12.1.0"
     pg: "npm:^8.11.3"
   languageName: unknown
   linkType: soft
@@ -19429,13 +19352,6 @@ __metadata:
   version: 0.7.2
   resolution: "cookie@npm:0.7.2"
   checksum: 10c0/9596e8ccdbf1a3a88ae02cf5ee80c1c50959423e1022e4e60b91dd87c622af1da309253d8abdb258fb5e3eacb4f08e579dc58b4897b8087574eee0fd35dfa5d2
-  languageName: node
-  linkType: hard
-
-"cookie@npm:^0.4.2":
-  version: 0.4.2
-  resolution: "cookie@npm:0.4.2"
-  checksum: 10c0/beab41fbd7c20175e3a2799ba948c1dcc71ef69f23fe14eeeff59fc09f50c517b0f77098db87dbb4c55da802f9d86ee86cdc1cd3efd87760341551838d53fca2
   languageName: node
   linkType: hard
 
@@ -23625,7 +23541,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql@npm:^16.0.0, graphql@npm:^16.12.0, graphql@npm:^16.8.1":
+"graphql@npm:^16.0.0, graphql@npm:^16.12.0":
   version: 16.12.0
   resolution: "graphql@npm:16.12.0"
   checksum: 10c0/b6fffa4e8a4e4a9933ebe85e7470b346dbf49050c1a482fac5e03e4a1a7bed2ecd3a4c97e29f04457af929464bc5e4f2aac991090c2f320111eef26e902a5c75
@@ -23925,13 +23841,6 @@ __metadata:
   bin:
     he: bin/he
   checksum: 10c0/a27d478befe3c8192f006cdd0639a66798979dfa6e2125c6ac582a19a5ebfec62ad83e8382e6036170d873f46e4536a7e795bf8b95bf7c247f4cc0825ccc8c17
-  languageName: node
-  linkType: hard
-
-"headers-polyfill@npm:3.2.5":
-  version: 3.2.5
-  resolution: "headers-polyfill@npm:3.2.5"
-  checksum: 10c0/10202f4ebfaecd6aa31305f29664f876ac01d9174a3fb8fcc5a0df3eaf9c1767fb0d6cf6f961484f2bfd2101b6768090976f146bd88aeedd07af4e741cb2dcb7
   languageName: node
   linkType: hard
 
@@ -26090,13 +25999,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"js-levenshtein@npm:^1.1.6":
-  version: 1.1.6
-  resolution: "js-levenshtein@npm:1.1.6"
-  checksum: 10c0/14045735325ea1fd87f434a74b11d8a14380f090f154747e613529c7cff68b5ee607f5230fa40665d5fb6125a3791f4c223f73b9feca754f989b059f5c05864f
-  languageName: node
-  linkType: hard
-
 "js-md4@npm:^0.3.2":
   version: 0.3.2
   resolution: "js-md4@npm:0.3.2"
@@ -27152,7 +27054,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash@npm:4.17.21, lodash@npm:^4.15.0, lodash@npm:^4.16.4, lodash@npm:^4.17.15, lodash@npm:^4.17.20, lodash@npm:^4.17.21, lodash@npm:^4.17.4, lodash@npm:~4.17.21":
+"lodash@npm:4.17.23":
+  version: 4.17.23
+  resolution: "lodash@npm:4.17.23"
+  checksum: 10c0/1264a90469f5bb95d4739c43eb6277d15b6d9e186df4ac68c3620443160fc669e2f14c11e7d8b2ccf078b81d06147c01a8ccced9aab9f9f63d50dcf8cace6bf6
+  languageName: node
+  linkType: hard
+
+"lodash@npm:^4.15.0, lodash@npm:^4.16.4, lodash@npm:^4.17.15, lodash@npm:^4.17.20, lodash@npm:^4.17.21, lodash@npm:^4.17.4, lodash@npm:~4.17.21":
   version: 4.17.21
   resolution: "lodash@npm:4.17.21"
   checksum: 10c0/d8cbea072bb08655bb4c989da418994b073a608dffa608b09ac04b43a791b12aeae7cd7ad919aa4c925f33b48490b5cfe6c1f71d827956071dae2e7bb3a6b74c
@@ -28560,46 +28469,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"msw@npm:1.3.5, msw@npm:^1.0.0":
-  version: 1.3.5
-  resolution: "msw@npm:1.3.5"
-  dependencies:
-    "@mswjs/cookies": "npm:^0.2.2"
-    "@mswjs/interceptors": "npm:^0.17.10"
-    "@open-draft/until": "npm:^1.0.3"
-    "@types/cookie": "npm:^0.4.1"
-    "@types/js-levenshtein": "npm:^1.1.1"
-    chalk: "npm:^4.1.1"
-    chokidar: "npm:^3.4.2"
-    cookie: "npm:^0.4.2"
-    graphql: "npm:^16.8.1"
-    headers-polyfill: "npm:3.2.5"
-    inquirer: "npm:^8.2.0"
-    is-node-process: "npm:^1.2.0"
-    js-levenshtein: "npm:^1.1.6"
-    node-fetch: "npm:^2.6.7"
-    outvariant: "npm:^1.4.0"
-    path-to-regexp: "npm:^6.3.0"
-    strict-event-emitter: "npm:^0.4.3"
-    type-fest: "npm:^2.19.0"
-    yargs: "npm:^17.3.1"
-  peerDependencies:
-    typescript: ">= 4.4.x"
-  peerDependenciesMeta:
-    typescript:
-      optional: true
-  bin:
-    msw: cli/index.js
-  checksum: 10c0/bb0b3625b68f1750bfe90ade6e9e98c64f509138ce7b09c8a53af19f8f662ac79881dad64fbc74c9426247b725e3ec5e6d45eea2f6b71ddc02184e0ddf743e4d
-  languageName: node
-  linkType: hard
-
-"msw@npm:^2.3.1":
-  version: 2.12.4
-  resolution: "msw@npm:2.12.4"
+"msw@npm:^2.12.4":
+  version: 2.12.10
+  resolution: "msw@npm:2.12.10"
   dependencies:
     "@inquirer/confirm": "npm:^5.0.0"
-    "@mswjs/interceptors": "npm:^0.40.0"
+    "@mswjs/interceptors": "npm:^0.41.2"
     "@open-draft/deferred-promise": "npm:^2.2.0"
     "@types/statuses": "npm:^2.0.6"
     cookie: "npm:^1.0.2"
@@ -28609,7 +28484,7 @@ __metadata:
     outvariant: "npm:^1.4.3"
     path-to-regexp: "npm:^6.3.0"
     picocolors: "npm:^1.1.1"
-    rettime: "npm:^0.7.0"
+    rettime: "npm:^0.10.1"
     statuses: "npm:^2.0.2"
     strict-event-emitter: "npm:^0.5.1"
     tough-cookie: "npm:^6.0.0"
@@ -28623,7 +28498,7 @@ __metadata:
       optional: true
   bin:
     msw: cli/index.js
-  checksum: 10c0/3156cff6852234111b8c0e93e811495e7539c34384e240c70872c132d0bfdd6a79c4b70e5691f250df8ad332763d976e3b28771fedc0556f09a5847568ff2364
+  checksum: 10c0/14b67e607e071965a7119261a0bf75febdf0d17f3ea62b97938ece03fffd05eea63d0c1b52f81c1dec778107aae1c11a3400cf873c9029982a3ccab3764fc149
   languageName: node
   linkType: hard
 
@@ -28965,7 +28840,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-gyp@npm:^10.0.0, node-gyp@npm:^10.3.1":
+"node-gyp@npm:^10.0.0":
   version: 10.3.1
   resolution: "node-gyp@npm:10.3.1"
   dependencies:
@@ -28982,6 +28857,26 @@ __metadata:
   bin:
     node-gyp: bin/node-gyp.js
   checksum: 10c0/87c3b50e1f6f5256b5d2879a8c064eefa53ed444bad2a20870be43bc189db7cbffe22c30af056046c6d904181d73881b1726fd391d2f6f79f89b991019f195ea
+  languageName: node
+  linkType: hard
+
+"node-gyp@npm:^12.1.0":
+  version: 12.2.0
+  resolution: "node-gyp@npm:12.2.0"
+  dependencies:
+    env-paths: "npm:^2.2.0"
+    exponential-backoff: "npm:^3.1.1"
+    graceful-fs: "npm:^4.2.6"
+    make-fetch-happen: "npm:^15.0.0"
+    nopt: "npm:^9.0.0"
+    proc-log: "npm:^6.0.0"
+    semver: "npm:^7.3.5"
+    tar: "npm:^7.5.4"
+    tinyglobby: "npm:^0.2.12"
+    which: "npm:^6.0.0"
+  bin:
+    node-gyp: bin/node-gyp.js
+  checksum: 10c0/3ed046746a5a7d90950cd8b0547332b06598443f31fe213ef4332a7174c7b7d259e1704835feda79b87d3f02e59d7791842aac60642ede4396ab25fdf0f8f759
   languageName: node
   linkType: hard
 
@@ -29576,7 +29471,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"outvariant@npm:^1.2.1, outvariant@npm:^1.4.0, outvariant@npm:^1.4.3":
+"outvariant@npm:^1.4.0, outvariant@npm:^1.4.3":
   version: 1.4.3
   resolution: "outvariant@npm:1.4.3"
   checksum: 10c0/5976ca7740349cb8c71bd3382e2a762b1aeca6f33dc984d9d896acdf3c61f78c3afcf1bfe9cc633a7b3c4b295ec94d292048f83ea2b2594fae4496656eba992c
@@ -32916,10 +32811,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rettime@npm:^0.7.0":
-  version: 0.7.0
-  resolution: "rettime@npm:0.7.0"
-  checksum: 10c0/1460539d49415c37e46884bf1db7a5da974b239c1bd6976e1cf076fad169067dc8f55cd2572aec504433162f3627b6d8123eea977d110476258045d620bd051b
+"rettime@npm:^0.10.1":
+  version: 0.10.1
+  resolution: "rettime@npm:0.10.1"
+  checksum: 10c0/94fb30cd13684386c70301c4cff4391bc0c6dc7aeac49364fdfeeaba167897bdb28a58bbb46d1a415f1c5c6240fda3f765cb329e471f37fdc513c739f0b04fbe
   languageName: node
   linkType: hard
 
@@ -33541,13 +33436,6 @@ __metadata:
     parseurl: "npm:~1.3.3"
     send: "npm:~0.19.1"
   checksum: 10c0/36320397a073c71bedf58af48a4a100fe6d93f07459af4d6f08b9a7217c04ce2a4939e0effd842dc7bece93ffcd59eb52f58c4fff2a8e002dc29ae6b219cd42b
-  languageName: node
-  linkType: hard
-
-"set-cookie-parser@npm:^2.4.6":
-  version: 2.7.2
-  resolution: "set-cookie-parser@npm:2.7.2"
-  checksum: 10c0/4381a9eb7ee951dfe393fe7aacf76b9a3b4e93a684d2162ab35594fa4053cc82a4d7d7582bf397718012c9adcf839b8cd8f57c6c42901ea9effe33c752da4a45
   languageName: node
   linkType: hard
 
@@ -34233,22 +34121,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"strict-event-emitter@npm:^0.2.4":
-  version: 0.2.8
-  resolution: "strict-event-emitter@npm:0.2.8"
-  dependencies:
-    events: "npm:^3.3.0"
-  checksum: 10c0/6891e19fea4f0289e4da2fe7050d85906eaca7f774aa38fe674f0e58fdece1b63b868614fa23974c4cb862aa99358caa987523b705fdfff4639231c62e384394
-  languageName: node
-  linkType: hard
-
-"strict-event-emitter@npm:^0.4.3":
-  version: 0.4.6
-  resolution: "strict-event-emitter@npm:0.4.6"
-  checksum: 10c0/d0231ef081cb1937b1445da59a1ec202d1c097d825c504f398600532490a4104e200b0dce4137467a8eaac5f8f9718d01c99869687afad78cad3b14c4b2e6a39
-  languageName: node
-  linkType: hard
-
 "strict-event-emitter@npm:^0.5.1":
   version: 0.5.1
   resolution: "strict-event-emitter@npm:0.5.1"
@@ -34882,7 +34754,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tar@npm:^7.5.2, tar@npm:^7.5.6":
+"tar@npm:^7.5.2, tar@npm:^7.5.4, tar@npm:^7.5.6":
   version: 7.5.9
   resolution: "tar@npm:7.5.9"
   dependencies:
@@ -36712,19 +36584,6 @@ __metadata:
   dependencies:
     defaults: "npm:^1.0.3"
   checksum: 10c0/5b61ca583a95e2dd85d7078400190efd452e05751a64accb8c06ce4db65d7e0b0cde9917d705e826a2e05cc2548f61efde115ffa374c3e436d04be45c889e5b4
-  languageName: node
-  linkType: hard
-
-"web-encoding@npm:^1.1.5":
-  version: 1.1.5
-  resolution: "web-encoding@npm:1.1.5"
-  dependencies:
-    "@zxing/text-encoding": "npm:0.9.0"
-    util: "npm:^0.12.3"
-  dependenciesMeta:
-    "@zxing/text-encoding":
-      optional: true
-  checksum: 10c0/59d5413338ec0894c690006f5d8508b0c88cae1d8c78606c3f326e351c672196461ed808b849fe08d0900fa56a61fcacb9ff576499068d2ead0a7bc04afa7d34
   languageName: node
   linkType: hard
 

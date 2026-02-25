@@ -1,6 +1,6 @@
 {
   "name": "@terasky/backstage-plugin-api-docs-module-crd",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Additional functionalities for the api-docs plugin that renders Kubernetes CRDs",
   "license": "Apache-2.0",
   "main": "src/index.ts",
@@ -58,7 +58,7 @@
     "@testing-library/user-event": "^14.0.0",
     "@types/js-yaml": "^4.0.5",
     "@types/react-dom": "^16",
-    "msw": "^1.0.0",
+    "msw": "^2.12.4",
     "react": "^16.13.1 || ^17.0.0 || ^18.0.0"
   },
   "files": [

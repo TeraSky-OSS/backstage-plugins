@@ -1,6 +1,6 @@
 {
   "name": "@terasky/backstage-plugin-educates",
-  "version": "1.8.1",
+  "version": "1.8.2",
   "main": "src/index.ts",
   "types": "src/index.ts",
   "configSchema": "config.d.ts",
@@ -55,7 +55,7 @@
     "@testing-library/user-event": "^14.0.0",
     "@types/node": "*",
     "@types/react": "^18.0.0",
-    "msw": "^1.0.0",
+    "msw": "^2.12.4",
     "typescript": "^5.8.3"
   },
   "files": [

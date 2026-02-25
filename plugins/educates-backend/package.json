@@ -1,6 +1,6 @@
 {
   "name": "@terasky/backstage-plugin-educates-backend",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "main": "src/index.ts",
   "types": "src/index.ts",
   "configSchema": "config.d.ts",
@@ -56,7 +56,7 @@
     "@types/node": "*",
     "@types/node-fetch": "^2.5.12",
     "@types/supertest": "^2.0.8",
-    "msw": "^1.0.0",
+    "msw": "^2.12.4",
     "supertest": "^6.1.6",
     "typescript": "^5.8.3"
   },

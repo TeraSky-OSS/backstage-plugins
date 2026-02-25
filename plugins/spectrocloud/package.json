@@ -1,6 +1,6 @@
 {
   "name": "@terasky/backstage-plugin-spectrocloud",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "main": "src/index.ts",
   "types": "src/index.ts",
   "license": "Apache-2.0",
@@ -66,7 +66,7 @@
     "@types/file-saver": "^2",
     "@types/js-yaml": "^4",
     "@types/react-syntax-highlighter": "^15",
-    "msw": "^1.0.0",
+    "msw": "^2.12.4",
     "react": "^18.3.1",
     "typescript": "^5.8.3"
   },

@@ -2,7 +2,7 @@ import { registerMcpActions } from './actions';
 import { mockServices } from '@backstage/backend-test-utils';
 import { InputError } from '@backstage/errors';
 import { setupServer } from 'msw/node';
-import { rest } from 'msw';
+import { http, HttpResponse } from 'msw';
 
 const server = setupServer();
 beforeAll(() => server.listen({ onUnhandledRequest: 'bypass' }));
@@ -71,13 +71,13 @@ describe('registerMcpActions', () => {
 
     it('should fetch entities by owner', async () => {
       server.use(
-        rest.get('http://catalog-backend/entities/by-query', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://catalog-backend/entities/by-query', () => {
+          return HttpResponse.json({
             items: [
               { metadata: { name: 'entity-1' }, spec: { owner: 'user:default/test-user' } },
               { metadata: { name: 'entity-2' }, spec: { owner: 'user:default/test-user' } },
             ],
-          }));
+          });
         }),
       );
 
@@ -93,8 +93,8 @@ describe('registerMcpActions', () => {
 
     it('should handle API errors', async () => {
       server.use(
-        rest.get('http://catalog-backend/entities/by-query', (_req, res, ctx) => {
-          return res(ctx.status(500), ctx.json({ error: 'Internal Server Error' }));
+        http.get('http://catalog-backend/entities/by-query', () => {
+          return HttpResponse.json({ error: 'Internal Server Error' }, { status: 500 });
         }),
       );
 
@@ -108,8 +108,8 @@ describe('registerMcpActions', () => {
 
     it('should return empty array when no entities found', async () => {
       server.use(
-        rest.get('http://catalog-backend/entities/by-query', (_req, res, ctx) => {
-          return res(ctx.json({ items: [] }));
+        http.get('http://catalog-backend/entities/by-query', () => {
+          return HttpResponse.json({ items: [] });
         }),
       );
 
@@ -124,8 +124,8 @@ describe('registerMcpActions', () => {
 
     it('should use provided credentials', async () => {
       server.use(
-        rest.get('http://catalog-backend/entities/by-query', (_req, res, ctx) => {
-          return res(ctx.json({ items: [] }));
+        http.get('http://catalog-backend/entities/by-query', () => {
+          return HttpResponse.json({ items: [] });
         }),
       );
 
@@ -158,12 +158,12 @@ describe('registerMcpActions', () => {
 
     it('should fetch entities by annotation key only', async () => {
       server.use(
-        rest.get('http://catalog-backend/entities/by-query', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://catalog-backend/entities/by-query', () => {
+          return HttpResponse.json({
             items: [
               { metadata: { name: 'entity-1', annotations: { 'backstage.io/techdocs-ref': 'dir:.' } } },
             ],
-          }));
+          });
         }),
       );
 
@@ -180,12 +180,12 @@ describe('registerMcpActions', () => {
 
     it('should fetch entities by annotation key and value', async () => {
       server.use(
-        rest.get('http://catalog-backend/entities/by-query', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://catalog-backend/entities/by-query', () => {
+          return HttpResponse.json({
             items: [
               { metadata: { name: 'entity-1', annotations: { 'github.com/project-slug': 'org/repo' } } },
             ],
-          }));
+          });
         }),
       );
 
@@ -201,8 +201,8 @@ describe('registerMcpActions', () => {
 
     it('should handle API errors', async () => {
       server.use(
-        rest.get('http://catalog-backend/entities/by-query', (_req, res, ctx) => {
-          return res(ctx.status(500), ctx.json({ error: 'Internal Server Error' }));
+        http.get('http://catalog-backend/entities/by-query', () => {
+          return HttpResponse.json({ error: 'Internal Server Error' }, { status: 500 });
         }),
       );
 
@@ -216,8 +216,8 @@ describe('registerMcpActions', () => {
 
     it('should return empty array when no entities match', async () => {
       server.use(
-        rest.get('http://catalog-backend/entities/by-query', (_req, res, ctx) => {
-          return res(ctx.json({ items: [] }));
+        http.get('http://catalog-backend/entities/by-query', () => {
+          return HttpResponse.json({ items: [] });
         }),
       );
 
@@ -247,15 +247,15 @@ describe('registerMcpActions', () => {
 
     it('should return unique types for a kind', async () => {
       server.use(
-        rest.get('http://catalog-backend/entities/by-query', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://catalog-backend/entities/by-query', () => {
+          return HttpResponse.json({
             items: [
               { kind: 'Component', spec: { type: 'service' } },
               { kind: 'Component', spec: { type: 'website' } },
               { kind: 'Component', spec: { type: 'service' } }, // duplicate
               { kind: 'Component', spec: { type: 'library' } },
             ],
-          }));
+          });
         }),
       );
 
@@ -271,14 +271,14 @@ describe('registerMcpActions', () => {
 
     it('should handle entities without type', async () => {
       server.use(
-        rest.get('http://catalog-backend/entities/by-query', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://catalog-backend/entities/by-query', () => {
+          return HttpResponse.json({
             items: [
               { kind: 'Component', spec: { type: 'service' } },
               { kind: 'Component', spec: {} }, // no type
               { kind: 'Component' }, // no spec
             ],
-          }));
+          });
         }),
       );
 
@@ -293,8 +293,8 @@ describe('registerMcpActions', () => {
 
     it('should handle API errors', async () => {
       server.use(
-        rest.get('http://catalog-backend/entities/by-query', (_req, res, ctx) => {
-          return res(ctx.status(500), ctx.json({ error: 'Internal Server Error' }));
+        http.get('http://catalog-backend/entities/by-query', () => {
+          return HttpResponse.json({ error: 'Internal Server Error' }, { status: 500 });
         }),
       );
 
@@ -308,8 +308,8 @@ describe('registerMcpActions', () => {
 
     it('should return empty array when no entities found', async () => {
       server.use(
-        rest.get('http://catalog-backend/entities/by-query', (_req, res, ctx) => {
-          return res(ctx.json({ items: [] }));
+        http.get('http://catalog-backend/entities/by-query', () => {
+          return HttpResponse.json({ items: [] });
         }),
       );
 
@@ -339,13 +339,13 @@ describe('registerMcpActions', () => {
 
     it('should fetch entities by kind and type', async () => {
       server.use(
-        rest.get('http://catalog-backend/entities/by-query', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://catalog-backend/entities/by-query', () => {
+          return HttpResponse.json({
             items: [
               { kind: 'Component', metadata: { name: 'service-1' }, spec: { type: 'service' } },
               { kind: 'Component', metadata: { name: 'service-2' }, spec: { type: 'service' } },
             ],
-          }));
+          });
         }),
       );
 
@@ -362,8 +362,8 @@ describe('registerMcpActions', () => {
 
     it('should handle API errors', async () => {
       server.use(
-        rest.get('http://catalog-backend/entities/by-query', (_req, res, ctx) => {
-          return res(ctx.status(500), ctx.json({ error: 'Internal Server Error' }));
+        http.get('http://catalog-backend/entities/by-query', () => {
+          return HttpResponse.json({ error: 'Internal Server Error' }, { status: 500 });
         }),
       );
 
@@ -377,8 +377,8 @@ describe('registerMcpActions', () => {
 
     it('should return empty array when no entities match', async () => {
       server.use(
-        rest.get('http://catalog-backend/entities/by-query', (_req, res, ctx) => {
-          return res(ctx.json({ items: [] }));
+        http.get('http://catalog-backend/entities/by-query', () => {
+          return HttpResponse.json({ items: [] });
         }),
       );
 
@@ -408,12 +408,12 @@ describe('registerMcpActions', () => {
 
     it('should fetch entities with filter', async () => {
       server.use(
-        rest.get('http://catalog-backend/entities/by-query', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://catalog-backend/entities/by-query', () => {
+          return HttpResponse.json({
             items: [
               { kind: 'Component', metadata: { name: 'test-1' } },
             ],
-          }));
+          });
         }),
       );
 
@@ -428,14 +428,14 @@ describe('registerMcpActions', () => {
 
     it('should fetch entities with filter and fields', async () => {
       server.use(
-        rest.get('http://catalog-backend/entities/by-query', (req, res, ctx) => {
-          expect(req.url.searchParams.get('filter')).toBe('kind=Component');
-          expect(req.url.searchParams.get('fields')).toBe('kind,metadata.name');
-          return res(ctx.json({
+        http.get('http://catalog-backend/entities/by-query', ({ request }) => {
+          expect(new URL(request.url).searchParams.get('filter')).toBe('kind=Component');
+          expect(new URL(request.url).searchParams.get('fields')).toBe('kind,metadata.name');
+          return HttpResponse.json({
             items: [
               { kind: 'Component', metadata: { name: 'test-1' } },
             ],
-          }));
+          });
         }),
       );
 
@@ -451,13 +451,13 @@ describe('registerMcpActions', () => {
 
     it('should fetch all entities when no filter provided', async () => {
       server.use(
-        rest.get('http://catalog-backend/entities/by-query', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://catalog-backend/entities/by-query', () => {
+          return HttpResponse.json({
             items: [
               { kind: 'Component', metadata: { name: 'test-1' } },
               { kind: 'API', metadata: { name: 'api-1' } },
             ],
-          }));
+          });
         }),
       );
 
@@ -473,8 +473,8 @@ describe('registerMcpActions', () => {
 
     it('should handle API errors', async () => {
       server.use(
-        rest.get('http://catalog-backend/entities/by-query', (_req, res, ctx) => {
-          return res(ctx.status(500), ctx.json({ error: 'Internal Server Error' }));
+        http.get('http://catalog-backend/entities/by-query', () => {
+          return HttpResponse.json({ error: 'Internal Server Error' }, { status: 500 });
         }),
       );
 
@@ -488,8 +488,8 @@ describe('registerMcpActions', () => {
 
     it('should handle non-JSON error responses', async () => {
       server.use(
-        rest.get('http://catalog-backend/entities/by-query', (_req, res, ctx) => {
-          return res(ctx.status(500), ctx.text('Plain text error'));
+        http.get('http://catalog-backend/entities/by-query', () => {
+          return new HttpResponse('Plain text error', { status: 500 });
         }),
       );
 

@@ -1,7 +1,7 @@
 import { registerMcpActions } from './actions';
 import { mockServices } from '@backstage/backend-test-utils';
 import { setupServer } from 'msw/node';
-import { rest } from 'msw';
+import { http, HttpResponse } from 'msw';
 
 const server = setupServer();
 beforeAll(() => server.listen({ onUnhandledRequest: 'bypass' }));
@@ -310,11 +310,11 @@ describe('registerMcpActions', () => {
       });
 
       server.use(
-        rest.post('http://scaffolder-backend/v2/tasks', (_req, res, ctx) => {
-          return res(ctx.json({ id: 'task-123' }));
+        http.post('http://scaffolder-backend/v2/tasks', () => {
+          return HttpResponse.json({ id: 'task-123' });
         }),
-        rest.get('http://scaffolder-backend/v2/tasks/task-123', (_req, res, ctx) => {
-          return res(ctx.json({ status: 'completed', output: { repoUrl: 'https://github.com/test/repo' } }));
+        http.get('http://scaffolder-backend/v2/tasks/task-123', () => {
+          return HttpResponse.json({ status: 'completed', output: { repoUrl: 'https://github.com/test/repo' } });
         }),
       );
 
@@ -343,8 +343,8 @@ describe('registerMcpActions', () => {
       });
 
       server.use(
-        rest.post('http://scaffolder-backend/v2/tasks', (_req, res, ctx) => {
-          return res(ctx.status(400), ctx.text('Invalid parameters'));
+        http.post('http://scaffolder-backend/v2/tasks', () => {
+          return new HttpResponse('Invalid parameters', { status: 400 });
         }),
       );
 
@@ -368,11 +368,11 @@ describe('registerMcpActions', () => {
       });
 
       server.use(
-        rest.post('http://scaffolder-backend/v2/tasks', (_req, res, ctx) => {
-          return res(ctx.json({ id: 'task-123' }));
+        http.post('http://scaffolder-backend/v2/tasks', () => {
+          return HttpResponse.json({ id: 'task-123' });
         }),
-        rest.get('http://scaffolder-backend/v2/tasks/task-123', (_req, res, ctx) => {
-          return res(ctx.json({ status: 'failed', error: { message: 'Step failed' } }));
+        http.get('http://scaffolder-backend/v2/tasks/task-123', () => {
+          return HttpResponse.json({ status: 'failed', error: { message: 'Step failed' } });
         }),
       );
 
@@ -396,11 +396,11 @@ describe('registerMcpActions', () => {
       });
 
       server.use(
-        rest.post('http://scaffolder-backend/v2/tasks', (_req, res, ctx) => {
-          return res(ctx.json({ id: 'task-123' }));
+        http.post('http://scaffolder-backend/v2/tasks', () => {
+          return HttpResponse.json({ id: 'task-123' });
         }),
-        rest.get('http://scaffolder-backend/v2/tasks/task-123', (_req, res, ctx) => {
-          return res(ctx.json({ status: 'cancelled' }));
+        http.get('http://scaffolder-backend/v2/tasks/task-123', () => {
+          return HttpResponse.json({ status: 'cancelled' });
         }),
       );
 
@@ -424,11 +424,11 @@ describe('registerMcpActions', () => {
       });
 
       server.use(
-        rest.post('http://scaffolder-backend/v2/tasks', (_req, res, ctx) => {
-          return res(ctx.json({ id: 'task-123' }));
+        http.post('http://scaffolder-backend/v2/tasks', () => {
+          return HttpResponse.json({ id: 'task-123' });
         }),
-        rest.get('http://scaffolder-backend/v2/tasks/task-123', (_req, res, ctx) => {
-          return res(ctx.status(500), ctx.text('Server error'));
+        http.get('http://scaffolder-backend/v2/tasks/task-123', () => {
+          return new HttpResponse('Server error', { status: 500 });
         }),
       );
 
@@ -458,11 +458,11 @@ describe('registerMcpActions', () => {
 
     it('should list all scaffolder actions', async () => {
       server.use(
-        rest.get('http://scaffolder-backend/v2/actions', (_req, res, ctx) => {
-          return res(ctx.json([
+        http.get('http://scaffolder-backend/v2/actions', () => {
+          return HttpResponse.json([
             { id: 'fetch:plain', description: 'Fetch plain files' },
             { id: 'publish:github', description: 'Publish to GitHub' },
-          ]));
+          ]);
         }),
       );
 
@@ -477,12 +477,12 @@ describe('registerMcpActions', () => {
 
     it('should filter actions by string', async () => {
       server.use(
-        rest.get('http://scaffolder-backend/v2/actions', (_req, res, ctx) => {
-          return res(ctx.json([
+        http.get('http://scaffolder-backend/v2/actions', () => {
+          return HttpResponse.json([
             { id: 'fetch:plain', description: 'Fetch plain files' },
             { id: 'publish:github', description: 'Publish to GitHub' },
             { id: 'publish:gitlab', description: 'Publish to GitLab' },
-          ]));
+          ]);
         }),
       );
 
@@ -497,11 +497,11 @@ describe('registerMcpActions', () => {
 
     it('should filter actions by description', async () => {
       server.use(
-        rest.get('http://scaffolder-backend/v2/actions', (_req, res, ctx) => {
-          return res(ctx.json([
+        http.get('http://scaffolder-backend/v2/actions', () => {
+          return HttpResponse.json([
             { id: 'fetch:plain', description: 'Fetch plain files' },
             { id: 'publish:github', description: 'Publish to GitHub' },
-          ]));
+          ]);
         }),
       );
 
@@ -516,8 +516,8 @@ describe('registerMcpActions', () => {
 
     it('should handle API errors', async () => {
       server.use(
-        rest.get('http://scaffolder-backend/v2/actions', (_req, res, ctx) => {
-          return res(ctx.status(500), ctx.text('Server error'));
+        http.get('http://scaffolder-backend/v2/actions', () => {
+          return new HttpResponse('Server error', { status: 500 });
         }),
       );
 
@@ -544,15 +544,15 @@ describe('registerMcpActions', () => {
 
     it('should get action details', async () => {
       server.use(
-        rest.get('http://scaffolder-backend/v2/actions', (_req, res, ctx) => {
-          return res(ctx.json([
+        http.get('http://scaffolder-backend/v2/actions', () => {
+          return HttpResponse.json([
             {
               id: 'fetch:plain',
               description: 'Fetch plain files',
               schema: { input: { type: 'object' }, output: { type: 'object' } },
               examples: [{ title: 'Example', description: 'An example' }],
             },
-          ]));
+          ]);
         }),
       );
 
@@ -569,10 +569,10 @@ describe('registerMcpActions', () => {
 
     it('should handle action without schema', async () => {
       server.use(
-        rest.get('http://scaffolder-backend/v2/actions', (_req, res, ctx) => {
-          return res(ctx.json([
+        http.get('http://scaffolder-backend/v2/actions', () => {
+          return HttpResponse.json([
             { id: 'fetch:plain', description: 'Fetch plain files' },
-          ]));
+          ]);
         }),
       );
 
@@ -587,8 +587,8 @@ describe('registerMcpActions', () => {
 
     it('should throw error when action not found', async () => {
       server.use(
-        rest.get('http://scaffolder-backend/v2/actions', (_req, res, ctx) => {
-          return res(ctx.json([]));
+        http.get('http://scaffolder-backend/v2/actions', () => {
+          return HttpResponse.json([]);
         }),
       );
 
@@ -602,8 +602,8 @@ describe('registerMcpActions', () => {
 
     it('should handle API errors', async () => {
       server.use(
-        rest.get('http://scaffolder-backend/v2/actions', (_req, res, ctx) => {
-          return res(ctx.status(500), ctx.text('Server error'));
+        http.get('http://scaffolder-backend/v2/actions', () => {
+          return new HttpResponse('Server error', { status: 500 });
         }),
       );
 
@@ -633,8 +633,8 @@ describe('registerMcpActions', () => {
 
     it('should list all extensions', async () => {
       server.use(
-        rest.get('http://scaffolder-backend/v2/templating-extensions', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://scaffolder-backend/v2/templating-extensions', () => {
+          return HttpResponse.json({
             filters: {
               parseRepoUrl: { description: 'Parse repository URL' },
               parseEntityRef: { description: 'Parse entity reference' },
@@ -647,7 +647,7 @@ describe('registerMcpActions', () => {
                 timestamp: { description: 'Current timestamp', value: '2025-01-01' },
               },
             },
-          }));
+          });
         }),
       );
 
@@ -665,13 +665,13 @@ describe('registerMcpActions', () => {
 
     it('should filter extensions by name', async () => {
       server.use(
-        rest.get('http://scaffolder-backend/v2/templating-extensions', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://scaffolder-backend/v2/templating-extensions', () => {
+          return HttpResponse.json({
             filters: {
               parseRepoUrl: { description: 'Parse repository URL' },
               parseEntityRef: { description: 'Parse entity reference' },
             },
-          }));
+          });
         }),
       );
 
@@ -686,13 +686,13 @@ describe('registerMcpActions', () => {
 
     it('should filter extensions by description', async () => {
       server.use(
-        rest.get('http://scaffolder-backend/v2/templating-extensions', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://scaffolder-backend/v2/templating-extensions', () => {
+          return HttpResponse.json({
             filters: {
               parseRepoUrl: { description: 'Parse repository URL' },
               parseEntityRef: { description: 'Parse entity reference' },
             },
-          }));
+          });
         }),
       );
 
@@ -707,8 +707,8 @@ describe('registerMcpActions', () => {
 
     it('should handle empty response', async () => {
       server.use(
-        rest.get('http://scaffolder-backend/v2/templating-extensions', (_req, res, ctx) => {
-          return res(ctx.json({}));
+        http.get('http://scaffolder-backend/v2/templating-extensions', () => {
+          return HttpResponse.json({});
         }),
       );
 
@@ -723,8 +723,8 @@ describe('registerMcpActions', () => {
 
     it('should handle API errors', async () => {
       server.use(
-        rest.get('http://scaffolder-backend/v2/templating-extensions', (_req, res, ctx) => {
-          return res(ctx.status(500), ctx.text('Server error'));
+        http.get('http://scaffolder-backend/v2/templating-extensions', () => {
+          return new HttpResponse('Server error', { status: 500 });
         }),
       );
 
@@ -751,8 +751,8 @@ describe('registerMcpActions', () => {
 
     it('should get filter extension details', async () => {
       server.use(
-        rest.get('http://scaffolder-backend/v2/templating-extensions', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://scaffolder-backend/v2/templating-extensions', () => {
+          return HttpResponse.json({
             filters: {
               parseRepoUrl: {
                 description: 'Parse repository URL',
@@ -760,7 +760,7 @@ describe('registerMcpActions', () => {
                 examples: [{ title: 'Example' }],
               },
             },
-          }));
+          });
         }),
       );
 
@@ -776,8 +776,8 @@ describe('registerMcpActions', () => {
 
     it('should get function extension details', async () => {
       server.use(
-        rest.get('http://scaffolder-backend/v2/templating-extensions', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://scaffolder-backend/v2/templating-extensions', () => {
+          return HttpResponse.json({
             globals: {
               functions: {
                 uuid: {
@@ -786,7 +786,7 @@ describe('registerMcpActions', () => {
                 },
               },
             },
-          }));
+          });
         }),
       );
 
@@ -801,8 +801,8 @@ describe('registerMcpActions', () => {
 
     it('should get value extension details', async () => {
       server.use(
-        rest.get('http://scaffolder-backend/v2/templating-extensions', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://scaffolder-backend/v2/templating-extensions', () => {
+          return HttpResponse.json({
             globals: {
               values: {
                 timestamp: {
@@ -811,7 +811,7 @@ describe('registerMcpActions', () => {
                 },
               },
             },
-          }));
+          });
         }),
       );
 
@@ -827,8 +827,8 @@ describe('registerMcpActions', () => {
 
     it('should throw error when extension not found', async () => {
       server.use(
-        rest.get('http://scaffolder-backend/v2/templating-extensions', (_req, res, ctx) => {
-          return res(ctx.json({ filters: {} }));
+        http.get('http://scaffolder-backend/v2/templating-extensions', () => {
+          return HttpResponse.json({ filters: {} });
         }),
       );
 
@@ -842,8 +842,8 @@ describe('registerMcpActions', () => {
 
     it('should handle API errors', async () => {
       server.use(
-        rest.get('http://scaffolder-backend/v2/templating-extensions', (_req, res, ctx) => {
-          return res(ctx.status(500), ctx.text('Server error'));
+        http.get('http://scaffolder-backend/v2/templating-extensions', () => {
+          return new HttpResponse('Server error', { status: 500 });
         }),
       );
 

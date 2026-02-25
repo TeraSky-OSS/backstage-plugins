@@ -15,7 +15,7 @@ Comprehensive testing ensures backend plugins work correctly and helps catch iss
   "devDependencies": {
     "@backstage/backend-test-utils": "^0.4.0",
     "@backstage/test-databases": "^0.1.0",
-    "msw": "^1.0.0",
+    "msw": "^2.12.4",
     "supertest": "^6.0.0"
   }
 }

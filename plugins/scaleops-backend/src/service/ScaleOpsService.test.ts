@@ -2,7 +2,7 @@ import { ScaleOpsService } from './ScaleOpsService';
 import { mockServices } from '@backstage/backend-test-utils';
 import { ConfigReader } from '@backstage/config';
 import { setupServer } from 'msw/node';
-import { rest } from 'msw';
+import { http, HttpResponse } from 'msw';
 
 const mswServer = setupServer();
 beforeAll(() => mswServer.listen({ onUnhandledRequest: 'bypass' }));
@@ -122,14 +122,11 @@ describe('ScaleOpsService', () => {
 
     it('should fetch workloads by labels', async () => {
       mswServer.use(
-        rest.post('http://scaleops.example.com/auth/callback', (_req, res, ctx) => {
-          return res(
-            ctx.status(302),
-            ctx.set('Location', 'http://scaleops.example.com/redirect?token=test-token')
-          );
+        http.post('http://scaleops.example.com/auth/callback', () => {
+          return new HttpResponse(null, { status: 302, headers: { 'Location': 'http://scaleops.example.com/redirect?token=test-token' } });
         }),
-        rest.post('http://scaleops.example.com/api/v1/dashboard/byNamespace', (_req, res, ctx) => {
-          return res(ctx.json({ workloads: [{ name: 'test-workload' }] }));
+        http.post('http://scaleops.example.com/api/v1/dashboard/byNamespace', () => {
+          return HttpResponse.json({ workloads: [{ name: 'test-workload' }] });
         }),
       );
 
@@ -141,8 +138,8 @@ describe('ScaleOpsService', () => {
 
     it('should throw error when authentication fails', async () => {
       mswServer.use(
-        rest.post('http://scaleops.example.com/auth/callback', (_req, res, ctx) => {
-          return res(ctx.status(401), ctx.json({ error: 'Unauthorized' }));
+        http.post('http://scaleops.example.com/auth/callback', () => {
+          return HttpResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }),
       );
 
@@ -153,14 +150,11 @@ describe('ScaleOpsService', () => {
 
     it('should throw error when API returns error', async () => {
       mswServer.use(
-        rest.post('http://scaleops.example.com/auth/callback', (_req, res, ctx) => {
-          return res(
-            ctx.status(302),
-            ctx.set('Location', 'http://scaleops.example.com/redirect?token=test-token')
-          );
+        http.post('http://scaleops.example.com/auth/callback', () => {
+          return new HttpResponse(null, { status: 302, headers: { 'Location': 'http://scaleops.example.com/redirect?token=test-token' } });
         }),
-        rest.post('http://scaleops.example.com/api/v1/dashboard/byNamespace', (_req, res, ctx) => {
-          return res(ctx.status(500), ctx.json({ error: 'Server Error' }));
+        http.post('http://scaleops.example.com/api/v1/dashboard/byNamespace', () => {
+          return HttpResponse.json({ error: 'Server Error' }, { status: 500 });
         }),
       );
 
@@ -184,14 +178,11 @@ describe('ScaleOpsService', () => {
 
     it('should fetch workload cost details', async () => {
       mswServer.use(
-        rest.post('http://scaleops.example.com/auth/callback', (_req, res, ctx) => {
-          return res(
-            ctx.status(302),
-            ctx.set('Location', 'http://scaleops.example.com/redirect?token=test-token')
-          );
+        http.post('http://scaleops.example.com/auth/callback', () => {
+          return new HttpResponse(null, { status: 302, headers: { 'Location': 'http://scaleops.example.com/redirect?token=test-token' } });
         }),
-        rest.post('http://scaleops.example.com/detailedCostReport/getWorkloads', (_req, res, ctx) => {
-          return res(ctx.json({ costs: [{ amount: 100 }] }));
+        http.post('http://scaleops.example.com/detailedCostReport/getWorkloads', () => {
+          return HttpResponse.json({ costs: [{ amount: 100 }] });
         }),
       );
 
@@ -203,14 +194,11 @@ describe('ScaleOpsService', () => {
 
     it('should throw error on API failure', async () => {
       mswServer.use(
-        rest.post('http://scaleops.example.com/auth/callback', (_req, res, ctx) => {
-          return res(
-            ctx.status(302),
-            ctx.set('Location', 'http://scaleops.example.com/redirect?token=test-token')
-          );
+        http.post('http://scaleops.example.com/auth/callback', () => {
+          return new HttpResponse(null, { status: 302, headers: { 'Location': 'http://scaleops.example.com/redirect?token=test-token' } });
         }),
-        rest.post('http://scaleops.example.com/detailedCostReport/getWorkloads', (_req, res, ctx) => {
-          return res(ctx.status(500));
+        http.post('http://scaleops.example.com/detailedCostReport/getWorkloads', () => {
+          return new HttpResponse(null, { status: 500 });
         }),
       );
 
@@ -234,14 +222,11 @@ describe('ScaleOpsService', () => {
 
     it('should check if network cost is enabled', async () => {
       mswServer.use(
-        rest.post('http://scaleops.example.com/auth/callback', (_req, res, ctx) => {
-          return res(
-            ctx.status(302),
-            ctx.set('Location', 'http://scaleops.example.com/redirect?token=test-token')
-          );
+        http.post('http://scaleops.example.com/auth/callback', () => {
+          return new HttpResponse(null, { status: 302, headers: { 'Location': 'http://scaleops.example.com/redirect?token=test-token' } });
         }),
-        rest.get('http://scaleops.example.com/api/v1/networkCost/networkCostEnabled', (_req, res, ctx) => {
-          return res(ctx.json({ enabled: true }));
+        http.get('http://scaleops.example.com/api/v1/networkCost/networkCostEnabled', () => {
+          return HttpResponse.json({ enabled: true });
         }),
       );
 
@@ -253,14 +238,11 @@ describe('ScaleOpsService', () => {
 
     it('should throw error on API failure', async () => {
       mswServer.use(
-        rest.post('http://scaleops.example.com/auth/callback', (_req, res, ctx) => {
-          return res(
-            ctx.status(302),
-            ctx.set('Location', 'http://scaleops.example.com/redirect?token=test-token')
-          );
+        http.post('http://scaleops.example.com/auth/callback', () => {
+          return new HttpResponse(null, { status: 302, headers: { 'Location': 'http://scaleops.example.com/redirect?token=test-token' } });
         }),
-        rest.get('http://scaleops.example.com/api/v1/networkCost/networkCostEnabled', (_req, res, ctx) => {
-          return res(ctx.status(500));
+        http.get('http://scaleops.example.com/api/v1/networkCost/networkCostEnabled', () => {
+          return new HttpResponse(null, { status: 500 });
         }),
       );
 
@@ -284,14 +266,11 @@ describe('ScaleOpsService', () => {
 
     it('should fetch workload network usage', async () => {
       mswServer.use(
-        rest.post('http://scaleops.example.com/auth/callback', (_req, res, ctx) => {
-          return res(
-            ctx.status(302),
-            ctx.set('Location', 'http://scaleops.example.com/redirect?token=test-token')
-          );
+        http.post('http://scaleops.example.com/auth/callback', () => {
+          return new HttpResponse(null, { status: 302, headers: { 'Location': 'http://scaleops.example.com/redirect?token=test-token' } });
         }),
-        rest.get('http://scaleops.example.com/api/v1/workload-network', (_req, res, ctx) => {
-          return res(ctx.json({ usage: { bytes: 1000 } }));
+        http.get('http://scaleops.example.com/api/v1/workload-network', () => {
+          return HttpResponse.json({ usage: { bytes: 1000 } });
         }),
       );
 
@@ -303,14 +282,11 @@ describe('ScaleOpsService', () => {
 
     it('should throw error on API failure', async () => {
       mswServer.use(
-        rest.post('http://scaleops.example.com/auth/callback', (_req, res, ctx) => {
-          return res(
-            ctx.status(302),
-            ctx.set('Location', 'http://scaleops.example.com/redirect?token=test-token')
-          );
+        http.post('http://scaleops.example.com/auth/callback', () => {
+          return new HttpResponse(null, { status: 302, headers: { 'Location': 'http://scaleops.example.com/redirect?token=test-token' } });
         }),
-        rest.get('http://scaleops.example.com/api/v1/workload-network', (_req, res, ctx) => {
-          return res(ctx.status(500));
+        http.get('http://scaleops.example.com/api/v1/workload-network', () => {
+          return new HttpResponse(null, { status: 500 });
         }),
       );
 
@@ -334,19 +310,16 @@ describe('ScaleOpsService', () => {
 
     it('should fetch policy by name', async () => {
       mswServer.use(
-        rest.post('http://scaleops.example.com/auth/callback', (_req, res, ctx) => {
-          return res(
-            ctx.status(302),
-            ctx.set('Location', 'http://scaleops.example.com/redirect?token=test-token')
-          );
+        http.post('http://scaleops.example.com/auth/callback', () => {
+          return new HttpResponse(null, { status: 302, headers: { 'Location': 'http://scaleops.example.com/redirect?token=test-token' } });
         }),
-        rest.get('http://scaleops.example.com/api/v1/policies', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://scaleops.example.com/api/v1/policies', () => {
+          return HttpResponse.json({
             policies: [
               { metadata: { name: 'test-policy' }, spec: { replicas: 3 } },
               { metadata: { name: 'other-policy' }, spec: { replicas: 1 } },
             ]
-          }));
+          });
         }),
       );
 
@@ -358,14 +331,11 @@ describe('ScaleOpsService', () => {
 
     it('should return null when policy not found', async () => {
       mswServer.use(
-        rest.post('http://scaleops.example.com/auth/callback', (_req, res, ctx) => {
-          return res(
-            ctx.status(302),
-            ctx.set('Location', 'http://scaleops.example.com/redirect?token=test-token')
-          );
+        http.post('http://scaleops.example.com/auth/callback', () => {
+          return new HttpResponse(null, { status: 302, headers: { 'Location': 'http://scaleops.example.com/redirect?token=test-token' } });
         }),
-        rest.get('http://scaleops.example.com/api/v1/policies', (_req, res, ctx) => {
-          return res(ctx.json({ policies: [] }));
+        http.get('http://scaleops.example.com/api/v1/policies', () => {
+          return HttpResponse.json({ policies: [] });
         }),
       );
 
@@ -379,15 +349,12 @@ describe('ScaleOpsService', () => {
       let capturedHeaders: any;
       
       mswServer.use(
-        rest.post('http://scaleops.example.com/auth/callback', (_req, res, ctx) => {
-          return res(
-            ctx.status(302),
-            ctx.set('Location', 'http://scaleops.example.com/redirect?token=test-token')
-          );
+        http.post('http://scaleops.example.com/auth/callback', () => {
+          return new HttpResponse(null, { status: 302, headers: { 'Location': 'http://scaleops.example.com/redirect?token=test-token' } });
         }),
-        rest.get('http://scaleops.example.com/api/v1/policies', (req, res, ctx) => {
-          capturedHeaders = Object.fromEntries(req.headers.entries());
-          return res(ctx.json({ policies: [] }));
+        http.get('http://scaleops.example.com/api/v1/policies', ({ request }) => {
+          capturedHeaders = Object.fromEntries(request.headers.entries());
+          return HttpResponse.json({ policies: [] });
         }),
       );
 
@@ -399,14 +366,11 @@ describe('ScaleOpsService', () => {
 
     it('should throw error on API failure', async () => {
       mswServer.use(
-        rest.post('http://scaleops.example.com/auth/callback', (_req, res, ctx) => {
-          return res(
-            ctx.status(302),
-            ctx.set('Location', 'http://scaleops.example.com/redirect?token=test-token')
-          );
+        http.post('http://scaleops.example.com/auth/callback', () => {
+          return new HttpResponse(null, { status: 302, headers: { 'Location': 'http://scaleops.example.com/redirect?token=test-token' } });
         }),
-        rest.get('http://scaleops.example.com/api/v1/policies', (_req, res, ctx) => {
-          return res(ctx.status(500));
+        http.get('http://scaleops.example.com/api/v1/policies', () => {
+          return new HttpResponse(null, { status: 500 });
         }),
       );
 
@@ -442,8 +406,8 @@ describe('ScaleOpsService', () => {
       });
 
       mswServer.use(
-        rest.post('http://scaleops.example.com/auth/callback', (_req, res, ctx) => {
-          return res(ctx.status(302)); // No Location header
+        http.post('http://scaleops.example.com/auth/callback', () => {
+          return new HttpResponse(null, { status: 302 }); // No Location header
         }),
       );
 
@@ -465,11 +429,8 @@ describe('ScaleOpsService', () => {
       });
 
       mswServer.use(
-        rest.post('http://scaleops.example.com/auth/callback', (_req, res, ctx) => {
-          return res(
-            ctx.status(302),
-            ctx.set('Location', 'http://scaleops.example.com/redirect?error=failed')
-          );
+        http.post('http://scaleops.example.com/auth/callback', () => {
+          return new HttpResponse(null, { status: 302, headers: { 'Location': 'http://scaleops.example.com/redirect?error=failed' } });
         }),
       );
 
@@ -492,15 +453,12 @@ describe('ScaleOpsService', () => {
 
       let authCallCount = 0;
       mswServer.use(
-        rest.post('http://scaleops.example.com/auth/callback', (_req, res, ctx) => {
+        http.post('http://scaleops.example.com/auth/callback', () => {
           authCallCount++;
-          return res(
-            ctx.status(302),
-            ctx.set('Location', 'http://scaleops.example.com/redirect?token=test-token')
-          );
+          return new HttpResponse(null, { status: 302, headers: { 'Location': 'http://scaleops.example.com/redirect?token=test-token' } });
         }),
-        rest.post('http://scaleops.example.com/api/v1/dashboard/byNamespace', (_req, res, ctx) => {
-          return res(ctx.json({ workloads: [] }));
+        http.post('http://scaleops.example.com/api/v1/dashboard/byNamespace', () => {
+          return HttpResponse.json({ workloads: [] });
         }),
       );
 

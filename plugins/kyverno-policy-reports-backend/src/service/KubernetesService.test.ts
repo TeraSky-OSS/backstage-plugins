@@ -2,7 +2,7 @@ import { KubernetesService } from './KubernetesService';
 import { mockServices } from '@backstage/backend-test-utils';
 import { ConfigReader } from '@backstage/config';
 import { setupServer } from 'msw/node';
-import { rest } from 'msw';
+import { http, HttpResponse } from 'msw';
 
 const server = setupServer();
 beforeAll(() => server.listen());
@@ -29,8 +29,8 @@ describe('KubernetesService', () => {
   describe('getPolicyReports', () => {
     it('should fetch policy reports for entity workloads', async () => {
       server.use(
-        rest.post('http://kubernetes-backend/services/test-entity', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.post('http://kubernetes-backend/services/test-entity', () => {
+          return HttpResponse.json({
             items: [
               {
                 cluster: { name: 'test-cluster' },
@@ -48,15 +48,15 @@ describe('KubernetesService', () => {
                 ],
               },
             ],
-          }));
+          });
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/wgpolicyk8s.io/v1alpha2/namespaces/default/policyreports/pod-uid-123', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://kubernetes-backend/proxy/apis/wgpolicyk8s.io/v1alpha2/namespaces/default/policyreports/pod-uid-123', () => {
+          return HttpResponse.json({
             metadata: { uid: 'report-123', namespace: 'default' },
             scope: { kind: 'Pod', name: 'test-pod' },
             summary: { error: 0, fail: 1, pass: 5, skip: 0, warn: 0 },
             results: [],
-          }));
+          });
         }),
       );
 
@@ -72,8 +72,8 @@ describe('KubernetesService', () => {
 
     it('should handle missing metadata gracefully', async () => {
       server.use(
-        rest.post('http://kubernetes-backend/services/test-entity', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.post('http://kubernetes-backend/services/test-entity', () => {
+          return HttpResponse.json({
             items: [
               {
                 cluster: { name: 'test-cluster' },
@@ -88,7 +88,7 @@ describe('KubernetesService', () => {
                 ],
               },
             ],
-          }));
+          });
         }),
       );
 
@@ -103,8 +103,8 @@ describe('KubernetesService', () => {
 
     it('should throw error when workloads fetch fails', async () => {
       server.use(
-        rest.post('http://kubernetes-backend/services/test-entity', (_req, res, ctx) => {
-          return res(ctx.status(500), ctx.text('Internal Server Error'));
+        http.post('http://kubernetes-backend/services/test-entity', () => {
+          return new HttpResponse('Internal Server Error', { status: 500 });
         }),
       );
 
@@ -121,13 +121,13 @@ describe('KubernetesService', () => {
   describe('getPolicy', () => {
     it('should fetch cluster policy', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/kyverno.io/v1/clusterpolicies/test-policy', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://kubernetes-backend/proxy/apis/kyverno.io/v1/clusterpolicies/test-policy', () => {
+          return HttpResponse.json({
             apiVersion: 'kyverno.io/v1',
             kind: 'ClusterPolicy',
             metadata: { name: 'test-policy' },
             spec: { rules: [] },
-          }));
+          });
         }),
       );
 
@@ -139,16 +139,16 @@ describe('KubernetesService', () => {
 
     it('should fetch namespaced policy when cluster policy not found', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/kyverno.io/v1/clusterpolicies/test-policy', (_req, res, ctx) => {
-          return res(ctx.status(404), ctx.text('Not Found'));
+        http.get('http://kubernetes-backend/proxy/apis/kyverno.io/v1/clusterpolicies/test-policy', () => {
+          return new HttpResponse('Not Found', { status: 404 });
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/kyverno.io/v1/namespaces/default/policies/test-policy', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://kubernetes-backend/proxy/apis/kyverno.io/v1/namespaces/default/policies/test-policy', () => {
+          return HttpResponse.json({
             apiVersion: 'kyverno.io/v1',
             kind: 'Policy',
             metadata: { name: 'test-policy', namespace: 'default' },
             spec: { rules: [] },
-          }));
+          });
         }),
       );
 
@@ -160,8 +160,8 @@ describe('KubernetesService', () => {
 
     it('should throw error when policy not found', async () => {
       server.use(
-        rest.get(/http:\/\/kubernetes-backend\/proxy\/.*/, (_req, res, ctx) => {
-          return res(ctx.status(404), ctx.text('Not Found'));
+        http.get(/http:\/\/kubernetes-backend\/proxy\/.*/, () => {
+          return new HttpResponse('Not Found', { status: 404 });
         }),
       );
 
@@ -172,13 +172,13 @@ describe('KubernetesService', () => {
 
     it('should fetch cluster-scoped ValidatingPolicy using source hint', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/policies.kyverno.io/v1/validatingpolicies/allowed-annotations', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://kubernetes-backend/proxy/apis/policies.kyverno.io/v1/validatingpolicies/allowed-annotations', () => {
+          return HttpResponse.json({
             apiVersion: 'policies.kyverno.io/v1',
             kind: 'ValidatingPolicy',
             metadata: { name: 'allowed-annotations' },
             spec: {},
-          }));
+          });
         }),
       );
 
@@ -190,13 +190,13 @@ describe('KubernetesService', () => {
 
     it('should fetch namespaced NamespacedValidatingPolicy using source hint', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/policies.kyverno.io/v1/namespaces/default/namespacedvalidatingpolicies/my-policy', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://kubernetes-backend/proxy/apis/policies.kyverno.io/v1/namespaces/default/namespacedvalidatingpolicies/my-policy', () => {
+          return HttpResponse.json({
             apiVersion: 'policies.kyverno.io/v1',
             kind: 'NamespacedValidatingPolicy',
             metadata: { name: 'my-policy', namespace: 'default' },
             spec: {},
-          }));
+          });
         }),
       );
 
@@ -208,16 +208,16 @@ describe('KubernetesService', () => {
 
     it('should fall back to full order when source path returns 404', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/policies.kyverno.io/v1/validatingpolicies/my-policy', (_req, res, ctx) => {
-          return res(ctx.status(404), ctx.text('Not Found'));
+        http.get('http://kubernetes-backend/proxy/apis/policies.kyverno.io/v1/validatingpolicies/my-policy', () => {
+          return new HttpResponse('Not Found', { status: 404 });
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/kyverno.io/v1/clusterpolicies/my-policy', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://kubernetes-backend/proxy/apis/kyverno.io/v1/clusterpolicies/my-policy', () => {
+          return HttpResponse.json({
             apiVersion: 'kyverno.io/v1',
             kind: 'ClusterPolicy',
             metadata: { name: 'my-policy' },
             spec: { rules: [] },
-          }));
+          });
         }),
       );
 
@@ -228,8 +228,8 @@ describe('KubernetesService', () => {
 
     it('should throw when all paths are exhausted', async () => {
       server.use(
-        rest.get(/http:\/\/kubernetes-backend\/proxy\/.*/, (_req, res, ctx) => {
-          return res(ctx.status(404), ctx.text('Not Found'));
+        http.get(/http:\/\/kubernetes-backend\/proxy\/.*/, () => {
+          return new HttpResponse('Not Found', { status: 404 });
         }),
       );
 
@@ -240,13 +240,13 @@ describe('KubernetesService', () => {
 
     it('should fetch MutatingPolicy using source hint', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/policies.kyverno.io/v1/mutatingpolicies/add-labels', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://kubernetes-backend/proxy/apis/policies.kyverno.io/v1/mutatingpolicies/add-labels', () => {
+          return HttpResponse.json({
             apiVersion: 'policies.kyverno.io/v1',
             kind: 'MutatingPolicy',
             metadata: { name: 'add-labels' },
             spec: {},
-          }));
+          });
         }),
       );
 
@@ -257,13 +257,13 @@ describe('KubernetesService', () => {
 
     it('should fetch deprecated ClusterPolicy using kyverno source hint', async () => {
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/kyverno.io/v1/clusterpolicies/old-policy', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://kubernetes-backend/proxy/apis/kyverno.io/v1/clusterpolicies/old-policy', () => {
+          return HttpResponse.json({
             apiVersion: 'kyverno.io/v1',
             kind: 'ClusterPolicy',
             metadata: { name: 'old-policy' },
             spec: { rules: [] },
-          }));
+          });
         }),
       );
 
@@ -292,8 +292,8 @@ describe('KubernetesService', () => {
       };
 
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1alpha1/namespaces/default/testclaims/my-claim', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://kubernetes-backend/proxy/apis/test.example.com/v1alpha1/namespaces/default/testclaims/my-claim', () => {
+          return HttpResponse.json({
             apiVersion: 'test.example.com/v1alpha1',
             kind: 'TestClaim',
             metadata: {
@@ -301,14 +301,14 @@ describe('KubernetesService', () => {
               namespace: 'default',
               uid: 'claim-uid-123',
             },
-          }));
+          });
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/wgpolicyk8s.io/v1alpha2/namespaces/default/policyreports/claim-uid-123', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://kubernetes-backend/proxy/apis/wgpolicyk8s.io/v1alpha2/namespaces/default/policyreports/claim-uid-123', () => {
+          return HttpResponse.json({
             metadata: { uid: 'report-123', namespace: 'default' },
             scope: { kind: 'TestClaim', name: 'my-claim' },
             summary: { error: 0, fail: 0, pass: 3, skip: 0, warn: 0 },
-          }));
+          });
         }),
       );
 
@@ -336,8 +336,8 @@ describe('KubernetesService', () => {
       };
 
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1alpha1/namespaces/default/composites/my-composite', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://kubernetes-backend/proxy/apis/test.example.com/v1alpha1/namespaces/default/composites/my-composite', () => {
+          return HttpResponse.json({
             apiVersion: 'test.example.com/v1alpha1',
             kind: 'Composite',
             metadata: {
@@ -345,14 +345,14 @@ describe('KubernetesService', () => {
               namespace: 'default',
               uid: 'composite-uid-123',
             },
-          }));
+          });
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/wgpolicyk8s.io/v1alpha2/namespaces/default/policyreports/composite-uid-123', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://kubernetes-backend/proxy/apis/wgpolicyk8s.io/v1alpha2/namespaces/default/policyreports/composite-uid-123', () => {
+          return HttpResponse.json({
             metadata: { uid: 'report-123', namespace: 'default' },
             scope: { kind: 'Composite', name: 'my-composite' },
             summary: { error: 0, fail: 0, pass: 5, skip: 0, warn: 0 },
-          }));
+          });
         }),
       );
 
@@ -378,22 +378,22 @@ describe('KubernetesService', () => {
       };
 
       server.use(
-        rest.get('http://kubernetes-backend/proxy/apis/test.example.com/v1alpha1/composites/my-composite', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://kubernetes-backend/proxy/apis/test.example.com/v1alpha1/composites/my-composite', () => {
+          return HttpResponse.json({
             apiVersion: 'test.example.com/v1alpha1',
             kind: 'Composite',
             metadata: {
               name: 'my-composite',
               uid: 'composite-uid-123',
             },
-          }));
+          });
         }),
-        rest.get('http://kubernetes-backend/proxy/apis/wgpolicyk8s.io/v1alpha2/clusterpolicyreports/composite-uid-123', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://kubernetes-backend/proxy/apis/wgpolicyk8s.io/v1alpha2/clusterpolicyreports/composite-uid-123', () => {
+          return HttpResponse.json({
             metadata: { uid: 'report-123' },
             scope: { kind: 'Composite', name: 'my-composite' },
             summary: { error: 0, fail: 0, pass: 5, skip: 0, warn: 0 },
-          }));
+          });
         }),
       );
 

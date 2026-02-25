@@ -1,6 +1,6 @@
 {
   "name": "@terasky/backstage-plugin-vcf-automation-ingestor",
-  "version": "1.11.0",
+  "version": "1.11.1",
   "main": "dist/index.cjs.js",
   "types": "src/index.ts",
   "configSchema": "config.d.ts",
@@ -43,7 +43,7 @@
   "devDependencies": {
     "@backstage/cli": "^0.35.4",
     "@types/express": "*",
-    "msw": "^2.3.1",
+    "msw": "^2.12.4",
     "typescript": "^5.8.3"
   },
   "files": [

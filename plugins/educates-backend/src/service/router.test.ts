@@ -4,7 +4,7 @@ import { createRouter } from './router';
 import { ConfigReader } from '@backstage/config';
 import { mockServices } from '@backstage/backend-test-utils';
 import { setupServer } from 'msw/node';
-import { rest } from 'msw';
+import { http, HttpResponse } from 'msw';
 import { AuthorizeResult } from '@backstage/plugin-permission-common';
 
 const mswServer = setupServer();
@@ -86,15 +86,15 @@ describe('createRouter', () => {
         mockPermissions.authorize.mockResolvedValue([{ result: AuthorizeResult.ALLOW }]);
 
         mswServer.use(
-          rest.post('https://test-portal.example.com/oauth2/token/', (_req, res, ctx) => {
-            return res(ctx.json({ access_token: 'test-token' }));
+          http.post('https://test-portal.example.com/oauth2/token/', () => {
+            return HttpResponse.json({ access_token: 'test-token' });
           }),
-          rest.get('https://test-portal.example.com/workshops/catalog/workshops/', (_req, res, ctx) => {
-            return res(ctx.json({ 
+          http.get('https://test-portal.example.com/workshops/catalog/workshops/', () => {
+            return HttpResponse.json({ 
               workshops: [
                 { name: 'workshop-1', environment: { name: 'env-1' } },
               ],
-            }));
+            });
           }),
         );
 
@@ -109,8 +109,8 @@ describe('createRouter', () => {
         mockPermissions.authorize.mockResolvedValue([{ result: AuthorizeResult.ALLOW }]);
 
         mswServer.use(
-          rest.post('https://test-portal.example.com/oauth2/token/', (_req, res, ctx) => {
-            return res(ctx.status(401), ctx.text('Unauthorized'));
+          http.post('https://test-portal.example.com/oauth2/token/', () => {
+            return new HttpResponse('Unauthorized', { status: 401 });
           }),
         );
 
@@ -125,11 +125,11 @@ describe('createRouter', () => {
         mockPermissions.authorize.mockResolvedValue([{ result: AuthorizeResult.ALLOW }]);
 
         mswServer.use(
-          rest.post('https://test-portal.example.com/oauth2/token/', (_req, res, ctx) => {
-            return res(ctx.json({ access_token: 'test-token' }));
+          http.post('https://test-portal.example.com/oauth2/token/', () => {
+            return HttpResponse.json({ access_token: 'test-token' });
           }),
-          rest.get('https://test-portal.example.com/workshops/catalog/workshops/', (_req, res, ctx) => {
-            return res(ctx.status(500), ctx.text('Internal Server Error'));
+          http.get('https://test-portal.example.com/workshops/catalog/workshops/', () => {
+            return new HttpResponse('Internal Server Error', { status: 500 });
           }),
         );
 
@@ -163,12 +163,12 @@ describe('createRouter', () => {
         mockPermissions.authorize.mockResolvedValue([{ result: AuthorizeResult.ALLOW }]);
 
         mswServer.use(
-          rest.post('https://test-portal.example.com/oauth2/token/', (_req, res, ctx) => {
-            return res(ctx.json({ 
+          http.post('https://test-portal.example.com/oauth2/token/', () => {
+            return HttpResponse.json({ 
               access_token: 'test-token',
               token_type: 'Bearer',
               expires_in: 3600,
-            }));
+            });
           }),
         );
 
@@ -183,8 +183,8 @@ describe('createRouter', () => {
         mockPermissions.authorize.mockResolvedValue([{ result: AuthorizeResult.ALLOW }]);
 
         mswServer.use(
-          rest.post('https://test-portal.example.com/oauth2/token/', (_req, res, ctx) => {
-            return res(ctx.status(401), ctx.text('Unauthorized'));
+          http.post('https://test-portal.example.com/oauth2/token/', () => {
+            return new HttpResponse('Unauthorized', { status: 401 });
           }),
         );
 
@@ -207,15 +207,15 @@ describe('createRouter', () => {
         mockHttpAuth.credentials.mockResolvedValue({ principal: { type: 'user' } } as any);
 
         mswServer.use(
-          rest.post('https://test-portal.example.com/oauth2/token/', (_req, res, ctx) => {
-            return res(ctx.json({ access_token: 'test-token' }));
+          http.post('https://test-portal.example.com/oauth2/token/', () => {
+            return HttpResponse.json({ access_token: 'test-token' });
           }),
-          rest.get('https://test-portal.example.com/workshops/catalog/workshops/', (_req, res, ctx) => {
-            return res(ctx.json({ 
+          http.get('https://test-portal.example.com/workshops/catalog/workshops/', () => {
+            return HttpResponse.json({ 
               workshops: [
                 { name: 'other-workshop', environment: { name: 'other-env' } },
               ],
-            }));
+            });
           }),
         );
 
@@ -230,15 +230,15 @@ describe('createRouter', () => {
         mockPermissions.authorize.mockResolvedValue([{ result: AuthorizeResult.DENY }]);
 
         mswServer.use(
-          rest.post('https://test-portal.example.com/oauth2/token/', (_req, res, ctx) => {
-            return res(ctx.json({ access_token: 'test-token' }));
+          http.post('https://test-portal.example.com/oauth2/token/', () => {
+            return HttpResponse.json({ access_token: 'test-token' });
           }),
-          rest.get('https://test-portal.example.com/workshops/catalog/workshops/', (_req, res, ctx) => {
-            return res(ctx.json({ 
+          http.get('https://test-portal.example.com/workshops/catalog/workshops/', () => {
+            return HttpResponse.json({ 
               workshops: [
                 { name: 'test-workshop', environment: { name: 'test-env' } },
               ],
-            }));
+            });
           }),
         );
 
@@ -253,21 +253,21 @@ describe('createRouter', () => {
         mockPermissions.authorize.mockResolvedValue([{ result: AuthorizeResult.ALLOW }]);
 
         mswServer.use(
-          rest.post('https://test-portal.example.com/oauth2/token/', (_req, res, ctx) => {
-            return res(ctx.json({ access_token: 'test-token' }));
+          http.post('https://test-portal.example.com/oauth2/token/', () => {
+            return HttpResponse.json({ access_token: 'test-token' });
           }),
-          rest.get('https://test-portal.example.com/workshops/catalog/workshops/', (_req, res, ctx) => {
-            return res(ctx.json({ 
+          http.get('https://test-portal.example.com/workshops/catalog/workshops/', () => {
+            return HttpResponse.json({ 
               workshops: [
                 { name: 'test-workshop', environment: { name: 'test-env' } },
               ],
-            }));
+            });
           }),
-          rest.post('https://test-portal.example.com/workshops/environment/test-env/request/', (_req, res, ctx) => {
-            return res(ctx.json({ 
+          http.post('https://test-portal.example.com/workshops/environment/test-env/request/', () => {
+            return HttpResponse.json({ 
               url: '/workshop/session/abc123',
               session_id: 'abc123',
-            }));
+            });
           }),
         );
 
@@ -282,11 +282,11 @@ describe('createRouter', () => {
         mockHttpAuth.credentials.mockResolvedValue({ principal: { type: 'user' } } as any);
 
         mswServer.use(
-          rest.post('https://test-portal.example.com/oauth2/token/', (_req, res, ctx) => {
-            return res(ctx.json({ access_token: 'test-token' }));
+          http.post('https://test-portal.example.com/oauth2/token/', () => {
+            return HttpResponse.json({ access_token: 'test-token' });
           }),
-          rest.get('https://test-portal.example.com/workshops/catalog/workshops/', (_req, res, ctx) => {
-            return res(ctx.status(500), ctx.text('Internal Server Error'));
+          http.get('https://test-portal.example.com/workshops/catalog/workshops/', () => {
+            return new HttpResponse('Internal Server Error', { status: 500 });
           }),
         );
 
@@ -301,18 +301,18 @@ describe('createRouter', () => {
         mockPermissions.authorize.mockResolvedValue([{ result: AuthorizeResult.ALLOW }]);
 
         mswServer.use(
-          rest.post('https://test-portal.example.com/oauth2/token/', (_req, res, ctx) => {
-            return res(ctx.json({ access_token: 'test-token' }));
+          http.post('https://test-portal.example.com/oauth2/token/', () => {
+            return HttpResponse.json({ access_token: 'test-token' });
           }),
-          rest.get('https://test-portal.example.com/workshops/catalog/workshops/', (_req, res, ctx) => {
-            return res(ctx.json({ 
+          http.get('https://test-portal.example.com/workshops/catalog/workshops/', () => {
+            return HttpResponse.json({ 
               workshops: [
                 { name: 'test-workshop', environment: { name: 'test-env' } },
               ],
-            }));
+            });
           }),
-          rest.post('https://test-portal.example.com/workshops/environment/test-env/request/', (_req, res, ctx) => {
-            return res(ctx.status(503), ctx.text('Service Unavailable'));
+          http.post('https://test-portal.example.com/workshops/environment/test-env/request/', () => {
+            return new HttpResponse('Service Unavailable', { status: 503 });
           }),
         );
 

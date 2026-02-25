@@ -2,7 +2,7 @@ import { VcfOperationsService } from './VcfOperationsService';
 import { mockServices } from '@backstage/backend-test-utils';
 import { ConfigReader } from '@backstage/config';
 import { setupServer } from 'msw/node';
-import { rest } from 'msw';
+import { http, HttpResponse } from 'msw';
 
 const mswServer = setupServer();
 beforeAll(() => mswServer.listen({ onUnhandledRequest: 'bypass' }));
@@ -96,11 +96,11 @@ describe('VcfOperationsService', () => {
 
     it('should authenticate successfully', async () => {
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.get('http://vcfo.example.com/suite-api/api/resources/stats', (_req, res, ctx) => {
-          return res(ctx.json({ values: [] }));
+        http.get('http://vcfo.example.com/suite-api/api/resources/stats', () => {
+          return HttpResponse.json({ values: [] });
         }),
       );
 
@@ -129,11 +129,11 @@ describe('VcfOperationsService', () => {
 
     it('should fetch resource metrics', async () => {
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.get('http://vcfo.example.com/suite-api/api/resources/stats', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://vcfo.example.com/suite-api/api/resources/stats', () => {
+          return HttpResponse.json({
             values: [
               {
                 resourceId: 'res-123',
@@ -144,7 +144,7 @@ describe('VcfOperationsService', () => {
                 },
               },
             ],
-          }));
+          });
         }),
       );
 
@@ -156,15 +156,15 @@ describe('VcfOperationsService', () => {
 
     it('should handle metrics with time range', async () => {
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.get('http://vcfo.example.com/suite-api/api/resources/stats', (req, res, ctx) => {
-          const begin = req.url.searchParams.get('begin');
-          const end = req.url.searchParams.get('end');
+        http.get('http://vcfo.example.com/suite-api/api/resources/stats', ({ request }) => {
+          const begin = new URL(request.url).searchParams.get('begin');
+          const end = new URL(request.url).searchParams.get('end');
           expect(begin).toBeTruthy();
           expect(end).toBeTruthy();
-          return res(ctx.json({ values: [] }));
+          return HttpResponse.json({ values: [] });
         }),
       );
 
@@ -183,13 +183,13 @@ describe('VcfOperationsService', () => {
 
     it('should use different interval for week-long ranges', async () => {
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.get('http://vcfo.example.com/suite-api/api/resources/stats', (req, res, ctx) => {
-          const intervalType = req.url.searchParams.get('intervalType');
+        http.get('http://vcfo.example.com/suite-api/api/resources/stats', ({ request }) => {
+          const intervalType = new URL(request.url).searchParams.get('intervalType');
           expect(intervalType).toBe('HOURS');
-          return res(ctx.json({ values: [] }));
+          return HttpResponse.json({ values: [] });
         }),
       );
 
@@ -232,11 +232,11 @@ describe('VcfOperationsService', () => {
 
     it('should use default instance when no instance name provided', async () => {
       mswServer.use(
-        rest.post('http://vcfo1.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'token1' }));
+        http.post('http://vcfo1.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'token1' });
         }),
-        rest.get('http://vcfo1.example.com/suite-api/api/resources/stats', (_req, res, ctx) => {
-          return res(ctx.json({ values: [], instance: 'vcfo-1' }));
+        http.get('http://vcfo1.example.com/suite-api/api/resources/stats', () => {
+          return HttpResponse.json({ values: [], instance: 'vcfo-1' });
         }),
       );
 
@@ -248,11 +248,11 @@ describe('VcfOperationsService', () => {
 
     it('should use specified instance when instance name provided', async () => {
       mswServer.use(
-        rest.post('http://vcfo2.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'token2' }));
+        http.post('http://vcfo2.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'token2' });
         }),
-        rest.get('http://vcfo2.example.com/suite-api/api/resources/stats', (_req, res, ctx) => {
-          return res(ctx.json({ values: [], instance: 'vcfo-2' }));
+        http.get('http://vcfo2.example.com/suite-api/api/resources/stats', () => {
+          return HttpResponse.json({ values: [], instance: 'vcfo-2' });
         }),
       );
 
@@ -289,18 +289,18 @@ describe('VcfOperationsService', () => {
 
     it('should query resource metrics', async () => {
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.post('http://vcfo.example.com/suite-api/api/resources/stats/query', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.post('http://vcfo.example.com/suite-api/api/resources/stats/query', () => {
+          return HttpResponse.json({
             values: [
               {
                 resourceId: 'res-123',
                 stat: { statKey: { key: 'cpu' }, timestamps: [1000], data: [50] },
               },
             ],
-          }));
+          });
         }),
       );
 
@@ -332,18 +332,18 @@ describe('VcfOperationsService', () => {
 
     it('should fetch latest resource metrics', async () => {
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.get('http://vcfo.example.com/suite-api/api/resources/stats/latest', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://vcfo.example.com/suite-api/api/resources/stats/latest', () => {
+          return HttpResponse.json({
             values: [
               {
                 resourceId: 'res-123',
                 stat: { statKey: { key: 'cpu' }, timestamps: [Date.now()], data: [75] },
               },
             ],
-          }));
+          });
         }),
       );
 
@@ -372,14 +372,14 @@ describe('VcfOperationsService', () => {
 
     it('should fetch resource details', async () => {
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.get('http://vcfo.example.com/suite-api/api/resources/res-123', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://vcfo.example.com/suite-api/api/resources/res-123', () => {
+          return HttpResponse.json({
             identifier: 'res-123',
             resourceKey: { name: 'test-vm' },
-          }));
+          });
         }),
       );
 
@@ -411,16 +411,16 @@ describe('VcfOperationsService', () => {
 
     it('should fetch available metrics for resource', async () => {
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.get('http://vcfo.example.com/suite-api/api/resources/res-123/statkeys', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://vcfo.example.com/suite-api/api/resources/res-123/statkeys', () => {
+          return HttpResponse.json({
             'stat-key': [
               { key: 'cpu|usage_average' },
               { key: 'mem|usage_average' },
             ],
-          }));
+          });
         }),
       );
 
@@ -449,11 +449,11 @@ describe('VcfOperationsService', () => {
 
     it('should throw error on request failure', async () => {
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.get('http://vcfo.example.com/suite-api/api/resources/stats', (_req, res, ctx) => {
-          return res(ctx.status(500), ctx.text('Internal Server Error'));
+        http.get('http://vcfo.example.com/suite-api/api/resources/stats', () => {
+          return new HttpResponse('Internal Server Error', { status: 500 });
         }),
       );
 
@@ -481,13 +481,13 @@ describe('VcfOperationsService', () => {
 
     it('should use 5-minute intervals for short time ranges', async () => {
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.get('http://vcfo.example.com/suite-api/api/resources/stats', (req, res, ctx) => {
-          expect(req.url.searchParams.get('intervalQuantifier')).toBe('5');
-          expect(req.url.searchParams.get('intervalType')).toBe('MINUTES');
-          return res(ctx.json({ values: [] }));
+        http.get('http://vcfo.example.com/suite-api/api/resources/stats', ({ request }) => {
+          expect(new URL(request.url).searchParams.get('intervalQuantifier')).toBe('5');
+          expect(new URL(request.url).searchParams.get('intervalType')).toBe('MINUTES');
+          return HttpResponse.json({ values: [] });
         }),
       );
 
@@ -498,12 +498,12 @@ describe('VcfOperationsService', () => {
 
     it('should use 15-minute intervals for day time ranges', async () => {
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.get('http://vcfo.example.com/suite-api/api/resources/stats', (req, res, ctx) => {
-          expect(req.url.searchParams.get('intervalQuantifier')).toBe('15');
-          return res(ctx.json({ values: [] }));
+        http.get('http://vcfo.example.com/suite-api/api/resources/stats', ({ request }) => {
+          expect(new URL(request.url).searchParams.get('intervalQuantifier')).toBe('15');
+          return HttpResponse.json({ values: [] });
         }),
       );
 
@@ -514,12 +514,12 @@ describe('VcfOperationsService', () => {
 
     it('should use day intervals for long time ranges', async () => {
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.get('http://vcfo.example.com/suite-api/api/resources/stats', (req, res, ctx) => {
-          expect(req.url.searchParams.get('intervalType')).toBe('DAYS');
-          return res(ctx.json({ values: [] }));
+        http.get('http://vcfo.example.com/suite-api/api/resources/stats', ({ request }) => {
+          expect(new URL(request.url).searchParams.get('intervalType')).toBe('DAYS');
+          return HttpResponse.json({ values: [] });
         }),
       );
 
@@ -547,11 +547,11 @@ describe('VcfOperationsService', () => {
 
     it('should transform metrics response with stat-list format', async () => {
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.get('http://vcfo.example.com/suite-api/api/resources/stats', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://vcfo.example.com/suite-api/api/resources/stats', () => {
+          return HttpResponse.json({
             values: [
               {
                 resourceId: 'res-123',
@@ -571,7 +571,7 @@ describe('VcfOperationsService', () => {
                 },
               },
             ],
-          }));
+          });
         }),
       );
 
@@ -585,11 +585,11 @@ describe('VcfOperationsService', () => {
 
     it('should handle empty values array', async () => {
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.get('http://vcfo.example.com/suite-api/api/resources/stats', (_req, res, ctx) => {
-          return res(ctx.json({ values: [] }));
+        http.get('http://vcfo.example.com/suite-api/api/resources/stats', () => {
+          return HttpResponse.json({ values: [] });
         }),
       );
 
@@ -601,18 +601,18 @@ describe('VcfOperationsService', () => {
 
     it('should handle missing stat-list in response', async () => {
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.get('http://vcfo.example.com/suite-api/api/resources/stats', (_req, res, ctx) => {
-          return res(ctx.json({
+        http.get('http://vcfo.example.com/suite-api/api/resources/stats', () => {
+          return HttpResponse.json({
             values: [
               {
                 resourceId: 'res-123',
                 // No stat-list
               },
             ],
-          }));
+          });
         }),
       );
 
@@ -643,12 +643,12 @@ describe('VcfOperationsService', () => {
       let authCallCount = 0;
       
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
           authCallCount++;
-          return res(ctx.json({ token: 'test-token' }));
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.get('http://vcfo.example.com/suite-api/api/resources/stats', (_req, res, ctx) => {
-          return res(ctx.json({ values: [] }));
+        http.get('http://vcfo.example.com/suite-api/api/resources/stats', () => {
+          return HttpResponse.json({ values: [] });
         }),
       );
 
@@ -682,12 +682,12 @@ describe('VcfOperationsService', () => {
 
     it('should search resources by name', async () => {
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.get('http://vcfo.example.com/suite-api/api/resources', (req, res, ctx) => {
-          expect(req.url.searchParams.get('name')).toBe('test-vm');
-          return res(ctx.json({ resourceList: [{ identifier: 'res-1' }] }));
+        http.get('http://vcfo.example.com/suite-api/api/resources', ({ request }) => {
+          expect(new URL(request.url).searchParams.get('name')).toBe('test-vm');
+          return HttpResponse.json({ resourceList: [{ identifier: 'res-1' }] });
         }),
       );
 
@@ -699,13 +699,13 @@ describe('VcfOperationsService', () => {
 
     it('should search resources by adapter and resource kind', async () => {
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.get('http://vcfo.example.com/suite-api/api/resources', (req, res, ctx) => {
-          expect(req.url.searchParams.get('adapterKind')).toBe('VMWARE');
-          expect(req.url.searchParams.get('resourceKind')).toBe('VirtualMachine');
-          return res(ctx.json({ resourceList: [] }));
+        http.get('http://vcfo.example.com/suite-api/api/resources', ({ request }) => {
+          expect(new URL(request.url).searchParams.get('adapterKind')).toBe('VMWARE');
+          expect(new URL(request.url).searchParams.get('resourceKind')).toBe('VirtualMachine');
+          return HttpResponse.json({ resourceList: [] });
         }),
       );
 
@@ -715,11 +715,11 @@ describe('VcfOperationsService', () => {
 
     it('should search resources without filters', async () => {
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.get('http://vcfo.example.com/suite-api/api/resources', (_req, res, ctx) => {
-          return res(ctx.json({ resourceList: [] }));
+        http.get('http://vcfo.example.com/suite-api/api/resources', () => {
+          return HttpResponse.json({ resourceList: [] });
         }),
       );
 
@@ -748,11 +748,11 @@ describe('VcfOperationsService', () => {
 
     it('should query resources with property conditions', async () => {
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.post('http://vcfo.example.com/suite-api/api/resources/query', (_req, res, ctx) => {
-          return res(ctx.json({ resourceList: [{ identifier: 'res-1' }] }));
+        http.post('http://vcfo.example.com/suite-api/api/resources/query', () => {
+          return HttpResponse.json({ resourceList: [{ identifier: 'res-1' }] });
         }),
       );
 
@@ -786,11 +786,11 @@ describe('VcfOperationsService', () => {
 
     it('should query project resources', async () => {
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.post('http://vcfo.example.com/suite-api/api/resources/query', (_req, res, ctx) => {
-          return res(ctx.json({ resourceList: [{ identifier: 'project-1' }] }));
+        http.post('http://vcfo.example.com/suite-api/api/resources/query', () => {
+          return HttpResponse.json({ resourceList: [{ identifier: 'project-1' }] });
         }),
       );
 
@@ -823,11 +823,11 @@ describe('VcfOperationsService', () => {
 
     it('should query cluster resources', async () => {
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.post('http://vcfo.example.com/suite-api/api/resources/query', (_req, res, ctx) => {
-          return res(ctx.json({ resourceList: [{ identifier: 'cluster-1' }] }));
+        http.post('http://vcfo.example.com/suite-api/api/resources/query', () => {
+          return HttpResponse.json({ resourceList: [{ identifier: 'cluster-1' }] });
         }),
       );
 
@@ -860,11 +860,11 @@ describe('VcfOperationsService', () => {
 
     it('should find resource by property', async () => {
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.post('http://vcfo.example.com/suite-api/api/resources/query', (_req, res, ctx) => {
-          return res(ctx.json({ resourceList: [{ identifier: 'found-resource' }] }));
+        http.post('http://vcfo.example.com/suite-api/api/resources/query', () => {
+          return HttpResponse.json({ resourceList: [{ identifier: 'found-resource' }] });
         }),
       );
 
@@ -877,11 +877,11 @@ describe('VcfOperationsService', () => {
 
     it('should return null when resource not found', async () => {
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.post('http://vcfo.example.com/suite-api/api/resources/query', (_req, res, ctx) => {
-          return res(ctx.json({ resourceList: [] }));
+        http.post('http://vcfo.example.com/suite-api/api/resources/query', () => {
+          return HttpResponse.json({ resourceList: [] });
         }),
       );
 
@@ -910,11 +910,11 @@ describe('VcfOperationsService', () => {
 
     it('should find project resource by name', async () => {
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.post('http://vcfo.example.com/suite-api/api/resources/query', (_req, res, ctx) => {
-          return res(ctx.json({ resourceList: [{ identifier: 'project-res' }] }));
+        http.post('http://vcfo.example.com/suite-api/api/resources/query', () => {
+          return HttpResponse.json({ resourceList: [{ identifier: 'project-res' }] });
         }),
       );
 
@@ -927,11 +927,11 @@ describe('VcfOperationsService', () => {
 
     it('should find VM resource by name', async () => {
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.get('http://vcfo.example.com/suite-api/api/resources', (_req, res, ctx) => {
-          return res(ctx.json({ resourceList: [{ identifier: 'vm-res' }] }));
+        http.get('http://vcfo.example.com/suite-api/api/resources', () => {
+          return HttpResponse.json({ resourceList: [{ identifier: 'vm-res' }] });
         }),
       );
 
@@ -943,11 +943,11 @@ describe('VcfOperationsService', () => {
 
     it('should find cluster resource by name', async () => {
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.post('http://vcfo.example.com/suite-api/api/resources/query', (_req, res, ctx) => {
-          return res(ctx.json({ resourceList: [{ identifier: 'cluster-res' }] }));
+        http.post('http://vcfo.example.com/suite-api/api/resources/query', () => {
+          return HttpResponse.json({ resourceList: [{ identifier: 'cluster-res' }] });
         }),
       );
 
@@ -959,14 +959,14 @@ describe('VcfOperationsService', () => {
 
     it('should find supervisor-namespace resource by name', async () => {
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.get('http://vcfo.example.com/suite-api/api/resources', (_req, res, ctx) => {
-          return res(ctx.json({ resourceList: [] }));
+        http.get('http://vcfo.example.com/suite-api/api/resources', () => {
+          return HttpResponse.json({ resourceList: [] });
         }),
-        rest.post('http://vcfo.example.com/suite-api/api/resources/query', (_req, res, ctx) => {
-          return res(ctx.json({ resourceList: [{ identifier: 'namespace-res' }] }));
+        http.post('http://vcfo.example.com/suite-api/api/resources/query', () => {
+          return HttpResponse.json({ resourceList: [{ identifier: 'namespace-res' }] });
         }),
       );
 
@@ -978,14 +978,14 @@ describe('VcfOperationsService', () => {
 
     it('should find general resource by name when no type specified', async () => {
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.get('http://vcfo.example.com/suite-api/api/resources', (_req, res, ctx) => {
-          return res(ctx.json({ resourceList: [] }));
+        http.get('http://vcfo.example.com/suite-api/api/resources', () => {
+          return HttpResponse.json({ resourceList: [] });
         }),
-        rest.post('http://vcfo.example.com/suite-api/api/resources/query', (_req, res, ctx) => {
-          return res(ctx.json({ resourceList: [{ identifier: 'general-res' }] }));
+        http.post('http://vcfo.example.com/suite-api/api/resources/query', () => {
+          return HttpResponse.json({ resourceList: [{ identifier: 'general-res' }] });
         }),
       );
 
@@ -1014,11 +1014,11 @@ describe('VcfOperationsService', () => {
 
     it('should return empty stat-key array on getAvailableMetrics failure', async () => {
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.get('http://vcfo.example.com/suite-api/api/resources/res-123/statkeys', (_req, res, ctx) => {
-          return res(ctx.status(500));
+        http.get('http://vcfo.example.com/suite-api/api/resources/res-123/statkeys', () => {
+          return new HttpResponse(null, { status: 500 });
         }),
       );
 
@@ -1030,11 +1030,11 @@ describe('VcfOperationsService', () => {
 
     it('should return null on project search failure', async () => {
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.post('http://vcfo.example.com/suite-api/api/resources/query', (_req, res, ctx) => {
-          return res(ctx.status(500));
+        http.post('http://vcfo.example.com/suite-api/api/resources/query', () => {
+          return new HttpResponse(null, { status: 500 });
         }),
       );
 
@@ -1046,11 +1046,11 @@ describe('VcfOperationsService', () => {
 
     it('should return null on VM search failure', async () => {
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.get('http://vcfo.example.com/suite-api/api/resources', (_req, res, ctx) => {
-          return res(ctx.status(500));
+        http.get('http://vcfo.example.com/suite-api/api/resources', () => {
+          return new HttpResponse(null, { status: 500 });
         }),
       );
 
@@ -1062,11 +1062,11 @@ describe('VcfOperationsService', () => {
 
     it('should return null on cluster search failure', async () => {
       mswServer.use(
-        rest.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', (_req, res, ctx) => {
-          return res(ctx.json({ token: 'test-token' }));
+        http.post('http://vcfo.example.com/suite-api/api/auth/token/acquire', () => {
+          return HttpResponse.json({ token: 'test-token' });
         }),
-        rest.post('http://vcfo.example.com/suite-api/api/resources/query', (_req, res, ctx) => {
-          return res(ctx.status(500));
+        http.post('http://vcfo.example.com/suite-api/api/resources/query', () => {
+          return new HttpResponse(null, { status: 500 });
         }),
       );
 

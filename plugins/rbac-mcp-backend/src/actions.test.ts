@@ -1,7 +1,7 @@
 import { registerMcpActions } from './actions';
 import { mockServices } from '@backstage/backend-test-utils';
 import { setupServer } from 'msw/node';
-import { rest } from 'msw';
+import { http, HttpResponse } from 'msw';
 
 const server = setupServer();
 beforeAll(() => server.listen({ onUnhandledRequest: 'bypass' }));
@@ -67,11 +67,11 @@ describe('registerMcpActions', () => {
 
     it('should list all roles', async () => {
       server.use(
-        rest.get('http://permission-backend/roles', (_req, res, ctx) => {
-          return res(ctx.json([
+        http.get('http://permission-backend/roles', () => {
+          return HttpResponse.json([
             { name: 'role:default/admin', memberReferences: ['user:default/admin'], metadata: { description: 'Admin role', source: 'rest' } },
             { name: 'role:default/developer', memberReferences: ['group:default/devs'], metadata: { source: 'configuration' } },
-          ]));
+          ]);
         }),
       );
 
@@ -86,8 +86,8 @@ describe('registerMcpActions', () => {
 
     it('should handle empty roles list', async () => {
       server.use(
-        rest.get('http://permission-backend/roles', (_req, res, ctx) => {
-          return res(ctx.json([]));
+        http.get('http://permission-backend/roles', () => {
+          return HttpResponse.json([]);
         }),
       );
 
@@ -99,10 +99,10 @@ describe('registerMcpActions', () => {
 
     it('should handle roles without metadata', async () => {
       server.use(
-        rest.get('http://permission-backend/roles', (_req, res, ctx) => {
-          return res(ctx.json([
+        http.get('http://permission-backend/roles', () => {
+          return HttpResponse.json([
             { name: 'role:default/basic', memberReferences: [] },
-          ]));
+          ]);
         }),
       );
 
@@ -114,8 +114,8 @@ describe('registerMcpActions', () => {
 
     it('should handle API errors', async () => {
       server.use(
-        rest.get('http://permission-backend/roles', (_req, res, ctx) => {
-          return res(ctx.status(500), ctx.text('Internal Server Error'));
+        http.get('http://permission-backend/roles', () => {
+          return new HttpResponse('Internal Server Error', { status: 500 });
         }),
       );
 
@@ -135,22 +135,22 @@ describe('registerMcpActions', () => {
 
     it('should get role details successfully', async () => {
       server.use(
-        rest.get('http://permission-backend/roles/role/default/admin', (_req, res, ctx) => {
-          return res(ctx.json([{ 
+        http.get('http://permission-backend/roles/role/default/admin', () => {
+          return HttpResponse.json([{ 
             name: 'role:default/admin', 
             memberReferences: ['user:default/admin'], 
             metadata: { description: 'Admin role', source: 'rest' } 
-          }]));
+          }]);
         }),
-        rest.get('http://permission-backend/policies/role/default/admin', (_req, res, ctx) => {
-          return res(ctx.json([
+        http.get('http://permission-backend/policies/role/default/admin', () => {
+          return HttpResponse.json([
             { permission: 'catalog-entity', policy: 'read', effect: 'allow', metadata: { source: 'rest' } },
-          ]));
+          ]);
         }),
-        rest.get('http://permission-backend/roles/conditions', (_req, res, ctx) => {
-          return res(ctx.json([
+        http.get('http://permission-backend/roles/conditions', () => {
+          return HttpResponse.json([
             { id: 1, roleEntityRef: 'role:default/admin', pluginId: 'catalog', resourceType: 'catalog-entity', permissionMapping: ['read'], conditions: { rule: 'IS_ENTITY_OWNER' } },
-          ]));
+          ]);
         }),
       );
 
@@ -186,8 +186,8 @@ describe('registerMcpActions', () => {
 
     it('should handle role not found', async () => {
       server.use(
-        rest.get('http://permission-backend/roles/role/default/notfound', (_req, res, ctx) => {
-          return res(ctx.status(404), ctx.text('Role not found'));
+        http.get('http://permission-backend/roles/role/default/notfound', () => {
+          return new HttpResponse('Role not found', { status: 404 });
         }),
       );
 
@@ -201,18 +201,18 @@ describe('registerMcpActions', () => {
 
     it('should handle non-array role response', async () => {
       server.use(
-        rest.get('http://permission-backend/roles/role/default/admin', (_req, res, ctx) => {
-          return res(ctx.json({ 
+        http.get('http://permission-backend/roles/role/default/admin', () => {
+          return HttpResponse.json({ 
             name: 'role:default/admin', 
             memberReferences: ['user:default/admin'], 
             metadata: { description: 'Admin role', source: 'rest' } 
-          }));
+          });
         }),
-        rest.get('http://permission-backend/policies/role/default/admin', (_req, res, ctx) => {
-          return res(ctx.json([]));
+        http.get('http://permission-backend/policies/role/default/admin', () => {
+          return HttpResponse.json([]);
         }),
-        rest.get('http://permission-backend/roles/conditions', (_req, res, ctx) => {
-          return res(ctx.json([]));
+        http.get('http://permission-backend/roles/conditions', () => {
+          return HttpResponse.json([]);
         }),
       );
 
@@ -237,11 +237,11 @@ describe('registerMcpActions', () => {
 
     it('should list all available permissions', async () => {
       server.use(
-        rest.get('http://permission-backend/plugins/policies', (_req, res, ctx) => {
-          return res(ctx.json([
+        http.get('http://permission-backend/plugins/policies', () => {
+          return HttpResponse.json([
             { pluginId: 'catalog', policies: [{ name: 'catalog.entity.read', policy: 'read', resourceType: 'catalog-entity' }] },
             { pluginId: 'scaffolder', policies: [{ name: 'scaffolder.task.read', policy: 'read' }] },
-          ]));
+          ]);
         }),
       );
 
@@ -257,11 +257,11 @@ describe('registerMcpActions', () => {
 
     it('should filter by pluginId', async () => {
       server.use(
-        rest.get('http://permission-backend/plugins/policies', (_req, res, ctx) => {
-          return res(ctx.json([
+        http.get('http://permission-backend/plugins/policies', () => {
+          return HttpResponse.json([
             { pluginId: 'catalog', policies: [{ name: 'catalog.entity.read', policy: 'read' }] },
             { pluginId: 'scaffolder', policies: [{ name: 'scaffolder.task.read', policy: 'read' }] },
-          ]));
+          ]);
         }),
       );
 
@@ -276,10 +276,10 @@ describe('registerMcpActions', () => {
 
     it('should handle plugins without policies', async () => {
       server.use(
-        rest.get('http://permission-backend/plugins/policies', (_req, res, ctx) => {
-          return res(ctx.json([
+        http.get('http://permission-backend/plugins/policies', () => {
+          return HttpResponse.json([
             { pluginId: 'catalog' },
-          ]));
+          ]);
         }),
       );
 
@@ -293,8 +293,8 @@ describe('registerMcpActions', () => {
 
     it('should handle API errors', async () => {
       server.use(
-        rest.get('http://permission-backend/plugins/policies', (_req, res, ctx) => {
-          return res(ctx.status(500), ctx.text('Internal Server Error'));
+        http.get('http://permission-backend/plugins/policies', () => {
+          return new HttpResponse('Internal Server Error', { status: 500 });
         }),
       );
 
@@ -316,11 +316,11 @@ describe('registerMcpActions', () => {
 
     it('should create new role when role does not exist', async () => {
       server.use(
-        rest.get('http://permission-backend/roles/role/default/newrole', (_req, res, ctx) => {
-          return res(ctx.status(404));
+        http.get('http://permission-backend/roles/role/default/newrole', () => {
+          return new HttpResponse(null, { status: 404 });
         }),
-        rest.post('http://permission-backend/roles', (_req, res, ctx) => {
-          return res(ctx.status(201), ctx.json({ name: 'role:default/newrole' }));
+        http.post('http://permission-backend/roles', () => {
+          return HttpResponse.json({ name: 'role:default/newrole' }, { status: 201 });
         }),
       );
 
@@ -340,15 +340,15 @@ describe('registerMcpActions', () => {
 
     it('should update existing role', async () => {
       server.use(
-        rest.get('http://permission-backend/roles/role/default/existing', (_req, res, ctx) => {
-          return res(ctx.json([{ 
+        http.get('http://permission-backend/roles/role/default/existing', () => {
+          return HttpResponse.json([{ 
             name: 'role:default/existing', 
             memberReferences: ['user:default/existing'], 
             metadata: { description: 'Existing role' } 
-          }]));
+          }]);
         }),
-        rest.put('http://permission-backend/roles/role/default/existing', (_req, res, ctx) => {
-          return res(ctx.status(200));
+        http.put('http://permission-backend/roles/role/default/existing', () => {
+          return new HttpResponse(null, { status: 200 });
         }),
       );
 
@@ -376,11 +376,11 @@ describe('registerMcpActions', () => {
 
     it('should handle create role failure', async () => {
       server.use(
-        rest.get('http://permission-backend/roles/role/default/newrole', (_req, res, ctx) => {
-          return res(ctx.status(404));
+        http.get('http://permission-backend/roles/role/default/newrole', () => {
+          return new HttpResponse(null, { status: 404 });
         }),
-        rest.post('http://permission-backend/roles', (_req, res, ctx) => {
-          return res(ctx.status(400), ctx.json({ error: 'Invalid request' }));
+        http.post('http://permission-backend/roles', () => {
+          return HttpResponse.json({ error: 'Invalid request' }, { status: 400 });
         }),
       );
 
@@ -394,11 +394,11 @@ describe('registerMcpActions', () => {
 
     it('should handle update role failure', async () => {
       server.use(
-        rest.get('http://permission-backend/roles/role/default/existing', (_req, res, ctx) => {
-          return res(ctx.json([{ name: 'role:default/existing', memberReferences: [] }]));
+        http.get('http://permission-backend/roles/role/default/existing', () => {
+          return HttpResponse.json([{ name: 'role:default/existing', memberReferences: [] }]);
         }),
-        rest.put('http://permission-backend/roles/role/default/existing', (_req, res, ctx) => {
-          return res(ctx.status(400), ctx.text('Update failed'));
+        http.put('http://permission-backend/roles/role/default/existing', () => {
+          return new HttpResponse('Update failed', { status: 400 });
         }),
       );
 
@@ -412,8 +412,8 @@ describe('registerMcpActions', () => {
 
     it('should handle check role existence failure', async () => {
       server.use(
-        rest.get('http://permission-backend/roles/role/default/existing', (_req, res, ctx) => {
-          return res(ctx.status(500), ctx.text('Server error'));
+        http.get('http://permission-backend/roles/role/default/existing', () => {
+          return new HttpResponse('Server error', { status: 500 });
         }),
       );
 
@@ -438,11 +438,11 @@ describe('registerMcpActions', () => {
 
     it('should assign permissions to existing role', async () => {
       server.use(
-        rest.get('http://permission-backend/roles/role/default/admin', (_req, res, ctx) => {
-          return res(ctx.json([{ name: 'role:default/admin' }]));
+        http.get('http://permission-backend/roles/role/default/admin', () => {
+          return HttpResponse.json([{ name: 'role:default/admin' }]);
         }),
-        rest.post('http://permission-backend/policies', (_req, res, ctx) => {
-          return res(ctx.status(201));
+        http.post('http://permission-backend/policies', () => {
+          return new HttpResponse(null, { status: 201 });
         }),
       );
 
@@ -462,8 +462,8 @@ describe('registerMcpActions', () => {
 
     it('should throw error if role does not exist', async () => {
       server.use(
-        rest.get('http://permission-backend/roles/role/default/notfound', (_req, res, ctx) => {
-          return res(ctx.status(404));
+        http.get('http://permission-backend/roles/role/default/notfound', () => {
+          return new HttpResponse(null, { status: 404 });
         }),
       );
 
@@ -492,11 +492,11 @@ describe('registerMcpActions', () => {
 
     it('should handle permissions assignment failure', async () => {
       server.use(
-        rest.get('http://permission-backend/roles/role/default/admin', (_req, res, ctx) => {
-          return res(ctx.json([{ name: 'role:default/admin' }]));
+        http.get('http://permission-backend/roles/role/default/admin', () => {
+          return HttpResponse.json([{ name: 'role:default/admin' }]);
         }),
-        rest.post('http://permission-backend/policies', (_req, res, ctx) => {
-          return res(ctx.status(400), ctx.json({ error: 'Invalid permission' }));
+        http.post('http://permission-backend/policies', () => {
+          return HttpResponse.json({ error: 'Invalid permission' }, { status: 400 });
         }),
       );
 
@@ -524,8 +524,8 @@ describe('registerMcpActions', () => {
 
     it('should create conditional permission', async () => {
       server.use(
-        rest.post('http://permission-backend/roles/conditions', (_req, res, ctx) => {
-          return res(ctx.status(201), ctx.json({ id: 1 }));
+        http.post('http://permission-backend/roles/conditions', () => {
+          return HttpResponse.json({ id: 1 }, { status: 201 });
         }),
       );
 
@@ -546,8 +546,8 @@ describe('registerMcpActions', () => {
 
     it('should handle API errors', async () => {
       server.use(
-        rest.post('http://permission-backend/roles/conditions', (_req, res, ctx) => {
-          return res(ctx.status(400), ctx.text('Invalid condition'));
+        http.post('http://permission-backend/roles/conditions', () => {
+          return new HttpResponse('Invalid condition', { status: 400 });
         }),
       );
 
@@ -578,10 +578,10 @@ describe('registerMcpActions', () => {
 
     it('should list all conditional rules', async () => {
       server.use(
-        rest.get('http://permission-backend/plugins/condition-rules', (_req, res, ctx) => {
-          return res(ctx.json([
+        http.get('http://permission-backend/plugins/condition-rules', () => {
+          return HttpResponse.json([
             { pluginId: 'catalog', rules: [{ name: 'IS_ENTITY_OWNER', description: 'Check ownership', resourceType: 'catalog-entity' }] },
-          ]));
+          ]);
         }),
       );
 
@@ -596,11 +596,11 @@ describe('registerMcpActions', () => {
 
     it('should filter by pluginId', async () => {
       server.use(
-        rest.get('http://permission-backend/plugins/condition-rules', (_req, res, ctx) => {
-          return res(ctx.json([
+        http.get('http://permission-backend/plugins/condition-rules', () => {
+          return HttpResponse.json([
             { pluginId: 'catalog', rules: [{ name: 'IS_ENTITY_OWNER' }] },
             { pluginId: 'scaffolder', rules: [{ name: 'IS_TASK_OWNER' }] },
-          ]));
+          ]);
         }),
       );
 
@@ -615,8 +615,8 @@ describe('registerMcpActions', () => {
 
     it('should handle plugins without rules', async () => {
       server.use(
-        rest.get('http://permission-backend/plugins/condition-rules', (_req, res, ctx) => {
-          return res(ctx.json([{ pluginId: 'catalog' }]));
+        http.get('http://permission-backend/plugins/condition-rules', () => {
+          return HttpResponse.json([{ pluginId: 'catalog' }]);
         }),
       );
 
@@ -630,8 +630,8 @@ describe('registerMcpActions', () => {
 
     it('should handle API errors', async () => {
       server.use(
-        rest.get('http://permission-backend/plugins/condition-rules', (_req, res, ctx) => {
-          return res(ctx.status(500), ctx.text('Internal Server Error'));
+        http.get('http://permission-backend/plugins/condition-rules', () => {
+          return new HttpResponse('Internal Server Error', { status: 500 });
         }),
       );
 
@@ -653,20 +653,20 @@ describe('registerMcpActions', () => {
 
     it('should get user effective permissions', async () => {
       server.use(
-        rest.get('http://permission-backend/roles', (_req, res, ctx) => {
-          return res(ctx.json([
+        http.get('http://permission-backend/roles', () => {
+          return HttpResponse.json([
             { name: 'role:default/admin', memberReferences: ['user:default/john'], metadata: { description: 'Admin', source: 'rest' } },
-          ]));
+          ]);
         }),
-        rest.get('http://permission-backend/policies', (_req, res, ctx) => {
-          return res(ctx.json([
+        http.get('http://permission-backend/policies', () => {
+          return HttpResponse.json([
             { entityReference: 'role:default/admin', permission: 'catalog-entity', policy: 'read', effect: 'allow', metadata: { source: 'rest' } },
-          ]));
+          ]);
         }),
-        rest.get('http://permission-backend/roles/conditions', (_req, res, ctx) => {
-          return res(ctx.json([
+        http.get('http://permission-backend/roles/conditions', () => {
+          return HttpResponse.json([
             { id: 1, roleEntityRef: 'role:default/admin', pluginId: 'catalog', resourceType: 'catalog-entity', permissionMapping: ['read'], conditions: {} },
-          ]));
+          ]);
         }),
       );
 
@@ -683,14 +683,14 @@ describe('registerMcpActions', () => {
 
     it('should return empty arrays for user with no roles', async () => {
       server.use(
-        rest.get('http://permission-backend/roles', (_req, res, ctx) => {
-          return res(ctx.json([]));
+        http.get('http://permission-backend/roles', () => {
+          return HttpResponse.json([]);
         }),
-        rest.get('http://permission-backend/policies', (_req, res, ctx) => {
-          return res(ctx.json([]));
+        http.get('http://permission-backend/policies', () => {
+          return HttpResponse.json([]);
         }),
-        rest.get('http://permission-backend/roles/conditions', (_req, res, ctx) => {
-          return res(ctx.json([]));
+        http.get('http://permission-backend/roles/conditions', () => {
+          return HttpResponse.json([]);
         }),
       );
 
@@ -706,8 +706,8 @@ describe('registerMcpActions', () => {
 
     it('should handle API errors for roles', async () => {
       server.use(
-        rest.get('http://permission-backend/roles', (_req, res, ctx) => {
-          return res(ctx.status(500), ctx.text('Internal Server Error'));
+        http.get('http://permission-backend/roles', () => {
+          return new HttpResponse('Internal Server Error', { status: 500 });
         }),
       );
 
@@ -732,11 +732,11 @@ describe('registerMcpActions', () => {
 
     it('should list all conditional policies', async () => {
       server.use(
-        rest.get('http://permission-backend/roles/conditions', (_req, res, ctx) => {
-          return res(ctx.json([
+        http.get('http://permission-backend/roles/conditions', () => {
+          return HttpResponse.json([
             { id: 1, roleEntityRef: 'role:default/admin', pluginId: 'catalog', resourceType: 'catalog-entity', permissionMapping: ['read'], conditions: {} },
             { id: 2, roleEntityRef: 'role:default/developer', pluginId: 'scaffolder', resourceType: 'scaffolder-template', permissionMapping: ['use'], conditions: {} },
-          ]));
+          ]);
         }),
       );
 
@@ -751,11 +751,11 @@ describe('registerMcpActions', () => {
 
     it('should filter by roleRef', async () => {
       server.use(
-        rest.get('http://permission-backend/roles/conditions', (_req, res, ctx) => {
-          return res(ctx.json([
+        http.get('http://permission-backend/roles/conditions', () => {
+          return HttpResponse.json([
             { id: 1, roleEntityRef: 'role:default/admin', pluginId: 'catalog', resourceType: 'catalog-entity', permissionMapping: ['read'], conditions: {} },
             { id: 2, roleEntityRef: 'role:default/developer', pluginId: 'scaffolder', resourceType: 'scaffolder-template', permissionMapping: ['use'], conditions: {} },
-          ]));
+          ]);
         }),
       );
 
@@ -770,8 +770,8 @@ describe('registerMcpActions', () => {
 
     it('should handle API errors', async () => {
       server.use(
-        rest.get('http://permission-backend/roles/conditions', (_req, res, ctx) => {
-          return res(ctx.status(500), ctx.text('Internal Server Error'));
+        http.get('http://permission-backend/roles/conditions', () => {
+          return new HttpResponse('Internal Server Error', { status: 500 });
         }),
       );
 
@@ -793,14 +793,14 @@ describe('registerMcpActions', () => {
 
     it('should create new role with permissions', async () => {
       server.use(
-        rest.get('http://permission-backend/roles/role/default/newrole', (_req, res, ctx) => {
-          return res(ctx.status(404));
+        http.get('http://permission-backend/roles/role/default/newrole', () => {
+          return new HttpResponse(null, { status: 404 });
         }),
-        rest.post('http://permission-backend/roles', (_req, res, ctx) => {
-          return res(ctx.status(201));
+        http.post('http://permission-backend/roles', () => {
+          return new HttpResponse(null, { status: 201 });
         }),
-        rest.post('http://permission-backend/policies', (_req, res, ctx) => {
-          return res(ctx.status(201));
+        http.post('http://permission-backend/policies', () => {
+          return new HttpResponse(null, { status: 201 });
         }),
       );
 
@@ -823,14 +823,14 @@ describe('registerMcpActions', () => {
 
     it('should update existing role with permissions', async () => {
       server.use(
-        rest.get('http://permission-backend/roles/role/default/existing', (_req, res, ctx) => {
-          return res(ctx.json([{ name: 'role:default/existing', memberReferences: ['user:default/existing'], metadata: {} }]));
+        http.get('http://permission-backend/roles/role/default/existing', () => {
+          return HttpResponse.json([{ name: 'role:default/existing', memberReferences: ['user:default/existing'], metadata: {} }]);
         }),
-        rest.put('http://permission-backend/roles/role/default/existing', (_req, res, ctx) => {
-          return res(ctx.status(200));
+        http.put('http://permission-backend/roles/role/default/existing', () => {
+          return new HttpResponse(null, { status: 200 });
         }),
-        rest.post('http://permission-backend/policies', (_req, res, ctx) => {
-          return res(ctx.status(201));
+        http.post('http://permission-backend/policies', () => {
+          return new HttpResponse(null, { status: 201 });
         }),
       );
 
@@ -865,8 +865,8 @@ describe('registerMcpActions', () => {
 
     it('should handle role check failure', async () => {
       server.use(
-        rest.get('http://permission-backend/roles/role/default/newrole', (_req, res, ctx) => {
-          return res(ctx.status(500), ctx.json({ error: 'Server error' }));
+        http.get('http://permission-backend/roles/role/default/newrole', () => {
+          return HttpResponse.json({ error: 'Server error' }, { status: 500 });
         }),
       );
 

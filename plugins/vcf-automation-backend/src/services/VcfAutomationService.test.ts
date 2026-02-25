@@ -2,7 +2,7 @@ import { VcfAutomationService } from './VcfAutomationService';
 import { mockServices } from '@backstage/backend-test-utils';
 import { ConfigReader } from '@backstage/config';
 import { setupServer } from 'msw/node';
-import { rest } from 'msw';
+import { http, HttpResponse } from 'msw';
 
 const mswServer = setupServer();
 beforeAll(() => mswServer.listen({ onUnhandledRequest: 'bypass' }));
@@ -95,11 +95,11 @@ describe('VcfAutomationService', () => {
 
     it('should authenticate successfully with version 8', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token-v8' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token-v8' });
         }),
-        rest.get('http://vcf.example.com/deployment/api/deployments', (_req, res, ctx) => {
-          return res(ctx.json({ content: [] }));
+        http.get('http://vcf.example.com/deployment/api/deployments', () => {
+          return HttpResponse.json({ content: [] });
         }),
       );
 
@@ -125,11 +125,11 @@ describe('VcfAutomationService', () => {
 
     it('should fetch deployment history', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/deployment/api/deployments/dep-123/requests', (_req, res, ctx) => {
-          return res(ctx.json({ requests: [{ id: 'req-1' }] }));
+        http.get('http://vcf.example.com/deployment/api/deployments/dep-123/requests', () => {
+          return HttpResponse.json({ requests: [{ id: 'req-1' }] });
         }),
       );
 
@@ -141,11 +141,11 @@ describe('VcfAutomationService', () => {
 
     it('should return error on failure', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/deployment/api/deployments/dep-123/requests', (_req, res, ctx) => {
-          return res(ctx.status(500));
+        http.get('http://vcf.example.com/deployment/api/deployments/dep-123/requests', () => {
+          return new HttpResponse(null, { status: 500 });
         }),
       );
 
@@ -171,11 +171,11 @@ describe('VcfAutomationService', () => {
 
     it('should fetch deployment details', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/deployment/api/deployments/dep-123', (_req, res, ctx) => {
-          return res(ctx.json({ id: 'dep-123', name: 'test-deployment' }));
+        http.get('http://vcf.example.com/deployment/api/deployments/dep-123', () => {
+          return HttpResponse.json({ id: 'dep-123', name: 'test-deployment' });
         }),
       );
 
@@ -201,11 +201,11 @@ describe('VcfAutomationService', () => {
 
     it('should fetch deployment events', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/deployment/api/deployments/dep-123/userEvents', (_req, res, ctx) => {
-          return res(ctx.json({ events: [{ id: 'evt-1' }] }));
+        http.get('http://vcf.example.com/deployment/api/deployments/dep-123/userEvents', () => {
+          return HttpResponse.json({ events: [{ id: 'evt-1' }] });
         }),
       );
 
@@ -231,11 +231,11 @@ describe('VcfAutomationService', () => {
 
     it('should fetch resource details', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/deployment/api/deployments/dep-123/resources/res-456', (_req, res, ctx) => {
-          return res(ctx.json({ id: 'res-456', type: 'VM' }));
+        http.get('http://vcf.example.com/deployment/api/deployments/dep-123/resources/res-456', () => {
+          return HttpResponse.json({ id: 'res-456', type: 'VM' });
         }),
       );
 
@@ -262,11 +262,11 @@ describe('VcfAutomationService', () => {
       });
 
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/iaas/api/projects/proj-123', (_req, res, ctx) => {
-          return res(ctx.json({ id: 'proj-123', name: 'test-project' }));
+        http.get('http://vcf.example.com/iaas/api/projects/proj-123', () => {
+          return HttpResponse.json({ id: 'proj-123', name: 'test-project' });
         }),
       );
 
@@ -291,11 +291,11 @@ describe('VcfAutomationService', () => {
       });
 
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/project-service/api/projects/proj-123', (_req, res, ctx) => {
-          return res(ctx.json({ id: 'proj-123', name: 'test-project' }));
+        http.get('http://vcf.example.com/project-service/api/projects/proj-123', () => {
+          return HttpResponse.json({ id: 'proj-123', name: 'test-project' });
         }),
       );
 
@@ -321,11 +321,11 @@ describe('VcfAutomationService', () => {
 
     it('should fetch projects list', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/iaas/api/projects', (_req, res, ctx) => {
-          return res(ctx.json({ content: [{ id: 'proj-1' }, { id: 'proj-2' }] }));
+        http.get('http://vcf.example.com/iaas/api/projects', () => {
+          return HttpResponse.json({ content: [{ id: 'proj-1' }, { id: 'proj-2' }] });
         }),
       );
 
@@ -351,11 +351,11 @@ describe('VcfAutomationService', () => {
 
     it('should fetch deployment resources', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/deployment/api/deployments/dep-123/resources', (_req, res, ctx) => {
-          return res(ctx.json({ content: [{ id: 'res-1' }] }));
+        http.get('http://vcf.example.com/deployment/api/deployments/dep-123/resources', () => {
+          return HttpResponse.json({ content: [{ id: 'res-1' }] });
         }),
       );
 
@@ -381,11 +381,11 @@ describe('VcfAutomationService', () => {
 
     it('should fetch supervisor resources', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/deployment/api/supervisor-resources', (_req, res, ctx) => {
-          return res(ctx.json({ content: [{ id: 'sup-res-1' }] }));
+        http.get('http://vcf.example.com/deployment/api/supervisor-resources', () => {
+          return HttpResponse.json({ content: [{ id: 'sup-res-1' }] });
         }),
       );
 
@@ -411,11 +411,11 @@ describe('VcfAutomationService', () => {
 
     it('should fetch single supervisor resource', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/deployment/api/supervisor-resources/sup-res-1', (_req, res, ctx) => {
-          return res(ctx.json({ id: 'sup-res-1', name: 'supervisor-resource' }));
+        http.get('http://vcf.example.com/deployment/api/supervisor-resources/sup-res-1', () => {
+          return HttpResponse.json({ id: 'sup-res-1', name: 'supervisor-resource' });
         }),
       );
 
@@ -441,11 +441,11 @@ describe('VcfAutomationService', () => {
 
     it('should fetch supervisor namespaces', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/cci/kubernetes/apis/infrastructure.cci.vmware.com/v1alpha2/supervisornamespaces', (_req, res, ctx) => {
-          return res(ctx.json({ items: [{ metadata: { name: 'ns-1' } }] }));
+        http.get('http://vcf.example.com/cci/kubernetes/apis/infrastructure.cci.vmware.com/v1alpha2/supervisornamespaces', () => {
+          return HttpResponse.json({ items: [{ metadata: { name: 'ns-1' } }] });
         }),
       );
 
@@ -471,11 +471,11 @@ describe('VcfAutomationService', () => {
 
     it('should fetch single supervisor namespace', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/cci/kubernetes/apis/infrastructure.cci.vmware.com/v1alpha2/supervisornamespaces/ns-1', (_req, res, ctx) => {
-          return res(ctx.json({ metadata: { name: 'ns-1' }, spec: {} }));
+        http.get('http://vcf.example.com/cci/kubernetes/apis/infrastructure.cci.vmware.com/v1alpha2/supervisornamespaces/ns-1', () => {
+          return HttpResponse.json({ metadata: { name: 'ns-1' }, spec: {} });
         }),
       );
 
@@ -502,14 +502,13 @@ describe('VcfAutomationService', () => {
 
     it('should authenticate successfully with version 9', async () => {
       mswServer.use(
-        rest.post('http://vcf9.example.com/cloudapi/1.0.0/sessions', (_req, res, ctx) => {
-          return res(
-            ctx.set('x-vmware-vcloud-access-token', 'test-token-v9'),
-            ctx.json({ token: 'test-token-v9' })
-          );
+        http.post('http://vcf9.example.com/cloudapi/1.0.0/sessions', () => {
+          return HttpResponse.json({ token: 'test-token-v9' }, {
+            headers: { 'x-vmware-vcloud-access-token': 'test-token-v9' },
+          });
         }),
-        rest.get('http://vcf9.example.com/deployment/api/deployments', (_req, res, ctx) => {
-          return res(ctx.json({ content: [] }));
+        http.get('http://vcf9.example.com/deployment/api/deployments', () => {
+          return HttpResponse.json({ content: [] });
         }),
       );
 
@@ -521,16 +520,15 @@ describe('VcfAutomationService', () => {
 
     it('should use orgName in username for version 9 auth', async () => {
       mswServer.use(
-        rest.post('http://vcf9.example.com/cloudapi/1.0.0/sessions', (req, res, ctx) => {
-          const authHeader = req.headers.get('Authorization');
+        http.post('http://vcf9.example.com/cloudapi/1.0.0/sessions', ({ request }) => {
+          const authHeader = request.headers.get('Authorization');
           expect(authHeader).toContain('Basic');
-          return res(
-            ctx.set('x-vmware-vcloud-access-token', 'test-token-v9'),
-            ctx.json({ token: 'test-token-v9' })
-          );
+          return HttpResponse.json({ token: 'test-token-v9' }, {
+            headers: { 'x-vmware-vcloud-access-token': 'test-token-v9' },
+          });
         }),
-        rest.get('http://vcf9.example.com/deployment/api/deployments', (_req, res, ctx) => {
-          return res(ctx.json({ content: [] }));
+        http.get('http://vcf9.example.com/deployment/api/deployments', () => {
+          return HttpResponse.json({ content: [] });
         }),
       );
 
@@ -554,11 +552,11 @@ describe('VcfAutomationService', () => {
 
     it('should check PowerOn action', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/deployment/api/resources/res-123/actions/CCI.Supervisor.Resource.VirtualMachine.PowerOn', (_req, res, ctx) => {
-          return res(ctx.json({ actionAvailable: true }));
+        http.get('http://vcf.example.com/deployment/api/resources/res-123/actions/CCI.Supervisor.Resource.VirtualMachine.PowerOn', () => {
+          return HttpResponse.json({ actionAvailable: true });
         }),
       );
 
@@ -570,11 +568,11 @@ describe('VcfAutomationService', () => {
 
     it('should check PowerOff action', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/deployment/api/resources/res-123/actions/CCI.Supervisor.Resource.VirtualMachine.PowerOff', (_req, res, ctx) => {
-          return res(ctx.json({ actionAvailable: true }));
+        http.get('http://vcf.example.com/deployment/api/resources/res-123/actions/CCI.Supervisor.Resource.VirtualMachine.PowerOff', () => {
+          return HttpResponse.json({ actionAvailable: true });
         }),
       );
 
@@ -586,11 +584,11 @@ describe('VcfAutomationService', () => {
 
     it('should return error on failure', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/deployment/api/resources/res-123/actions/CCI.Supervisor.Resource.VirtualMachine.PowerOn', (_req, res, ctx) => {
-          return res(ctx.status(500));
+        http.get('http://vcf.example.com/deployment/api/resources/res-123/actions/CCI.Supervisor.Resource.VirtualMachine.PowerOn', () => {
+          return new HttpResponse(null, { status: 500 });
         }),
       );
 
@@ -616,11 +614,11 @@ describe('VcfAutomationService', () => {
 
     it('should execute PowerOn action', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.post('http://vcf.example.com/deployment/api/resources/res-123/requests', (_req, res, ctx) => {
-          return res(ctx.json({ requestId: 'req-1', status: 'PENDING' }));
+        http.post('http://vcf.example.com/deployment/api/resources/res-123/requests', () => {
+          return HttpResponse.json({ requestId: 'req-1', status: 'PENDING' });
         }),
       );
 
@@ -632,11 +630,11 @@ describe('VcfAutomationService', () => {
 
     it('should execute PowerOff action', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.post('http://vcf.example.com/deployment/api/resources/res-123/requests', (_req, res, ctx) => {
-          return res(ctx.json({ requestId: 'req-2', status: 'PENDING' }));
+        http.post('http://vcf.example.com/deployment/api/resources/res-123/requests', () => {
+          return HttpResponse.json({ requestId: 'req-2', status: 'PENDING' });
         }),
       );
 
@@ -648,11 +646,11 @@ describe('VcfAutomationService', () => {
 
     it('should return error on failure', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.post('http://vcf.example.com/deployment/api/resources/res-123/requests', (_req, res, ctx) => {
-          return res(ctx.status(500));
+        http.post('http://vcf.example.com/deployment/api/resources/res-123/requests', () => {
+          return new HttpResponse(null, { status: 500 });
         }),
       );
 
@@ -678,15 +676,15 @@ describe('VcfAutomationService', () => {
 
     it('should fetch standalone VM status', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn-123/apis/vmoperator.vmware.com/v1alpha3/namespaces/test-ns/virtualmachines/test-vm', (_req, res, ctx) => {
-          return res(ctx.json({ 
+        http.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn-123/apis/vmoperator.vmware.com/v1alpha3/namespaces/test-ns/virtualmachines/test-vm', () => {
+          return HttpResponse.json({ 
             metadata: { name: 'test-vm' }, 
             spec: { powerState: 'PoweredOn' },
             status: { powerState: 'PoweredOn' }
-          }));
+          });
         }),
       );
 
@@ -698,11 +696,11 @@ describe('VcfAutomationService', () => {
 
     it('should return error on failure', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn-123/apis/vmoperator.vmware.com/v1alpha3/namespaces/test-ns/virtualmachines/test-vm', (_req, res, ctx) => {
-          return res(ctx.status(500));
+        http.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn-123/apis/vmoperator.vmware.com/v1alpha3/namespaces/test-ns/virtualmachines/test-vm', () => {
+          return new HttpResponse(null, { status: 500 });
         }),
       );
 
@@ -728,14 +726,14 @@ describe('VcfAutomationService', () => {
 
     it('should execute standalone VM PoweredOn action', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.put('http://vcf.example.com/proxy/k8s/namespaces/ns-urn-123/apis/vmoperator.vmware.com/v1alpha3/namespaces/test-ns/virtualmachines/test-vm', (_req, res, ctx) => {
-          return res(ctx.json({ 
+        http.put('http://vcf.example.com/proxy/k8s/namespaces/ns-urn-123/apis/vmoperator.vmware.com/v1alpha3/namespaces/test-ns/virtualmachines/test-vm', () => {
+          return HttpResponse.json({ 
             metadata: { name: 'test-vm' }, 
             spec: { powerState: 'PoweredOn' }
-          }));
+          });
         }),
       );
 
@@ -748,14 +746,14 @@ describe('VcfAutomationService', () => {
 
     it('should execute standalone VM PoweredOff action', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.put('http://vcf.example.com/proxy/k8s/namespaces/ns-urn-123/apis/vmoperator.vmware.com/v1alpha3/namespaces/test-ns/virtualmachines/test-vm', (_req, res, ctx) => {
-          return res(ctx.json({ 
+        http.put('http://vcf.example.com/proxy/k8s/namespaces/ns-urn-123/apis/vmoperator.vmware.com/v1alpha3/namespaces/test-ns/virtualmachines/test-vm', () => {
+          return HttpResponse.json({ 
             metadata: { name: 'test-vm' }, 
             spec: { powerState: 'PoweredOff' }
-          }));
+          });
         }),
       );
 
@@ -768,11 +766,11 @@ describe('VcfAutomationService', () => {
 
     it('should return error on failure', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.put('http://vcf.example.com/proxy/k8s/namespaces/ns-urn-123/apis/vmoperator.vmware.com/v1alpha3/namespaces/test-ns/virtualmachines/test-vm', (_req, res, ctx) => {
-          return res(ctx.status(500));
+        http.put('http://vcf.example.com/proxy/k8s/namespaces/ns-urn-123/apis/vmoperator.vmware.com/v1alpha3/namespaces/test-ns/virtualmachines/test-vm', () => {
+          return new HttpResponse(null, { status: 500 });
         }),
       );
 
@@ -799,15 +797,15 @@ describe('VcfAutomationService', () => {
 
     it('should fetch supervisor resource manifest with group API version', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/apis/vmoperator.vmware.com/v1alpha3/namespaces/test-ns/virtualmachines/test-vm', (_req, res, ctx) => {
-          return res(ctx.json({ 
+        http.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/apis/vmoperator.vmware.com/v1alpha3/namespaces/test-ns/virtualmachines/test-vm', () => {
+          return HttpResponse.json({ 
             apiVersion: 'vmoperator.vmware.com/v1alpha3',
             kind: 'VirtualMachine',
             metadata: { name: 'test-vm' }
-          }));
+          });
         }),
       );
 
@@ -819,15 +817,15 @@ describe('VcfAutomationService', () => {
 
     it('should fetch supervisor resource manifest with core API version', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/api/v1/namespaces/test-ns/pods/test-pod', (_req, res, ctx) => {
-          return res(ctx.json({ 
+        http.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/api/v1/namespaces/test-ns/pods/test-pod', () => {
+          return HttpResponse.json({ 
             apiVersion: 'v1',
             kind: 'Pod',
             metadata: { name: 'test-pod' }
-          }));
+          });
         }),
       );
 
@@ -839,11 +837,11 @@ describe('VcfAutomationService', () => {
 
     it('should return error on failure', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/apis/vmoperator.vmware.com/v1alpha3/namespaces/test-ns/virtualmachines/test-vm', (_req, res, ctx) => {
-          return res(ctx.status(500));
+        http.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/apis/vmoperator.vmware.com/v1alpha3/namespaces/test-ns/virtualmachines/test-vm', () => {
+          return new HttpResponse(null, { status: 500 });
         }),
       );
 
@@ -869,16 +867,16 @@ describe('VcfAutomationService', () => {
 
     it('should update supervisor resource manifest', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.put('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/apis/vmoperator.vmware.com/v1alpha3/namespaces/test-ns/virtualmachines/test-vm', (_req, res, ctx) => {
-          return res(ctx.json({ 
+        http.put('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/apis/vmoperator.vmware.com/v1alpha3/namespaces/test-ns/virtualmachines/test-vm', () => {
+          return HttpResponse.json({ 
             apiVersion: 'vmoperator.vmware.com/v1alpha3',
             kind: 'VirtualMachine',
             metadata: { name: 'test-vm' },
             spec: { replicas: 2 }
-          }));
+          });
         }),
       );
 
@@ -896,16 +894,16 @@ describe('VcfAutomationService', () => {
 
     it('should update core API resources', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.put('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/api/v1/namespaces/test-ns/configmaps/test-cm', (_req, res, ctx) => {
-          return res(ctx.json({ 
+        http.put('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/api/v1/namespaces/test-ns/configmaps/test-cm', () => {
+          return HttpResponse.json({ 
             apiVersion: 'v1',
             kind: 'ConfigMap',
             metadata: { name: 'test-cm' },
             data: { key: 'value' }
-          }));
+          });
         }),
       );
 
@@ -923,11 +921,11 @@ describe('VcfAutomationService', () => {
 
     it('should return error on failure', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.put('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/apis/vmoperator.vmware.com/v1alpha3/namespaces/test-ns/virtualmachines/test-vm', (_req, res, ctx) => {
-          return res(ctx.status(500));
+        http.put('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/apis/vmoperator.vmware.com/v1alpha3/namespaces/test-ns/virtualmachines/test-vm', () => {
+          return new HttpResponse(null, { status: 500 });
         }),
       );
 
@@ -954,11 +952,11 @@ describe('VcfAutomationService', () => {
 
     it('should return error on getDeploymentDetails failure', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/deployment/api/deployments/dep-123', (_req, res, ctx) => {
-          return res(ctx.status(500));
+        http.get('http://vcf.example.com/deployment/api/deployments/dep-123', () => {
+          return new HttpResponse(null, { status: 500 });
         }),
       );
 
@@ -970,11 +968,11 @@ describe('VcfAutomationService', () => {
 
     it('should return error on getDeploymentEvents failure', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/deployment/api/deployments/dep-123/userEvents', (_req, res, ctx) => {
-          return res(ctx.status(500));
+        http.get('http://vcf.example.com/deployment/api/deployments/dep-123/userEvents', () => {
+          return new HttpResponse(null, { status: 500 });
         }),
       );
 
@@ -986,11 +984,11 @@ describe('VcfAutomationService', () => {
 
     it('should return error on getResourceDetails failure', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/deployment/api/deployments/dep-123/resources/res-456', (_req, res, ctx) => {
-          return res(ctx.status(500));
+        http.get('http://vcf.example.com/deployment/api/deployments/dep-123/resources/res-456', () => {
+          return new HttpResponse(null, { status: 500 });
         }),
       );
 
@@ -1002,11 +1000,11 @@ describe('VcfAutomationService', () => {
 
     it('should return error on getProjectDetails failure', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/iaas/api/projects/proj-123', (_req, res, ctx) => {
-          return res(ctx.status(500));
+        http.get('http://vcf.example.com/iaas/api/projects/proj-123', () => {
+          return new HttpResponse(null, { status: 500 });
         }),
       );
 
@@ -1018,11 +1016,11 @@ describe('VcfAutomationService', () => {
 
     it('should return error on getProjects failure', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/iaas/api/projects', (_req, res, ctx) => {
-          return res(ctx.status(500));
+        http.get('http://vcf.example.com/iaas/api/projects', () => {
+          return new HttpResponse(null, { status: 500 });
         }),
       );
 
@@ -1034,11 +1032,11 @@ describe('VcfAutomationService', () => {
 
     it('should return error on getDeployments failure', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/deployment/api/deployments', (_req, res, ctx) => {
-          return res(ctx.status(500));
+        http.get('http://vcf.example.com/deployment/api/deployments', () => {
+          return new HttpResponse(null, { status: 500 });
         }),
       );
 
@@ -1050,11 +1048,11 @@ describe('VcfAutomationService', () => {
 
     it('should return error on getDeploymentResources failure', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/deployment/api/deployments/dep-123/resources', (_req, res, ctx) => {
-          return res(ctx.status(500));
+        http.get('http://vcf.example.com/deployment/api/deployments/dep-123/resources', () => {
+          return new HttpResponse(null, { status: 500 });
         }),
       );
 
@@ -1066,11 +1064,11 @@ describe('VcfAutomationService', () => {
 
     it('should return error on getSupervisorResources failure', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/deployment/api/supervisor-resources', (_req, res, ctx) => {
-          return res(ctx.status(500));
+        http.get('http://vcf.example.com/deployment/api/supervisor-resources', () => {
+          return new HttpResponse(null, { status: 500 });
         }),
       );
 
@@ -1082,11 +1080,11 @@ describe('VcfAutomationService', () => {
 
     it('should return error on getSupervisorResource failure', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/deployment/api/supervisor-resources/res-123', (_req, res, ctx) => {
-          return res(ctx.status(500));
+        http.get('http://vcf.example.com/deployment/api/supervisor-resources/res-123', () => {
+          return new HttpResponse(null, { status: 500 });
         }),
       );
 
@@ -1098,11 +1096,11 @@ describe('VcfAutomationService', () => {
 
     it('should return error on getSupervisorNamespaces failure', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/cci/kubernetes/apis/infrastructure.cci.vmware.com/v1alpha2/supervisornamespaces', (_req, res, ctx) => {
-          return res(ctx.status(500));
+        http.get('http://vcf.example.com/cci/kubernetes/apis/infrastructure.cci.vmware.com/v1alpha2/supervisornamespaces', () => {
+          return new HttpResponse(null, { status: 500 });
         }),
       );
 
@@ -1114,11 +1112,11 @@ describe('VcfAutomationService', () => {
 
     it('should return error on getSupervisorNamespace failure', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/cci/kubernetes/apis/infrastructure.cci.vmware.com/v1alpha2/supervisornamespaces/ns-1', (_req, res, ctx) => {
-          return res(ctx.status(500));
+        http.get('http://vcf.example.com/cci/kubernetes/apis/infrastructure.cci.vmware.com/v1alpha2/supervisornamespaces/ns-1', () => {
+          return new HttpResponse(null, { status: 500 });
         }),
       );
 
@@ -1144,9 +1142,9 @@ describe('VcfAutomationService', () => {
       });
 
       mswServer.use(
-        rest.post('http://vcf9.example.com/cloudapi/1.0.0/sessions', (_req, res, ctx) => {
+        http.post('http://vcf9.example.com/cloudapi/1.0.0/sessions', () => {
           // Return success but without the access token header
-          return res(ctx.json({ token: 'ignored' }));
+          return HttpResponse.json({ token: 'ignored' });
         }),
       );
 
@@ -1173,15 +1171,15 @@ describe('VcfAutomationService', () => {
 
     it('should handle unknown kind with fallback pluralization', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/apis/custom.io/v1/namespaces/test-ns/customthings/test-custom', (_req, res, ctx) => {
-          return res(ctx.json({ 
+        http.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/apis/custom.io/v1/namespaces/test-ns/customthings/test-custom', () => {
+          return HttpResponse.json({ 
             apiVersion: 'custom.io/v1',
             kind: 'CustomThing',
             metadata: { name: 'test-custom' }
-          }));
+          });
         }),
       );
 
@@ -1193,15 +1191,15 @@ describe('VcfAutomationService', () => {
 
     it('should handle TanzuKubernetesCluster kind', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/apis/run.tanzu.vmware.com/v1alpha3/namespaces/test-ns/tanzukubernetesclusters/test-tkc', (_req, res, ctx) => {
-          return res(ctx.json({ 
+        http.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/apis/run.tanzu.vmware.com/v1alpha3/namespaces/test-ns/tanzukubernetesclusters/test-tkc', () => {
+          return HttpResponse.json({ 
             apiVersion: 'run.tanzu.vmware.com/v1alpha3',
             kind: 'TanzuKubernetesCluster',
             metadata: { name: 'test-tkc' }
-          }));
+          });
         }),
       );
 
@@ -1213,15 +1211,15 @@ describe('VcfAutomationService', () => {
 
     it('should handle Service kind', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/api/v1/namespaces/test-ns/services/test-svc', (_req, res, ctx) => {
-          return res(ctx.json({ 
+        http.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/api/v1/namespaces/test-ns/services/test-svc', () => {
+          return HttpResponse.json({ 
             apiVersion: 'v1',
             kind: 'Service',
             metadata: { name: 'test-svc' }
-          }));
+          });
         }),
       );
 
@@ -1233,15 +1231,15 @@ describe('VcfAutomationService', () => {
 
     it('should handle Deployment kind', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/apis/apps/v1/namespaces/test-ns/deployments/test-deploy', (_req, res, ctx) => {
-          return res(ctx.json({ 
+        http.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/apis/apps/v1/namespaces/test-ns/deployments/test-deploy', () => {
+          return HttpResponse.json({ 
             apiVersion: 'apps/v1',
             kind: 'Deployment',
             metadata: { name: 'test-deploy' }
-          }));
+          });
         }),
       );
 
@@ -1253,15 +1251,15 @@ describe('VcfAutomationService', () => {
 
     it('should handle Secret kind', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/api/v1/namespaces/test-ns/secrets/test-secret', (_req, res, ctx) => {
-          return res(ctx.json({ 
+        http.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/api/v1/namespaces/test-ns/secrets/test-secret', () => {
+          return HttpResponse.json({ 
             apiVersion: 'v1',
             kind: 'Secret',
             metadata: { name: 'test-secret' }
-          }));
+          });
         }),
       );
 
@@ -1273,15 +1271,15 @@ describe('VcfAutomationService', () => {
 
     it('should handle Namespace kind', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/api/v1/namespaces/test-ns/namespaces/test-namespace', (_req, res, ctx) => {
-          return res(ctx.json({ 
+        http.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/api/v1/namespaces/test-ns/namespaces/test-namespace', () => {
+          return HttpResponse.json({ 
             apiVersion: 'v1',
             kind: 'Namespace',
             metadata: { name: 'test-namespace' }
-          }));
+          });
         }),
       );
 
@@ -1293,15 +1291,15 @@ describe('VcfAutomationService', () => {
 
     it('should handle Cluster kind', async () => {
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/apis/cluster.x-k8s.io/v1beta1/namespaces/test-ns/clusters/test-cluster', (_req, res, ctx) => {
-          return res(ctx.json({ 
+        http.get('http://vcf.example.com/proxy/k8s/namespaces/ns-urn/apis/cluster.x-k8s.io/v1beta1/namespaces/test-ns/clusters/test-cluster', () => {
+          return HttpResponse.json({ 
             apiVersion: 'cluster.x-k8s.io/v1beta1',
             kind: 'Cluster',
             metadata: { name: 'test-cluster' }
-          }));
+          });
         }),
       );
 
@@ -1328,12 +1326,12 @@ describe('VcfAutomationService', () => {
     it('should reuse valid token across multiple requests', async () => {
       let authCallCount = 0;
       mswServer.use(
-        rest.post('http://vcf.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
+        http.post('http://vcf.example.com/csp/gateway/am/api/login', () => {
           authCallCount++;
-          return res(ctx.json({ cspAuthToken: 'test-token' }));
+          return HttpResponse.json({ cspAuthToken: 'test-token' });
         }),
-        rest.get('http://vcf.example.com/deployment/api/deployments', (_req, res, ctx) => {
-          return res(ctx.json({ content: [] }));
+        http.get('http://vcf.example.com/deployment/api/deployments', () => {
+          return HttpResponse.json({ content: [] });
         }),
       );
 
@@ -1379,11 +1377,11 @@ describe('VcfAutomationService', () => {
 
     it('should use default instance when no instance name provided', async () => {
       mswServer.use(
-        rest.post('http://vcf1.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'token1' }));
+        http.post('http://vcf1.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'token1' });
         }),
-        rest.get('http://vcf1.example.com/deployment/api/deployments', (_req, res, ctx) => {
-          return res(ctx.json({ content: [], instance: 'vcf1' }));
+        http.get('http://vcf1.example.com/deployment/api/deployments', () => {
+          return HttpResponse.json({ content: [], instance: 'vcf1' });
         }),
       );
 
@@ -1395,11 +1393,11 @@ describe('VcfAutomationService', () => {
 
     it('should use specified instance when instance name provided', async () => {
       mswServer.use(
-        rest.post('http://vcf2.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'token2' }));
+        http.post('http://vcf2.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'token2' });
         }),
-        rest.get('http://vcf2.example.com/deployment/api/deployments', (_req, res, ctx) => {
-          return res(ctx.json({ content: [], instance: 'vcf2' }));
+        http.get('http://vcf2.example.com/deployment/api/deployments', () => {
+          return HttpResponse.json({ content: [], instance: 'vcf2' });
         }),
       );
 
@@ -1411,11 +1409,11 @@ describe('VcfAutomationService', () => {
 
     it('should fall back to default instance when specified instance not found', async () => {
       mswServer.use(
-        rest.post('http://vcf1.example.com/csp/gateway/am/api/login', (_req, res, ctx) => {
-          return res(ctx.json({ cspAuthToken: 'token1' }));
+        http.post('http://vcf1.example.com/csp/gateway/am/api/login', () => {
+          return HttpResponse.json({ cspAuthToken: 'token1' });
         }),
-        rest.get('http://vcf1.example.com/deployment/api/deployments', (_req, res, ctx) => {
-          return res(ctx.json({ content: [], instance: 'vcf1' }));
+        http.get('http://vcf1.example.com/deployment/api/deployments', () => {
+          return HttpResponse.json({ content: [], instance: 'vcf1' });
         }),
       );
 
