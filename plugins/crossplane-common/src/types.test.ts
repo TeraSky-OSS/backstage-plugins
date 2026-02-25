@@ -17,8 +17,12 @@ describe('CROSSPLANE_BACKEND_ROUTES', () => {
     expect(CROSSPLANE_BACKEND_ROUTES.getV2ResourceGraph).toBe('/v2/graph');
   });
 
-  it('should have exactly 4 routes', () => {
-    expect(Object.keys(CROSSPLANE_BACKEND_ROUTES)).toHaveLength(4);
+  it('should export getManagedResourceDefinitions route', () => {
+    expect(CROSSPLANE_BACKEND_ROUTES.getManagedResourceDefinitions).toBe('/managed-resource-definitions');
+  });
+
+  it('should have exactly 5 routes', () => {
+    expect(Object.keys(CROSSPLANE_BACKEND_ROUTES)).toHaveLength(5);
   });
 });
 

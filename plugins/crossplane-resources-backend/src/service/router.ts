@@ -9,6 +9,7 @@ import {
   showEventsClaimsPermission,
   showEventsCompositeResourcesPermission,
   showEventsManagedResourcesPermission,
+  listManagedResourceDefinitionsPermission,
 } from '@terasky/backstage-plugin-crossplane-common';
 
 export interface RouterOptions {
@@ -175,6 +176,31 @@ export async function createRouter(
       scope: scope as 'Namespaced' | 'Cluster',
     });
     res.json(graph);
+  });
+
+  router.get('/managed-resource-definitions', async (req, res) => {
+    const credentials = await auth.getOwnServiceCredentials();
+    const authorized = await permissions.authorize(
+      [{ permission: listManagedResourceDefinitionsPermission }],
+      { credentials },
+    );
+
+    if (authorized.some(a => a.result !== 'ALLOW')) {
+      res.status(403).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const { clusterName, providerName } = req.query;
+    if (!clusterName || typeof clusterName !== 'string') {
+      res.status(400).json({ error: 'Missing required query parameter: clusterName' });
+      return;
+    }
+
+    const result = await kubernetesService.getManagedResourceDefinitions(
+      clusterName,
+      typeof providerName === 'string' ? providerName : undefined,
+    );
+    res.json(result);
   });
 
   return router;

@@ -93,4 +93,14 @@ export const showOverview = createPermission({
   attributes: { action: 'read' },
 });
 
-export const crossplanePermissions = [showOverview, showEventsAdditionalResourcesPermission, viewYamlAdditionalResourcesPermission, listAdditionalResourcesPermission, showResourceGraph, showEventsManagedResourcesPermission, viewYamlManagedResourcesPermission, listManagedResourcesPermission, showEventsCompositeResourcesPermission, viewYamlCompositeResourcesPermission, listCompositeResourcesPermission, showEventsClaimsPermission, viewYamlClaimsPermission, listClaimsPermission];
+export const listManagedResourceDefinitionsPermission = createPermission({
+  name: 'crossplane.managed-resource-definitions.list',
+  attributes: { action: 'read' },
+});
+
+export const viewYamlManagedResourceDefinitionsPermission = createPermission({
+  name: 'crossplane.managed-resource-definitions.view-yaml',
+  attributes: { action: 'read' },
+});
+
+export const crossplanePermissions = [showOverview, showEventsAdditionalResourcesPermission, viewYamlAdditionalResourcesPermission, listAdditionalResourcesPermission, showResourceGraph, showEventsManagedResourcesPermission, viewYamlManagedResourcesPermission, listManagedResourcesPermission, showEventsCompositeResourcesPermission, viewYamlCompositeResourcesPermission, listCompositeResourcesPermission, showEventsClaimsPermission, viewYamlClaimsPermission, listClaimsPermission, listManagedResourceDefinitionsPermission, viewYamlManagedResourceDefinitionsPermission];

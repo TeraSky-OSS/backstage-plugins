@@ -6,6 +6,7 @@ import {
 } from '@backstage/frontend-plugin-api';
 import { EntityCardBlueprint, EntityContentBlueprint } from '@backstage/plugin-catalog-react/alpha';
 import { isCrossplaneAvailable } from './components/isCrossplaneAvailable';
+import { isCrossplaneProviderEntity } from './components/isCrossplaneProviderEntity';
 import { CrossplaneApiClient, crossplaneApiRef } from './api/CrossplaneApi';
 /** @alpha */
 export const crossplaneResourcesPlugin = createFrontendPlugin({
@@ -37,6 +38,24 @@ export const crossplaneResourcesPlugin = createFrontendPlugin({
         path: '/crossplane-resources-graph',
         title: 'Resources Graph',
         loader: () => import('./components/CrossplaneResourceGraphSelector').then(m => <m.default />),
+      },
+      disabled: false,
+    }),
+    EntityCardBlueprint.make({
+      name: 'crossplane.mrd-overview',
+      params: {
+        filter: isCrossplaneProviderEntity,
+        loader: () => import('./components/CrossplaneMrdCard').then(m => <m.default />),
+      },
+      disabled: false,
+    }),
+    EntityContentBlueprint.make({
+      name: 'crossplane.mrd',
+      params: {
+        filter: isCrossplaneProviderEntity,
+        path: '/crossplane-mrd',
+        title: 'Managed Resource Definitions',
+        loader: () => import('./components/CrossplaneMrdContent').then(m => <m.default />),
       },
       disabled: false,
     }),

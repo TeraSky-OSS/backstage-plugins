@@ -7,6 +7,7 @@ import {
   CrossplaneResourceListResponse,
   CrossplaneEventsResponse,
   CrossplaneResourceGraphResponse,
+  ManagedResourceDefinitionListResponse,
   CROSSPLANE_BACKEND_ROUTES,
 } from '@terasky/backstage-plugin-crossplane-common';
 
@@ -15,6 +16,10 @@ export interface CrossplaneApi {
   getEvents(request: GetEventsRequest): Promise<CrossplaneEventsResponse>;
   getResourceGraph(request: GetResourceGraphRequest): Promise<CrossplaneResourceGraphResponse>;
   getV2ResourceGraph(request: GetV2ResourceGraphRequest): Promise<CrossplaneResourceGraphResponse>;
+  getManagedResourceDefinitions(
+    clusterName: string,
+    providerName?: string,
+  ): Promise<ManagedResourceDefinitionListResponse>;
 }
 
 export const crossplaneApiRef = createApiRef<CrossplaneApi>({
@@ -87,5 +92,18 @@ export class CrossplaneApiClient implements CrossplaneApi {
     });
 
     return this.fetch(`${CROSSPLANE_BACKEND_ROUTES.getV2ResourceGraph}?${params.toString()}`);
+  }
+
+  async getManagedResourceDefinitions(
+    clusterName: string,
+    providerName?: string,
+  ): Promise<ManagedResourceDefinitionListResponse> {
+    const params = new URLSearchParams({ clusterName });
+    if (providerName) {
+      params.set('providerName', providerName);
+    }
+    return this.fetch(
+      `${CROSSPLANE_BACKEND_ROUTES.getManagedResourceDefinitions}?${params.toString()}`,
+    );
   }
 }

@@ -9,6 +9,8 @@ import {
   CrossplaneResourceListResponse,
   CrossplaneEventsResponse,
   CrossplaneResourceGraphResponse,
+  ManagedResourceDefinition,
+  ManagedResourceDefinitionListResponse,
 } from '@terasky/backstage-plugin-crossplane-common';
 import fetch from 'node-fetch';
 import pluralize from 'pluralize';
@@ -623,6 +625,50 @@ export class KubernetesService {
       return { resources };
     } catch (error) {
       this.logger.error(`Failed to fetch resources for graph: ${error}`);
+      throw error;
+    }
+  }
+
+  async getManagedResourceDefinitions(
+    clusterName: string,
+    providerName?: string,
+  ): Promise<ManagedResourceDefinitionListResponse> {
+    try {
+      const response = await this.proxyKubernetesRequest(
+        clusterName,
+        '/apis/apiextensions.crossplane.io/v1alpha1/managedresourcedefinitions',
+      );
+
+      let items: ManagedResourceDefinition[] = response.items || [];
+
+      if (providerName) {
+        items = items.filter((item: ManagedResourceDefinition) =>
+          item.metadata?.ownerReferences?.some(
+            ref => ref.kind === 'Provider' && ref.name === providerName,
+          ),
+        );
+      }
+
+      const namespacedCount = items.filter(
+        (item: ManagedResourceDefinition) => item.spec?.scope === 'Namespaced',
+      ).length;
+      const clusterScopedCount = items.filter(
+        (item: ManagedResourceDefinition) => item.spec?.scope === 'Cluster',
+      ).length;
+      const activeCount = items.filter(
+        (item: ManagedResourceDefinition) => item.spec?.state === 'Active',
+      ).length;
+      const inactiveCount = items.filter(
+        (item: ManagedResourceDefinition) => item.spec?.state === 'Inactive',
+      ).length;
+
+      this.logger.info(
+        `Returning ${items.length} ManagedResourceDefinitions for cluster ${clusterName}`,
+      );
+
+      return { items, namespacedCount, clusterScopedCount, activeCount, inactiveCount };
+    } catch (error) {
+      this.logger.error(`Failed to fetch ManagedResourceDefinitions: ${error}`);
       throw error;
     }
   }
