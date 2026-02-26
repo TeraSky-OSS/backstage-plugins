@@ -1685,7 +1685,13 @@ describe('KubernetesEntityProvider', () => {
             name: 'test-deployment',
             namespace: 'default',
             annotations: {
-              'terasky.backstage.io/backstage-tags': 'team:Platform\nEnv:Prod-1\nDotEnv:Dev.1\n',
+              // include a couple of entries that sanitize to empty keys/values and should be ignored
+            'terasky.backstage.io/backstage-tags':
+              'team:Platform\n' +   // valid entry with uppercase and special char in value to test sanitization
+              'Env:Prod-1\n' +      // keys and values should be sanitized to lowercase and special chars replaced with dashes
+              'DotEnv:Dev.1\n' +    // value with dot should be sanitized to "dotenv:dev-1"
+              '!!!:shouldDrop\n' +  // key "!!!" becomes empty after sanitize
+              'badkey:!!!\n',       // value "!!!" becomes empty after sanitize
             },
           },
           spec: {},
@@ -1695,7 +1701,13 @@ describe('KubernetesEntityProvider', () => {
         const entities = await (provider as any).translateKubernetesObjectsToEntities(mockResource);
         const comp = entities.find((e: any) => e.kind === 'Component');
         expect(comp).toBeDefined();
-        expect(comp.metadata.tags).toEqual(expect.arrayContaining(['team:platform', 'env:prod-1', 'dotenv:dev-1']));
+        expect(comp.metadata.tags).toEqual(
+          expect.arrayContaining(['team:platform', 'env:prod-1', 'dotenv:dev-1']),
+        );
+        // the malformed entries should have been dropped completely
+        expect(comp.metadata.tags).not.toEqual(
+          expect.arrayContaining(['shoulddrop', 'badkey:']),
+        );
       });
 
       it('extracts backstage-tag annotations for Crossplane claims', async () => {

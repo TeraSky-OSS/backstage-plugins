@@ -3372,9 +3372,16 @@ export class KubernetesEntityProvider implements EntityProvider {
       return acc;
     }, {});
 
-    return Object.entries(parsed).map(([k, v]) =>
-      `${sanitize(k)}:${sanitize(v)}`.substring(0, 63).replace(/-+$/g, ''),
-    ).filter(Boolean);
+    return Object.entries(parsed)
+      .map(([k, v]) => {
+        const sanitizedKey = sanitize(k);
+        const sanitizedValue = sanitize(v);
+        if (!sanitizedKey || !sanitizedValue) return '';
+        return `${sanitizedKey}:${sanitizedValue}`
+          .substring(0, 63)
+          .replace(/-+$/g, '');
+      })
+      .filter((tag): tag is string => Boolean(tag && tag.includes(':')));
   }
 
   private getAnnotationPrefix(): string {
