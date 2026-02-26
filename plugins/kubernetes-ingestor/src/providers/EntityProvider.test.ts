@@ -1685,9 +1685,7 @@ describe('KubernetesEntityProvider', () => {
             name: 'test-deployment',
             namespace: 'default',
             annotations: {
-              'terasky.backstage.io/backstage-tag-team': 'Platform',
-              'terasky.backstage.io/backstage-tag-Env': 'Prod-1',
-              'terasky.backstage.io/backstage-tag-DotEnv': 'Dev.1',
+              'terasky.backstage.io/backstage-tags': 'team:Platform\nEnv:Prod-1\nDotEnv:Dev.1\n',
             },
           },
           spec: {},
@@ -1715,7 +1713,7 @@ describe('KubernetesEntityProvider', () => {
             name: 'my-db',
             namespace: 'production',
             annotations: {
-              'terasky.backstage.io/backstage-tag-owner': 'DBTeam',
+              'terasky.backstage.io/backstage-tags': 'owner:DBTeam',
             },
           },
           spec: {
@@ -1754,10 +1752,10 @@ describe('KubernetesEntityProvider', () => {
         const mockXR = {
           apiVersion: 'database.example.com/v1alpha1',
           kind: 'XPostgreSQLInstance',
-          metadata: {
+            metadata: {
             name: 'my-db-abc123',
             annotations: {
-              'terasky.backstage.io/backstage-tag-tier': 'gold',
+              'terasky.backstage.io/backstage-tags': 'tier:gold',
             },
           },
           spec: {},
@@ -1810,7 +1808,7 @@ describe('KubernetesEntityProvider', () => {
             namespace: 'apps',
             uid: 'k1',
             labels: { 'kro.run/resource-graph-definition-id': 'webapp-rgd' },
-            annotations: { 'terasky.backstage.io/backstage-tag-zone': 'eu-west' },
+            annotations: { 'terasky.backstage.io/backstage-tags': 'zone:eu-west' },
           },
           spec: {},
           clusterName: 'test-cluster',

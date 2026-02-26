@@ -3354,22 +3354,27 @@ export class KubernetesEntityProvider implements EntityProvider {
 
   private extractCustomTags(metadata: any): string[] {
     const prefix = this.getAnnotationPrefix();
-    const TAG_PREFIX = `${prefix}/backstage-tag-`;
-    const tags: string[] = [];
     const annotations = metadata.annotations || {};
-    Object.entries(annotations).forEach(([key, value]) => {
-      if (key.startsWith(TAG_PREFIX)) {
-        const cleanKey = key.slice(TAG_PREFIX.length);
-        const sanitize = (s: string) => s.toLowerCase()
-          .replace(/[^a-z0-9+#]+/g, '-')
-          .replace(/^-+|-+$/g, '');
-        const tag = `${sanitize(cleanKey)}:${sanitize(String(value))}`
-          .substring(0, 63)
-          .replace(/-+$/g, '');
-        if (tag) tags.push(tag);
+    const tagsKey = `${prefix}/backstage-tags`;
+    const sanitize = (s: string) => s.toLowerCase()
+      .replace(/[^a-z0-9+#]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+
+    if (!annotations[tagsKey]) return [];
+
+    const parsed = (splitAnnotationValues(annotations[tagsKey]) || []).reduce((acc: Record<string, string>, pair) => {
+      const separatorIndex = pair.indexOf(':');
+      if (separatorIndex !== -1) {
+        const key = pair.substring(0, separatorIndex).trim();
+        const value = pair.substring(separatorIndex + 1).trim();
+        if (key && value) acc[key] = value;
       }
-    });
-    return tags;
+      return acc;
+    }, {});
+
+    return Object.entries(parsed).map(([k, v]) =>
+      `${sanitize(k)}:${sanitize(v)}`.substring(0, 63).replace(/-+$/g, ''),
+    ).filter(Boolean);
   }
 
   private getAnnotationPrefix(): string {
