@@ -92,8 +92,11 @@ Workload Resource Annotations:
   terasky.backstage.io/providesApis: string           # comma or newline separated
   terasky.backstage.io/consumesApis: string           # comma or newline separated
   terasky.backstage.io/component-annotations: string  # comma or newline separated (key=value)
-  terasky.backstage.io/links: string                  # JSON array. Each element must match: { "url": string, "title"?: string, "icon"?: string }
-                                                      #   Example: [{"url": "https://docs.example.com", "title": "Docs"}]
+  terasky.backstage.io/links: string                  # JSON array. Each element must match: { "url": string, "title"?: string, "icon"?: string, "type"?: string }
+                                                      #   Example: [{"url": "https://docs.example.com", "title": "Docs", "type": "external"}]
+  terasky.backstage.io/backstage-tags: string         # comma- or newline-separated list of key:value pairs
+                                                      #   used to populate `metadata.tags` on the resulting entity
+                                                      #   supports YAML literal block `|` as well
   terasky.backstage.io/title: string
   terasky.backstage.io/name: string
   terasky.backstage.io/description: string
