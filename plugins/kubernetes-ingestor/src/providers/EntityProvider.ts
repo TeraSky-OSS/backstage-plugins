@@ -2486,6 +2486,7 @@ export class KubernetesEntityProvider implements EntityProvider {
 
     // Add ArgoCD app name if present
     const argoAnnotations = this.extractArgoAppName(annotations);
+    const customTags = this.extractCustomTags(resource.metadata);
 
     // Add the Kubernetes label selector annotation if present
     if (!annotations[`${prefix}/kubernetes-label-selector`]) {
@@ -2628,7 +2629,7 @@ export class KubernetesEntityProvider implements EntityProvider {
             'backstage.io/kubernetes-namespace': resource.metadata.namespace,
           } : {})
         },
-        tags: [`cluster:${normalizedClusterName}`, `kind:${resource.kind?.toLowerCase()}`],
+        tags: [`cluster:${normalizedClusterName}`, `kind:${resource.kind?.toLowerCase()}`, ...customTags],
       },
       spec: {
         type: annotations[`${prefix}/component-type`] || resource.workloadType || 'service',
@@ -2706,6 +2707,7 @@ export class KubernetesEntityProvider implements EntityProvider {
 
     const resourceAnnotations = claim.metadata.annotations || {};
     const customAnnotations = this.extractCustomAnnotations(resourceAnnotations, clusterName);
+    const customTags = this.extractCustomTags(claim.metadata);
 
     // Add ArgoCD app name if present
     const argoAnnotations = this.extractArgoAppName(resourceAnnotations);
@@ -2817,7 +2819,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         name: componentName,
         title: annotations[`${prefix}/title`] || titleValue,
         description: annotations[`${prefix}/description`] || `${crKind} ${claim.metadata.name} from ${claim.clusterName}`,
-        tags: [`cluster:${normalizedClusterName}`, `kind:${crKind.toLowerCase()}`],
+        tags: [`cluster:${normalizedClusterName}`, `kind:${crKind.toLowerCase()}`, ...customTags],
         namespace: componentNamespace,
         links: this.parseBackstageLinks(claim.metadata.annotations || {}),
         annotations: {
@@ -2904,6 +2906,7 @@ export class KubernetesEntityProvider implements EntityProvider {
 
     const resourceAnnotations = instance.metadata.annotations || {};
     const customAnnotations = this.extractCustomAnnotations(resourceAnnotations, clusterName);
+    const customTags = this.extractCustomTags(instance.metadata);
 
     // Add ArgoCD app name if present
     const argoAnnotations = this.extractArgoAppName(resourceAnnotations);
@@ -3015,7 +3018,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         name: componentName,
         title: annotations[`${prefix}/title`] || titleValue,
         description: annotations[`${prefix}/description`] || `${instance.kind} ${instance.metadata.name} from ${instance.clusterName}`,
-        tags: [`cluster:${normalizedClusterName}`, `kind:${instance.kind?.toLowerCase()}`],
+        tags: [`cluster:${normalizedClusterName}`, `kind:${instance.kind?.toLowerCase()}`, ...customTags],
         namespace: componentNamespace,
         links: this.parseBackstageLinks(instance.metadata.annotations || {}),
         annotations: {
@@ -3102,6 +3105,7 @@ export class KubernetesEntityProvider implements EntityProvider {
 
     const resourceAnnotations = xr.metadata.annotations || {};
     const customAnnotations = this.extractCustomAnnotations(resourceAnnotations, clusterName);
+    const customTags = this.extractCustomTags(xr.metadata);
 
     // Add ArgoCD app name if present
     const argoAnnotations = this.extractArgoAppName(resourceAnnotations);
@@ -3213,7 +3217,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         name: componentName,
         title: annotations[`${prefix}/title`] || titleValue,
         description: annotations[`${prefix}/description`] || `${kind} ${xr.metadata.name} from ${xr.clusterName}`,
-        tags: [`cluster:${normalizedClusterName}`, `kind:${kind.toLowerCase()}`],
+        tags: [`cluster:${normalizedClusterName}`, `kind:${kind.toLowerCase()}`, ...customTags],
         namespace: componentNamespace,
         links: this.parseBackstageLinks(xr.metadata.annotations || {}),
         annotations: {
@@ -3346,6 +3350,38 @@ export class KubernetesEntityProvider implements EntityProvider {
     }, defaultAnnotations);
     
     return customAnnotations;
+  }
+
+  private extractCustomTags(metadata: any): string[] {
+    const prefix = this.getAnnotationPrefix();
+    const annotations = metadata.annotations || {};
+    const tagsKey = `${prefix}/backstage-tags`;
+    const sanitize = (s: string) => s.toLowerCase()
+      .replace(/[^a-z0-9+#]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+
+    if (!annotations[tagsKey]) return [];
+
+    const parsed = (splitAnnotationValues(annotations[tagsKey]) || []).reduce((acc: Record<string, string>, pair) => {
+      const separatorIndex = pair.indexOf(':');
+      if (separatorIndex !== -1) {
+        const key = pair.substring(0, separatorIndex).trim();
+        const value = pair.substring(separatorIndex + 1).trim();
+        if (key && value) acc[key] = value;
+      }
+      return acc;
+    }, {});
+
+    return Object.entries(parsed)
+      .map(([k, v]) => {
+        const sanitizedKey = sanitize(k);
+        const sanitizedValue = sanitize(v);
+        if (!sanitizedKey || !sanitizedValue) return '';
+        return `${sanitizedKey}:${sanitizedValue}`
+          .substring(0, 63)
+          .replace(/-+$/g, '');
+      })
+      .filter((tag): tag is string => Boolean(tag && tag.includes(':')));
   }
 
   private getAnnotationPrefix(): string {
