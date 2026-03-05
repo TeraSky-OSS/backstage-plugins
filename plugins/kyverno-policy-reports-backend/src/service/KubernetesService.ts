@@ -54,7 +54,9 @@ export class KubernetesService {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch Kubernetes resources: ${response.statusText}`);
+      const err = new Error(`Failed to fetch Kubernetes resources: ${response.statusText}`) as Error & { statusCode: number };
+      err.statusCode = response.status;
+      throw err;
     }
 
     return await response.json();
@@ -104,7 +106,9 @@ export class KubernetesService {
               );
               reports.push({ ...report, clusterName });
             } catch (error) {
-              this.logger.error(`Failed to fetch policy report for ${uid}: ${error}`);
+              if ((error as any)?.statusCode !== 404) {
+                this.logger.error(`Failed to fetch policy report for ${uid}: ${error}`);
+              }
             }
           }
         }
@@ -235,7 +239,9 @@ export class KubernetesService {
           const report = await this.proxyKubernetesRequest(cluster, reportUrl);
           reports.push({ ...report, clusterName: cluster });
         } catch (error) {
-          this.logger.error(`Failed to fetch policy report for ${uid}: ${error}`);
+          if ((error as any)?.statusCode !== 404) {
+            this.logger.error(`Failed to fetch policy report for ${uid}: ${error}`);
+          }
         }
       }
 
