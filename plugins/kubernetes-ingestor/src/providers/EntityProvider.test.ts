@@ -1668,6 +1668,177 @@ describe('KubernetesEntityProvider', () => {
         expect(componentEntity.spec.owner).toContain('kubernetes-auto-ingested');
       });
     });
+
+    describe('custom backstage tags', () => {
+      it('extracts backstage-tag annotations for regular k8s resources', async () => {
+        const provider = new KubernetesEntityProvider(
+          { run: jest.fn() } as any,
+          mockLogger,
+          mockConfig,
+          mockResourceFetcher as any,
+        );
+
+        const mockResource = {
+          apiVersion: 'apps/v1',
+          kind: 'Deployment',
+          metadata: {
+            name: 'test-deployment',
+            namespace: 'default',
+            annotations: {
+              // include a couple of entries that sanitize to empty keys/values and should be ignored
+            'terasky.backstage.io/backstage-tags':
+              'team:Platform\n' +   // valid entry with uppercase and special char in value to test sanitization
+              'Env:Prod-1\n' +      // keys and values should be sanitized to lowercase and special chars replaced with dashes
+              'DotEnv:Dev.1\n' +    // value with dot should be sanitized to "dotenv:dev-1"
+              '!!!:shouldDrop\n' +  // key "!!!" becomes empty after sanitize
+              'badkey:!!!\n',       // value "!!!" becomes empty after sanitize
+            },
+          },
+          spec: {},
+          clusterName: 'test-cluster',
+        };
+
+        const entities = await (provider as any).translateKubernetesObjectsToEntities(mockResource);
+        const comp = entities.find((e: any) => e.kind === 'Component');
+        expect(comp).toBeDefined();
+        expect(comp.metadata.tags).toEqual(
+          expect.arrayContaining(['team:platform', 'env:prod-1', 'dotenv:dev-1']),
+        );
+        // the malformed entries should have been dropped completely
+        expect(comp.metadata.tags).not.toEqual(
+          expect.arrayContaining(['shoulddrop', 'badkey:']),
+        );
+      });
+
+      it('extracts backstage-tag annotations for Crossplane claims', async () => {
+        const provider = new KubernetesEntityProvider(
+          { run: jest.fn() } as any,
+          mockLogger,
+          mockConfig,
+          mockResourceFetcher as any,
+        );
+
+        const mockClaim = {
+          apiVersion: 'database.example.com/v1alpha1',
+          kind: 'PostgreSQLInstance',
+          metadata: {
+            name: 'my-db',
+            namespace: 'production',
+            annotations: {
+              'terasky.backstage.io/backstage-tags': 'owner:DBTeam',
+            },
+          },
+          spec: {
+            resourceRef: {
+              apiVersion: 'database.example.com/v1alpha1',
+              kind: 'XPostgreSQLInstance',
+              name: 'my-db-abc123',
+            },
+          },
+          clusterName: 'test-cluster',
+        };
+
+        const crdMapping = {
+          'PostgreSQLInstance': 'postgresqlinstances',
+          'XPostgreSQLInstance': 'xpostgresqlinstances',
+        };
+
+        const entities = await (provider as any).translateCrossplaneClaimToEntity(
+          mockClaim,
+          'test-cluster',
+          crdMapping,
+        );
+        const comp = entities[0];
+        expect(comp).toBeDefined();
+        expect(comp.metadata.tags).toEqual(expect.arrayContaining(['owner:dbteam']));
+      });
+
+      it('extracts backstage-tag annotations for Crossplane XRs', async () => {
+        const provider = new KubernetesEntityProvider(
+          { run: jest.fn() } as any,
+          mockLogger,
+          mockConfig,
+          mockResourceFetcher as any,
+        );
+
+        const mockXR = {
+          apiVersion: 'database.example.com/v1alpha1',
+          kind: 'XPostgreSQLInstance',
+            metadata: {
+            name: 'my-db-abc123',
+            annotations: {
+              'terasky.backstage.io/backstage-tags': 'tier:gold',
+            },
+          },
+          spec: {},
+          clusterName: 'test-cluster',
+        };
+
+        const compositeKindLookup = {
+          'XPostgreSQLInstance|database.example.com|v1alpha1': {
+            scope: 'Cluster',
+            spec: { names: { plural: 'xpostgresqlinstances' } },
+          },
+        };
+
+        const entities = await (provider as any).translateCrossplaneCompositeToEntity(
+          mockXR,
+          'test-cluster',
+          compositeKindLookup,
+        );
+        const comp = entities[0];
+        expect(comp).toBeDefined();
+        expect(comp.metadata.tags).toEqual(expect.arrayContaining(['tier:gold']));
+      });
+
+      it('extracts backstage-tag annotations for KRO instances', async () => {
+        const kroConfig = new ConfigReader({
+          kubernetesIngestor: {
+            components: { enabled: true },
+            kro: { enabled: true },
+            annotationPrefix: 'terasky.backstage.io',
+          },
+          kubernetes: {
+            clusterLocatorMethods: [
+              { type: 'config', clusters: [{ name: 'test-cluster', url: 'http://k8s.example.com' }] },
+            ],
+          },
+        });
+
+        const provider = new KubernetesEntityProvider(
+          { run: jest.fn() } as any,
+          mockLogger,
+          kroConfig,
+          mockResourceFetcher as any,
+        );
+
+        const instance = {
+          apiVersion: 'app.example.com/v1',
+          kind: 'WebApp',
+          metadata: {
+            name: 'app1',
+            namespace: 'apps',
+            uid: 'k1',
+            labels: { 'kro.run/resource-graph-definition-id': 'webapp-rgd' },
+            annotations: { 'terasky.backstage.io/backstage-tags': 'zone:eu-west' },
+          },
+          spec: {},
+          clusterName: 'test-cluster',
+        };
+
+        const rgd = {
+          'WebApp|app.example.com|v1': {
+            rgd: { metadata: { name: 'webapps' }, spec: { names: { kind: 'WebApp', plural: 'webapps' }, resources: [] } },
+            spec: { names: { kind: 'WebApp', plural: 'webapps' }, group: 'app.example.com', version: 'v1' },
+          },
+        };
+
+        const entities = await (provider as any).translateKROInstanceToEntity(instance, 'test-cluster', rgd);
+        const comp = entities[0];
+        expect(comp).toBeDefined();
+        expect(comp.metadata.tags).toEqual(expect.arrayContaining(['zone:eu-west']));
+      });
+    });
   });
 
   describe('links parsing', () => {
