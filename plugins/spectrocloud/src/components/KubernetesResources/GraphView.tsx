@@ -194,7 +194,7 @@ export const GraphView: React.FC<GraphViewProps> = ({
             id: `${nsNodeId}-${nodeId}`,
             source: nsNodeId,
             target: nodeId,
-            type: 'smoothstep',
+            type: 'default',
             style: { stroke: '#999', strokeWidth: 1.5 },
           });
         }
@@ -214,7 +214,7 @@ export const GraphView: React.FC<GraphViewProps> = ({
                 id: `dep-${nodeId}-${depEntity.metadata.uid}`,
                 source: nodeId,
                 target: depEntity.metadata.uid!,
-                type: 'smoothstep',
+                type: 'default',
                 animated: true,
                 style: { stroke: '#ff9800', strokeWidth: 2 },
                 label: 'depends on',

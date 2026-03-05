@@ -128,21 +128,18 @@ const removeManagedFields = (resource: KubernetesObject) => {
     return orderedResource;
 };
 
-const dagreGraph = new dagre.graphlib.Graph();
-dagreGraph.setDefaultEdgeLabel(() => ({}));
-
 const nodeWidth = 172;
 const nodeHeight = 80;
 
-const getLayoutedElements = (nodes: any[], edges: any[], claimNodeId?: string) => {
-    // Configure dagre with top-down layout first to get better vertical distribution
+const getLayoutedElements = (nodes: any[], edges: any[]) => {
+    const dagreGraph = new dagre.graphlib.Graph();
+    dagreGraph.setDefaultEdgeLabel(() => ({}));
     dagreGraph.setGraph({
         rankdir: 'LR',
-        align: 'UL', // Align to upper-left
-        ranksep: 100, // Horizontal spacing between ranks
-        nodesep: 50,  // Vertical spacing between nodes
+        ranksep: 100,
+        nodesep: 50,
         marginx: 20,
-        marginy: 20
+        marginy: 20,
     });
 
     nodes.forEach((node) => {
@@ -155,64 +152,27 @@ const getLayoutedElements = (nodes: any[], edges: any[], claimNodeId?: string) =
 
     dagre.layout(dagreGraph);
 
-    // Find the bounds of the graph
     let minX = Infinity;
     let minY = Infinity;
 
     nodes.forEach((node) => {
-        const nodeWithPosition = dagreGraph.node(node.id);
-        const x = nodeWithPosition.x - nodeWidth / 2;
-        const y = nodeWithPosition.y - nodeHeight / 2;
-        minX = Math.min(minX, x);
-        minY = Math.min(minY, y);
+        const pos = dagreGraph.node(node.id);
+        minX = Math.min(minX, pos.x - nodeWidth / 2);
+        minY = Math.min(minY, pos.y - nodeHeight / 2);
     });
 
-    // Find the claim node (if specified) or the root node (node with no incoming edges)
-    let rootNodeId = claimNodeId;
-    if (!rootNodeId) {
-        // Find nodes with no incoming edges (potential roots)
-        const nodesWithIncomingEdges = new Set(edges.map(e => e.target));
-        const rootNodes = nodes.filter(n => !nodesWithIncomingEdges.has(n.id));
-
-        // Prefer the claim node if found
-        const claimNode = rootNodes.find(n => n.data.categoryBadge === 'Claim');
-        rootNodeId = claimNode?.id || rootNodes[0]?.id;
-    }
-
-    // Position nodes with offset to start at top-left
-    const offsetX = 50; // Start 50px from left
-    const offsetY = 50; // Start 50px from top
+    const offsetX = 50;
+    const offsetY = 50;
 
     nodes.forEach((node) => {
-        const nodeWithPosition = dagreGraph.node(node.id);
+        const pos = dagreGraph.node(node.id);
         node.targetPosition = 'left';
         node.sourcePosition = 'right';
-
-        // Calculate position relative to minimum bounds
-        const x = nodeWithPosition.x - nodeWidth / 2 - minX + offsetX;
-        const y = nodeWithPosition.y - nodeHeight / 2 - minY + offsetY;
-
-        node.position = { x, y };
+        node.position = {
+            x: pos.x - nodeWidth / 2 - minX + offsetX,
+            y: pos.y - nodeHeight / 2 - minY + offsetY,
+        };
     });
-
-    // If we have a root node, ensure it's at the top-left
-    if (rootNodeId) {
-        const rootNode = nodes.find(n => n.id === rootNodeId);
-        if (rootNode) {
-            // Find the minimum Y position among all nodes at the same X level
-            const rootX = rootNode.position.x;
-            let minYAtRootLevel = rootNode.position.y;
-
-            nodes.forEach(node => {
-                if (Math.abs(node.position.x - rootX) < 10) { // Nodes at approximately the same X
-                    minYAtRootLevel = Math.min(minYAtRootLevel, node.position.y);
-                }
-            });
-
-            // Adjust root node to be at the top
-            rootNode.position.y = minYAtRootLevel;
-        }
-    }
 
     return { nodes, edges };
 };
@@ -565,7 +525,7 @@ const CrossplaneV2ResourceGraph = () => {
                     id: `${owner.uid}-${currentNodeId}`,
                     source: owner.uid,
                     target: currentNodeId,
-                    type: 'smoothstep',
+                    type: 'default',
                     style: {
                         stroke: isErrorEdge ? '#f44336' : '#999',
                         strokeWidth: 1,
@@ -580,7 +540,7 @@ const CrossplaneV2ResourceGraph = () => {
                 id: `${currentNodeId}-${resourceRefUid}`,
                 source: currentNodeId,
                 target: resourceRefUid,
-                type: 'smoothstep',
+                type: 'default',
                 style: {
                     stroke: !nodeReadyStatus.get(resourceRefUid) ? '#f44336' : '#999',
                     strokeWidth: 1,
@@ -792,8 +752,7 @@ const CrossplaneV2ResourceGraph = () => {
             return 0; // maintain original order for same color
         });
 
-        // Pass the claim node ID to the layout function
-        const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(visibleNodes, sortedEdges, claimNodeId);
+        const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(visibleNodes, sortedEdges);
         setNodes(layoutedNodes);
         setEdges(layoutedEdges);
     };

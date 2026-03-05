@@ -120,9 +120,6 @@ const removeManagedFields = (resource: KubernetesObject) => {
     return orderedResource;
 };
 
-const dagreGraph = new dagre.graphlib.Graph();
-dagreGraph.setDefaultEdgeLabel(() => ({}));
-
 const nodeWidth = 200;
 const nodeHeight = 80;
 
@@ -515,14 +512,15 @@ const nodeTypes = {
     custom: CustomNode,
 };
 
-const getLayoutedElements = (nodes: any[], edges: any[], rgdNodeId?: string) => {
+const getLayoutedElements = (nodes: any[], edges: any[]) => {
+  const dagreGraph = new dagre.graphlib.Graph();
+  dagreGraph.setDefaultEdgeLabel(() => ({}));
   dagreGraph.setGraph({
     rankdir: 'LR',
-    align: 'UL',
     ranksep: 100,
     nodesep: 50,
     marginx: 20,
-    marginy: 20
+    marginy: 20,
   });
 
   nodes.forEach((node) => {
@@ -539,50 +537,23 @@ const getLayoutedElements = (nodes: any[], edges: any[], rgdNodeId?: string) => 
   let minY = Infinity;
 
   nodes.forEach((node) => {
-    const nodeWithPosition = dagreGraph.node(node.id);
-    const x = nodeWithPosition.x - nodeWidth / 2;
-    const y = nodeWithPosition.y - nodeHeight / 2;
-    minX = Math.min(minX, x);
-    minY = Math.min(minY, y);
+    const pos = dagreGraph.node(node.id);
+    minX = Math.min(minX, pos.x - nodeWidth / 2);
+    minY = Math.min(minY, pos.y - nodeHeight / 2);
   });
-
-  let rootNodeId = rgdNodeId;
-  if (!rootNodeId) {
-    const nodesWithIncomingEdges = new Set(edges.map(e => e.target));
-    const rootNodes = nodes.filter(n => !nodesWithIncomingEdges.has(n.id));
-    const rgdNode = rootNodes.find(n => n.data.categoryBadge === 'RGD');
-    rootNodeId = rgdNode?.id || rootNodes[0]?.id;
-  }
 
   const offsetX = 50;
   const offsetY = 50;
 
   nodes.forEach((node) => {
-    const nodeWithPosition = dagreGraph.node(node.id);
+    const pos = dagreGraph.node(node.id);
     node.targetPosition = 'left';
     node.sourcePosition = 'right';
-
-    const x = nodeWithPosition.x - nodeWidth / 2 - minX + offsetX;
-    const y = nodeWithPosition.y - nodeHeight / 2 - minY + offsetY;
-
-    node.position = { x, y };
+    node.position = {
+      x: pos.x - nodeWidth / 2 - minX + offsetX,
+      y: pos.y - nodeHeight / 2 - minY + offsetY,
+    };
   });
-
-  if (rootNodeId) {
-    const rootNode = nodes.find(n => n.id === rootNodeId);
-    if (rootNode) {
-      const rootX = rootNode.position.x;
-      let minYAtRootLevel = rootNode.position.y;
-
-      nodes.forEach(node => {
-        if (Math.abs(node.position.x - rootX) < 10) {
-          minYAtRootLevel = Math.min(minYAtRootLevel, node.position.y);
-        }
-      });
-
-      rootNode.position.y = minYAtRootLevel;
-    }
-  }
 
   return { nodes, edges };
 };
@@ -658,7 +629,7 @@ const KroResourceGraph = () => {
         id: `${rgdId}-${crdId}`,
         source: rgdId,
         target: crdId,
-        type: 'smoothstep',
+        type: 'default',
         style: {
           stroke: '#999',
           strokeWidth: 1,
@@ -673,7 +644,7 @@ const KroResourceGraph = () => {
         id: `${crdId}-${instanceId}`,
         source: crdId,
         target: instanceId,
-        type: 'smoothstep',
+        type: 'default',
         style: {
           stroke: '#999',
           strokeWidth: 1,
@@ -700,7 +671,7 @@ const KroResourceGraph = () => {
             id: `${sourceId}-${resourceId}`,
             source: sourceId,
             target: resourceId,
-            type: 'smoothstep',
+            type: 'default',
             style: {
               stroke: isErrorEdge ? '#f44336' : '#999',
               strokeWidth: 1,
@@ -873,7 +844,7 @@ const KroResourceGraph = () => {
       return 0;
     });
 
-    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(visibleNodes, sortedEdges, rgdNodeId);
+    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(visibleNodes, sortedEdges);
         setNodes(layoutedNodes);
         setEdges(layoutedEdges);
     };
@@ -1174,7 +1145,7 @@ const KroResourceGraph = () => {
             preventScrolling={false}
             fitView
             fitViewOptions={{ padding: 0.2 }}
-            defaultEdgeOptions={{ type: 'smoothstep' }}
+            defaultEdgeOptions={{ type: 'default' }}
             nodesDraggable={false}
             nodesConnectable={false}
                 >

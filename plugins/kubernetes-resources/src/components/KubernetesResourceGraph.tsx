@@ -37,13 +37,12 @@ const removeManagedFields = (resource: KubernetesObject) => {
     return resourceCopy;
 };
 
-const dagreGraph = new dagre.graphlib.Graph();
-dagreGraph.setDefaultEdgeLabel(() => ({}));
-
 const nodeWidth = 172;
 const nodeHeight = 36;
 
 const getLayoutedElements = (nodes: any[], edges: any[]) => {
+    const dagreGraph = new dagre.graphlib.Graph();
+    dagreGraph.setDefaultEdgeLabel(() => ({}));
     dagreGraph.setGraph({ rankdir: 'LR' });
 
     nodes.forEach((node) => {
@@ -57,18 +56,13 @@ const getLayoutedElements = (nodes: any[], edges: any[]) => {
     dagre.layout(dagreGraph);
 
     nodes.forEach((node) => {
-        const nodeWithPosition = dagreGraph.node(node.id);
+        const pos = dagreGraph.node(node.id);
         node.targetPosition = 'left';
         node.sourcePosition = 'right';
-
-        // We are shifting the dagre node position (anchor=center center) to the top left
-        // so it matches the React Flow node anchor point (top left).
         node.position = {
-            x: nodeWithPosition.x - nodeWidth / 2,
-            y: nodeWithPosition.y - nodeHeight / 2,
+            x: pos.x - nodeWidth / 2,
+            y: pos.y - nodeHeight / 2,
         };
-
-        return node;
     });
 
     return { nodes, edges };
@@ -193,7 +187,7 @@ const KubernetesResourceGraph = () => {
                     id: `${sourceResource.metadata?.uid}-${targetResource.metadata?.uid}`,
                     source: sourceResource.metadata?.uid || `${sourceResource.kind}-${sourceResource.metadata?.name}`,
                     target: targetResource.metadata?.uid || `${targetResource.kind}-${targetResource.metadata?.name}`,
-                    type: 'smoothstep',
+                    type: 'default',
                     animated: true,
                     style: { stroke: theme.palette.primary.main }
                 }] : [];
