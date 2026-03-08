@@ -50,7 +50,7 @@
     "@backstage/plugin-search-backend-node": "^1.4.1",
     "@backstage/plugin-techdocs-backend": "^2.1.5",
     "@roadiehq/scaffolder-backend-module-utils": "^4.1.2",
-    "@terasky/backstage-plugin-ai-rules-backend": "^1.7.2",
+    "@terasky/backstage-plugin-ai-rules-backend": "^1.8.0",
     "@terasky/backstage-plugin-catalog-mcp-backend": "^0.5.0",
     "@terasky/backstage-plugin-crossplane-resources-backend": "^1.12.1",
     "@terasky/backstage-plugin-educates-backend": "^1.7.1",

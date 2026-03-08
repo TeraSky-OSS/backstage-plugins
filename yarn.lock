@@ -13554,7 +13554,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@terasky/backstage-plugin-ai-rules-backend@npm:^1.7.2, @terasky/backstage-plugin-ai-rules-backend@workspace:plugins/ai-rules-plugin-backend":
+"@terasky/backstage-plugin-ai-rules-backend@npm:^1.8.0, @terasky/backstage-plugin-ai-rules-backend@workspace:plugins/ai-rules-plugin-backend":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-ai-rules-backend@workspace:plugins/ai-rules-plugin-backend"
   dependencies:
@@ -13584,7 +13584,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-ai-rules@npm:^1.6.2, @terasky/backstage-plugin-ai-rules@workspace:plugins/ai-rules-plugin":
+"@terasky/backstage-plugin-ai-rules@npm:^1.7.0, @terasky/backstage-plugin-ai-rules@workspace:plugins/ai-rules-plugin":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-ai-rules@workspace:plugins/ai-rules-plugin"
   dependencies:
@@ -13891,6 +13891,34 @@ __metadata:
     typescript: "npm:^5.8.3"
   peerDependencies:
     react: ^18.2.0
+  languageName: unknown
+  linkType: soft
+
+"@terasky/backstage-plugin-frontend-extensions-explorer@workspace:^, @terasky/backstage-plugin-frontend-extensions-explorer@workspace:plugins/frontend-extensions-explorer":
+  version: 0.0.0-use.local
+  resolution: "@terasky/backstage-plugin-frontend-extensions-explorer@workspace:plugins/frontend-extensions-explorer"
+  dependencies:
+    "@backstage/cli": "npm:^0.35.4"
+    "@backstage/core-app-api": "npm:^1.19.5"
+    "@backstage/core-components": "npm:^0.18.7"
+    "@backstage/core-plugin-api": "npm:^1.12.3"
+    "@backstage/dev-utils": "npm:^1.1.20"
+    "@backstage/frontend-defaults": "npm:^0.4.0"
+    "@backstage/frontend-plugin-api": "npm:^0.14.1"
+    "@backstage/frontend-test-utils": "npm:^0.5.0"
+    "@backstage/test-utils": "npm:^1.7.15"
+    "@backstage/theme": "npm:^0.7.2"
+    "@material-ui/core": "npm:^4.12.4"
+    "@material-ui/icons": "npm:^4.11.3"
+    "@material-ui/lab": "npm:4.0.0-alpha.61"
+    "@testing-library/jest-dom": "npm:^6.0.0"
+    "@testing-library/react": "npm:^14.0.0"
+    "@testing-library/user-event": "npm:^14.0.0"
+    msw: "npm:^2.12.4"
+    typescript: "npm:^5.8.3"
+  peerDependencies:
+    react: ^16.13.1 || ^17.0.0 || ^18.0.0
+    react-dom: ^16.13.1 || ^17.0.0 || ^18.0.0
   languageName: unknown
   linkType: soft
 
@@ -17129,13 +17157,14 @@ __metadata:
     "@material-ui/core": "npm:^4.12.2"
     "@material-ui/icons": "npm:^4.9.1"
     "@playwright/test": "npm:^1.32.3"
-    "@terasky/backstage-plugin-ai-rules": "npm:^1.6.2"
+    "@terasky/backstage-plugin-ai-rules": "npm:^1.7.0"
     "@terasky/backstage-plugin-api-docs-module-crd": "npm:^0.2.2"
     "@terasky/backstage-plugin-app-module-global-signin-page": "npm:^0.5.0"
     "@terasky/backstage-plugin-crossplane-resources-frontend": "npm:^2.14.0"
     "@terasky/backstage-plugin-devpod": "npm:^1.8.2"
     "@terasky/backstage-plugin-educates": "npm:^1.8.2"
     "@terasky/backstage-plugin-entity-scaffolder-content": "npm:^1.7.2"
+    "@terasky/backstage-plugin-frontend-extensions-explorer": "workspace:^"
     "@terasky/backstage-plugin-gitops-manifest-updater": "npm:^2.5.2"
     "@terasky/backstage-plugin-kro-resources-frontend": "npm:^0.10.0"
     "@terasky/backstage-plugin-kubernetes-resources-frontend": "npm:^0.12.0"
@@ -17803,7 +17832,7 @@ __metadata:
     "@backstage/plugin-search-backend-node": "npm:^1.4.1"
     "@backstage/plugin-techdocs-backend": "npm:^2.1.5"
     "@roadiehq/scaffolder-backend-module-utils": "npm:^4.1.2"
-    "@terasky/backstage-plugin-ai-rules-backend": "npm:^1.7.2"
+    "@terasky/backstage-plugin-ai-rules-backend": "npm:^1.8.0"
     "@terasky/backstage-plugin-catalog-mcp-backend": "npm:^0.5.0"
     "@terasky/backstage-plugin-crossplane-resources-backend": "npm:^1.12.1"
     "@terasky/backstage-plugin-educates-backend": "npm:^1.7.1"
