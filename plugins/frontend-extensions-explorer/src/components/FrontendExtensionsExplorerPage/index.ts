@@ -1,0 +1,1 @@
+export { FrontendExtensionsExplorerPage } from './FrontendExtensionsExplorerPage';

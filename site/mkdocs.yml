@@ -217,6 +217,12 @@ nav:
               - About: plugins/signin-page/frontend/about.md
               - Install: plugins/signin-page/frontend/install.md
               - Configure: plugins/signin-page/frontend/configure.md
+      - Frontend Extensions Explorer:
+          - Overview: plugins/frontend-extensions-explorer/overview.md
+          - Frontend:
+              - About: plugins/frontend-extensions-explorer/frontend/about.md
+              - Install: plugins/frontend-extensions-explorer/frontend/install.md
+              - Configure: plugins/frontend-extensions-explorer/frontend/configure.md
 
 theme:
   icon:
