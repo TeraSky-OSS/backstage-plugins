@@ -1695,9 +1695,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage-community/plugin-rbac-backend@npm:^7.7.1":
-  version: 7.7.1
-  resolution: "@backstage-community/plugin-rbac-backend@npm:7.7.1"
+"@backstage-community/plugin-rbac-backend@npm:^7.7.2":
+  version: 7.7.2
+  resolution: "@backstage-community/plugin-rbac-backend@npm:7.7.2"
   dependencies:
     "@backstage-community/plugin-rbac-common": "npm:^1.23.0"
     "@backstage-community/plugin-rbac-node": "npm:^1.17.0"
@@ -1720,9 +1720,9 @@ __metadata:
     knex: "npm:^3.0.0"
     lodash: "npm:^4.17.21"
     typeorm-adapter: "npm:^1.6.1"
-    zod: "npm:^3.22.4"
-    zod-to-json-schema: "npm:^3.24.5"
-  checksum: 10c0/45a79a328c103718e8348ebe3a345ea7b7218472591c5eabd5412952e482ceaf087ff6179af2877d2c37417a09742e92e170ea820dad20c4a13e9edc0569f17f
+    zod: "npm:^3.25.76"
+    zod-to-json-schema: "npm:^3.25.1"
+  checksum: 10c0/34dbfe4fa67a33fcd73b45a38e4f5b7232a2d516ef1cef07eba0632fcbb48ecb37dc0f371584da7db1c2cb3f76310a294b85992984f1a7f8042170bbb78de47c
   languageName: node
   linkType: hard
 
@@ -1745,14 +1745,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage-community/plugin-rbac@npm:^1.48.1":
-  version: 1.48.1
-  resolution: "@backstage-community/plugin-rbac@npm:1.48.1"
+"@backstage-community/plugin-rbac@npm:^1.49.0":
+  version: 1.49.0
+  resolution: "@backstage-community/plugin-rbac@npm:1.49.0"
   dependencies:
     "@backstage-community/plugin-rbac-common": "npm:^1.23.0"
     "@backstage/catalog-model": "npm:^1.7.6"
     "@backstage/core-components": "npm:^0.18.6"
     "@backstage/core-plugin-api": "npm:^1.12.2"
+    "@backstage/frontend-plugin-api": "npm:^0.13.3"
+    "@backstage/plugin-app-react": "npm:^0.1.0"
     "@backstage/plugin-catalog": "npm:^1.32.2"
     "@backstage/plugin-catalog-common": "npm:^1.1.7"
     "@backstage/plugin-permission-common": "npm:^0.9.5"
@@ -1772,7 +1774,7 @@ __metadata:
   peerDependencies:
     react: ^16.13.1 || ^17.0.0 || ^18.0.0
     react-router-dom: ^6.0.0
-  checksum: 10c0/2a8a08075eb37c7ead05338f4061e839065e39531a5e47be9913ba92b2284cdc95166c0645980aae7c413b5bd6420b721bdc6bb674ae17415a87d8c6839e6ab0
+  checksum: 10c0/d13b663b2a29d9d06bb0c022fc81e7a7f2624c0b7b0528458789d39554416580aef6e0d9eecbd194a0adf93c6a0e0a2a7228babf04e71560c691f54dad48b916
   languageName: node
   linkType: hard
 
@@ -2390,7 +2392,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/core-plugin-api@npm:^1.12.2, @backstage/core-plugin-api@npm:^1.12.3, @backstage/core-plugin-api@npm:^1.9.3":
+"@backstage/core-plugin-api@npm:^1.12.1, @backstage/core-plugin-api@npm:^1.12.2, @backstage/core-plugin-api@npm:^1.12.3, @backstage/core-plugin-api@npm:^1.9.3":
   version: 1.12.3
   resolution: "@backstage/core-plugin-api@npm:1.12.3"
   dependencies:
@@ -2535,6 +2537,27 @@ __metadata:
     "@types/react":
       optional: true
   checksum: 10c0/24dc34c8e3877d32fb4762d158cfa7d30daddd7ab35e6c1f520e18faeed4da82f287f01e9ae0d22c26bf2ef2cf897b3077020d070b657bd611886773518bdb9a
+  languageName: node
+  linkType: hard
+
+"@backstage/frontend-plugin-api@npm:^0.13.3":
+  version: 0.13.4
+  resolution: "@backstage/frontend-plugin-api@npm:0.13.4"
+  dependencies:
+    "@backstage/errors": "npm:^1.2.7"
+    "@backstage/types": "npm:^1.2.2"
+    "@backstage/version-bridge": "npm:^1.0.11"
+    zod: "npm:^3.25.76"
+    zod-to-json-schema: "npm:^3.25.1"
+  peerDependencies:
+    "@types/react": ^17.0.0 || ^18.0.0
+    react: ^17.0.0 || ^18.0.0
+    react-dom: ^17.0.0 || ^18.0.0
+    react-router-dom: ^6.3.0
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  checksum: 10c0/0e7375c3abb20cc849c00f5013b33e05032fce83e3758affa20ece8075904778f430cf6bfdf77ead3fae3a0c492a6e299e1c98dbc7ba7952ee9c19033b36fcc4
   languageName: node
   linkType: hard
 
@@ -2780,6 +2803,25 @@ __metadata:
     express: "npm:^4.22.0"
     fs-extra: "npm:^11.2.0"
   checksum: 10c0/18d916c8f6eb5f07efa81a3f8399b0edde24be1a458d50b43bda58955994cf43ff56da8bef76fb9d116dd1df14739a54feb2729068885162e1747d92e16a3b28
+  languageName: node
+  linkType: hard
+
+"@backstage/plugin-app-react@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "@backstage/plugin-app-react@npm:0.1.0"
+  dependencies:
+    "@backstage/core-plugin-api": "npm:^1.12.1"
+    "@backstage/frontend-plugin-api": "npm:^0.13.3"
+    "@material-ui/core": "npm:^4.9.13"
+  peerDependencies:
+    "@types/react": ^17.0.0 || ^18.0.0
+    react: ^17.0.0 || ^18.0.0
+    react-dom: ^17.0.0 || ^18.0.0
+    react-router-dom: ^6.3.0
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  checksum: 10c0/a10716547b2c4a5c8c9d55d1283091b5009877996d2e0ad0b37babc631c35bd45a4cc359e18ae7f98f87b38b869baae5f68c5eeff5d79029ec79f9a9780abb19
   languageName: node
   linkType: hard
 
@@ -4639,7 +4681,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/version-bridge@npm:^1.0.12, @backstage/version-bridge@npm:^1.0.8":
+"@backstage/version-bridge@npm:^1.0.11, @backstage/version-bridge@npm:^1.0.12, @backstage/version-bridge@npm:^1.0.8":
   version: 1.0.12
   resolution: "@backstage/version-bridge@npm:1.0.12"
   peerDependencies:
@@ -17124,7 +17166,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app@workspace:packages/app"
   dependencies:
-    "@backstage-community/plugin-rbac": "npm:^1.48.1"
+    "@backstage-community/plugin-rbac": "npm:^1.49.0"
     "@backstage/cli": "npm:^0.35.4"
     "@backstage/core-compat-api": "npm:^0.5.8"
     "@backstage/core-components": "npm:^0.18.7"
@@ -17797,7 +17839,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backend@workspace:packages/backend"
   dependencies:
-    "@backstage-community/plugin-rbac-backend": "npm:^7.7.1"
+    "@backstage-community/plugin-rbac-backend": "npm:^7.7.2"
     "@backstage/backend-defaults": "npm:^0.15.2"
     "@backstage/cli": "npm:^0.35.4"
     "@backstage/config": "npm:^1.3.6"
@@ -37370,7 +37412,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod-to-json-schema@npm:^3.24.5, zod-to-json-schema@npm:^3.25.0, zod-to-json-schema@npm:^3.25.1":
+"zod-to-json-schema@npm:^3.25.0, zod-to-json-schema@npm:^3.25.1":
   version: 3.25.1
   resolution: "zod-to-json-schema@npm:3.25.1"
   peerDependencies:
