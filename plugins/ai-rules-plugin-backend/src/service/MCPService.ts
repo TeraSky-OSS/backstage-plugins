@@ -43,6 +43,22 @@ export class MCPService {
       this.logger.info(`Found ${claudeServers.length} Claude MCP servers`);
     }
 
+    // Try to fetch Windsurf MCP config
+    const windsurfConfig = await this.fetchMCPConfig(gitUrl, '.windsurf/mcp.json');
+    if (windsurfConfig) {
+      const windsurfServers = this.parseWindsurfConfig(windsurfConfig);
+      servers.push(...windsurfServers);
+      this.logger.info(`Found ${windsurfServers.length} Windsurf MCP servers`);
+    }
+
+    // Try to fetch Cline MCP config
+    const clineConfig = await this.fetchMCPConfig(gitUrl, '.cline/mcp_settings.json');
+    if (clineConfig) {
+      const clineServers = this.parseClineConfig(clineConfig);
+      servers.push(...clineServers);
+      this.logger.info(`Found ${clineServers.length} Cline MCP servers`);
+    }
+
     this.logger.info(`Found total of ${servers.length} MCP servers`);
     return { servers };
   }
@@ -131,6 +147,40 @@ export class MCPService {
         type: serverConfig.url ? 'remote' : 'local',
         config: serverConfig,
         source: 'claude',
+        rawConfig: JSON.stringify(serverConfig, null, 2)
+      });
+    }
+
+    return servers;
+  }
+
+  private parseWindsurfConfig(config: MCPConfig): MCPServerInfo[] {
+    const servers: MCPServerInfo[] = [];
+    const mcpServers = config.mcpServers || {};
+
+    for (const [name, serverConfig] of Object.entries(mcpServers)) {
+      servers.push({
+        name,
+        type: serverConfig.url ? 'remote' : 'local',
+        config: serverConfig,
+        source: 'windsurf',
+        rawConfig: JSON.stringify(serverConfig, null, 2)
+      });
+    }
+
+    return servers;
+  }
+
+  private parseClineConfig(config: MCPConfig): MCPServerInfo[] {
+    const servers: MCPServerInfo[] = [];
+    const mcpServers = config.mcpServers || {};
+
+    for (const [name, serverConfig] of Object.entries(mcpServers)) {
+      servers.push({
+        name,
+        type: serverConfig.url ? 'remote' : 'local',
+        config: serverConfig,
+        source: 'cline',
         rawConfig: JSON.stringify(serverConfig, null, 2)
       });
     }

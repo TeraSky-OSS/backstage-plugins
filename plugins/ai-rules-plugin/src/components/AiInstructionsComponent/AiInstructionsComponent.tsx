@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import {
-  Tabs,
-  Tab,
-  Box,
-} from '@material-ui/core';
+import { Tabs, Tab, Box } from '@material-ui/core';
 import { AIRulesComponent } from '../AiRulesComponent';
 import { MCPServersComponent } from '../MCPServersComponent';
+import { IgnoreFilesComponent } from '../IgnoreFilesComponent';
+import { AgentConfigsComponent } from '../AgentConfigsComponent';
+import { AgentSkillsComponent } from '../AgentSkillsComponent';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -16,7 +15,6 @@ interface TabPanelProps {
 
 function TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
-
   return (
     <div
       role="tabpanel"
@@ -25,11 +23,7 @@ function TabPanel(props: TabPanelProps) {
       aria-labelledby={`ai-instructions-tab-${index}`}
       {...other}
     >
-      {value === index && (
-        <Box>
-          {children}
-        </Box>
-      )}
+      {value === index && <Box>{children}</Box>}
     </div>
   );
 }
@@ -56,7 +50,7 @@ export interface AiInstructionsComponentProps {
   title?: string;
 }
 
-export const AiInstructionsComponent = ({ title = "AI Instructions" }: AiInstructionsComponentProps) => {
+export const AiInstructionsComponent = ({ title = 'AI Instructions' }: AiInstructionsComponentProps) => {
   const styles = useStyles();
   const [value, setValue] = useState(0);
 
@@ -71,10 +65,14 @@ export const AiInstructionsComponent = ({ title = "AI Instructions" }: AiInstruc
         onChange={handleChange}
         indicatorColor="primary"
         textColor="primary"
-        variant="fullWidth"
+        variant="scrollable"
+        scrollButtons="auto"
       >
         <Tab label="Agent Rules" {...a11yProps(0)} />
         <Tab label="MCP Servers" {...a11yProps(1)} />
+        <Tab label="Ignore Files" {...a11yProps(2)} />
+        <Tab label="Agent Configs" {...a11yProps(3)} />
+        <Tab label="Agent Skills" {...a11yProps(4)} />
       </Tabs>
       <TabPanel value={value} index={0}>
         <Box className={styles.tabPanel}>
@@ -86,8 +84,21 @@ export const AiInstructionsComponent = ({ title = "AI Instructions" }: AiInstruc
           <MCPServersComponent />
         </Box>
       </TabPanel>
+      <TabPanel value={value} index={2}>
+        <Box className={styles.tabPanel}>
+          <IgnoreFilesComponent />
+        </Box>
+      </TabPanel>
+      <TabPanel value={value} index={3}>
+        <Box className={styles.tabPanel}>
+          <AgentConfigsComponent />
+        </Box>
+      </TabPanel>
+      <TabPanel value={value} index={4}>
+        <Box className={styles.tabPanel}>
+          <AgentSkillsComponent />
+        </Box>
+      </TabPanel>
     </div>
   );
 };
-
-

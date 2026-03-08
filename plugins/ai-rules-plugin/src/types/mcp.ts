@@ -11,7 +11,7 @@ export interface MCPServerInfo {
   name: string;
   type: 'local' | 'remote';
   config: MCPServerConfig;
-  source: 'cursor' | 'vscode' | 'claude';
+  source: 'cursor' | 'vscode' | 'claude' | 'windsurf' | 'cline';
   rawConfig: string; // JSON string for syntax highlighting
 }
 

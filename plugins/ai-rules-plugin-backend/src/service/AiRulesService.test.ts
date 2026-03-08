@@ -110,7 +110,8 @@ This is a copilot instruction file.`;
 These are Claude code rules.`;
 
       mockUrlReader.readUrl.mockImplementation(async (url: string) => {
-        if (url.includes('CLAUDE.md')) {
+        // Only match root CLAUDE.md, not .claude/CLAUDE.md
+        if (url.includes('CLAUDE.md') && !url.includes('.claude/')) {
           return {
             buffer: async () => Buffer.from(claudeContent),
           };
@@ -183,23 +184,16 @@ Rule content here`),
       expect(result.rules[0].alwaysApply).toBe(true);
     });
 
-    it('should fetch rules from common subdirectories', async () => {
+    it('should fetch rules from .cursor/MEMORY.md', async () => {
       mockUrlReader.readUrl.mockImplementation(async (url: string) => {
-        if (url.includes('docs/rules.md')) {
+        if (url.includes('.cursor/MEMORY.md')) {
           return {
-            buffer: async () => Buffer.from('# Docs rules content'),
+            buffer: async () => Buffer.from('# Project Memory\n\nAlways use TypeScript.'),
           };
         }
         throw new Error('Not found');
       });
-      mockUrlReader.readTree.mockImplementation(async (url: string) => {
-        if (url.includes('/tree/HEAD/docs')) {
-          return {
-            files: async () => [{ path: 'rules.md' }],
-          };
-        }
-        throw new Error('Not found');
-      });
+      mockUrlReader.readTree.mockRejectedValue(new Error('Not found'));
 
       const result = await service.getAiRules('https://github.com/test/repo', ['cursor']);
 
@@ -326,7 +320,8 @@ Content of section two`;
   describe('fetchClaudeCodeRules', () => {
     it('should parse claude code rules without title', async () => {
       mockUrlReader.readUrl.mockImplementation(async (url: string) => {
-        if (url.includes('CLAUDE.md')) {
+        // Only match root CLAUDE.md, not .claude/CLAUDE.md
+        if (url.includes('CLAUDE.md') && !url.includes('.claude/')) {
           return { buffer: async () => Buffer.from('Rules without heading') };
         }
         throw new Error('Not found');
@@ -352,7 +347,8 @@ Content of section two`;
 
     it('should continue processing other rule types when one fails', async () => {
       mockUrlReader.readUrl.mockImplementation(async (url: string) => {
-        if (url.includes('CLAUDE.md')) {
+        // Only match root CLAUDE.md, not .claude/CLAUDE.md
+        if (url.includes('CLAUDE.md') && !url.includes('.claude/')) {
           return { buffer: async () => Buffer.from('# Claude Rules') };
         }
         throw new Error('Not found');

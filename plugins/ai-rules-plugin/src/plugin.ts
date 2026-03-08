@@ -38,3 +38,33 @@ export const AiInstructionsComponent = aiRulesPlugin.provide(
     },
   }),
 );
+
+export const IgnoreFilesComponent = aiRulesPlugin.provide(
+  createComponentExtension({
+    name: 'IgnoreFilesComponent',
+    component: {
+      lazy: () => import('./components/IgnoreFilesComponent/IgnoreFilesComponent').then(m => m.IgnoreFilesComponent)
+        .then(Component => (props: any) => React.createElement(Component, props)),
+    },
+  }),
+);
+
+export const AgentConfigsComponent = aiRulesPlugin.provide(
+  createComponentExtension({
+    name: 'AgentConfigsComponent',
+    component: {
+      lazy: () => import('./components/AgentConfigsComponent/AgentConfigsComponent').then(m => m.AgentConfigsComponent)
+        .then(Component => (props: any) => React.createElement(Component, props)),
+    },
+  }),
+);
+
+export const AgentSkillsComponent = aiRulesPlugin.provide(
+  createComponentExtension({
+    name: 'AgentSkillsComponent',
+    component: {
+      lazy: () => import('./components/AgentSkillsComponent/AgentSkillsComponent').then(m => m.AgentSkillsComponent)
+        .then(Component => (props: any) => React.createElement(Component, props)),
+    },
+  }),
+);

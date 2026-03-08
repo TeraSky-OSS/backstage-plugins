@@ -155,6 +155,13 @@ describe('useAiRules', () => {
       AIRuleType.COPILOT,
       AIRuleType.CLINE,
       AIRuleType.CLAUDE_CODE,
+      AIRuleType.WINDSURF,
+      AIRuleType.ROO_CODE,
+      AIRuleType.CODEX,
+      AIRuleType.GEMINI,
+      AIRuleType.AMAZON_Q,
+      AIRuleType.CONTINUE,
+      AIRuleType.AIDER,
     ]);
   });
 

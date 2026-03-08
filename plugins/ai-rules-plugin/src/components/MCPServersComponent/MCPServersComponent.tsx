@@ -192,14 +192,12 @@ export const MCPServersComponent = ({ title = "MCP Servers" }: MCPServersCompone
 
   const formatSourceName = (source: string) => {
     switch (source) {
-      case 'vscode':
-        return 'VSCode';
-      case 'cursor':
-        return 'Cursor';
-      case 'claude':
-        return 'Claude';
-      default:
-        return source;
+      case 'vscode': return 'VSCode';
+      case 'cursor': return 'Cursor';
+      case 'claude': return 'Claude';
+      case 'windsurf': return 'Windsurf';
+      case 'cline': return 'Cline';
+      default: return source;
     }
   };
 

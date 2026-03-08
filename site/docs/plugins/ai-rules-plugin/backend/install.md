@@ -61,12 +61,22 @@ Add AI Rules configuration to your `app-config.yaml`:
 
 ```yaml
 aiRules:
-  # Configure which rule types to look for
+  # Configure which rule types to look for (all 11 supported)
   allowedRuleTypes:
     - cursor
     - copilot
     - cline
+    - claude-code
+    - windsurf
+    - roo-code
+    - codex
+    - gemini
+    - amazon-q
+    - continue
+    - aider
 ```
+
+If not specified, all 11 rule types are enabled by default. The Ignore Files, Agent Configs, and Agent Skills endpoints always scan their respective paths regardless of `allowedRuleTypes`.
 
 ### Environment Variables
 
@@ -76,7 +86,7 @@ Set up required environment variables:
 # For GitHub integration
 export GITHUB_TOKEN=your_github_token
 
-# For GitLab integration  
+# For GitLab integration
 export GITLAB_TOKEN=your_gitlab_token
 
 # For other SCM providers
@@ -94,7 +104,8 @@ Start your backend and check for successful plugin registration:
 yarn dev
 ```
 
-Look for log entries indicating the plugin has loaded:
+Look for log entries:
+
 ```
 [ai-rules-backend] Plugin loaded successfully
 [ai-rules-backend] API routes registered at /api/ai-rules
@@ -102,14 +113,30 @@ Look for log entries indicating the plugin has loaded:
 
 ### 2. Test API Endpoints
 
-Test the API endpoints directly:
+Test all five endpoints directly:
 
 ```bash
-# Replace with your backend URL and valid entity reference
-curl "http://localhost:7007/api/ai-rules/rules?entityRef=component:default/my-service"
+BASE="http://localhost:7007/api/ai-rules"
+ENTITY="component:default/my-service"
+
+# AI Rules
+curl "$BASE/rules?entityRef=$ENTITY"
+
+# MCP Servers
+curl "$BASE/mcp-servers?entityRef=$ENTITY"
+
+# Ignore Files
+curl "$BASE/ignore-files?entityRef=$ENTITY"
+
+# Agent Configs
+curl "$BASE/agent-configs?entityRef=$ENTITY"
+
+# Agent Skills
+curl "$BASE/skills?entityRef=$ENTITY"
 ```
 
-Expected response format:
+Expected response format (empty repository):
+
 ```json
 {
   "rules": [],
@@ -123,23 +150,36 @@ Expected response format:
 Verify that entities with source locations are properly resolved:
 
 ```bash
-# Test with an entity that has a source location
-curl "http://localhost:7007/api/ai-rules/rules?entityRef=component:default/my-service&ruleTypes=cursor,copilot"
+curl "http://localhost:7007/api/ai-rules/rules?entityRef=component:default/my-service&ruleTypes=cursor,copilot,windsurf"
 ```
+
+## API Endpoints Reference
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/ai-rules/rules` | AI coding rules (11 agent types) |
+| `GET /api/ai-rules/mcp-servers` | MCP server configurations (5 sources) |
+| `GET /api/ai-rules/ignore-files` | Agent ignore files |
+| `GET /api/ai-rules/agent-configs` | Agent configuration files |
+| `GET /api/ai-rules/skills` | Agent Skills (agentskills.io) |
+
+All endpoints accept `entityRef` as a required query parameter.
 
 ## Troubleshooting
 
 ### Common Issues
 
 #### Plugin Not Loading
-1. **Missing Package**: Verify the package is installed in package.json
+
+1. **Missing Package**: Verify the package is installed in `package.json`
+
    ```bash
    yarn --cwd packages/backend list --pattern @terasky/backstage-plugin-ai-rules-backend
    ```
 
-2. **Import Error**: Check the import statement in backend/src/index.ts
+2. **Import Error**: Check the import statement in `backend/src/index.ts`
+
    ```typescript
-   // Correct import
    backend.add(import('@terasky/backstage-plugin-ai-rules-backend'));
    ```
 
@@ -148,12 +188,13 @@ curl "http://localhost:7007/api/ai-rules/rules?entityRef=component:default/my-se
 #### API Endpoints Not Working
 
 1. **Check Route Registration**: Look for API routes in backend logs
-2. **Verify URL**: Ensure you're using the correct API path `/api/ai-rules/rules`
+2. **Verify URL**: Ensure you're using the correct API path
 3. **CORS Issues**: Check if frontend can access the backend API
 
 #### Repository Access Issues
 
 1. **SCM Integration**: Verify SCM integrations are configured correctly
+
    ```yaml
    integrations:
      github:
@@ -167,10 +208,11 @@ curl "http://localhost:7007/api/ai-rules/rules?entityRef=component:default/my-se
 #### Entity Resolution Problems
 
 1. **Invalid Entity Reference**: Check entity reference format
+
    ```
    # Correct format
    component:default/my-service
-   
+
    # Incorrect formats
    my-service
    default/my-service
@@ -178,6 +220,7 @@ curl "http://localhost:7007/api/ai-rules/rules?entityRef=component:default/my-se
    ```
 
 2. **Missing Source Location**: Verify entities have source location annotations
+
    ```yaml
    metadata:
      annotations:
@@ -186,9 +229,15 @@ curl "http://localhost:7007/api/ai-rules/rules?entityRef=component:default/my-se
 
 3. **Catalog Sync**: Ensure entities are properly ingested into the catalog
 
-### Debug Mode
+#### Ignore Files / Agent Configs / Skills Returning Empty
 
-Enable debug logging to troubleshoot issues:
+These endpoints silently return empty when no files are found (this is not an error). If you expect data:
+
+1. Confirm the files/directories actually exist in the repository
+2. Check backend logs for any directory-listing errors
+3. Verify backend has read access to those paths
+
+### Debug Mode
 
 ```yaml
 # app-config.yaml
@@ -197,14 +246,13 @@ backend:
     level: debug
 ```
 
-Or set environment variable:
+Or:
+
 ```bash
 export LOG_LEVEL=debug
 ```
 
 ### Network Issues
-
-If experiencing network connectivity problems:
 
 1. **Firewall**: Check if backend can access external repositories
 2. **Proxy**: Configure proxy settings if behind corporate firewall
@@ -212,10 +260,8 @@ If experiencing network connectivity problems:
 
 ### Performance Issues
 
-For performance optimization:
-
 1. **Network Latency**: Monitor repository access times
-2. **File Size**: Check for unusually large rule files
+2. **File Size**: Check for unusually large rule or skill files
 3. **Rate Limiting**: Monitor API rate limits for SCM providers
 
 ## Next Steps
@@ -230,15 +276,17 @@ After successful installation:
 ## Security Considerations
 
 ### Token Management
+
 - Store tokens securely using environment variables
 - Use minimal required permissions for tokens
 - Regularly rotate authentication tokens
 - Monitor token usage and access logs
 
 ### Repository Access
+
 - Review which repositories the backend can access
 - Ensure proper authentication for private repositories
 - Monitor for unauthorized access attempts
 - Implement proper error handling to avoid information leakage
 
-For detailed configuration options, proceed to the [Configuration Guide](./configure.md). 
+For detailed configuration options, proceed to the [Configuration Guide](./configure.md).

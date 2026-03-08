@@ -4,177 +4,303 @@
 
 ## Overview
 
-The AI Coding Rules backend plugin provides the server-side functionality required to fetch and parse AI coding rules from Git repositories. It handles integration with Backstage's SCM integrations, parses various rule file formats, includes retry logic with exponential backoff for rate limiting protection, and exposes REST API endpoints for the frontend plugin to consume.
+The AI Coding Rules backend plugin provides the server-side functionality required to fetch and parse AI coding rules, MCP server configurations, agent ignore files, agent configuration files, and Agent Skills from Git repositories. It handles integration with Backstage's SCM integrations, parses various file formats, includes retry logic with exponential backoff, and exposes REST API endpoints for the frontend plugin to consume.
 
 ## Features
 
 ### Repository Integration
+
 - Seamless integration with all Backstage SCM integrations
 - Support for GitHub, GitLab, Bitbucket, and Azure DevOps
 - Handles both public and private repositories
 - Retry logic with exponential backoff for rate limiting
-- Efficient file fetching with network resilience
+- Efficient file and directory fetching with network resilience
 
-### Rule Type Support
-- **Cursor Rules**: Parse `.mdc` files from `.cursor/rules/` directories
-- **GitHub Copilot Rules**: Process `.github/copilot-instructions.md` files  
-- **Cline Rules**: Extract content from `.clinerules/*.md` files
-- **Claude Code Rules**: Process `CLAUDE.md` files from repository root
-- Configurable rule type filtering
-- Support for all rule types by default
+### Rule Type Support (11 Agents)
+
+| Agent | Type | Files Scanned |
+|-------|------|---------------|
+| Cursor | `cursor` | `.cursorrules`, `.cursor/rules/*.mdc\|.md`, `.cursor/MEMORY.md` |
+| GitHub Copilot | `copilot` | `.github/copilot-instructions.md`, `.github/instructions/*.instructions.md` |
+| Cline | `cline` | `.clinerules` (root file), `.clinerules/*.md` |
+| Claude Code | `claude-code` | `CLAUDE.md`, `.claude/CLAUDE.md`, `CLAUDE.local.md`, `.claude/rules/*.md` |
+| Windsurf | `windsurf` | `.windsurfrules`, `.windsurf/rules/*.md` |
+| Roo Code | `roo-code` | `.roorules`, `.roo/rules/`, `.roo/rules-code/`, `.roo/rules-architect/`, `.roo/rules-ask/`, `.roo/rules-debug/` |
+| OpenAI Codex | `codex` | `AGENTS.md`, `AGENTS.override.md` |
+| Gemini CLI | `gemini` | `GEMINI.md`, `.gemini/*.md` |
+| Amazon Q | `amazon-q` | `.amazonq/rules/*.md` |
+| Continue | `continue` | `.continue/rules/*.md`, `.continue/prompts/*.md` |
+| Aider | `aider` | `CONVENTIONS.md` |
+
+### MCP Server Support (5 Sources)
+
+| Source | File |
+|--------|------|
+| Cursor | `.cursor/mcp.json` |
+| VSCode | `.vscode/mcp.json` |
+| Claude | `.mcp.json` |
+| Windsurf | `.windsurf/mcp.json` |
+| Cline | `.cline/mcp_settings.json` |
+
+### Ignore Files Service
+
+Scans for and returns agent-specific ignore files:
+
+- `.cursorignore` (Cursor)
+- `.aiderignore` (Aider)
+- `.rooignore` (Roo Code)
+- `.geminiignore` (Gemini CLI)
+- `.copilotignore` (Copilot)
+
+### Agent Configs Service
+
+Discovers and returns agent configuration files:
+
+- `.aider.conf.yml` — Aider YAML configuration
+- `.continue/config.yaml` / `.continue/config.json` — Continue configuration (YAML preferred)
+- `.cursor/settings.json` — Cursor workspace settings
+- `.zed/assistant.json` — Zed AI assistant configuration
+
+### Agent Skills Service (agentskills.io Standard)
+
+Scans skill directories for `SKILL.md` files following the [agentskills.io](https://agentskills.io) standard:
+
+- `.agents/skills/` — cross-client interoperability location
+- `.claude/skills/` — Claude Code native location
+- `.cursor/skills/` — Cursor native location
+
+For each skill found, the service:
+
+1. Parses YAML frontmatter (`name`, `description`, `version`, `author`, `license`, `compatibility`, `allowedTools`)
+2. Returns the full SKILL.md content
+3. Enumerates resource subdirectories (`scripts/`, `references/`, `assets/`)
+4. Handles name collisions via source precedence (`.agents/skills/` overrides others)
 
 ### Content Processing
-- Frontmatter metadata parsing for Cursor rules
+
+- Frontmatter metadata parsing for Cursor, Windsurf, Roo Code, Continue, and Skill files
 - Automatic section splitting for Copilot instructions
 - Markdown section extraction for Cline rules
-- Content validation and error handling
+- Mode field extraction for Roo Code rules (mode determined from directory name)
+- Deduplication for agents with multiple config file options
 
 ### Rate Limiting and Resilience
+
 - Automatic retry logic with exponential backoff
 - Protection against GitLab and other provider rate limits
 - Jitter to prevent thundering herd problems
 - Graceful handling of network failures and timeouts
 - Detailed logging for debugging rate limit issues
 
-### API Endpoints
-- RESTful API for rule data retrieval
-- Entity-based rule fetching
-- Configurable rule type filtering
-- Structured JSON responses with git URLs
-
-## Technical Details
-
-### Integration Points
-- Backstage SCM integrations
-- Catalog client for entity resolution
-- Configuration service for rule type settings
-- Logging service for debugging and monitoring
-
-### Supported File Patterns
-- **Cursor**: `.cursor/rules/*.mdc` with frontmatter support
-- **Copilot**: `.github/copilot-instructions.md` with automatic parsing
-- **Cline**: `.clinerules/*.md` with section extraction
-- **Claude Code**: `CLAUDE.md` in repository root with title extraction
-
-### Content Parsing
-
-#### Cursor Rules
-Parses frontmatter metadata including:
-```yaml
----
-description: "Rule description"
-globs: ["*.ts", "*.tsx"]
-alwaysApply: true
----
-```
-
-#### Copilot Rules
-Automatically splits content by empty lines to create logical sections
-
-#### Cline Rules
-Extracts markdown sections and headers for organized rule presentation
-
-## API Reference
+## API Endpoints
 
 ### GET /api/ai-rules/rules
 
-Fetches AI rules for a given entity.
+Fetches AI coding rules for a given entity.
 
-#### Query Parameters
-- `entityRef` (required): Entity reference in format `kind:namespace/name`
-- `ruleTypes` (optional): Comma-separated list of rule types to fetch
+**Query Parameters:**
 
-#### Response Format
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `entityRef` | Yes | Entity reference (`kind:namespace/name`) |
+| `ruleTypes` | No | Comma-separated rule types. Defaults to all 11 types. |
+
+**Response:**
+
 ```json
 {
   "rules": [
     {
       "type": "cursor",
-      "id": "cursor-rule-1", 
+      "id": "cursor-rule-1",
       "filePath": ".cursor/rules/typescript.mdc",
       "fileName": "typescript",
       "content": "TypeScript coding standards...",
       "description": "TypeScript rules",
       "globs": ["*.ts", "*.tsx"],
-      "alwaysApply": true
+      "alwaysApply": true,
+      "gitUrl": "https://github.com/org/repo"
     },
     {
-      "type": "copilot",
-      "id": "copilot-rule-1",
-      "filePath": ".github/copilot-instructions.md",
-      "fileName": "copilot-instructions",
-      "content": "Use functional components...",
-      "description": "Generated from copilot-instructions.md",
-      "section": 1
+      "type": "roo-code",
+      "id": "roo-code-rule-1",
+      "filePath": ".roo/rules-code/standards.md",
+      "fileName": "standards",
+      "content": "...",
+      "mode": "code",
+      "gitUrl": "https://github.com/org/repo"
     }
   ],
   "totalCount": 2,
-  "ruleTypes": ["cursor", "copilot"]
+  "ruleTypes": ["cursor", "roo-code"]
 }
 ```
 
-#### Error Responses
-- `400 Bad Request`: Missing or invalid entityRef
+### GET /api/ai-rules/mcp-servers
+
+Fetches MCP server configurations for a given entity.
+
+**Query Parameters:** `entityRef` (required)
+
+**Response:**
+
+```json
+{
+  "servers": [
+    {
+      "name": "my-server",
+      "source": "cursor",
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": { "GITHUB_TOKEN": "${GITHUB_TOKEN}" }
+    }
+  ],
+  "totalCount": 1
+}
+```
+
+### GET /api/ai-rules/ignore-files
+
+Fetches agent ignore files for a given entity.
+
+**Query Parameters:** `entityRef` (required)
+
+**Response:**
+
+```json
+{
+  "ignoreFiles": [
+    {
+      "agent": "cursor",
+      "filePath": ".cursorignore",
+      "content": "node_modules/\ndist/\n*.log\n"
+    }
+  ],
+  "totalCount": 1
+}
+```
+
+### GET /api/ai-rules/agent-configs
+
+Fetches agent configuration files for a given entity.
+
+**Query Parameters:** `entityRef` (required)
+
+**Response:**
+
+```json
+{
+  "configs": [
+    {
+      "agent": "continue",
+      "filePath": ".continue/config.yaml",
+      "content": "models:\n  - title: GPT-4o\n    ...",
+      "language": "yaml"
+    }
+  ],
+  "totalCount": 1
+}
+```
+
+### GET /api/ai-rules/skills
+
+Fetches Agent Skills for a given entity.
+
+**Query Parameters:** `entityRef` (required)
+
+**Response:**
+
+```json
+{
+  "skills": [
+    {
+      "name": "TypeScript Linting",
+      "description": "Runs ESLint and reports violations",
+      "source": "cursor",
+      "filePath": ".cursor/skills/ts-linting/SKILL.md",
+      "content": "# TypeScript Linting Skill\n...",
+      "license": "MIT",
+      "compatibility": ["cursor", "claude-code"],
+      "metadata": { "version": "1.0.0", "author": "Platform Team" },
+      "allowedTools": ["run_terminal_cmd"],
+      "resources": {
+        "scripts": ["scripts/lint.sh"],
+        "references": [],
+        "assets": []
+      },
+      "gitUrl": "https://github.com/org/repo"
+    }
+  ],
+  "totalCount": 1
+}
+```
+
+**Error Responses (all endpoints):**
+
+- `400 Bad Request`: Missing or invalid `entityRef`
 - `404 Not Found`: Entity not found or no source location
 - `500 Internal Server Error`: Repository access or parsing errors
 
 ## Architecture
 
-### Components
+### Services
 
-#### API Router
-- Route registration and handling
-- Request validation and parsing
-- Response formatting and error handling
-- Query parameter processing
+#### AiRulesService
 
-#### Rule Fetcher
-- Repository file discovery and fetching
-- SCM integration abstraction
-- File content retrieval and validation
-- Error handling for inaccessible repositories
+Core service responsible for fetching and parsing rules from all 11 agent types. Each agent type has a dedicated `fetch*Rules` method and a corresponding `parse*Rule` method.
 
-#### Content Parser
-- Rule type detection and parsing
-- Frontmatter extraction for Cursor rules
-- Section splitting for different rule types
-- Content validation and sanitization
+#### MCPService
 
-#### Configuration Manager
-- Rule type configuration handling
-- Default value management
-- Environment-specific settings
-- Validation of configuration options
+Fetches and parses MCP server configurations from 5 sources. Each source has a dedicated `parse*Config` method.
+
+#### IgnoreFilesService
+
+Scans for and returns agent-specific ignore files. Uses a static `IGNORE_FILE_DEFINITIONS` array to define which paths to check.
+
+#### AgentConfigsService
+
+Scans for and returns agent configuration files. Deduplicates agents that support multiple config file formats (e.g., Continue prefers YAML over JSON).
+
+#### SkillsService
+
+Recursively scans skill directories for `SKILL.md` files, parses their frontmatter, enumerates resource subdirectories, and handles name collisions. Source precedence: `.agents/skills/` > `.claude/skills/` > `.cursor/skills/`.
+
+### API Router
+
+Registers all 5 endpoints, validates query parameters, instantiates services, and formats responses.
 
 ## Dependencies
 
 ### Core Dependencies
+
 - `@backstage/backend-plugin-api`: Backend plugin framework
 - `@backstage/catalog-client`: Entity resolution
 - `@backstage/integration`: SCM integrations
 - `@backstage/config`: Configuration management
 
-### Parsing Dependencies  
-- `gray-matter`: Frontmatter parsing for Cursor rules
-- `node-fetch`: HTTP requests for file fetching
+### Parsing Dependencies
+
+- `gray-matter`: Frontmatter parsing for Cursor, Windsurf, Continue, and Skill files
 - `express`: REST API framework
-- `winston`: Logging functionality
 
 ## Error Handling
 
 ### Repository Access Errors
+
 - Network connectivity issues
 - Authentication failures
 - Repository not found
 - Permission denied
 
 ### File Parsing Errors
+
 - Invalid frontmatter syntax
 - Malformed file content
-- Unsupported file formats
 - Encoding issues
 
 ### Configuration Errors
+
 - Invalid rule type specifications
 - Missing required configuration
 - Type validation failures
@@ -182,39 +308,44 @@ Fetches AI rules for a given entity.
 ## Security Considerations
 
 ### Repository Access
+
 - Respects SCM integration authentication
 - No additional credentials required
 - Uses existing Backstage permissions
 - Secure token handling
 
 ### Content Processing
+
 - Input validation for all file content
 - Safe frontmatter parsing
 - Protection against malicious content
 - Content size limits
 
 ### API Security
+
 - Entity reference validation
 - Parameter sanitization
-- Rate limiting considerations
 - Error message sanitization
 
 ## Performance Considerations
 
 ### Caching Strategy
+
 - File content caching for frequently accessed rules
 - Entity resolution caching
 - Repository metadata caching
 - Configurable cache TTL
 
 ### Resource Management
+
 - Efficient file fetching algorithms
 - Memory-conscious content processing
 - Connection pooling for repository access
 - Graceful degradation under load
 
 ### Monitoring
+
 - API endpoint performance metrics
 - Repository access timing
 - Error rate tracking
-- Cache hit rate monitoring 
+- Cache hit rate monitoring

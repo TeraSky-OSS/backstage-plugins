@@ -147,7 +147,8 @@ describe('createRouter', () => {
 
     it('should support claude-code rule type', async () => {
       mockUrlReader.readUrl.mockImplementation(async (url: string) => {
-        if (url.includes('CLAUDE.md')) {
+        // Only match root CLAUDE.md, not .claude/CLAUDE.md
+        if (url.includes('CLAUDE.md') && !url.includes('.claude/')) {
           return { buffer: async () => Buffer.from('# Claude Rules') };
         }
         throw new Error('Not found');

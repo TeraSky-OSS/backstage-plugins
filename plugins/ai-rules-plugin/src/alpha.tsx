@@ -42,6 +42,36 @@ export const aiRulesPlugin = createFrontendPlugin({
       },
       disabled: true,
     }),
+    EntityContentBlueprint.make({
+      name: 'ignoreFiles',
+      params: {
+        path: '/ignore-files',
+        filter: isAIRulesAvailable,
+        title: 'Ignore Files',
+        loader: () => import('./components/IgnoreFilesComponent/IgnoreFilesComponent').then(m => <m.IgnoreFilesComponent />),
+      },
+      disabled: true,
+    }),
+    EntityContentBlueprint.make({
+      name: 'agentConfigs',
+      params: {
+        path: '/agent-configs',
+        filter: isAIRulesAvailable,
+        title: 'Agent Configs',
+        loader: () => import('./components/AgentConfigsComponent/AgentConfigsComponent').then(m => <m.AgentConfigsComponent />),
+      },
+      disabled: true,
+    }),
+    EntityContentBlueprint.make({
+      name: 'agentSkills',
+      params: {
+        path: '/agent-skills',
+        filter: isAIRulesAvailable,
+        title: 'Agent Skills',
+        loader: () => import('./components/AgentSkillsComponent/AgentSkillsComponent').then(m => <m.AgentSkillsComponent />),
+      },
+      disabled: true,
+    }),
     ApiBlueprint.make({
       name: 'aiRulesApi',
       params: defineParams => defineParams({

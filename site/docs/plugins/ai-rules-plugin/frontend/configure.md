@@ -4,27 +4,33 @@ This guide covers the configuration options available for the AI Coding Rules fr
 
 ## Component Overview
 
-The plugin provides three main components:
+The plugin provides six components:
 
 1. **AiInstructionsComponent** (Recommended)
-   - Unified component with tabbed interface
-   - Combines AI rules and MCP server functionality
-   - Provides seamless navigation between features
+   - Unified component with a 5-tab interface
+   - Combines Agent Rules, MCP Servers, Ignore Files, Agent Configs, and Agent Skills
    - Recommended for most use cases
 
 2. **AIRulesComponent**
    - Standalone component for AI coding rules
    - Use when you only need rules functionality
-   - Can be used multiple times with different configurations
 
 3. **MCPServersComponent**
    - Standalone component for MCP server configuration
-   - Displays server configurations from multiple sources
-   - Groups servers by source (Cursor, VSCode, Claude)
+   - Displays server configurations from 5 sources
+
+4. **IgnoreFilesComponent**
+   - Standalone component for agent ignore file contents
+
+5. **AgentConfigsComponent**
+   - Standalone component for agent configuration files
+
+6. **AgentSkillsComponent**
+   - Standalone component for Agent Skills (agentskills.io standard)
 
 ## New Frontend System Configuration (Alpha)
 
-When using the new frontend system through the `/alpha` export, the plugin is configured automatically with sensible defaults. The configuration in `app-config.yaml` is still respected:
+When using the new frontend system through the `/alpha` export, the plugin is configured automatically with sensible defaults. Configuration in `app-config.yaml` is still respected:
 
 ```yaml
 aiRules:
@@ -32,6 +38,14 @@ aiRules:
     - cursor
     - copilot
     - cline
+    - claude-code
+    - windsurf
+    - roo-code
+    - codex
+    - gemini
+    - amazon-q
+    - continue
+    - aider
 ```
 
 The plugin will be automatically integrated into the appropriate entity pages without requiring manual route configuration.
@@ -40,17 +54,24 @@ The plugin will be automatically integrated into the appropriate entity pages wi
 
 ### Basic Configuration
 
-Configure the plugin behavior in your `app-config.yaml`:
+Configure the plugin in your `app-config.yaml`:
 
 ```yaml
 aiRules:
-  # Configure which rule types are available for selection
+  # Restrict which rule types are available in the filter UI
   allowedRuleTypes:
     - cursor
     - copilot
     - cline
     - claude-code
-  # Configure which rule types are pre-selected by default
+    - windsurf
+    - roo-code
+    - codex
+    - gemini
+    - amazon-q
+    - continue
+    - aider
+  # Pre-select specific rule types on load
   defaultRuleTypes:
     - cursor
     - claude-code
@@ -60,15 +81,24 @@ aiRules:
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `allowedRuleTypes` | `string[]` | `["cursor", "copilot", "cline", "claude-code"]` | Array of rule types available for selection |
-| `defaultRuleTypes` | `string[]` | `[]` | Array of rule types pre-selected when component loads. If not specified, defaults to empty array (no auto-search) |
+| `allowedRuleTypes` | `string[]` | All 11 types | Array of rule types available for selection in the filter UI |
+| `defaultRuleTypes` | `string[]` | `[]` | Array of rule types pre-selected when component loads. Empty means no auto-search. |
 
-### Supported Rule Types
+### Supported Rule Type Values
 
-- `cursor`: Cursor IDE rules from `.cursor/rules/*.mdc` files
-- `copilot`: GitHub Copilot rules from `.github/copilot-instructions.md`
-- `cline`: Cline AI rules from `.clinerules/*.md` files
-- `claude-code`: Claude Code rules from `CLAUDE.md` files in repository root
+| Value | Agent |
+|-------|-------|
+| `cursor` | Cursor IDE |
+| `copilot` | GitHub Copilot |
+| `cline` | Cline |
+| `claude-code` | Claude Code |
+| `windsurf` | Windsurf |
+| `roo-code` | Roo Code |
+| `codex` | OpenAI Codex |
+| `gemini` | Gemini CLI |
+| `amazon-q` | Amazon Q Developer |
+| `continue` | Continue.dev |
+| `aider` | Aider |
 
 ### Filtering Behavior
 
@@ -84,38 +114,57 @@ The plugin uses manual filtering with Apply Filter functionality:
 ```yaml
 # No rules pre-selected (default behavior)
 aiRules:
-  allowedRuleTypes: ["cursor", "copilot", "cline", "claude-code"]
+  allowedRuleTypes:
+    - cursor
+    - copilot
+    - cline
+    - claude-code
+    - windsurf
+    - roo-code
+    - codex
+    - gemini
+    - amazon-q
+    - continue
+    - aider
   # defaultRuleTypes not specified = empty array
 
 # Pre-select specific rule types
 aiRules:
-  allowedRuleTypes: ["cursor", "copilot", "cline", "claude-code"]
-  defaultRuleTypes: ["cursor", "claude-code"]
+  allowedRuleTypes:
+    - cursor
+    - copilot
+    - claude-code
+    - windsurf
+  defaultRuleTypes:
+    - cursor
+    - claude-code
 
-# Empty pre-selection (explicit)
+# Minimal set for a team that only uses Cursor and Copilot
 aiRules:
-  allowedRuleTypes: ["cursor", "copilot", "cline", "claude-code"]
-  defaultRuleTypes: []
+  allowedRuleTypes:
+    - cursor
+    - copilot
+  defaultRuleTypes:
+    - cursor
+    - copilot
 ```
 
 ## Component Configuration
 
-The plugin provides three main components, each with their own configuration options:
+All components accept an optional `title` prop and no other configuration at the component level. Behavior is driven by `app-config.yaml`.
 
 ### AiInstructionsComponent Props (Recommended)
 
-The unified component that provides both AI rules and MCP server functionality:
-
 ```typescript
 interface AiInstructionsComponentProps {
-  title?: string;  // Optional title for the component
+  title?: string;  // Optional custom title
 }
 ```
 
-#### Usage Examples
+Usage:
 
 ```typescript
-// Default usage
+// Default usage — shows all 5 tabs
 <EntityLayout.Route path="/ai-rules" title="AI Rules">
   <AiInstructionsComponent />
 </EntityLayout.Route>
@@ -128,54 +177,42 @@ interface AiInstructionsComponentProps {
 
 ### AIRulesComponent Props
 
-The standalone AI rules component:
-
 ```typescript
 interface AIRulesComponentProps {
-  title?: string;  // Optional title for the component
+  title?: string;
 }
-```
-
-#### Usage Examples
-
-```typescript
-// Default usage
-<EntityLayout.Route path="/ai-rules" title="AI Rules">
-  <AIRulesComponent />
-</EntityLayout.Route>
-
-// Multiple instances with different titles
-<EntityLayout.Route path="/cursor-rules" title="Cursor Rules">
-  <AIRulesComponent title="Cursor IDE Rules" />
-</EntityLayout.Route>
-
-<EntityLayout.Route path="/copilot-rules" title="Copilot Rules">
-  <AIRulesComponent title="GitHub Copilot Guidelines" />
-</EntityLayout.Route>
 ```
 
 ### MCPServersComponent Props
 
-The standalone MCP servers component:
-
 ```typescript
 interface MCPServersComponentProps {
-  title?: string;  // Optional title for the component
+  title?: string;
 }
 ```
 
-#### Usage Examples
+### IgnoreFilesComponent Props
 
 ```typescript
-// Default usage
-<EntityLayout.Route path="/mcp-servers" title="MCP Servers">
-  <MCPServersComponent />
-</EntityLayout.Route>
+interface IgnoreFilesComponentProps {
+  title?: string;
+}
+```
 
-// Custom title
-<EntityLayout.Route path="/mcp" title="MCP Configuration">
-  <MCPServersComponent title="MCP Server Configurations" />
-</EntityLayout.Route>
+### AgentConfigsComponent Props
+
+```typescript
+interface AgentConfigsComponentProps {
+  title?: string;
+}
+```
+
+### AgentSkillsComponent Props
+
+```typescript
+interface AgentSkillsComponentProps {
+  title?: string;
+}
 ```
 
 ## Entity Configuration
@@ -190,7 +227,6 @@ kind: Component
 metadata:
   name: my-service
   annotations:
-    # Required: Source location pointing to Git repository
     backstage.io/source-location: url:https://github.com/org/my-repo
 spec:
   type: service
@@ -198,47 +234,17 @@ spec:
   owner: team-a
 ```
 
-### Optional Entity Configuration
+### Optional: Specify Branch
 
 ```yaml
 metadata:
   annotations:
-    # Optional: Specific branch to check for rules
     backstage.io/source-location: url:https://github.com/org/my-repo/tree/main
-    
-    # Optional: Subdirectory if rules are in a specific path
-    backstage.io/source-location: url:https://github.com/org/my-repo/tree/main/services/api
 ```
 
-### Clickable Git Links
-
-Each rule now includes a clickable launch icon (↗) that opens the rule file directly in your git repository:
-
-- **Multi-Provider Support**: Works with GitHub, GitLab, and other git providers
-- **New Tab**: Opens in a new browser tab for easy access
-- **Direct File Access**: Links directly to the specific rule file in the repository
-- **Non-Intrusive**: Doesn't interfere with existing accordion/card functionality
-
-#### Supported Git Providers
-
-- **GitHub**: Converts to `/blob/main/` URL format
-- **GitLab**: Converts to `/-/blob/main/` URL format  
-- **Generic Providers**: Uses standard `/blob/main/` format
-
-### Apply Filter Functionality
-
-The component now uses manual filtering instead of automatic rule loading:
-
-- **Apply Filter Button**: Users must click to trigger searches
-- **Unsaved Changes Indicator**: Shows when filter selections haven't been applied
-- **Status Messages**: Clear feedback about filter state and required actions
-- **Reset Filters**: Quickly reset to all allowed rule types
-
-## Rule File Configuration
+## Rule File Configuration Examples
 
 ### Cursor Rules (.cursor/rules/*.mdc)
-
-Cursor rule files support frontmatter for metadata:
 
 ```markdown
 ---
@@ -250,42 +256,39 @@ alwaysApply: true
 # TypeScript Rules
 
 Use strict typing and avoid any types.
-Follow naming conventions for interfaces and types.
+```
+
+### Cursor Memory (.cursor/MEMORY.md)
+
+```markdown
+# Memory
+
+- Always use async/await over raw Promises
+- Prefer named exports
 ```
 
 ### GitHub Copilot Rules (.github/copilot-instructions.md)
-
-Simple markdown file with sections automatically split by empty lines:
 
 ```markdown
 # Copilot Instructions
 
 Use TypeScript for all new code.
-Follow existing code patterns.
-
 Prefer functional components in React.
-Use hooks instead of class components.
 ```
 
-### Cline Rules (.clinerules/*.md)
-
-Markdown files with automatic section extraction:
+### Cline Rules (.clinerules or .clinerules/*.md)
 
 ```markdown
 # Development Guidelines
 
 ## Code Style
 - Use ESLint and Prettier
-- Follow team conventions
 
 ## Testing
 - Write unit tests for all functions
-- Use Jest for testing framework
 ```
 
-### Claude Code Rules (CLAUDE.md)
-
-Simple markdown file in repository root with automatic title extraction:
+### Claude Code Rules (CLAUDE.md / .claude/rules/*.md)
 
 ```markdown
 # Claude Code Guidelines
@@ -293,57 +296,120 @@ Simple markdown file in repository root with automatic title extraction:
 ## Development Principles
 - Write clean, readable code
 - Follow SOLID principles
-- Use meaningful variable names
+```
 
-## Code Review Standards
-- All code must be reviewed
-- Tests must pass before merge
-- Documentation should be updated
+### Windsurf Rules (.windsurfrules or .windsurf/rules/*.md)
+
+```markdown
+# Windsurf Rules
+
+Always document public APIs.
+Use semantic commit messages.
+```
+
+### Roo Code Rules (.roo/rules/*.md)
+
+```markdown
+# Roo Rules
+
+Follow the team style guide.
+Prefer small, focused functions.
+```
+
+### Continue Rules (.continue/rules/*.md)
+
+```markdown
+---
+name: TypeScript Standards
+alwaysApply: true
+---
+
+Use strict TypeScript settings.
+```
+
+### Agent Skills (SKILL.md)
+
+```markdown
+---
+name: "TypeScript Linting"
+description: "Runs ESLint and reports violations"
+version: "1.0.0"
+author: "Platform Team"
+license: "MIT"
+compatibility:
+  - cursor
+  - claude-code
+allowedTools:
+  - run_terminal_cmd
+---
+
+# TypeScript Linting Skill
+
+Run ESLint across the project and summarize results.
 ```
 
 ## Advanced Configuration
 
-### Custom Rule Type Configuration
-
-If you want to limit to specific rule types for certain environments:
+### Limit Types Per Environment
 
 ```yaml
-# Development environment - show all types
+# Development — show all types
 aiRules:
   allowedRuleTypes:
     - cursor
     - copilot
     - cline
+    - claude-code
+    - windsurf
+    - roo-code
+    - codex
+    - gemini
+    - amazon-q
+    - continue
+    - aider
 
-# Production environment - only show official guidelines
+# Production — only official guidelines
 aiRules:
   allowedRuleTypes:
     - copilot
 ```
 
-### Environment-Specific Configuration
+### Environment-Specific Files
 
 ```yaml
-# app-config.yaml (base configuration)
+# app-config.yaml (base)
 aiRules:
   allowedRuleTypes:
     - cursor
     - copilot
 
----
 # app-config.development.yaml
 aiRules:
   allowedRuleTypes:
     - cursor
     - copilot
     - cline
+    - windsurf
+    - roo-code
+    - codex
+    - gemini
+    - amazon-q
+    - continue
+    - aider
 
----
 # app-config.production.yaml
 aiRules:
   allowedRuleTypes:
     - copilot
 ```
+
+## Clickable Git Links
+
+Each rule/skill/file includes a clickable launch icon (↗) that opens the file directly in the git repository:
+
+- **GitHub**: Converts to `/blob/main/` URL format
+- **GitLab**: Converts to `/-/blob/main/` URL format
+- **Generic Providers**: Uses standard `/blob/main/` format
 
 ## Styling and Theming
 
@@ -354,20 +420,22 @@ The plugin uses Material-UI components and respects your Backstage theme configu
 - Typography settings
 - Component spacing
 
-
 ## Performance Considerations
 
 ### Rule File Size
+
 - Keep rule files reasonably sized (< 100KB recommended)
 - Split large rule sets into multiple files
 - Use clear file names for better organization
 
 ### Repository Access
+
 - Ensure backend has efficient access to repositories
 - Consider caching for frequently accessed rules
 - Monitor API rate limits for external repositories
 
 ### Component Usage
+
 - Avoid placing the component on high-traffic pages if not needed
 - Consider lazy loading for large rule sets
 - Use appropriate tab placement for user workflow
@@ -375,19 +443,28 @@ The plugin uses Material-UI components and respects your Backstage theme configu
 ## Troubleshooting Configuration
 
 ### Rule Types Not Showing
+
 1. Check `allowedRuleTypes` configuration
 2. Verify rule files exist in expected locations
 3. Confirm file naming follows conventions
 4. Check backend logs for parsing errors
 
+### Ignore Files / Agent Configs / Skills Tabs Empty
+
+1. Check that the relevant files exist in the repository
+2. Confirm the backend responds on `/api/ai-rules/ignore-files`, `/api/ai-rules/agent-configs`, `/api/ai-rules/skills`
+3. Check backend logs for directory-listing errors
+
 ### Performance Issues
+
 1. Review rule file sizes
 2. Check repository access performance
 3. Monitor network requests in browser dev tools
 4. Consider component placement optimization
 
 ### Access Issues
+
 1. Verify entity source location annotations
 2. Check SCM integration configuration
 3. Confirm repository permissions
-4. Test backend API endpoints directly 
+4. Test backend API endpoints directly

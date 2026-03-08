@@ -3,7 +3,7 @@ import { Config } from '@backstage/config';
 const matter = require('gray-matter');
 
 export interface AIRule {
-  type: 'cursor' | 'copilot' | 'cline' | 'claude-code';
+  type: 'cursor' | 'copilot' | 'cline' | 'claude-code' | 'windsurf' | 'roo-code' | 'codex' | 'gemini' | 'amazon-q' | 'continue' | 'aider';
   id: string;
   filePath: string;
   fileName: string;
@@ -20,6 +20,7 @@ export interface AIRule {
     content: string;
   }>;
   applyTo?: string;
+  mode?: string; // Roo Code mode (code, architect, ask, debug, etc.)
 }
 
 export interface AIRulesResponse {
@@ -50,22 +51,61 @@ export class AiRulesService {
     for (const ruleType of ruleTypes) {
       try {
         switch (ruleType) {
-          case 'cursor':
+          case 'cursor': {
             const cursorRules = await this.fetchCursorRules(gitUrl);
             allRules.push(...cursorRules);
             break;
-          case 'copilot':
+          }
+          case 'copilot': {
             const copilotRules = await this.fetchCopilotRules(gitUrl);
             allRules.push(...copilotRules);
             break;
-          case 'cline':
+          }
+          case 'cline': {
             const clineRules = await this.fetchClineRules(gitUrl);
             allRules.push(...clineRules);
             break;
-          case 'claude-code':
+          }
+          case 'claude-code': {
             const claudeCodeRules = await this.fetchClaudeCodeRules(gitUrl);
             allRules.push(...claudeCodeRules);
             break;
+          }
+          case 'windsurf': {
+            const windsurfRules = await this.fetchWindsurfRules(gitUrl);
+            allRules.push(...windsurfRules);
+            break;
+          }
+          case 'roo-code': {
+            const rooCodeRules = await this.fetchRooCodeRules(gitUrl);
+            allRules.push(...rooCodeRules);
+            break;
+          }
+          case 'codex': {
+            const codexRules = await this.fetchCodexRules(gitUrl);
+            allRules.push(...codexRules);
+            break;
+          }
+          case 'gemini': {
+            const geminiRules = await this.fetchGeminiRules(gitUrl);
+            allRules.push(...geminiRules);
+            break;
+          }
+          case 'amazon-q': {
+            const amazonQRules = await this.fetchAmazonQRules(gitUrl);
+            allRules.push(...amazonQRules);
+            break;
+          }
+          case 'continue': {
+            const continueRules = await this.fetchContinueRules(gitUrl);
+            allRules.push(...continueRules);
+            break;
+          }
+          case 'aider': {
+            const aiderRules = await this.fetchAiderRules(gitUrl);
+            allRules.push(...aiderRules);
+            break;
+          }
         }
       } catch (error) {
         this.logger.warn(`Failed to fetch ${ruleType} rules: ${error}`);
@@ -79,11 +119,13 @@ export class AiRulesService {
     };
   }
 
+  // ─── Cursor ───────────────────────────────────────────────────────────────
+
   private async fetchCursorRules(gitUrl: string): Promise<AIRule[]> {
     const rules: AIRule[] = [];
-    const processedFiles = new Set<string>(); // Track processed files to avoid duplicates
-    
-    // Check for single .cursorrules file first
+    const processedFiles = new Set<string>();
+
+    // Legacy .cursorrules root file
     try {
       const content = await this.fetchFileContent(gitUrl, '.cursorrules');
       const rule = this.parseCursorRule('.cursorrules', content, gitUrl);
@@ -91,167 +133,39 @@ export class AiRulesService {
         rules.push(rule);
         processedFiles.add('.cursorrules');
       }
-    } catch (error) {
-      // File not found, continue
-    }
+    } catch (_e) { /* not found */ }
 
-    // Check for .cursor/rules directory
-    const cursorPaths = [
-      '.cursor/rules',
-    ];
-
-    for (const basePath of cursorPaths) {
-      try {
-        const files = await this.listDirectoryFiles(gitUrl, basePath);
-        
-        for (const file of files) {
-          if (file.endsWith('.mdc') || file.endsWith('.md')) {
-            try {
-              // Always construct the full path by prepending the base path
-              const fullFilePath = `${basePath}/${file}`;
-              
-              // Skip if we've already processed this file
-              if (processedFiles.has(fullFilePath)) {
-                continue;
-              }
-              
-              const content = await this.fetchFileContent(gitUrl, fullFilePath);
-              const rule = this.parseCursorRule(fullFilePath, content, gitUrl);
-              if (rule) {
-                rules.push(rule);
-                processedFiles.add(fullFilePath);
-              }
-            } catch (error) {
-              this.logger.warn(`Failed to fetch cursor rule ${file}: ${error}`);
-            }
+    // .cursor/rules directory
+    const files = await this.listDirectoryFiles(gitUrl, '.cursor/rules');
+    for (const file of files) {
+      if (file.endsWith('.mdc') || file.endsWith('.md')) {
+        const fullFilePath = `.cursor/rules/${file}`;
+        if (processedFiles.has(fullFilePath)) continue;
+        try {
+          const content = await this.fetchFileContent(gitUrl, fullFilePath);
+          const rule = this.parseCursorRule(fullFilePath, content, gitUrl);
+          if (rule) {
+            rules.push(rule);
+            processedFiles.add(fullFilePath);
           }
-        }
-      } catch (error) {
-        // Directory not found, continue
-      }
-    }
-
-    // Check in common subdirectories
-    const commonSubdirs = ['docs', 'documentation', 'rules', 'ai-rules', 'prompts'];
-    for (const subdir of commonSubdirs) {
-      try {
-        const files = await this.listDirectoryFiles(gitUrl, subdir);
-        
-        for (const file of files) {
-          if (file.endsWith('.mdc') || file.endsWith('.md')) {
-            try {
-              // Construct the full path by prepending the subdirectory path  
-              const fullFilePath = `${subdir}/${file}`;
-              
-              // Skip if we've already processed this file
-              if (processedFiles.has(fullFilePath)) {
-                continue;
-              }
-              
-              const content = await this.fetchFileContent(gitUrl, fullFilePath);
-              const rule = this.parseCursorRule(fullFilePath, content, gitUrl);
-              if (rule) {
-                rules.push(rule);
-                processedFiles.add(fullFilePath);
-              }
-            } catch (error) {
-              this.logger.warn(`Failed to fetch cursor rule ${file}: ${error}`);
-            }
-          }
-        }
-      } catch (error) {
-        // Directory not found, continue
-      }
-    }
-
-    return rules;
-  }
-
-  private async fetchCopilotRules(gitUrl: string): Promise<AIRule[]> {
-    const rules: AIRule[] = [];
-    const processedFiles = new Set<string>();
-
-    // Check for legacy .github/copilot-instructions.md file
-    try {
-      const content = await this.fetchFileContent(gitUrl, '.github/copilot-instructions.md');
-      const parsedRules = this.parseLegacyCopilotRules(content, gitUrl);
-      rules.push(...parsedRules);
-    } catch (error) {
-      // Legacy file not found, continue silently
-    }
-
-    // Check for new .github/instructions directory
-    try {
-      const files = await this.listDirectoryFiles(gitUrl, '.github/instructions');
-      
-      for (const file of files) {
-        if (file.endsWith('.instructions.md')) {
-          try {
-            // Skip if we've already processed this file
-            if (processedFiles.has(file)) {
-              continue;
-            }
-            
-            const fullPath = `.github/instructions/${file}`;
-            const content = await this.fetchFileContent(gitUrl, fullPath);
-            const rule = this.parseCopilotRule(fullPath, content, gitUrl);
-            if (rule) {
-              rules.push(rule);
-              processedFiles.add(file);
-            }
-          } catch (error) {
-            this.logger.warn(`Failed to fetch copilot rule ${file}: ${error}`);
-          }
+        } catch (error) {
+          this.logger.warn(`Failed to fetch cursor rule ${file}: ${error}`);
         }
       }
-    } catch (error) {
-      // Directory not found, continue silently
     }
 
-    return rules;
-  }
-
-  private async fetchClineRules(gitUrl: string): Promise<AIRule[]> {
-    const rules: AIRule[] = [];
-    const basePath = '.clinerules';
-    
-    try {
-      const files = await this.listDirectoryFiles(gitUrl, basePath);
-      
-      for (const file of files) {
-        if (file.endsWith('.md')) {
-          // Always construct the full path by prepending the base path
-          const fullFilePath = `${basePath}/${file}`;
-          
-          try {
-            const content = await this.fetchFileContent(gitUrl, fullFilePath);
-            const rule = this.parseClineRule(fullFilePath, content, gitUrl);
-            if (rule) {
-              rules.push(rule);
-            }
-          } catch (error) {
-            this.logger.warn(`Failed to fetch cline rule ${fullFilePath}: ${error}`);
+    // Cursor project memory file
+    for (const memoryPath of ['.cursor/MEMORY.md', '.cursor/memory.md']) {
+      if (!processedFiles.has(memoryPath)) {
+        try {
+          const content = await this.fetchFileContent(gitUrl, memoryPath);
+          const rule = this.parseCursorRule(memoryPath, content, gitUrl);
+          if (rule) {
+            rules.push(rule);
+            processedFiles.add(memoryPath);
           }
-        }
+        } catch (_e) { /* not found */ }
       }
-    } catch (error) {
-      // Directory not found, continue
-    }
-
-    return rules;
-  }
-
-  private async fetchClaudeCodeRules(gitUrl: string): Promise<AIRule[]> {
-    const rules: AIRule[] = [];
-    
-    try {
-      const content = await this.fetchFileContent(gitUrl, 'CLAUDE.md');
-      const rule = this.parseClaudeCodeRule('CLAUDE.md', content, gitUrl);
-      if (rule) {
-        rules.push(rule);
-      }
-    } catch (error) {
-      // File not found, continue silently
     }
 
     return rules;
@@ -260,10 +174,7 @@ export class AiRulesService {
   private parseCursorRule(filePath: string, content: string, gitUrl: string): AIRule | null {
     try {
       const fileName = filePath.split('/').pop() || filePath;
-      
-      // Parse frontmatter using gray-matter
       const parsed = matter(content);
-      
       return {
         type: 'cursor',
         id: `cursor-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`,
@@ -282,14 +193,40 @@ export class AiRulesService {
     }
   }
 
+  // ─── Copilot ──────────────────────────────────────────────────────────────
 
+  private async fetchCopilotRules(gitUrl: string): Promise<AIRule[]> {
+    const rules: AIRule[] = [];
+    const processedFiles = new Set<string>();
 
-  private parseLegacyCopilotRules(content: string, gitUrl: string): AIRule[] {
-    if (!content.trim()) {
-      return [];
+    try {
+      const content = await this.fetchFileContent(gitUrl, '.github/copilot-instructions.md');
+      rules.push(...this.parseLegacyCopilotRules(content, gitUrl));
+    } catch (_e) { /* not found */ }
+
+    const files = await this.listDirectoryFiles(gitUrl, '.github/instructions');
+    for (const file of files) {
+      if (file.endsWith('.instructions.md')) {
+        if (processedFiles.has(file)) continue;
+        const fullPath = `.github/instructions/${file}`;
+        try {
+          const content = await this.fetchFileContent(gitUrl, fullPath);
+          const rule = this.parseCopilotRule(fullPath, content, gitUrl);
+          if (rule) {
+            rules.push(rule);
+            processedFiles.add(file);
+          }
+        } catch (error) {
+          this.logger.warn(`Failed to fetch copilot rule ${file}: ${error}`);
+        }
+      }
     }
 
-    // Parse the entire file as a single rule
+    return rules;
+  }
+
+  private parseLegacyCopilotRules(content: string, gitUrl: string): AIRule[] {
+    if (!content.trim()) return [];
     return [{
       type: 'copilot',
       id: 'copilot-legacy-instructions',
@@ -297,21 +234,16 @@ export class AiRulesService {
       fileName: 'Copilot Instructions',
       content: content.trim(),
       gitUrl,
-      title: 'copilot-instructions'
+      title: 'copilot-instructions',
     }];
   }
 
   private parseCopilotRule(filePath: string, content: string, gitUrl: string): AIRule | null {
     try {
       const fileName = filePath.split('/').pop() || filePath;
-      
-      // Parse frontmatter using gray-matter
       const parsed = matter(content);
-      
-      // Extract title from markdown (first # heading)
       const titleMatch = content.match(/^# (.+)$/m);
       const title = titleMatch ? titleMatch[1] : fileName.replace('.instructions.md', '');
-
       return {
         type: 'copilot',
         id: `copilot-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`,
@@ -329,15 +261,42 @@ export class AiRulesService {
     }
   }
 
+  // ─── Cline ────────────────────────────────────────────────────────────────
+
+  private async fetchClineRules(gitUrl: string): Promise<AIRule[]> {
+    const rules: AIRule[] = [];
+
+    // Root .clinerules file (fallback)
+    try {
+      const content = await this.fetchFileContent(gitUrl, '.clinerules');
+      const rule = this.parseClineRule('.clinerules', content, gitUrl);
+      if (rule) rules.push(rule);
+    } catch (_e) { /* not found */ }
+
+    // .clinerules/ directory
+    const files = await this.listDirectoryFiles(gitUrl, '.clinerules');
+    for (const file of files) {
+      if (file.endsWith('.md')) {
+        const fullFilePath = `.clinerules/${file}`;
+        try {
+          const content = await this.fetchFileContent(gitUrl, fullFilePath);
+          const rule = this.parseClineRule(fullFilePath, content, gitUrl);
+          if (rule) rules.push(rule);
+        } catch (error) {
+          this.logger.warn(`Failed to fetch cline rule ${fullFilePath}: ${error}`);
+        }
+      }
+    }
+
+    return rules;
+  }
+
   private parseClineRule(filePath: string, content: string, gitUrl: string): AIRule | null {
     try {
       const fileName = filePath.split('/').pop() || filePath;
-      
-      // Extract title from markdown (first # heading)
       const titleMatch = content.match(/^# (.+)$/m);
       const title = titleMatch ? titleMatch[1] : fileName.replace('.md', '');
 
-      // Parse sections (## headings and their content)
       const sections: Array<{ title: string; content: string }> = [];
       const sectionRegex = /^## (.+)$/gm;
       let match;
@@ -345,7 +304,6 @@ export class AiRulesService {
 
       while ((match = sectionRegex.exec(content)) !== null) {
         if (lastIndex > 0) {
-          // Get content between previous section and current
           const sectionContent = content.slice(lastIndex, match.index).trim();
           const prevMatch = content.slice(0, lastIndex).match(/^## (.+)$/g);
           if (prevMatch) {
@@ -355,8 +313,6 @@ export class AiRulesService {
         }
         lastIndex = match.index + match[0].length;
       }
-
-      // Handle the last section
       if (lastIndex > 0) {
         const lastSectionContent = content.slice(lastIndex).trim();
         const lastMatch = content.slice(0, lastIndex).match(/^## (.+)$/g);
@@ -382,14 +338,61 @@ export class AiRulesService {
     }
   }
 
+  // ─── Claude Code ──────────────────────────────────────────────────────────
+
+  private async fetchClaudeCodeRules(gitUrl: string): Promise<AIRule[]> {
+    const rules: AIRule[] = [];
+    const processedFiles = new Set<string>();
+
+    // Root CLAUDE.md
+    try {
+      const content = await this.fetchFileContent(gitUrl, 'CLAUDE.md');
+      const rule = this.parseClaudeCodeRule('CLAUDE.md', content, gitUrl);
+      if (rule) { rules.push(rule); processedFiles.add('CLAUDE.md'); }
+    } catch (_e) { /* not found */ }
+
+    // .claude/CLAUDE.md
+    try {
+      const content = await this.fetchFileContent(gitUrl, '.claude/CLAUDE.md');
+      if (!processedFiles.has('.claude/CLAUDE.md')) {
+        const rule = this.parseClaudeCodeRule('.claude/CLAUDE.md', content, gitUrl);
+        if (rule) { rules.push(rule); processedFiles.add('.claude/CLAUDE.md'); }
+      }
+    } catch (_e) { /* not found */ }
+
+    // CLAUDE.local.md
+    try {
+      const content = await this.fetchFileContent(gitUrl, 'CLAUDE.local.md');
+      if (!processedFiles.has('CLAUDE.local.md')) {
+        const rule = this.parseClaudeCodeRule('CLAUDE.local.md', content, gitUrl);
+        if (rule) { rules.push(rule); processedFiles.add('CLAUDE.local.md'); }
+      }
+    } catch (_e) { /* not found */ }
+
+    // .claude/rules/ directory
+    const claudeRuleFiles = await this.listDirectoryFiles(gitUrl, '.claude/rules');
+    for (const file of claudeRuleFiles) {
+      if (file.endsWith('.md')) {
+        const fullPath = `.claude/rules/${file}`;
+        if (processedFiles.has(fullPath)) continue;
+        try {
+          const content = await this.fetchFileContent(gitUrl, fullPath);
+          const rule = this.parseClaudeCodeRule(fullPath, content, gitUrl);
+          if (rule) { rules.push(rule); processedFiles.add(fullPath); }
+        } catch (error) {
+          this.logger.warn(`Failed to fetch claude-code rule ${fullPath}: ${error}`);
+        }
+      }
+    }
+
+    return rules;
+  }
+
   private parseClaudeCodeRule(filePath: string, content: string, gitUrl: string): AIRule | null {
     try {
       const fileName = filePath.split('/').pop() || filePath;
-      
-      // Extract title from markdown (first # heading)
       const titleMatch = content.match(/^# (.+)$/m);
       const title = titleMatch ? titleMatch[1] : 'Claude Code Rules';
-
       return {
         type: 'claude-code',
         id: `claude-code-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`,
@@ -405,56 +408,379 @@ export class AiRulesService {
     }
   }
 
-  // Helper method for retry logic with exponential backoff
+  // ─── Windsurf ─────────────────────────────────────────────────────────────
+
+  private async fetchWindsurfRules(gitUrl: string): Promise<AIRule[]> {
+    const rules: AIRule[] = [];
+    const processedFiles = new Set<string>();
+
+    // Root .windsurfrules file
+    try {
+      const content = await this.fetchFileContent(gitUrl, '.windsurfrules');
+      const rule = this.parseWindsurfRule('.windsurfrules', content, gitUrl);
+      if (rule) { rules.push(rule); processedFiles.add('.windsurfrules'); }
+    } catch (_e) { /* not found */ }
+
+    // .windsurf/rules/ directory
+    const files = await this.listDirectoryFiles(gitUrl, '.windsurf/rules');
+    for (const file of files) {
+      if (file.endsWith('.md')) {
+        const fullPath = `.windsurf/rules/${file}`;
+        if (processedFiles.has(fullPath)) continue;
+        try {
+          const content = await this.fetchFileContent(gitUrl, fullPath);
+          const rule = this.parseWindsurfRule(fullPath, content, gitUrl);
+          if (rule) { rules.push(rule); processedFiles.add(fullPath); }
+        } catch (error) {
+          this.logger.warn(`Failed to fetch windsurf rule ${fullPath}: ${error}`);
+        }
+      }
+    }
+
+    return rules;
+  }
+
+  private parseWindsurfRule(filePath: string, content: string, gitUrl: string): AIRule | null {
+    try {
+      const fileName = filePath.split('/').pop() || filePath;
+      const titleMatch = content.match(/^# (.+)$/m);
+      const title = titleMatch ? titleMatch[1] : fileName.replace('.md', '');
+      return {
+        type: 'windsurf',
+        id: `windsurf-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`,
+        filePath,
+        fileName: fileName.replace(/\.(md)$/, ''),
+        content,
+        gitUrl,
+        title,
+      };
+    } catch (error) {
+      this.logger.warn(`Failed to parse windsurf rule ${filePath}: ${error}`);
+      return null;
+    }
+  }
+
+  // ─── Roo Code ─────────────────────────────────────────────────────────────
+
+  private async fetchRooCodeRules(gitUrl: string): Promise<AIRule[]> {
+    const rules: AIRule[] = [];
+    const processedFiles = new Set<string>();
+
+    // Root .roorules fallback file
+    try {
+      const content = await this.fetchFileContent(gitUrl, '.roorules');
+      const rule = this.parseRooCodeRule('.roorules', content, gitUrl, undefined);
+      if (rule) { rules.push(rule); processedFiles.add('.roorules'); }
+    } catch (_e) { /* not found */ }
+
+    // .roo/rules/ and mode-specific directories
+    const rooDirectories: Array<{ path: string; mode?: string }> = [
+      { path: '.roo/rules', mode: undefined },
+      { path: '.roo/rules-code', mode: 'code' },
+      { path: '.roo/rules-architect', mode: 'architect' },
+      { path: '.roo/rules-ask', mode: 'ask' },
+      { path: '.roo/rules-debug', mode: 'debug' },
+    ];
+
+    for (const { path, mode } of rooDirectories) {
+      const files = await this.listDirectoryFiles(gitUrl, path);
+      for (const file of files) {
+        if (file.endsWith('.md') || file.endsWith('.txt')) {
+          const fullPath = `${path}/${file}`;
+          if (processedFiles.has(fullPath)) continue;
+          try {
+            const content = await this.fetchFileContent(gitUrl, fullPath);
+            const rule = this.parseRooCodeRule(fullPath, content, gitUrl, mode);
+            if (rule) { rules.push(rule); processedFiles.add(fullPath); }
+          } catch (error) {
+            this.logger.warn(`Failed to fetch roo-code rule ${fullPath}: ${error}`);
+          }
+        }
+      }
+    }
+
+    return rules;
+  }
+
+  private parseRooCodeRule(filePath: string, content: string, gitUrl: string, mode: string | undefined): AIRule | null {
+    try {
+      const fileName = filePath.split('/').pop() || filePath;
+      const titleMatch = content.match(/^# (.+)$/m);
+      const title = titleMatch ? titleMatch[1] : fileName.replace(/\.(md|txt)$/, '');
+      return {
+        type: 'roo-code',
+        id: `roo-code-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`,
+        filePath,
+        fileName: fileName.replace(/\.(md|txt)$/, ''),
+        content,
+        gitUrl,
+        title,
+        mode,
+      };
+    } catch (error) {
+      this.logger.warn(`Failed to parse roo-code rule ${filePath}: ${error}`);
+      return null;
+    }
+  }
+
+  // ─── OpenAI Codex ─────────────────────────────────────────────────────────
+
+  private async fetchCodexRules(gitUrl: string): Promise<AIRule[]> {
+    const rules: AIRule[] = [];
+    const processedFiles = new Set<string>();
+
+    for (const fileName of ['AGENTS.md', 'AGENTS.override.md']) {
+      try {
+        const content = await this.fetchFileContent(gitUrl, fileName);
+        if (!processedFiles.has(fileName)) {
+          const rule = this.parseCodexRule(fileName, content, gitUrl);
+          if (rule) { rules.push(rule); processedFiles.add(fileName); }
+        }
+      } catch (_e) { /* not found */ }
+    }
+
+    return rules;
+  }
+
+  private parseCodexRule(filePath: string, content: string, gitUrl: string): AIRule | null {
+    try {
+      const fileName = filePath.split('/').pop() || filePath;
+      const titleMatch = content.match(/^# (.+)$/m);
+      const title = titleMatch ? titleMatch[1] : fileName.replace('.md', '');
+      return {
+        type: 'codex',
+        id: `codex-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`,
+        filePath,
+        fileName: fileName.replace('.md', ''),
+        content,
+        gitUrl,
+        title,
+      };
+    } catch (error) {
+      this.logger.warn(`Failed to parse codex rule ${filePath}: ${error}`);
+      return null;
+    }
+  }
+
+  // ─── Gemini CLI ───────────────────────────────────────────────────────────
+
+  private async fetchGeminiRules(gitUrl: string): Promise<AIRule[]> {
+    const rules: AIRule[] = [];
+    const processedFiles = new Set<string>();
+
+    // Root GEMINI.md
+    try {
+      const content = await this.fetchFileContent(gitUrl, 'GEMINI.md');
+      if (!processedFiles.has('GEMINI.md')) {
+        const rule = this.parseGeminiRule('GEMINI.md', content, gitUrl);
+        if (rule) { rules.push(rule); processedFiles.add('GEMINI.md'); }
+      }
+    } catch (_e) { /* not found */ }
+
+    // .gemini/ directory
+    const files = await this.listDirectoryFiles(gitUrl, '.gemini');
+    for (const file of files) {
+      if (file.endsWith('.md')) {
+        const fullPath = `.gemini/${file}`;
+        if (processedFiles.has(fullPath)) continue;
+        try {
+          const content = await this.fetchFileContent(gitUrl, fullPath);
+          const rule = this.parseGeminiRule(fullPath, content, gitUrl);
+          if (rule) { rules.push(rule); processedFiles.add(fullPath); }
+        } catch (error) {
+          this.logger.warn(`Failed to fetch gemini rule ${fullPath}: ${error}`);
+        }
+      }
+    }
+
+    return rules;
+  }
+
+  private parseGeminiRule(filePath: string, content: string, gitUrl: string): AIRule | null {
+    try {
+      const fileName = filePath.split('/').pop() || filePath;
+      const titleMatch = content.match(/^# (.+)$/m);
+      const title = titleMatch ? titleMatch[1] : fileName.replace('.md', '');
+      return {
+        type: 'gemini',
+        id: `gemini-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`,
+        filePath,
+        fileName: fileName.replace('.md', ''),
+        content,
+        gitUrl,
+        title,
+      };
+    } catch (error) {
+      this.logger.warn(`Failed to parse gemini rule ${filePath}: ${error}`);
+      return null;
+    }
+  }
+
+  // ─── Amazon Q Developer ───────────────────────────────────────────────────
+
+  private async fetchAmazonQRules(gitUrl: string): Promise<AIRule[]> {
+    const rules: AIRule[] = [];
+
+    const files = await this.listDirectoryFiles(gitUrl, '.amazonq/rules');
+    for (const file of files) {
+      if (file.endsWith('.md')) {
+        const fullPath = `.amazonq/rules/${file}`;
+        try {
+          const content = await this.fetchFileContent(gitUrl, fullPath);
+          const rule = this.parseAmazonQRule(fullPath, content, gitUrl);
+          if (rule) rules.push(rule);
+        } catch (error) {
+          this.logger.warn(`Failed to fetch amazon-q rule ${fullPath}: ${error}`);
+        }
+      }
+    }
+
+    return rules;
+  }
+
+  private parseAmazonQRule(filePath: string, content: string, gitUrl: string): AIRule | null {
+    try {
+      const fileName = filePath.split('/').pop() || filePath;
+      const titleMatch = content.match(/^# (.+)$/m);
+      const title = titleMatch ? titleMatch[1] : fileName.replace('.md', '');
+      return {
+        type: 'amazon-q',
+        id: `amazon-q-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`,
+        filePath,
+        fileName: fileName.replace('.md', ''),
+        content,
+        gitUrl,
+        title,
+      };
+    } catch (error) {
+      this.logger.warn(`Failed to parse amazon-q rule ${filePath}: ${error}`);
+      return null;
+    }
+  }
+
+  // ─── Continue.dev ─────────────────────────────────────────────────────────
+
+  private async fetchContinueRules(gitUrl: string): Promise<AIRule[]> {
+    const rules: AIRule[] = [];
+    const processedFiles = new Set<string>();
+
+    for (const dirPath of ['.continue/rules', '.continue/prompts']) {
+      const files = await this.listDirectoryFiles(gitUrl, dirPath);
+      for (const file of files) {
+        if (file.endsWith('.md')) {
+          const fullPath = `${dirPath}/${file}`;
+          if (processedFiles.has(fullPath)) continue;
+          try {
+            const content = await this.fetchFileContent(gitUrl, fullPath);
+            const rule = this.parseContinueRule(fullPath, content, gitUrl);
+            if (rule) { rules.push(rule); processedFiles.add(fullPath); }
+          } catch (error) {
+            this.logger.warn(`Failed to fetch continue rule ${fullPath}: ${error}`);
+          }
+        }
+      }
+    }
+
+    return rules;
+  }
+
+  private parseContinueRule(filePath: string, content: string, gitUrl: string): AIRule | null {
+    try {
+      const fileName = filePath.split('/').pop() || filePath;
+      const parsed = matter(content);
+      const name = parsed.data.name || fileName.replace('.md', '');
+      return {
+        type: 'continue',
+        id: `continue-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`,
+        filePath,
+        fileName: fileName.replace('.md', ''),
+        content: parsed.content.trim(),
+        gitUrl,
+        title: name,
+        alwaysApply: parsed.data.alwaysApply,
+        frontmatter: Object.keys(parsed.data).length > 0 ? parsed.data : undefined,
+      };
+    } catch (error) {
+      this.logger.warn(`Failed to parse continue rule ${filePath}: ${error}`);
+      return null;
+    }
+  }
+
+  // ─── Aider ────────────────────────────────────────────────────────────────
+
+  private async fetchAiderRules(gitUrl: string): Promise<AIRule[]> {
+    const rules: AIRule[] = [];
+
+    try {
+      const content = await this.fetchFileContent(gitUrl, 'CONVENTIONS.md');
+      const rule = this.parseAiderRule('CONVENTIONS.md', content, gitUrl);
+      if (rule) rules.push(rule);
+    } catch (_e) { /* not found */ }
+
+    return rules;
+  }
+
+  private parseAiderRule(filePath: string, content: string, gitUrl: string): AIRule | null {
+    try {
+      const fileName = filePath.split('/').pop() || filePath;
+      const titleMatch = content.match(/^# (.+)$/m);
+      const title = titleMatch ? titleMatch[1] : fileName.replace('.md', '');
+      return {
+        type: 'aider',
+        id: `aider-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`,
+        filePath,
+        fileName: fileName.replace('.md', ''),
+        content,
+        gitUrl,
+        title,
+      };
+    } catch (error) {
+      this.logger.warn(`Failed to parse aider rule ${filePath}: ${error}`);
+      return null;
+    }
+  }
+
+  // ─── Retry / IO helpers ───────────────────────────────────────────────────
+
   private async retryWithBackoff<T>(
     operation: () => Promise<T>,
     maxRetries: number = 3,
     initialDelayMs: number = 1000,
     maxDelayMs: number = 10000,
-    operationName: string = 'operation'
+    operationName: string = 'operation',
   ): Promise<T> {
     let lastError: Error;
-    
+
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         return await operation();
       } catch (error) {
         lastError = error as Error;
-        
-        // Check if it's a rate limit error or connection issue that should be retried
         const shouldRetry = this.shouldRetryError(error as Error);
-        
         if (!shouldRetry || attempt === maxRetries) {
           this.logger.warn(`${operationName} failed after ${attempt + 1} attempts: ${lastError.message}`);
           throw lastError;
         }
-        
-        // Calculate delay with exponential backoff and jitter
         const baseDelay = Math.min(initialDelayMs * Math.pow(2, attempt), maxDelayMs);
-        const jitter = Math.random() * 0.1 * baseDelay; // Add up to 10% jitter
+        const jitter = Math.random() * 0.1 * baseDelay;
         const delayMs = baseDelay + jitter;
-        
         this.logger.warn(`${operationName} failed (attempt ${attempt + 1}/${maxRetries + 1}), retrying in ${Math.round(delayMs)}ms: ${lastError.message}`);
-        
         await new Promise(resolve => setTimeout(resolve, delayMs));
       }
     }
-    
+
     throw lastError!;
   }
 
-  // Check if an error should trigger a retry
   private shouldRetryError(error: Error): boolean {
     const errorMessage = error.message.toLowerCase();
-    
-    // Retry on rate limiting, network issues, and temporary server errors
     return (
-      errorMessage.includes('429') || // Too Many Requests
+      errorMessage.includes('429') ||
       errorMessage.includes('too many requests') ||
       errorMessage.includes('rate limit') ||
-      errorMessage.includes('502') || // Bad Gateway
-      errorMessage.includes('503') || // Service Unavailable
-      errorMessage.includes('504') || // Gateway Timeout
+      errorMessage.includes('502') ||
+      errorMessage.includes('503') ||
+      errorMessage.includes('504') ||
       errorMessage.includes('timeout') ||
       errorMessage.includes('network') ||
       errorMessage.includes('connection') ||
@@ -463,58 +789,44 @@ export class AiRulesService {
     );
   }
 
-  // URL Reader service methods for files and directories
   private async listDirectoryFiles(gitUrl: string, path: string): Promise<string[]> {
     try {
       return await this.retryWithBackoff(
         async () => {
-          // Construct directory URL using the correct format
           const directoryUrl = `${gitUrl}/tree/HEAD/${path}`;
-
-          // Use URL Reader to read the directory tree
           const treeResponse = await this.urlReader.readTree(directoryUrl);
-          
           const files: string[] = [];
-          
-          // Extract files from the tree using the correct API
           const filesArray = await treeResponse.files();
           for (const file of filesArray) {
-            // Only include actual files, not directories
             if (file.path && !file.path.endsWith('/')) {
               files.push(file.path);
             }
           }
-
           return files;
         },
-        3, // maxRetries
-        1000, // initialDelayMs
-        10000, // maxDelayMs
-        `listDirectoryFiles(${path})`
+        3,
+        1000,
+        10000,
+        `listDirectoryFiles(${path})`,
       );
     } catch (error) {
       this.logger.error(`Failed to list directory ${path} after retries: ${error}`);
-      return [];  // Return empty array instead of throwing
+      return [];
     }
   }
 
   private async fetchFileContent(gitUrl: string, filePath: string): Promise<string> {
     return await this.retryWithBackoff(
       async () => {
-        // Construct file URL using the correct format 
         const fileUrl = `${gitUrl}/blob/HEAD/${filePath}`;
-
-        // Use URL Reader to read the file using the documented API
         const response = await this.urlReader.readUrl(fileUrl);
         const buffer = await response.buffer();
-        const content = buffer.toString('utf-8');
-        
-        return content;
+        return buffer.toString('utf-8');
       },
-      3, // maxRetries
-      1000, // initialDelayMs
-      10000, // maxDelayMs
-      `fetchFileContent(${filePath})`
+      3,
+      1000,
+      10000,
+      `fetchFileContent(${filePath})`,
     );
   }
-} 
+}

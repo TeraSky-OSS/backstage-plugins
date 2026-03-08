@@ -7,6 +7,9 @@ export function registerMcpActions(
   aiRulesService: AiRulesService,
   mcpService: MCPService,
 ) {
+  const allRuleTypes = ['cursor', 'copilot', 'cline', 'claude-code', 'windsurf', 'roo-code', 'codex', 'gemini', 'amazon-q', 'continue', 'aider'] as const;
+  const allMcpSources = ['cursor', 'vscode', 'claude', 'windsurf', 'cline'] as const;
+
   // Get AI Rules
   actionsRegistry.register({
     name: 'get_ai_rules',
@@ -15,11 +18,11 @@ export function registerMcpActions(
     schema: {
       input: z => z.object({
         gitUrl: z.string().describe('The Git repository URL to fetch rules from'),
-        ruleTypes: z.array(z.enum(['cursor', 'copilot', 'cline', 'claude-code'])).describe('The types of rules to fetch'),
+        ruleTypes: z.array(z.enum(allRuleTypes)).describe('The types of rules to fetch'),
       }),
       output: z => z.object({
         rules: z.array(z.object({
-          type: z.enum(['cursor', 'copilot', 'cline', 'claude-code']).describe('The type of the rule'),
+          type: z.enum(allRuleTypes).describe('The type of the rule'),
           id: z.string().describe('Unique identifier for the rule'),
           filePath: z.string().describe('Path to the rule file in the repository'),
           fileName: z.string().describe('Name of the rule file'),
@@ -30,6 +33,7 @@ export function registerMcpActions(
           alwaysApply: z.boolean().optional().describe('Whether to always apply the rule'),
           order: z.number().optional().describe('Order in which to apply the rule'),
           title: z.string().optional().describe('Title of the rule'),
+          mode: z.string().optional().describe('Agent mode (Roo Code only)'),
           frontmatter: z.record(z.any()).optional().describe('Additional frontmatter data'),
           sections: z.array(z.object({
             title: z.string().describe('Section title'),
@@ -43,9 +47,7 @@ export function registerMcpActions(
     },
     action: async ({ input }) => {
       const result = await aiRulesService.getAiRules(input.gitUrl, input.ruleTypes);
-      return {
-        output: result,
-      };
+      return { output: result };
     },
   });
 
@@ -70,16 +72,14 @@ export function registerMcpActions(
             url: z.string().optional().describe('URL for remote servers'),
             headers: z.record(z.string()).optional().describe('Headers for remote servers'),
           }).describe('Server configuration'),
-          source: z.enum(['cursor', 'vscode', 'claude']).describe('Source of the MCP server configuration'),
+          source: z.enum(allMcpSources).describe('Source of the MCP server configuration'),
           rawConfig: z.string().describe('Raw JSON configuration for syntax highlighting'),
         })).describe('List of MCP servers'),
       }),
     },
     action: async ({ input }) => {
       const result = await mcpService.getMCPServers(input.gitUrl);
-      return {
-        output: result,
-      };
+      return { output: result };
     },
   });
 }

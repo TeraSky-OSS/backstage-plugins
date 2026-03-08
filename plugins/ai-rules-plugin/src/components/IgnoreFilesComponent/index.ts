@@ -1,0 +1,1 @@
+export { IgnoreFilesComponent } from './IgnoreFilesComponent';

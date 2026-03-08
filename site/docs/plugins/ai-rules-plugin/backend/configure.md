@@ -15,6 +15,13 @@ aiRules:
     - copilot
     - cline
     - claude-code
+    - windsurf
+    - roo-code
+    - codex
+    - gemini
+    - amazon-q
+    - continue
+    - aider
   defaultRuleTypes:
     - cursor
     - claude-code
@@ -24,12 +31,12 @@ aiRules:
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `allowedRuleTypes` | `string[]` | `["cursor", "copilot", "cline", "claude-code"]` | Array of rule types to search for and parse |
-| `defaultRuleTypes` | `string[]` | `[]` | Array of rule types pre-selected when component loads |
+| `allowedRuleTypes` | `string[]` | All 11 types | Array of rule types to search for and parse |
+| `defaultRuleTypes` | `string[]` | `[]` | Array of rule types pre-selected in the UI on load |
 
 ### Default Configuration
 
-If no configuration is provided, the plugin defaults to:
+If no configuration is provided, the plugin defaults to enabling all 11 rule types:
 
 ```yaml
 aiRules:
@@ -38,14 +45,19 @@ aiRules:
     - copilot
     - cline
     - claude-code
+    - windsurf
+    - roo-code
+    - codex
+    - gemini
+    - amazon-q
+    - continue
+    - aider
   defaultRuleTypes: []
 ```
 
 ## SCM Integration Requirements
 
 ### GitHub Configuration
-
-For GitHub repositories:
 
 ```yaml
 integrations:
@@ -60,8 +72,6 @@ integrations:
 
 ### GitLab Configuration
 
-For GitLab repositories:
-
 ```yaml
 integrations:
   gitlab:
@@ -75,21 +85,14 @@ integrations:
 
 ### Azure DevOps Configuration
 
-For Azure DevOps repositories:
-
 ```yaml
 integrations:
   azure:
     - host: dev.azure.com
       token: ${AZURE_TOKEN}
-    # For Azure DevOps Server
-    - host: tfs.company.com
-      token: ${TFS_TOKEN}
 ```
 
 ### Bitbucket Configuration
-
-For Bitbucket repositories:
 
 ```yaml
 integrations:
@@ -97,25 +100,23 @@ integrations:
     - host: bitbucket.org
       username: ${BITBUCKET_USERNAME}
       appPassword: ${BITBUCKET_APP_PASSWORD}
-    # For Bitbucket Server
-    - host: bitbucket.company.com
-      token: ${BITBUCKET_SERVER_TOKEN}
 ```
 
-## Rule Type Specifications
+## Rule Type Reference
 
 ### Cursor Rules
 
-Cursor rules are found in `.cursor/rules/*.mdc` files with optional frontmatter:
+Files scanned: `.cursorrules`, `.cursor/rules/*.mdc`, `.cursor/rules/*.md`, `.cursor/MEMORY.md`
 
 ```yaml
-# Configuration
 aiRules:
   allowedRuleTypes:
     - cursor
+```
 
-# Rule file structure
-# .cursor/rules/typescript.mdc
+Frontmatter supported in `.mdc` files:
+
+```markdown
 ---
 description: "TypeScript coding standards"
 globs: ["*.ts", "*.tsx"]
@@ -128,70 +129,144 @@ Use strict typing and avoid any types.
 
 ### GitHub Copilot Rules
 
-Copilot rules are found in `.github/copilot-instructions.md`:
+Files scanned: `.github/copilot-instructions.md`, `.github/instructions/*.instructions.md`
 
 ```yaml
-# Configuration
 aiRules:
   allowedRuleTypes:
     - copilot
-
-# Rule file structure  
-# .github/copilot-instructions.md
-# Development Guidelines
-
-Use TypeScript for all new code.
-Follow existing code patterns.
-
-Prefer functional components in React.
-Use hooks instead of class components.
 ```
 
 ### Cline Rules
 
-Cline rules are found in `.clinerules/*.md` files:
+Files scanned: `.clinerules` (root file), `.clinerules/*.md`
 
 ```yaml
-# Configuration
 aiRules:
   allowedRuleTypes:
     - cline
-
-# Rule file structure
-# .clinerules/development.md
-# Development Guidelines
-
-## Code Style
-- Use ESLint and Prettier
-- Follow team conventions
-
-## Testing
-- Write unit tests for all functions
 ```
 
 ### Claude Code Rules
 
-Claude Code rules are found in `CLAUDE.md` file in repository root:
+Files scanned: `CLAUDE.md`, `.claude/CLAUDE.md`, `CLAUDE.local.md`, `.claude/rules/*.md`
 
 ```yaml
-# Configuration
 aiRules:
   allowedRuleTypes:
     - claude-code
-
-# Rule file structure
-# CLAUDE.md (in repository root)
-# Claude Code Guidelines
-
-## Development Principles
-- Write clean, readable code
-- Follow SOLID principles
-- Use meaningful variable names
-
-## Code Review Standards
-- All code must be reviewed
-- Tests must pass before merge
 ```
+
+### Windsurf Rules
+
+Files scanned: `.windsurfrules`, `.windsurf/rules/*.md`
+
+```yaml
+aiRules:
+  allowedRuleTypes:
+    - windsurf
+```
+
+### Roo Code Rules
+
+Files scanned: `.roorules`, `.roo/rules/*.md`, `.roo/rules-code/*.md`, `.roo/rules-architect/*.md`, `.roo/rules-ask/*.md`, `.roo/rules-debug/*.md`
+
+The `mode` field is populated from the subdirectory name (e.g., `code`, `architect`, `ask`, `debug`).
+
+```yaml
+aiRules:
+  allowedRuleTypes:
+    - roo-code
+```
+
+### OpenAI Codex Rules
+
+Files scanned: `AGENTS.md`, `AGENTS.override.md`
+
+```yaml
+aiRules:
+  allowedRuleTypes:
+    - codex
+```
+
+### Gemini CLI Rules
+
+Files scanned: `GEMINI.md`, `.gemini/*.md`
+
+```yaml
+aiRules:
+  allowedRuleTypes:
+    - gemini
+```
+
+### Amazon Q Rules
+
+Files scanned: `.amazonq/rules/*.md`
+
+```yaml
+aiRules:
+  allowedRuleTypes:
+    - amazon-q
+```
+
+### Continue Rules
+
+Files scanned: `.continue/rules/*.md`, `.continue/prompts/*.md`
+
+Frontmatter supported:
+
+```markdown
+---
+name: TypeScript Standards
+alwaysApply: true
+---
+
+Use strict TypeScript settings.
+```
+
+```yaml
+aiRules:
+  allowedRuleTypes:
+    - continue
+```
+
+### Aider Rules
+
+Files scanned: `CONVENTIONS.md`
+
+```yaml
+aiRules:
+  allowedRuleTypes:
+    - aider
+```
+
+## MCP Server Configuration
+
+The backend automatically scans for MCP configuration files in:
+
+| Source | File Path |
+|--------|-----------|
+| Cursor | `.cursor/mcp.json` |
+| VSCode | `.vscode/mcp.json` |
+| Claude | `.mcp.json` |
+| Windsurf | `.windsurf/mcp.json` |
+| Cline | `.cline/mcp_settings.json` |
+
+No additional configuration is required — all 5 sources are always scanned.
+
+## Agent Skills Configuration
+
+The backend automatically scans for `SKILL.md` files in:
+
+| Source | Directory |
+|--------|-----------|
+| `agents` | `.agents/skills/` |
+| `claude` | `.claude/skills/` |
+| `cursor` | `.cursor/skills/` |
+
+All three directories are always scanned. No additional configuration is required.
+
+Source precedence for name collision resolution: `.agents/skills/` > `.claude/skills/` > `.cursor/skills/`.
 
 ## Environment-Specific Configuration
 
@@ -204,10 +279,13 @@ aiRules:
     - cursor
     - copilot
     - cline
+    - windsurf
+    - roo-code
+    - codex
 
 backend:
   logger:
-    level: debug # Enable debug logging
+    level: debug
 ```
 
 ### Production Environment
@@ -216,11 +294,11 @@ backend:
 # app-config.production.yaml
 aiRules:
   allowedRuleTypes:
-    - copilot # Only official guidelines in production
+    - copilot  # Only official guidelines in production
 
 backend:
   logger:
-    level: info # Standard logging level
+    level: info
 ```
 
 ### Testing Environment
@@ -233,7 +311,6 @@ aiRules:
     - copilot
     - cline
 
-# Mock SCM integrations for testing
 integrations:
   github:
     - host: github.com
@@ -244,10 +321,7 @@ integrations:
 
 ### Token Security
 
-Store authentication tokens securely:
-
 ```bash
-# Environment variables
 export GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx
 export GITLAB_TOKEN=glpat-xxxxxxxxxxxxxxxxxxxx
 export AZURE_TOKEN=xxxxxxxxxxxxxxxxxxxxxxxxx
@@ -257,125 +331,81 @@ export AZURE_TOKEN=xxxxxxxxxxxxxxxxxxxxxxxxx
 
 Ensure tokens have minimal required permissions:
 
-- **GitHub**: `repo` scope for private repos, or `public_repo` for public repos
+- **GitHub**: `repo` scope for private repos, `public_repo` for public repos
 - **GitLab**: `read_repository` permission
 - **Azure DevOps**: `Code (read)` permission
 - **Bitbucket**: `Repositories: Read` permission
 
-
 ## Performance and Rate Limiting
 
-### Retry Logic Configuration
+### Retry Logic
 
-The backend includes built-in retry logic with exponential backoff to handle rate limiting and network issues:
+Built-in retry with exponential backoff:
 
-```yaml
+```
 # Default retry configuration (not user-configurable)
 # - Max retries: 3 attempts
-# - Initial delay: 1 second  
+# - Initial delay: 1 second
 # - Max delay: 10 seconds
 # - Exponential backoff with jitter
 ```
 
-#### Retry Behavior
+The plugin retries on:
 
-The plugin automatically retries on these error conditions:
-
-- **Rate Limiting**: HTTP 429 "Too Many Requests"
+- **Rate Limiting**: HTTP 429 Too Many Requests
 - **Server Errors**: HTTP 502, 503, 504
 - **Network Issues**: Timeouts, connection resets, DNS failures
 
-#### Large Repository Optimization
-
-For large repositories with many rule files:
-
-- **Automatic Retry**: Failed requests are retried with increasing delays
-- **Jitter**: Random delays prevent thundering herd problems
-- **Circuit Breaking**: Stops retrying permanently failed requests
-- **Logging**: Detailed logs for debugging rate limit issues
-
 ### Rate Limit Best Practices
 
-#### GitLab Rate Limits
-GitLab.com has stricter rate limits than GitHub:
-
 ```yaml
-# Consider using GitLab tokens with higher rate limits
+# GitLab — use personal access tokens with appropriate scopes
 integrations:
   gitlab:
     - host: gitlab.com
-      token: ${GITLAB_TOKEN} # Use personal access token with appropriate scopes
-```
+      token: ${GITLAB_TOKEN}
 
-#### GitHub Rate Limits
-GitHub has generous rate limits, but monitor usage:
-
-```yaml
+# GitHub — authenticated requests have higher rate limits
 integrations:
   github:
     - host: github.com
-      token: ${GITHUB_TOKEN} # Authenticated requests have higher limits
+      token: ${GITHUB_TOKEN}
 ```
-
-#### Repository Access Patterns
-
-Optimize access patterns:
-- Avoid scanning extremely large repositories frequently
-- Consider caching strategies for frequently accessed rules
-- Monitor API usage in provider dashboards
 
 ## Monitoring and Observability
 
 ### Health Checks
 
-The plugin provides health check endpoints:
-
 ```bash
-# Check plugin health
 curl http://localhost:7007/api/ai-rules/health
 ```
 
-### Metrics
+### Testing Endpoints Directly
 
-Monitor these key metrics:
+```bash
+# Rules
+curl "http://localhost:7007/api/ai-rules/rules?entityRef=component:default/my-service&ruleTypes=cursor,copilot"
 
-- API request rate and latency
-- Repository access success/failure rates
-- Rule parsing success/failure rates
-- Cache hit rates (when implemented)
+# MCP Servers
+curl "http://localhost:7007/api/ai-rules/mcp-servers?entityRef=component:default/my-service"
 
-### Error Tracking
+# Ignore Files
+curl "http://localhost:7007/api/ai-rules/ignore-files?entityRef=component:default/my-service"
 
-Common error scenarios to monitor:
+# Agent Configs
+curl "http://localhost:7007/api/ai-rules/agent-configs?entityRef=component:default/my-service"
 
-1. **Repository Access Errors**
-   - Authentication failures
-   - Network timeouts
-   - Repository not found
-
-2. **Content Parsing Errors**
-   - Invalid frontmatter syntax
-   - File encoding issues
-   - Content too large
-
-3. **Entity Resolution Errors**
-   - Invalid entity references
-   - Missing source locations
-   - Catalog synchronization issues
+# Agent Skills
+curl "http://localhost:7007/api/ai-rules/skills?entityRef=component:default/my-service"
+```
 
 ## Troubleshooting Configuration
 
 ### Validation
 
-Validate your configuration:
-
 ```typescript
-// Check configuration loading
-import { Config } from '@backstage/config';
-
-const config = /* your config instance */;
-const allowedRuleTypes = config.getOptionalStringArray('aiRules.allowedRuleTypes') 
-  ?? ['cursor', 'copilot'];
+const allowedRuleTypes = config.getOptionalStringArray('aiRules.allowedRuleTypes')
+  ?? ['cursor', 'copilot', 'cline', 'claude-code', 'windsurf', 'roo-code', 'codex', 'gemini', 'amazon-q', 'continue', 'aider'];
 
 console.log('Configured rule types:', allowedRuleTypes);
 ```
@@ -383,29 +413,28 @@ console.log('Configured rule types:', allowedRuleTypes);
 ### Common Configuration Issues
 
 #### Invalid Rule Types
+
 ```yaml
-# Incorrect - unsupported rule type
+# Incorrect — unsupported type is silently ignored
 aiRules:
   allowedRuleTypes:
     - cursor
-    - copilot
-    - invalid-type # This will be ignored
+    - invalid-type  # ignored
 
 # Correct
 aiRules:
   allowedRuleTypes:
     - cursor
-    - copilot
-    - cline
+    - windsurf
 ```
 
 #### Missing SCM Integration
+
 ```yaml
-# Incomplete - missing required token
+# Incomplete — missing token
 integrations:
   github:
     - host: github.com
-      # Missing token
 
 # Complete
 integrations:
@@ -414,50 +443,44 @@ integrations:
       token: ${GITHUB_TOKEN}
 ```
 
-#### Environment Variable Issues
-```bash
-# Check if environment variables are set
-echo $GITHUB_TOKEN
-echo $GITLAB_TOKEN
+### Debug Mode
 
-# Set if missing
-export GITHUB_TOKEN=your_token_here
+```yaml
+backend:
+  logger:
+    level: debug
 ```
 
-### Configuration Testing
-
-Test your configuration:
+Or:
 
 ```bash
-# Start backend in debug mode
-LOG_LEVEL=debug yarn dev
-
-# Test API with configuration
-curl "http://localhost:7007/api/ai-rules/rules?entityRef=component:default/test-service&ruleTypes=cursor,copilot"
+export LOG_LEVEL=debug
 ```
 
 ## Best Practices
 
 ### Configuration Management
-1. Use environment variables for sensitive data
-2. Use separate config files for different environments
+
+1. Use environment variables for all sensitive data
+2. Use separate config files per environment
 3. Validate configuration in CI/CD pipelines
-4. Document all configuration options
+4. Start with a broad `allowedRuleTypes` and narrow down per environment
 
 ### Security
+
 1. Rotate tokens regularly
 2. Use minimal required permissions
 3. Monitor token usage
 4. Secure configuration files
 
 ### Performance
-1. Monitor API response times
+
+1. Monitor API response times across all 5 endpoints
 2. Track repository access patterns
-3. Plan for caching implementation
-4. Set appropriate timeouts
+3. Set appropriate log levels per environment
 
 ### Maintenance
+
 1. Keep SCM integrations updated
 2. Monitor for deprecated configuration options
-3. Review and update rule types as needed
-4. Test configuration changes in staging 
+3. Test configuration changes in staging before production
