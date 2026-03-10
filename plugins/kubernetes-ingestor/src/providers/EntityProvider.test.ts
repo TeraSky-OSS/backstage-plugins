@@ -627,6 +627,142 @@ describe('KubernetesEntityProvider', () => {
       expect(componentEntity.spec.type).toBe('service');
     });
 
+    it('should ingest as Resource when per-workload-type ingestAsResources is true', async () => {
+      const provider = new KubernetesEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+      );
+
+      const mockResource = {
+        apiVersion: 'networking.k8s.io/v1',
+        kind: 'Ingress',
+        metadata: {
+          name: 'my-app-ingress',
+          namespace: 'default',
+          uid: 'ingest-res-1',
+        },
+        spec: {},
+        clusterName: 'test-cluster',
+        workloadType: 'ingress',
+        ingestAsResources: true,
+      };
+
+      const entities = await (provider as any).translateKubernetesObjectsToEntities(mockResource);
+
+      expect(entities).toBeDefined();
+      expect(entities.length).toBeGreaterThan(0);
+
+      const resourceEntity = entities.find((e: any) => e.kind === 'Resource');
+      expect(resourceEntity).toBeDefined();
+      expect(resourceEntity.spec.type).toBe('ingress');
+    });
+
+    it('should ingest as Component when per-workload-type ingestAsResources is false even if global is true', async () => {
+      const globalResourceConfig = new ConfigReader({
+        kubernetesIngestor: {
+          components: {
+            enabled: true,
+            ingestAsResources: true,
+            taskRunner: { frequency: 60, timeout: 600 },
+          },
+          crossplane: { enabled: true },
+          kro: { enabled: false },
+          annotationPrefix: 'terasky.backstage.io',
+        },
+        kubernetes: {
+          clusterLocatorMethods: [
+            {
+              type: 'config',
+              clusters: [{ name: 'test-cluster', url: 'http://k8s.example.com' }],
+            },
+          ],
+        },
+      });
+
+      const provider = new KubernetesEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        globalResourceConfig,
+        mockResourceFetcher as any,
+      );
+
+      const mockResource = {
+        apiVersion: 'networking.k8s.io/v1',
+        kind: 'Ingress',
+        metadata: {
+          name: 'my-app-ingress',
+          namespace: 'default',
+          uid: 'ingest-res-2',
+        },
+        spec: {},
+        clusterName: 'test-cluster',
+        workloadType: 'ingress',
+        ingestAsResources: false,
+      };
+
+      const entities = await (provider as any).translateKubernetesObjectsToEntities(mockResource);
+
+      expect(entities).toBeDefined();
+      expect(entities.length).toBeGreaterThan(0);
+
+      const componentEntity = entities.find((e: any) => e.kind === 'Component');
+      expect(componentEntity).toBeDefined();
+    });
+
+    it('should fall back to global ingestAsResources when per-workload-type is not set', async () => {
+      const globalResourceConfig = new ConfigReader({
+        kubernetesIngestor: {
+          components: {
+            enabled: true,
+            ingestAsResources: true,
+            taskRunner: { frequency: 60, timeout: 600 },
+          },
+          crossplane: { enabled: true },
+          kro: { enabled: false },
+          annotationPrefix: 'terasky.backstage.io',
+        },
+        kubernetes: {
+          clusterLocatorMethods: [
+            {
+              type: 'config',
+              clusters: [{ name: 'test-cluster', url: 'http://k8s.example.com' }],
+            },
+          ],
+        },
+      });
+
+      const provider = new KubernetesEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        globalResourceConfig,
+        mockResourceFetcher as any,
+      );
+
+      const mockResource = {
+        apiVersion: 'apps/v1',
+        kind: 'Deployment',
+        metadata: {
+          name: 'test-deployment',
+          namespace: 'default',
+          uid: 'ingest-res-3',
+        },
+        spec: {},
+        clusterName: 'test-cluster',
+      };
+
+      const entities = await (provider as any).translateKubernetesObjectsToEntities(mockResource);
+
+      expect(entities).toBeDefined();
+      expect(entities.length).toBeGreaterThan(0);
+
+      const resourceEntity = entities.find((e: any) => e.kind === 'Resource');
+      expect(resourceEntity).toBeDefined();
+      const componentEntity = entities.find((e: any) => e.kind === 'Component');
+      expect(componentEntity).toBeUndefined();
+    });
+
     it('should use component-type annotation for Crossplane claims', async () => {
       const provider = new KubernetesEntityProvider(
         { run: jest.fn() } as any,

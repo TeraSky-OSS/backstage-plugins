@@ -166,7 +166,40 @@ export interface Config {
        * Custom workload types to ingest (in addition to defaults)
        * @visibility frontend
        */
-      customWorkloadTypes?: string[];
+      customWorkloadTypes?: Array<{
+        /**
+         * API group of the custom resource (e.g. argoproj.io)
+         * @visibility frontend
+         */
+        group: string;
+        /**
+         * API version of the custom resource (e.g. v1alpha1)
+         * @visibility frontend
+         */
+        apiVersion: string;
+        /**
+         * Plural resource name (e.g. cronworkflows)
+         * @visibility frontend
+         */
+        plural: string;
+        /**
+         * Explicit singular form when auto-detection fails
+         * @visibility frontend
+         */
+        singular?: string;
+        /**
+         * Fallback component type when the component-type annotation is missing
+         * @default service
+         * @visibility frontend
+         */
+        defaultType?: string;
+        /**
+         * Override the global components.ingestAsResources setting for this workload type.
+         * When set, takes precedence over the global setting.
+         * @visibility frontend
+         */
+        ingestAsResources?: boolean;
+      }>;
       /**
        * Disable default workload types (Deployment, StatefulSet, etc.)
        * @default false

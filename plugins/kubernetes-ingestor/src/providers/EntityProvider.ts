@@ -2554,7 +2554,9 @@ export class KubernetesEntityProvider implements EntityProvider {
     };
 
     // Check if we should ingest as Resource instead of Component
-    const ingestAsResources = this.config.getOptionalBoolean('kubernetesIngestor.components.ingestAsResources') ?? false;
+    // Per-workload-type override takes precedence over the global setting
+    const globalIngestAsResources = this.config.getOptionalBoolean('kubernetesIngestor.components.ingestAsResources') ?? false;
+    const ingestAsResources = resource.ingestAsResources ?? globalIngestAsResources;
     const entityKind = ingestAsResources ? 'Resource' : 'Component';
 
     // Determine the component name, title, namespace, and system for API entity creation
