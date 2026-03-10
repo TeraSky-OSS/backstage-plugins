@@ -168,6 +168,7 @@ describe('KubernetesDataProvider', () => {
                 if (k === 'defaultType') return undefined;
                 return undefined;
               },
+              getOptionalBoolean: () => undefined,
             },
           ];
         }
@@ -213,6 +214,7 @@ describe('KubernetesDataProvider', () => {
                 if (k === 'defaultType') return 'workflow';
                 return undefined;
               },
+              getOptionalBoolean: () => undefined,
             },
           ];
         }
@@ -258,9 +260,9 @@ describe('KubernetesDataProvider', () => {
                 return '';
               },
               getOptionalString: (_k: string) => {
-                // No defaultType configured
                 return undefined;
               },
+              getOptionalBoolean: () => undefined,
             },
           ];
         }
@@ -312,6 +314,7 @@ describe('KubernetesDataProvider', () => {
                 if (k === 'defaultType') return 'batch-job';
                 return undefined;
               },
+              getOptionalBoolean: () => undefined,
             },
             {
               getString: (k: string) => {
@@ -324,6 +327,7 @@ describe('KubernetesDataProvider', () => {
                 if (k === 'defaultType') return 'scheduled-task';
                 return undefined;
               },
+              getOptionalBoolean: () => undefined,
             },
           ];
         }
@@ -389,6 +393,7 @@ describe('KubernetesDataProvider', () => {
                 if (k === 'defaultType') return 'postgresql-database';
                 return undefined;
               },
+              getOptionalBoolean: () => undefined,
             },
           ];
         }
@@ -447,6 +452,7 @@ describe('KubernetesDataProvider', () => {
                 if (k === 'defaultType') return 'web-app';
                 return undefined;
               },
+              getOptionalBoolean: () => undefined,
             },
           ];
         }
@@ -508,6 +514,168 @@ describe('KubernetesDataProvider', () => {
       const kroInstance = result.find((r: any) => r.metadata?.name === 'my-app');
       expect(kroInstance).toBeDefined();
       expect(kroInstance?.workloadType).toBe('web-app');
+    });
+
+    it('should propagate ingestAsResources from customWorkloadTypes when set to true', async () => {
+      mockConfig.getOptionalStringArray.mockImplementation((key: string) => {
+        if (key === 'kubernetesIngestor.allowedClusterNames') return ['cluster1'];
+        return undefined;
+      });
+      mockConfig.getOptionalBoolean.mockImplementation((key: string) => {
+        if (key === 'kubernetesIngestor.components.disableDefaultWorkloadTypes') return true;
+        return false;
+      });
+      mockConfig.getOptionalConfigArray.mockImplementation((key: string) => {
+        if (key === 'kubernetesIngestor.components.customWorkloadTypes') {
+          return [
+            {
+              getString: (k: string) => {
+                if (k === 'group') return 'networking.k8s.io';
+                if (k === 'apiVersion') return 'v1';
+                if (k === 'plural') return 'ingresses';
+                return '';
+              },
+              getOptionalString: (k: string) => {
+                if (k === 'defaultType') return 'ingress';
+                return undefined;
+              },
+              getOptionalBoolean: (k: string) => {
+                if (k === 'ingestAsResources') return true;
+                return undefined;
+              },
+            },
+          ];
+        }
+        return undefined;
+      });
+
+      const mockIngress = {
+        apiVersion: 'networking.k8s.io/v1',
+        kind: 'Ingress',
+        metadata: { name: 'my-app-ingress', namespace: 'default' },
+        spec: {},
+      };
+
+      mockResourceFetcher.fetchResources.mockResolvedValue([mockIngress]);
+
+      const provider = new KubernetesDataProvider(
+        mockResourceFetcher as any,
+        mockConfig as any,
+        mockLogger as any,
+      );
+
+      const result = await provider.fetchKubernetesObjects();
+
+      const ingress = result.find((r: any) => r.metadata?.name === 'my-app-ingress');
+      expect(ingress).toBeDefined();
+      expect(ingress?.ingestAsResources).toBe(true);
+    });
+
+    it('should propagate ingestAsResources as false from customWorkloadTypes', async () => {
+      mockConfig.getOptionalStringArray.mockImplementation((key: string) => {
+        if (key === 'kubernetesIngestor.allowedClusterNames') return ['cluster1'];
+        return undefined;
+      });
+      mockConfig.getOptionalBoolean.mockImplementation((key: string) => {
+        if (key === 'kubernetesIngestor.components.disableDefaultWorkloadTypes') return true;
+        return false;
+      });
+      mockConfig.getOptionalConfigArray.mockImplementation((key: string) => {
+        if (key === 'kubernetesIngestor.components.customWorkloadTypes') {
+          return [
+            {
+              getString: (k: string) => {
+                if (k === 'group') return 'networking.k8s.io';
+                if (k === 'apiVersion') return 'v1';
+                if (k === 'plural') return 'ingresses';
+                return '';
+              },
+              getOptionalString: (k: string) => {
+                if (k === 'defaultType') return 'ingress';
+                return undefined;
+              },
+              getOptionalBoolean: (k: string) => {
+                if (k === 'ingestAsResources') return false;
+                return undefined;
+              },
+            },
+          ];
+        }
+        return undefined;
+      });
+
+      const mockIngress = {
+        apiVersion: 'networking.k8s.io/v1',
+        kind: 'Ingress',
+        metadata: { name: 'my-app-ingress', namespace: 'default' },
+        spec: {},
+      };
+
+      mockResourceFetcher.fetchResources.mockResolvedValue([mockIngress]);
+
+      const provider = new KubernetesDataProvider(
+        mockResourceFetcher as any,
+        mockConfig as any,
+        mockLogger as any,
+      );
+
+      const result = await provider.fetchKubernetesObjects();
+
+      const ingress = result.find((r: any) => r.metadata?.name === 'my-app-ingress');
+      expect(ingress).toBeDefined();
+      expect(ingress?.ingestAsResources).toBe(false);
+    });
+
+    it('should not add ingestAsResources when not configured on customWorkloadType', async () => {
+      mockConfig.getOptionalStringArray.mockImplementation((key: string) => {
+        if (key === 'kubernetesIngestor.allowedClusterNames') return ['cluster1'];
+        return undefined;
+      });
+      mockConfig.getOptionalBoolean.mockImplementation((key: string) => {
+        if (key === 'kubernetesIngestor.components.disableDefaultWorkloadTypes') return true;
+        return false;
+      });
+      mockConfig.getOptionalConfigArray.mockImplementation((key: string) => {
+        if (key === 'kubernetesIngestor.components.customWorkloadTypes') {
+          return [
+            {
+              getString: (k: string) => {
+                if (k === 'group') return 'networking.k8s.io';
+                if (k === 'apiVersion') return 'v1';
+                if (k === 'plural') return 'ingresses';
+                return '';
+              },
+              getOptionalString: (k: string) => {
+                if (k === 'defaultType') return 'ingress';
+                return undefined;
+              },
+              getOptionalBoolean: () => undefined,
+            },
+          ];
+        }
+        return undefined;
+      });
+
+      const mockIngress = {
+        apiVersion: 'networking.k8s.io/v1',
+        kind: 'Ingress',
+        metadata: { name: 'my-app-ingress', namespace: 'default' },
+        spec: {},
+      };
+
+      mockResourceFetcher.fetchResources.mockResolvedValue([mockIngress]);
+
+      const provider = new KubernetesDataProvider(
+        mockResourceFetcher as any,
+        mockConfig as any,
+        mockLogger as any,
+      );
+
+      const result = await provider.fetchKubernetesObjects();
+
+      const ingress = result.find((r: any) => r.metadata?.name === 'my-app-ingress');
+      expect(ingress).toBeDefined();
+      expect(ingress?.ingestAsResources).toBeUndefined();
     });
 
     it('should filter out excluded namespaces', async () => {

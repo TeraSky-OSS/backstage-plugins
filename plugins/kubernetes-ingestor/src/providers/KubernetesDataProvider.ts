@@ -50,6 +50,7 @@ export class KubernetesDataProvider {
         apiVersion: string;
         plural: string;
         defaultType?: string;
+        ingestAsResources?: boolean;
       }> = [
         {
           group: 'apps',
@@ -83,6 +84,7 @@ export class KubernetesDataProvider {
             apiVersion: type.getString('apiVersion'),
             plural: type.getString('plural'),
             defaultType: type.getOptionalString('defaultType'),
+            ingestAsResources: type.getOptionalBoolean('ingestAsResources'),
           })) || [];
 
       const workloadTypes = [
@@ -215,6 +217,7 @@ export class KubernetesDataProvider {
                   apiVersion: `${type.group}/${type.apiVersion}`,
                   kind: resource.kind || type.plural.charAt(0).toUpperCase() + type.plural.slice(1, -1),
                   ...(type.defaultType && { workloadType: type.defaultType }),
+                  ...(type.ingestAsResources !== undefined && { ingestAsResources: type.ingestAsResources }),
                 }));
               } catch (error) {
                 this.logger.debug(
