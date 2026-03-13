@@ -1,6 +1,6 @@
 {
   "name": "@terasky/backstage-plugin-kyverno-policy-reports-backend",
-  "version": "1.11.0",
+  "version": "1.11.1",
   "main": "src/index.ts",
   "types": "src/index.ts",
   "configSchema": "config.d.ts",
@@ -50,7 +50,7 @@
   "devDependencies": {
     "@backstage/backend-test-utils": "^1.11.0",
     "@backstage/cli": "^0.35.4",
-    "@backstage/plugin-auth-backend": "^0.27.0",
+    "@backstage/plugin-auth-backend": "^0.27.1",
     "@backstage/plugin-auth-backend-module-guest-provider": "^0.2.16",
     "@types/supertest": "^2.0.12",
     "msw": "^2.12.4",
