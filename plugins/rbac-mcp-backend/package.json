@@ -1,5 +1,5 @@
 {
-  "name": "@terasky/plugin-rbac-mcp-backend",
+  "name": "@terasky/backstage-plugin-rbac-mcp-backend",
   "description": "A plugin that exposes MCP tools for interacting with the Backstage community RBAC plugin.",
   "version": "0.6.0",
   "license": "Apache-2.0",

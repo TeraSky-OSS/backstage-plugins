@@ -1,5 +1,5 @@
 {
-  "name": "@terasky/plugin-scaffolder-mcp-backend",
+  "name": "@terasky/backstage-plugin-scaffolder-mcp-backend",
   "description": "A plugin that exposes MCP tools for interacting with Backstage software templates (scaffolder).",
   "version": "0.6.0",
   "license": "Apache-2.0",
