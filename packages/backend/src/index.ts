@@ -31,7 +31,6 @@ backend.add(
       yield import('@backstage/plugin-auth-backend-module-microsoft-provider');
     }
     if (config.getOptionalBoolean('spectrocloud.enabled') ?? true) {
-      yield import('@terasky/backstage-plugin-spectrocloud-auth-backend');
       yield import('@terasky/backstage-plugin-spectrocloud-backend');
       yield import('@terasky/backstage-plugin-spectrocloud-cluster-provider');
       yield import('@terasky/backstage-plugin-spectrocloud-ingestor');
@@ -76,10 +75,10 @@ backend.add(
       yield import('@terasky/backstage-plugin-catalog-mcp-backend');
     }
     if (config.getOptionalBoolean('scaffolderMcp.enabled') ?? true) {
-      yield import('@terasky/plugin-scaffolder-mcp-backend');
+      yield import('@terasky/backstage-plugin-scaffolder-mcp-backend');
     }
     if (config.getOptionalBoolean('rbacMcp.enabled') ?? true) {
-      yield import('@terasky/plugin-rbac-mcp-backend');
+      yield import('@terasky/backstage-plugin-rbac-mcp-backend');
     }
   },
 }));
@@ -105,4 +104,6 @@ backend.add(import('@backstage/plugin-catalog-backend-module-ldap'));
 backend.add(import('@backstage/plugin-catalog-backend-module-msgraph'));
 backend.add(import('@backstage/plugin-mcp-actions-backend'));
 backend.add(import('@terasky/backstage-plugin-scaffolder-backend-module-spring-initializer'));
+backend.add(import('@terasky/backstage-plugin-spectrocloud-auth-backend'));
+backend.add(import('@terasky/backstage-plugin-vcfsso-auth-backend'));
 backend.start();
