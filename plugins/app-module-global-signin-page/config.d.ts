@@ -278,6 +278,28 @@ export interface Config {
          */
         message?: string;
       };
+
+      /**
+       * VCF SSO authentication provider
+       * @visibility frontend
+       */
+      vcfsso?: {
+        /**
+         * Enable VCF SSO provider
+         * @visibility frontend
+         */
+        enabled?: boolean;
+        /**
+         * Custom title for VCF SSO provider
+         * @visibility frontend
+         */
+        title?: string;
+        /**
+         * Custom message for VCF SSO provider
+         * @visibility frontend
+         */
+        message?: string;
+      };
     };
   };
 }

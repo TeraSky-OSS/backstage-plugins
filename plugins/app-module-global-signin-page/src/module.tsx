@@ -17,7 +17,7 @@ import { SignInPageBlueprint } from '@backstage/plugin-app-react';
 import { SignInPage } from '@backstage/core-components';
 import { useApi, configApiRef } from '@backstage/core-plugin-api';
 import { spectroCloudAuthApiRef } from '@terasky/backstage-plugin-spectrocloud-auth';
-
+import { vcfSsoAuthApiRef } from '@terasky/backstage-plugin-vcfsso-auth';
 // Define default configurations for each provider
 const providerDefaults = {
   github: {
@@ -91,6 +91,12 @@ const providerDefaults = {
     title: 'SpectroCloud',
     message: 'Sign in using SpectroCloud',
     apiRef: spectroCloudAuthApiRef,
+  },
+  vcfsso: {
+    id: 'vcf-sso-auth-provider',
+    title: 'VCF SSO',
+    message: 'Sign in using VCF SSO',
+    apiRef: vcfSsoAuthApiRef,
   },
 };
 
