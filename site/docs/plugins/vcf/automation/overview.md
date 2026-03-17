@@ -121,6 +121,15 @@ The plugin provides a backend that:
 - Adds, updates and deletes the entities in the Backstage catalog based on the current state in VCF Automation
   
 [Learn more about the ingestor plugin](./ingestor/about.md)
+
+### VKS Cluster Provider Plugin
+The plugin provides a Kubernetes cluster supplier that:  
+- Automatically discovers all VKS (Kubernetes) clusters from VCFA supervisor resources  
+- Fetches admin kubeconfigs via the VCFA proxy API  
+- Sets up service account based read-only access in each discovered cluster  
+- Works alongside existing Backstage Kubernetes cluster suppliers  
+
+[Learn more about the VKS cluster provider plugin](./vks-cluster-provider/about.md)
   
 ## Available Components
 
