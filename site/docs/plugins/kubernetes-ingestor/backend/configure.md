@@ -66,6 +66,11 @@ kubernetesIngestor:
         plural: providers
         # singular: provider # explicit singular form - needed when auto-detection fails
         # defaultType: provider # Optional: fallback component type when annotation is missing. Default is service
+      - group: networking.k8s.io
+        apiVersion: v1
+        plural: ingresses
+        defaultType: ingress
+        ingestAsResources: true # Override: ingest Ingresses as Resource entities regardless of the global setting
     # By default all standard kubernetes workload types are ingested. This allows you to disable this behavior
     disableDefaultWorkloadTypes: false
     # Allows ingestion to be opt-in or opt-out by either requiring or not a dedicated annotation to ingest a resource (terasky.backstage.io/add-to-catalog or terasky.backstage.io/exclude-from-catalog)
@@ -523,6 +528,34 @@ When `ingestAsResources` is set to `true`:
 - The entity kind will be `Resource` instead of `Component`
 - Resource entities do not support `providesApis` and `consumesApis` relations (Component-specific)
 
+##### Per-Workload-Type Override
+
+You can override the global `ingestAsResources` setting for individual custom workload types. This is useful when you want most workloads ingested as Components but need specific workload types (such as infrastructure objects) treated as Resources:
+
+```yaml
+kubernetesIngestor:
+  components:
+    ingestAsResources: false  # Global default: ingest as Components
+    customWorkloadTypes:
+      - group: networking.k8s.io
+        apiVersion: v1
+        plural: ingresses
+        defaultType: ingress
+        ingestAsResources: true  # Override: Ingresses become Resource entities
+      - group: pkg.crossplane.io
+        apiVersion: v1
+        plural: providers
+        # No override: inherits the global setting (Component)
+```
+
+In this example, all standard workloads (Deployments, StatefulSets, etc.) are ingested as Component entities, while Kubernetes Ingresses are ingested as Resource entities.
+
+**Resolution order:**
+1. Per-workload-type `ingestAsResources` (if defined in the `customWorkloadTypes` entry)
+2. Global `components.ingestAsResources` (default: `false`)
+
+The 4 default workload types (Deployment, StatefulSet, DaemonSet, CronJob) always follow the global setting since they have no individual config entries.
+
 #### Crossplane Claims and Composite Resources (XRs)
 
 ```yaml
@@ -880,6 +913,11 @@ components:
       plural: applications
       singular: application
       defaultType: app  # Optional: fallback component type when annotation is missing. Default is service
+    - group: networking.k8s.io
+      apiVersion: v1
+      plural: ingresses
+      defaultType: ingress
+      ingestAsResources: true  # Optional: override the global components.ingestAsResources for this workload type
 
   # Exclude system namespaces
   excludedNamespaces:
@@ -895,6 +933,14 @@ The `defaultType` field allows you to specify a fallback Backstage component typ
 1. **Annotation**: Use `terasky.backstage.io/component-type` annotation if present on the resource
 2. **defaultType**: Use the `defaultType` value from the custom workload configuration (if set)
 3. **Fallback**: Use `service` as the final default
+
+#### Per-Workload-Type Entity Kind Override
+
+The `ingestAsResources` field on a custom workload type entry allows you to override the global `components.ingestAsResources` setting for that specific workload type. When omitted, the global setting applies.
+
+**Entity kind resolution priority:**
+1. **Per-workload-type**: Use `ingestAsResources` from the custom workload type entry (if set)
+2. **Global**: Use the global `components.ingestAsResources` setting (default: `false`)
 
 ## Crossplane Integration
 
