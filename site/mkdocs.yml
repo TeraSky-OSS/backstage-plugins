@@ -140,30 +140,45 @@ nav:
               - Install: plugins/scaleops/frontend/install.md
               - Configure: plugins/scaleops/frontend/configure.md
   - Cloud Infrastructure:
-      - VCF Automation:
-          - Overview: plugins/vcf-automation/overview.md
-          - Backend:
-              - About: plugins/vcf-automation/backend/about.md
-              - Install: plugins/vcf-automation/backend/install.md
-              - Configure: plugins/vcf-automation/backend/configure.md
-          - Frontend:
-              - About: plugins/vcf-automation/frontend/about.md
-              - Install: plugins/vcf-automation/frontend/install.md
-              - Configure: plugins/vcf-automation/frontend/configure.md
-          - Ingestor:
-              - About: plugins/vcf-automation/ingestor/about.md
-              - Install: plugins/vcf-automation/ingestor/install.md
-              - Configure: plugins/vcf-automation/ingestor/configure.md
-      - VCF Operations:
-          - Overview: plugins/vcf-operations/overview.md
-          - Backend:
-              - About: plugins/vcf-operations/backend/about.md
-              - Install: plugins/vcf-operations/backend/install.md
-              - Configure: plugins/vcf-operations/backend/configure.md
-          - Frontend:
-              - About: plugins/vcf-operations/frontend/about.md
-              - Install: plugins/vcf-operations/frontend/install.md
-              - Configure: plugins/vcf-operations/frontend/configure.md
+      - VMware Cloud Foundation (VCF):
+          - VCF Automation:
+              - Overview: plugins/vcf/automation/overview.md
+              - Backend:
+                  - About: plugins/vcf/automation/backend/about.md
+                  - Install: plugins/vcf/automation/backend/install.md
+                  - Configure: plugins/vcf/automation/backend/configure.md
+              - Frontend:
+                  - About: plugins/vcf/automation/frontend/about.md
+                  - Install: plugins/vcf/automation/frontend/install.md
+                  - Configure: plugins/vcf/automation/frontend/configure.md
+              - Ingestor:
+                  - About: plugins/vcf/automation/ingestor/about.md
+                  - Install: plugins/vcf/automation/ingestor/install.md
+                  - Configure: plugins/vcf/automation/ingestor/configure.md
+              - VKS Cluster Provider:
+                  - About: plugins/vcf/automation/vks-cluster-provider/about.md
+                  - Install: plugins/vcf/automation/vks-cluster-provider/install.md
+                  - Configure: plugins/vcf/automation/vks-cluster-provider/configure.md
+          - VCF Operations:
+              - Overview: plugins/vcf/operations/overview.md
+              - Backend:
+                  - About: plugins/vcf/operations/backend/about.md
+                  - Install: plugins/vcf/operations/backend/install.md
+                  - Configure: plugins/vcf/operations/backend/configure.md
+              - Frontend:
+                  - About: plugins/vcf/operations/frontend/about.md
+                  - Install: plugins/vcf/operations/frontend/install.md
+                  - Configure: plugins/vcf/operations/frontend/configure.md
+          - VCF SSO:
+              - Overview: plugins/vcf/sso/overview.md
+              - Frontend Plugin:
+                  - About: plugins/vcf/sso/frontend/about.md
+                  - Install: plugins/vcf/sso/frontend/install.md
+                  - Configure: plugins/vcf/sso/frontend/configure.md
+              - Backend Module:
+                  - About: plugins/vcf/sso/backend/about.md
+                  - Install: plugins/vcf/sso/backend/install.md
+                  - Configure: plugins/vcf/sso/backend/configure.md
   - AI:
       - AI Coding Rules:
           - Overview: plugins/ai-rules-plugin/overview.md
