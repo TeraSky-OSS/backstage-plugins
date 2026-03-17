@@ -8,6 +8,8 @@ This guide will help you install and set up the SpectroCloud cluster provider pl
 2. The Backstage Kubernetes plugin installed
 3. SpectroCloud Palette API credentials
 
+> **Important:** Backstage currently supports only one custom cluster supplier at a time. If you are also using the [VCFA VKS Cluster Provider](../../vcf-automation/vks-cluster-provider/about.md), only one of the two plugins can be enabled in your Backstage instance at a time.
+
 ## Installation Steps
 
 ### 1. Add Required Package

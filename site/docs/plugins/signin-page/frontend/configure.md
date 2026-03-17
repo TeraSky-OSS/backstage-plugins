@@ -268,6 +268,19 @@ signinPage:
       message: Sign in using Spectro Cloud  # Default
 ```
 
+### VCF SSO
+
+Requires `@terasky/backstage-plugin-vcfsso-auth` (frontend) and `@terasky/backstage-plugin-vcfsso-auth-backend` (backend) to be installed and configured. See the [VCF SSO documentation](../../vcf/sso/overview.md) for details.
+
+```yaml
+signinPage:
+  providers:
+    vcfsso:
+      enabled: true
+      title: VCF SSO  # Default
+      message: Sign in using VCF SSO  # Default
+```
+
 ## Environment-Specific Configuration
 
 ### Using Configuration Files
@@ -378,6 +391,9 @@ signinPage:
       enabled: false
 
     spectrocloud:
+      enabled: false
+
+    vcfsso:
       enabled: false
 ```
 

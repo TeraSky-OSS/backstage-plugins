@@ -6,6 +6,8 @@
 
 The SpectroCloud Cluster Provider plugin is a Kubernetes cluster supplier that automatically discovers and configures clusters from SpectroCloud Palette for use with the Backstage Kubernetes plugin.
 
+> **Important:** Backstage currently supports only one custom cluster supplier at a time. If you are also using the [VCFA VKS Cluster Provider](../../vcf-automation/vks-cluster-provider/about.md), only one of the two plugins can be enabled in your Backstage instance at a time.
+
 ## Features
 
 ### Cluster Discovery

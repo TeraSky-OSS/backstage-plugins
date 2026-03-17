@@ -31,6 +31,7 @@ Out-of-the-box support for all major authentication providers:
 - **Enterprise Identity**: Microsoft, Google, Okta, OneLogin, Atlassian
 - **Platform Specific**: OpenShift, VMware Cloud
 - **Development**: Guest access
+- **Custom (TeraSky)**: SpectroCloud, VCF SSO
 
 ### Flexible Customization
 Each authentication provider can be customized with:

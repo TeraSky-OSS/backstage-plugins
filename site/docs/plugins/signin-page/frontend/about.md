@@ -30,7 +30,10 @@ The module supports all core Backstage authentication providers:
 - **Guest** - Development-only guest access
 
 #### Additional Provider Support
-The module also supports the custom spectrocloud oidc auth provider from this repo.
+The module also supports the following custom auth providers from this repo:
+
+- **SpectroCloud** — Custom OIDC authentication for SpectroCloud Palette (`@terasky/backstage-plugin-spectrocloud-auth`)
+- **VCF SSO** — OIDC authentication for VMware Cloud Foundation SSO (`@terasky/backstage-plugin-vcfsso-auth`)
 
 ### Per-Provider Customization
 Each authentication provider can be individually configured with:
