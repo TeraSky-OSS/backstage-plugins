@@ -1,10 +1,16 @@
 {
   "name": "@terasky/backstage-plugin-vcfsso-auth",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "VCF SSO OIDC authentication frontend plugin for Backstage",
   "license": "Apache-2.0",
   "main": "src/index.ts",
   "types": "src/index.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TeraSky-OSS/backstage-plugins.git",
+    "directory": "plugins/vcfsso-auth"
+  },
+  "homepage": "https://terasky.com",
   "publishConfig": {
     "access": "public",
     "main": "dist/index.esm.js",
@@ -17,6 +23,7 @@
       "@terasky/backstage-plugin-vcfsso-auth"
     ]
   },
+  "sideEffects": false,
   "scripts": {
     "start": "backstage-cli package start",
     "build": "backstage-cli package build",

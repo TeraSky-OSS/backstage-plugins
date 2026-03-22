@@ -14217,7 +14217,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-app-module-global-signin-page@npm:^0.7.0, @terasky/backstage-plugin-app-module-global-signin-page@workspace:plugins/app-module-global-signin-page":
+"@terasky/backstage-plugin-app-module-global-signin-page@npm:^0.7.1, @terasky/backstage-plugin-app-module-global-signin-page@workspace:plugins/app-module-global-signin-page":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-app-module-global-signin-page@workspace:plugins/app-module-global-signin-page"
   dependencies:
@@ -14820,7 +14820,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-rbac-mcp-backend@npm:^0.7.0, @terasky/backstage-plugin-rbac-mcp-backend@workspace:plugins/rbac-mcp-backend":
+"@terasky/backstage-plugin-rbac-mcp-backend@npm:^0.7.1, @terasky/backstage-plugin-rbac-mcp-backend@workspace:plugins/rbac-mcp-backend":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-rbac-mcp-backend@workspace:plugins/rbac-mcp-backend"
   dependencies:
@@ -14872,7 +14872,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-scaffolder-mcp-backend@npm:^0.7.0, @terasky/backstage-plugin-scaffolder-mcp-backend@workspace:plugins/scaffolder-mcp-backend":
+"@terasky/backstage-plugin-scaffolder-mcp-backend@npm:^0.7.1, @terasky/backstage-plugin-scaffolder-mcp-backend@workspace:plugins/scaffolder-mcp-backend":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-scaffolder-mcp-backend@workspace:plugins/scaffolder-mcp-backend"
   dependencies:
@@ -15369,7 +15369,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-vcfsso-auth@npm:^0.2.0, @terasky/backstage-plugin-vcfsso-auth@workspace:plugins/vcfsso-auth":
+"@terasky/backstage-plugin-vcfsso-auth@npm:^0.2.0, @terasky/backstage-plugin-vcfsso-auth@npm:^0.2.1, @terasky/backstage-plugin-vcfsso-auth@workspace:plugins/vcfsso-auth":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-vcfsso-auth@workspace:plugins/vcfsso-auth"
   dependencies:
@@ -17910,7 +17910,7 @@ __metadata:
     "@playwright/test": "npm:^1.32.3"
     "@terasky/backstage-plugin-ai-rules": "npm:^1.8.0"
     "@terasky/backstage-plugin-api-docs-module-crd": "npm:^0.3.0"
-    "@terasky/backstage-plugin-app-module-global-signin-page": "npm:^0.7.0"
+    "@terasky/backstage-plugin-app-module-global-signin-page": "npm:^0.7.1"
     "@terasky/backstage-plugin-crossplane-resources-frontend": "npm:^2.15.0"
     "@terasky/backstage-plugin-devpod": "npm:^1.9.0"
     "@terasky/backstage-plugin-educates": "npm:^1.9.0"
@@ -17929,7 +17929,7 @@ __metadata:
     "@terasky/backstage-plugin-terraform-scaffolder": "npm:^0.10.0"
     "@terasky/backstage-plugin-vcf-automation": "npm:^1.12.0"
     "@terasky/backstage-plugin-vcf-operations": "npm:^0.10.0"
-    "@terasky/backstage-plugin-vcfsso-auth": "npm:^0.2.0"
+    "@terasky/backstage-plugin-vcfsso-auth": "npm:^0.2.1"
     "@testing-library/dom": "npm:^9.0.0"
     "@testing-library/jest-dom": "npm:^6.0.0"
     "@testing-library/react": "npm:^14.0.0"
@@ -18603,10 +18603,10 @@ __metadata:
     "@terasky/backstage-plugin-kubernetes-ingestor": "npm:^3.11.0"
     "@terasky/backstage-plugin-kubernetes-resources-permissions-backend": "npm:^0.9.0"
     "@terasky/backstage-plugin-kyverno-policy-reports-backend": "npm:^1.12.0"
-    "@terasky/backstage-plugin-rbac-mcp-backend": "npm:^0.7.0"
+    "@terasky/backstage-plugin-rbac-mcp-backend": "npm:^0.7.1"
     "@terasky/backstage-plugin-scaffolder-backend-module-spring-initializer": "npm:^0.3.0"
     "@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils": "npm:^2.5.0"
-    "@terasky/backstage-plugin-scaffolder-mcp-backend": "npm:^0.7.0"
+    "@terasky/backstage-plugin-scaffolder-mcp-backend": "npm:^0.7.1"
     "@terasky/backstage-plugin-spectrocloud-auth-backend": "npm:^0.4.0"
     "@terasky/backstage-plugin-spectrocloud-backend": "npm:^0.5.0"
     "@terasky/backstage-plugin-spectrocloud-cluster-provider": "npm:^0.8.0"

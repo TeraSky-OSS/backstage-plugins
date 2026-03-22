@@ -1,7 +1,7 @@
 {
   "name": "@terasky/backstage-plugin-rbac-mcp-backend",
   "description": "A plugin that exposes MCP tools for interacting with the Backstage community RBAC plugin.",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "license": "Apache-2.0",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -19,9 +19,9 @@
   "backstage": {
     "role": "backend-plugin",
     "pluginId": "rbac-mcp",
-    "pluginPackage": "@terasky/plugin-rbac-mcp-backend",
+    "pluginPackage": "@terasky/backstage-plugin-rbac-mcp-backend",
     "pluginPackages": [
-      "@terasky/plugin-rbac-mcp-backend"
+      "@terasky/backstage-plugin-rbac-mcp-backend"
     ]
   },
   "scripts": {
