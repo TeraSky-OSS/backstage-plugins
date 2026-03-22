@@ -9,9 +9,8 @@ jest.mock('@backstage/plugin-catalog-react', () => ({
   useEntity: jest.fn(),
 }));
 
-// Mock the Table component to avoid translation API issues
+// Mock the Table component to avoid loading the full heavy @backstage/core-components bundle
 jest.mock('@backstage/core-components', () => ({
-  ...jest.requireActual('@backstage/core-components'),
   Table: ({ data, columns, title }: any) => (
     <div data-testid="mock-table">
       <h3>{title}</h3>
