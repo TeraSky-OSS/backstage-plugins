@@ -31,6 +31,7 @@ The Kubernetes Ingestor backend plugin is a catalog entity provider that automat
 
 ### Entity Management
 - Automatic updates
+- Delta/incremental mutations for real-time catalog updates
 - Relationship mapping
 - System organization
 - Metadata handling
@@ -41,11 +42,11 @@ The Kubernetes Ingestor backend plugin is a catalog entity provider that automat
 ## Components
 
 ### Entity Provider
-The core component that:  
-- Discovers resources  
-- Creates entities  
-- Maintains relationships  
-- Updates catalog  
+The core component that:
+- Discovers resources
+- Creates entities
+- Maintains relationships
+- Updates catalog (full sync and delta/incremental mutations)
 
 ### Template Generator
 Generates software templates for:  
@@ -66,12 +67,21 @@ Handles API-related tasks:
 ## Technical Details
 
 ### Resource Processing
-The plugin processes resources through:  
-1. Discovery phase  
-2. Filtering phase  
-3. Entity creation  
-4. Relationship mapping  
-5. Catalog update  
+The plugin processes resources through:
+1. Discovery phase
+2. Filtering phase
+3. Entity creation
+4. Relationship mapping
+5. Catalog update (full sync or delta mutation)
+
+### Delta/Incremental Mutations
+The entity provider supports real-time incremental updates via the `deltaUpdate` method, allowing individual resources to be added, updated, or removed from the catalog without performing a full re-sync. This is useful for event-driven architectures where a Kubernetes controller or webhook can push change events to the plugin.
+
+Key behaviors:
+- **Upserts**: The resource is fetched from the cluster and translated into catalog entities, which are then added or updated via a delta mutation.
+- **Deletes**: When a resource is deleted, only the resource-specific entities (Component/Resource, API) are removed. Shared System entities are preserved to avoid affecting other resources in the same namespace/system.
+- **Explicit entity names**: Delete events can include an `entityNames` array with exact entity refs (e.g., `"Component:default/my-app"`) to avoid mismatches when annotation-based naming was used.
+- **Prerequisite**: Delta updates require the initial full sync to have completed so that internal caches (CRD mappings, Crossplane lookups, KRO lookups) are populated.
 
 ### Mapping Models
 Supports various mapping models:  

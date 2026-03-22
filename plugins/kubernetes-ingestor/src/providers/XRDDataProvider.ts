@@ -209,6 +209,27 @@ export class XRDDataProvider {
     }
   }
 
+  async buildClaimKindLookup(): Promise<Set<string>> {
+    try {
+      const xrdObjects = await this.fetchXRDObjects();
+      const claimKinds = new Set<string>();
+
+      for (const xrd of xrdObjects) {
+        const claimKind = xrd.spec?.claimNames?.kind;
+        const group = xrd.spec?.group;
+        if (claimKind && group) {
+          claimKinds.add(`${group}|${claimKind}`);
+          claimKinds.add(`${group}|${claimKind}`.toLowerCase());
+        }
+      }
+
+      return claimKinds;
+    } catch (error) {
+      this.logger.error('Error building claim kind lookup:', error instanceof Error ? error : { error: String(error) });
+      return new Set();
+    }
+  }
+
   async buildCompositeKindLookup(): Promise<{ [key: string]: any }> {
     try {
       const xrdObjects = await this.fetchXRDObjects();
@@ -223,9 +244,8 @@ export class XRDDataProvider {
           for (const version of xrd.spec.versions || []) {
             const versionName = version.name;
             const key = `${kind}|${group}|${versionName}`;
-            const lowerKey = `${kind?.toLowerCase()}|${group}|${versionName}`;
             lookup[key] = xrd;
-            lookup[lowerKey] = xrd;
+            lookup[key.toLowerCase()] = xrd;
           }
         }
       }

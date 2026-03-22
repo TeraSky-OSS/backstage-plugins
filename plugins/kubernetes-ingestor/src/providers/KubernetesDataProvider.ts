@@ -449,8 +449,9 @@ export class KubernetesDataProvider {
           (crds as any[]).forEach(crd => {
             const kind = crd.spec?.names?.kind;
             const plural = crd.spec?.names?.plural;
-            if (kind && plural) {
-              crdMapping[kind] = plural;
+            const group = crd.spec?.group;
+            if (kind && plural && group) {
+              crdMapping[`${group}|${kind}`] = plural;
             }
           });
         } catch (clusterError) {

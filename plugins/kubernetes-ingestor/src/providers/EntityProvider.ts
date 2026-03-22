@@ -2,7 +2,7 @@ import {
   EntityProvider,
   EntityProviderConnection,
 } from '@backstage/plugin-catalog-node';
-import { Entity } from '@backstage/catalog-model';
+import { Entity, parseEntityRef } from '@backstage/catalog-model';
 import { Config } from '@backstage/config';
 import { LoggerService, SchedulerServiceTaskRunner, UrlReaderService } from '@backstage/backend-plugin-api';
 import { DefaultKubernetesResourceFetcher, ApiDefinitionFetcher } from '../services';
@@ -13,6 +13,22 @@ import { XRDDataProvider } from './XRDDataProvider';
 import { RGDDataProvider } from './RGDDataProvider';
 import yaml from 'js-yaml';
 import pluralize from 'pluralize';
+
+export interface DeltaEvent {
+  action: 'upsert' | 'delete';
+  apiVersion: string;
+  kind: string;
+  name: string;
+  namespace?: string;
+  clusterName: string;
+  /**
+   * Optional list of Backstage entity names (e.g. "component:default/my-app")
+   * to use for delete operations. When present on a delete event, these are used
+   * directly instead of synthesizing a resource and translating it, avoiding
+   * mismatches when annotation-based naming was used on the original resource.
+   */
+  entityNames?: string[];
+}
 
 interface BackstageLink {
   url: string;
@@ -2111,6 +2127,12 @@ export class KubernetesEntityProvider implements EntityProvider {
   private connection?: EntityProviderConnection;
   private readonly apiDefinitionFetcher: ApiDefinitionFetcher;
   private namespaceAnnotationsCache: Map<string, Promise<Record<string, string> | null>> = new Map();
+  private cachedCompositeKindLookup: { [key: string]: any } = {};
+  private cachedRgdLookup: { [key: string]: any } = {};
+  private cachedCrdMapping: Record<string, string> = {};
+  private cachedClaimKindLookup: Set<string> = new Set();
+  private mutationMutex: Promise<void> = Promise.resolve();
+  private fullSyncCompleted = false;
 
   constructor(
     private readonly taskRunner: SchedulerServiceTaskRunner,
@@ -2275,6 +2297,14 @@ export class KubernetesEntityProvider implements EntityProvider {
     return 'KubernetesEntityProvider';
   }
 
+  private acquireMutationLock(): { promise: Promise<void>; release: () => void } {
+    let release: () => void;
+    const gate = new Promise<void>(resolve => { release = resolve; });
+    const promise = this.mutationMutex.then(() => {});
+    this.mutationMutex = this.mutationMutex.then(() => gate);
+    return { promise, release: release! };
+  }
+
   async connect(connection: EntityProviderConnection): Promise<void> {
     this.connection = connection;
     await this.taskRunner.run({
@@ -2307,6 +2337,7 @@ export class KubernetesEntityProvider implements EntityProvider {
 
         let compositeKindLookup: { [key: string]: any } = {};
         let rgdLookup: { [key: string]: any } = {};
+        let claimKindLookup: Set<string> = new Set();
         let xrdDataProvider;
         let rgdDataProvider;
         
@@ -2317,12 +2348,9 @@ export class KubernetesEntityProvider implements EntityProvider {
             this.config,
             this.logger,
           );
-          // Build composite kind lookup for v2/Cluster/Namespaced (case-insensitive)
           compositeKindLookup = await xrdDataProvider.buildCompositeKindLookup();
-          // Add lowercased keys for case-insensitive matching
-          for (const key of Object.keys(compositeKindLookup)) {
-            compositeKindLookup[key.toLowerCase()] = compositeKindLookup[key];
-          }
+          // Build claim kind lookup for delta update classification
+          claimKindLookup = await xrdDataProvider.buildClaimKindLookup();
         }
 
         // Only initialize KRO providers if enabled
@@ -2332,12 +2360,7 @@ export class KubernetesEntityProvider implements EntityProvider {
             this.config,
             this.logger,
           );
-          // Build RGD lookup for case-insensitive matching
           rgdLookup = await rgdDataProvider.buildRGDLookup();
-          // Add lowercased keys for case-insensitive matching
-          for (const key of Object.keys(rgdLookup)) {
-            rgdLookup[key.toLowerCase()] = rgdLookup[key];
-          }
         }
 
         // Fetch all Kubernetes resources and build a CRD mapping
@@ -2349,78 +2372,268 @@ export class KubernetesEntityProvider implements EntityProvider {
         const allEntities: Entity[] = [];
         
         for (const k8s of kubernetesData) {
-          if (!isCrossplaneEnabled) {
-            // When Crossplane is disabled, treat everything as regular K8s resources
-            if (k8s) {
-              // Log the resource type being processed
-              this.logger.debug(`Processing as regular K8s resource: ${k8s.kind} ${k8s.metadata?.name}`);
-              k8sCount++;
-              const entities = await this.translateKubernetesObjectsToEntities(k8s);
-              allEntities.push(...entities);
-            }
-            continue;
-          }
-
-          // Crossplane processing when enabled
-          if (k8s?.spec?.resourceRef) {
-            this.logger.debug(`Processing Crossplane claim: ${k8s.kind} ${k8s.metadata?.name}`);
-            const entities = await this.translateCrossplaneClaimToEntity(k8s, k8s.clusterName, crdMapping);
-            if (entities.length > 0) claimCount++;
-            allEntities.push(...entities);
-            continue;
-          }
-          // Ingest XRs for v2/Cluster or v2/Namespaced (case-insensitive)
-          if (k8s?.spec?.crossplane) {
-            this.logger.debug(`Processing Crossplane XR: ${k8s.kind} ${k8s.metadata?.name}`);
-            const [group, version] = k8s.apiVersion.split('/');
-            const lookupKey = `${k8s.kind}|${group}|${version}`;
-            const lookupKeyLower = lookupKey.toLowerCase();
-            if (compositeKindLookup[lookupKey] || compositeKindLookup[lookupKeyLower]) {
-              const entities = await this.translateCrossplaneCompositeToEntity(k8s, k8s.clusterName, compositeKindLookup);
-              if (entities.length > 0) compositeCount++;
-              allEntities.push(...entities);
-              continue;
-            }
-          }
-          // Check if it's a KRO instance
-          if (isKROEnabled && k8s?.metadata?.labels?.['kro.run/resource-graph-definition-id']) {
-            this.logger.debug(`Processing KRO instance: ${k8s.kind} ${k8s.metadata?.name}`);
-            const [group, version] = k8s.apiVersion.split('/');
-            const lookupKey = `${k8s.kind}|${group}|${version}`;
-            const lookupKeyLower = lookupKey.toLowerCase();
-            if (rgdLookup[lookupKey] || rgdLookup[lookupKeyLower]) {
-              kroCount++;
-              const entities = await this.translateKROInstanceToEntity(k8s, k8s.clusterName, rgdLookup);
-              allEntities.push(...entities);
-              continue;
-            }
-          }
-
-          // Fallback: treat as regular K8s resource
-          if (k8s) {
-            this.logger.debug(`Processing as regular K8s resource: ${k8s.kind} ${k8s.metadata?.name}`);
-            k8sCount++;
-            const entities = await this.translateKubernetesObjectsToEntities(k8s);
-            allEntities.push(...entities);
-          }
+          if (!k8s) continue;
+          const { entities, resourceType } = await this.classifyAndTranslateResource(
+            k8s, isCrossplaneEnabled, isKROEnabled, compositeKindLookup, rgdLookup, crdMapping,
+          );
+          if (resourceType === 'claim' && entities.length > 0) claimCount++;
+          else if (resourceType === 'composite' && entities.length > 0) compositeCount++;
+          else if (resourceType === 'kro') kroCount++;
+          else if (resourceType === 'k8s') k8sCount++;
+          allEntities.push(...entities);
         }
 
-        await this.connection.applyMutation({
-          type: 'full',
-          entities: allEntities.map((entity: Entity) => ({
-            entity,
-            locationKey: `provider:${this.getProviderName()}`,
-          })),
-        });
+        // Cache lookups for delta updates
+        this.cachedCompositeKindLookup = compositeKindLookup;
+        this.cachedRgdLookup = rgdLookup;
+        this.cachedCrdMapping = crdMapping;
+        this.cachedClaimKindLookup = claimKindLookup;
+
+        const lock = this.acquireMutationLock();
+        await lock.promise;
+        try {
+          await this.connection.applyMutation({
+            type: 'full',
+            entities: allEntities.map((entity: Entity) => ({
+              entity,
+              locationKey: `provider:${this.getProviderName()}`,
+            })),
+          });
+          this.fullSyncCompleted = true;
+        } finally {
+          lock.release();
+        }
       } else {
-        await this.connection.applyMutation({
-          type: 'full',
-          entities: [],
-        });
+        const lock = this.acquireMutationLock();
+        await lock.promise;
+        try {
+          await this.connection.applyMutation({
+            type: 'full',
+            entities: [],
+          });
+          this.fullSyncCompleted = true;
+        } finally {
+          lock.release();
+        }
       }
     } catch (error) {
+      this.fullSyncCompleted = false;
       this.logger.error(`Failed to run KubernetesEntityProvider: ${error}`);
     }
+  }
+
+  private async classifyAndTranslateResource(
+    resource: any,
+    isCrossplaneEnabled: boolean,
+    isKROEnabled: boolean,
+    compositeKindLookup: { [key: string]: any },
+    rgdLookup: { [key: string]: any },
+    crdMapping: Record<string, string>,
+  ): Promise<{ entities: Entity[]; resourceType: 'claim' | 'composite' | 'kro' | 'k8s' }> {
+    // KRO instance — check before the Crossplane short-circuit so that
+    // KRO-managed resources are classified correctly even when Crossplane is disabled.
+    if (isKROEnabled && resource?.metadata?.labels?.['kro.run/resource-graph-definition-id']) {
+      this.logger.debug(`Processing KRO instance: ${resource.kind} ${resource.metadata?.name}`);
+      if (typeof resource.apiVersion === 'string' && resource.apiVersion.includes('/')) {
+        const [group, version] = resource.apiVersion.split('/');
+        const lookupKey = `${resource.kind}|${group}|${version}`.toLowerCase();
+        if (rgdLookup[lookupKey]) {
+          const entities = await this.translateKROInstanceToEntity(resource, resource.clusterName, rgdLookup);
+          return { entities, resourceType: 'kro' };
+        }
+      }
+    }
+
+    if (!isCrossplaneEnabled) {
+      this.logger.debug(`Processing as regular K8s resource: ${resource.kind} ${resource.metadata?.name}`);
+      const entities = await this.translateKubernetesObjectsToEntities(resource);
+      return { entities, resourceType: 'k8s' };
+    }
+
+    // Crossplane claim
+    if (resource?.spec?.resourceRef) {
+      this.logger.debug(`Processing Crossplane claim: ${resource.kind} ${resource.metadata?.name}`);
+      const entities = await this.translateCrossplaneClaimToEntity(resource, resource.clusterName, crdMapping);
+      return { entities, resourceType: 'claim' };
+    }
+
+    // Crossplane XR
+    if (resource?.spec?.crossplane) {
+      this.logger.debug(`Processing Crossplane XR: ${resource.kind} ${resource.metadata?.name}`);
+      if (typeof resource.apiVersion !== 'string' || !resource.apiVersion.includes('/')) {
+        this.logger.warn(`Skipping Crossplane XR with malformed apiVersion: kind=${resource.kind}, name=${resource.metadata?.name}, apiVersion=${resource.apiVersion}`);
+      } else {
+        const [group, version] = resource.apiVersion.split('/');
+        const lookupKey = `${resource.kind}|${group}|${version}`.toLowerCase();
+        if (compositeKindLookup[lookupKey]) {
+          const entities = await this.translateCrossplaneCompositeToEntity(resource, resource.clusterName, compositeKindLookup);
+          return { entities, resourceType: 'composite' };
+        }
+      }
+    }
+
+    // Fallback: regular K8s resource
+    this.logger.debug(`Processing as regular K8s resource: ${resource.kind} ${resource.metadata?.name}`);
+    const entities = await this.translateKubernetesObjectsToEntities(resource);
+    return { entities, resourceType: 'k8s' };
+  }
+
+  /**
+   * Performs an incremental delta update for a single Kubernetes resource.
+   * This avoids the cost of a full re-sync by only adding or removing
+   * the entities associated with the specified resource.
+   *
+   * For upserts, the resource is fetched from the cluster using the provided reference.
+   * For deletes, a synthetic resource is constructed from the reference to determine
+   * which entities to remove.
+   */
+  async deltaUpdate(event: DeltaEvent): Promise<void> {
+    if (!this.connection) {
+      throw new Error('Connection not initialized. The provider must be connected before delta updates.');
+    }
+
+    if (!this.fullSyncCompleted) {
+      throw new Error('Delta update rejected: initial full sync has not completed yet. Caches are not populated.');
+    }
+
+    const lock = this.acquireMutationLock();
+    await lock.promise;
+    try {
+      await this.deltaUpdateInner(event);
+    } finally {
+      lock.release();
+    }
+  }
+
+  private applyDeltaMutation(added: Entity[], removed: Entity[]): Promise<void> {
+    const wrap = (entities: Entity[]) => entities.map(entity => ({
+      entity,
+      locationKey: `provider:${this.getProviderName()}`,
+    }));
+    return this.connection!.applyMutation({
+      type: 'delta',
+      added: wrap(added),
+      removed: wrap(removed),
+    });
+  }
+
+  private async deltaUpdateInner(event: DeltaEvent): Promise<void> {
+    const { action, apiVersion, kind, name, namespace, clusterName, entityNames } = event;
+
+    // For deletes with explicit entityNames, use them directly to avoid
+    // mismatches when annotation-based naming was used on the original resource.
+    if (action === 'delete' && entityNames && entityNames.length > 0) {
+      const removed = entityNames.map(ref => {
+        const parsed = parseEntityRef(ref, { defaultKind: 'Component', defaultNamespace: 'default' });
+        return {
+          apiVersion: 'backstage.io/v1alpha1',
+          kind: parsed.kind,
+          metadata: {
+            name: parsed.name,
+            namespace: parsed.namespace,
+          },
+        } as Entity;
+      });
+
+      await this.applyDeltaMutation([], removed);
+
+      this.logger.info(
+        `Delta delete applied for ${kind}/${name} from cluster ${clusterName} using explicit entityNames (${removed.length} entities)`,
+      );
+      return;
+    }
+
+    const componentsEnabled = this.config.getOptionalBoolean('kubernetesIngestor.components.enabled') ?? true;
+    if (!componentsEnabled && action === 'upsert') {
+      this.logger.debug(`Skipping delta upsert for ${kind}/${name}: component ingestion is disabled`);
+      return;
+    }
+
+    const isCrossplaneEnabled = this.config.getOptionalBoolean('kubernetesIngestor.crossplane.enabled') ?? true;
+    const isKROEnabled = this.config.getOptionalBoolean('kubernetesIngestor.kro.enabled') ?? false;
+
+    let resource: any;
+
+    if (action === 'upsert') {
+      // Fetch the full resource from the cluster
+      const path = this.buildKubernetesApiPath(apiVersion, kind, name, namespace);
+      try {
+        resource = await this.resourceFetcher.proxyKubernetesRequest(clusterName, { path });
+      } catch (error) {
+        this.logger.error(`Delta upsert failed: could not fetch ${kind}/${name} from cluster ${clusterName}: ${error}`);
+        return;
+      }
+      resource.clusterName = clusterName;
+    } else {
+      // For deletes without explicit entityNames, construct a synthetic resource
+      // enriched with enough metadata for classifyAndTranslateResource to route
+      // it to the correct translation path (claim, composite, KRO, or plain k8s).
+      // Prefer providing entityNames on delete events to avoid mismatches.
+      const labels: Record<string, string> = {};
+      const spec: Record<string, any> = {};
+
+      if (typeof apiVersion === 'string' && apiVersion.includes('/')) {
+        const [group, version] = apiVersion.split('/');
+        const lookupKey = `${kind}|${group}|${version}`.toLowerCase();
+        const claimKey = `${group}|${kind}`.toLowerCase();
+
+        if (isKROEnabled && this.cachedRgdLookup[lookupKey]) {
+          labels['kro.run/resource-graph-definition-id'] = 'synthetic-delete';
+        } else if (isCrossplaneEnabled && this.cachedCompositeKindLookup[lookupKey]) {
+          spec.crossplane = {};
+        } else if (isCrossplaneEnabled && this.cachedClaimKindLookup.has(claimKey)) {
+          spec.resourceRef = {};
+        }
+      }
+
+      resource = {
+        apiVersion,
+        kind,
+        metadata: {
+          name,
+          namespace,
+          annotations: {},
+          labels,
+        },
+        spec,
+        clusterName,
+      };
+    }
+
+    const { entities } = await this.classifyAndTranslateResource(
+      resource, isCrossplaneEnabled, isKROEnabled,
+      this.cachedCompositeKindLookup, this.cachedRgdLookup, this.cachedCrdMapping,
+    );
+
+    if (entities.length === 0) {
+      this.logger.debug(`Delta ${action} produced no entities for ${kind}/${name}`);
+      return;
+    }
+
+    if (action === 'upsert') {
+      await this.applyDeltaMutation(entities, []);
+    } else {
+      // Filter out shared System entities — they are shared across multiple
+      // resources and should not be removed when a single resource is deleted.
+      const removable = entities.filter(e => e.kind !== 'System');
+      await this.applyDeltaMutation([], removable);
+    }
+
+    this.logger.info(
+      `Delta ${action} applied for ${kind}/${name} from cluster ${clusterName} (${entities.length} entities)`,
+    );
+  }
+
+  private buildKubernetesApiPath(apiVersion: string, kind: string, name: string, namespace?: string): string {
+    const group = apiVersion.includes('/') ? apiVersion.split('/')[0] : '';
+    const kindPlural = this.cachedCrdMapping[`${group}|${kind}`] || pluralize(kind).toLowerCase();
+    const isCore = !apiVersion.includes('/');
+    const prefix = isCore ? `/api/${apiVersion}` : `/apis/${apiVersion}`;
+
+    if (namespace) {
+      return `${prefix}/namespaces/${namespace}/${kindPlural}/${name}`;
+    }
+    return `${prefix}/${kindPlural}/${name}`;
   }
 
   private async translateKubernetesObjectsToEntities(resource: any): Promise<Entity[]> {
@@ -2664,19 +2877,19 @@ export class KubernetesEntityProvider implements EntityProvider {
   }
 
   private async translateCrossplaneClaimToEntity(claim: any, clusterName: string, crdMapping: any): Promise<Entity[]> {
+    // Extract CR values (needed for CRD mapping lookup with group|kind key)
+    const [crGroup, crVersion] = claim.apiVersion.split('/');
+    const crKind = claim.kind;
+
     // First, check if this is a valid claim by looking up its kind in the CRD mapping
-    const resourceKind = claim.kind;
-    if (!crdMapping[resourceKind]) {
-      this.logger.debug(`No CRD mapping found for kind ${resourceKind}, skipping claim processing`);
+    if (!crdMapping[`${crGroup}|${crKind}`]) {
+      this.logger.debug(`No CRD mapping found for kind ${crKind} in group ${crGroup}, skipping claim processing`);
       return [];
     }
     const prefix = this.getAnnotationPrefix();
     const annotations = claim.metadata.annotations || {};
 
-    // Extract CR values
-    const [crGroup, crVersion] = claim.apiVersion.split('/');
-    const crKind = claim.kind;
-    const crPlural = crdMapping[crKind] || pluralize(claim.kind.toLowerCase()); // Fetch plural from CRD mapping
+    const crPlural = crdMapping[`${crGroup}|${crKind}`] || pluralize(claim.kind.toLowerCase()); // Fetch plural from CRD mapping
 
     // Extract Composite values from `spec.resourceRef`
     const compositeRef = claim.spec?.resourceRef || {};
@@ -2684,7 +2897,7 @@ export class KubernetesEntityProvider implements EntityProvider {
     const compositeName = compositeRef.name || '';
     const compositeGroup = compositeRef.apiVersion?.split('/')?.[0] || '';
     const compositeVersion = compositeRef.apiVersion?.split('/')?.[1] || '';
-    const compositePlural = compositeKind ? crdMapping[compositeKind] || '' : ''; // Fetch plural for composite kind
+    const compositePlural = compositeKind ? crdMapping[`${compositeGroup}|${compositeKind}`] || '' : ''; // Fetch plural for composite kind
     const compositionData = claim.compositionData || {};
     const compositionName = compositionData.name || '';
     const compositionFunctions = compositionData.usedFunctions || [];

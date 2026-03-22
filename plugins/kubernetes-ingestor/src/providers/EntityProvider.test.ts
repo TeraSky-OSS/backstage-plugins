@@ -427,8 +427,8 @@ describe('KubernetesEntityProvider', () => {
       };
 
       const crdMapping = {
-        'PostgreSQLInstance': 'postgresqlinstances',
-        'XPostgreSQLInstance': 'xpostgresqlinstances',
+        'database.example.com|PostgreSQLInstance': 'postgresqlinstances',
+        'database.example.com|XPostgreSQLInstance': 'xpostgresqlinstances',
       };
 
       const entities = await (provider as any).translateCrossplaneClaimToEntity(
@@ -794,8 +794,8 @@ describe('KubernetesEntityProvider', () => {
       };
 
       const crdMapping = {
-        'PostgreSQLInstance': 'postgresqlinstances',
-        'XPostgreSQLInstance': 'xpostgresqlinstances',
+        'database.example.com|PostgreSQLInstance': 'postgresqlinstances',
+        'database.example.com|XPostgreSQLInstance': 'xpostgresqlinstances',
       };
 
       const entities = await (provider as any).translateCrossplaneClaimToEntity(
@@ -836,8 +836,8 @@ describe('KubernetesEntityProvider', () => {
       };
 
       const crdMapping = {
-        'PostgreSQLInstance': 'postgresqlinstances',
-        'XPostgreSQLInstance': 'xpostgresqlinstances',
+        'database.example.com|PostgreSQLInstance': 'postgresqlinstances',
+        'database.example.com|XPostgreSQLInstance': 'xpostgresqlinstances',
       };
 
       const entities = await (provider as any).translateCrossplaneClaimToEntity(
@@ -1221,8 +1221,8 @@ describe('KubernetesEntityProvider', () => {
       });
 
       const crdMapping = {
-        'PostgreSQLInstance': 'postgresqlinstances',
-        'XPostgreSQLInstance': 'xpostgresqlinstances',
+        'database.example.com|PostgreSQLInstance': 'postgresqlinstances',
+        'database.example.com|XPostgreSQLInstance': 'xpostgresqlinstances',
       };
 
       it('When translating claim with namespace owner, Then it inherits owner from namespace', async () => {
@@ -1875,8 +1875,8 @@ describe('KubernetesEntityProvider', () => {
         };
 
         const crdMapping = {
-          'PostgreSQLInstance': 'postgresqlinstances',
-          'XPostgreSQLInstance': 'xpostgresqlinstances',
+          'database.example.com|PostgreSQLInstance': 'postgresqlinstances',
+          'database.example.com|XPostgreSQLInstance': 'xpostgresqlinstances',
         };
 
         const entities = await (provider as any).translateCrossplaneClaimToEntity(
@@ -2045,6 +2045,693 @@ describe('KubernetesEntityProvider', () => {
         icon: 'dashboard',
         type: 'admin-dashboard',
       });
+    });
+  });
+
+  describe('deltaUpdate', () => {
+    it('should throw error when not connected', async () => {
+      const provider = new KubernetesEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+      );
+
+      await expect(provider.deltaUpdate({
+        action: 'upsert',
+        apiVersion: 'apps/v1',
+        kind: 'Deployment',
+        name: 'test-deployment',
+        namespace: 'default',
+        clusterName: 'test-cluster',
+      })).rejects.toThrow('Connection not initialized');
+    });
+
+    it('should perform delta upsert for a regular K8s resource', async () => {
+      const provider = new KubernetesEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+      );
+
+      const mockConnection = {
+        applyMutation: jest.fn().mockResolvedValue(undefined),
+      };
+
+      await provider.connect(mockConnection as any);
+      (provider as any).fullSyncCompleted = true;
+
+      // Mock the proxy request to return a full resource
+      mockResourceFetcher.proxyKubernetesRequest.mockResolvedValueOnce({
+        apiVersion: 'apps/v1',
+        kind: 'Deployment',
+        metadata: {
+          name: 'test-deployment',
+          namespace: 'default',
+          uid: 'delta-123',
+        },
+        spec: {},
+      });
+
+      await provider.deltaUpdate({
+        action: 'upsert',
+        apiVersion: 'apps/v1',
+        kind: 'Deployment',
+        name: 'test-deployment',
+        namespace: 'default',
+        clusterName: 'test-cluster',
+      });
+
+      // Find the delta mutation call (not the full mutation from connect)
+      const deltaCalls = mockConnection.applyMutation.mock.calls.filter(
+        (call: any[]) => call[0].type === 'delta',
+      );
+      expect(deltaCalls).toHaveLength(1);
+      expect(deltaCalls[0][0].type).toBe('delta');
+      expect(deltaCalls[0][0].added.length).toBeGreaterThan(0);
+      expect(deltaCalls[0][0].removed).toEqual([]);
+    });
+
+    it('should perform delta delete for a regular K8s resource', async () => {
+      const provider = new KubernetesEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+      );
+
+      const mockConnection = {
+        applyMutation: jest.fn().mockResolvedValue(undefined),
+      };
+
+      await provider.connect(mockConnection as any);
+      (provider as any).fullSyncCompleted = true;
+
+      await provider.deltaUpdate({
+        action: 'delete',
+        apiVersion: 'apps/v1',
+        kind: 'Deployment',
+        name: 'test-deployment',
+        namespace: 'default',
+        clusterName: 'test-cluster',
+      });
+
+      const deltaCalls = mockConnection.applyMutation.mock.calls.filter(
+        (call: any[]) => call[0].type === 'delta',
+      );
+      expect(deltaCalls).toHaveLength(1);
+      expect(deltaCalls[0][0].type).toBe('delta');
+      expect(deltaCalls[0][0].added).toEqual([]);
+      expect(deltaCalls[0][0].removed.length).toBeGreaterThan(0);
+    });
+
+    it('should handle resource fetch failure gracefully on upsert', async () => {
+      const provider = new KubernetesEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+      );
+
+      const mockConnection = {
+        applyMutation: jest.fn().mockResolvedValue(undefined),
+      };
+
+      await provider.connect(mockConnection as any);
+      (provider as any).fullSyncCompleted = true;
+
+      mockResourceFetcher.proxyKubernetesRequest.mockRejectedValueOnce(new Error('Not found'));
+
+      await provider.deltaUpdate({
+        action: 'upsert',
+        apiVersion: 'apps/v1',
+        kind: 'Deployment',
+        name: 'missing-deployment',
+        namespace: 'default',
+        clusterName: 'test-cluster',
+      });
+
+      // Should not have called applyMutation with delta (only the full from connect)
+      const deltaCalls = mockConnection.applyMutation.mock.calls.filter(
+        (call: any[]) => call[0].type === 'delta',
+      );
+      expect(deltaCalls).toHaveLength(0);
+    });
+
+    it('should construct correct API path for namespaced resources', async () => {
+      const provider = new KubernetesEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+      );
+
+      const mockConnection = {
+        applyMutation: jest.fn().mockResolvedValue(undefined),
+      };
+
+      await provider.connect(mockConnection as any);
+      (provider as any).fullSyncCompleted = true;
+
+      mockResourceFetcher.proxyKubernetesRequest.mockResolvedValueOnce({
+        apiVersion: 'apps/v1',
+        kind: 'Deployment',
+        metadata: { name: 'my-app', namespace: 'production' },
+        spec: {},
+      });
+
+      await provider.deltaUpdate({
+        action: 'upsert',
+        apiVersion: 'apps/v1',
+        kind: 'Deployment',
+        name: 'my-app',
+        namespace: 'production',
+        clusterName: 'test-cluster',
+      });
+
+      // Verify the proxy was called with the correct path
+      const proxyCalls = mockResourceFetcher.proxyKubernetesRequest.mock.calls.filter(
+        (call: any[]) => call[1]?.path?.includes('deployments'),
+      );
+      expect(proxyCalls).toHaveLength(1);
+      expect(proxyCalls[0][0]).toBe('test-cluster');
+      expect(proxyCalls[0][1].path).toBe('/apis/apps/v1/namespaces/production/deployments/my-app');
+    });
+
+    it('should construct correct API path for core API resources', async () => {
+      const provider = new KubernetesEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+      );
+
+      const mockConnection = {
+        applyMutation: jest.fn().mockResolvedValue(undefined),
+      };
+
+      await provider.connect(mockConnection as any);
+      (provider as any).fullSyncCompleted = true;
+
+      mockResourceFetcher.proxyKubernetesRequest.mockResolvedValueOnce({
+        apiVersion: 'v1',
+        kind: 'Service',
+        metadata: { name: 'my-service', namespace: 'default' },
+        spec: {},
+      });
+
+      await provider.deltaUpdate({
+        action: 'upsert',
+        apiVersion: 'v1',
+        kind: 'Service',
+        name: 'my-service',
+        namespace: 'default',
+        clusterName: 'test-cluster',
+      });
+
+      const proxyCalls = mockResourceFetcher.proxyKubernetesRequest.mock.calls.filter(
+        (call: any[]) => call[1]?.path?.includes('services'),
+      );
+      expect(proxyCalls).toHaveLength(1);
+      expect(proxyCalls[0][1].path).toBe('/api/v1/namespaces/default/services/my-service');
+    });
+
+    it('should not fetch resource from cluster on delete', async () => {
+      const provider = new KubernetesEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+      );
+
+      const mockConnection = {
+        applyMutation: jest.fn().mockResolvedValue(undefined),
+      };
+
+      await provider.connect(mockConnection as any);
+      (provider as any).fullSyncCompleted = true;
+      mockResourceFetcher.proxyKubernetesRequest.mockClear();
+
+      await provider.deltaUpdate({
+        action: 'delete',
+        apiVersion: 'apps/v1',
+        kind: 'Deployment',
+        name: 'deleted-deployment',
+        namespace: 'default',
+        clusterName: 'test-cluster',
+      });
+
+      // proxyKubernetesRequest should NOT be called for deletes
+      expect(mockResourceFetcher.proxyKubernetesRequest).not.toHaveBeenCalled();
+
+      const deltaCalls = mockConnection.applyMutation.mock.calls.filter(
+        (call: any[]) => call[0].type === 'delta',
+      );
+      expect(deltaCalls).toHaveLength(1);
+      expect(deltaCalls[0][0].removed.length).toBeGreaterThan(0);
+    });
+
+    it('should filter out System entities from delta delete removals', async () => {
+      const provider = new KubernetesEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+      );
+
+      const mockConnection = {
+        applyMutation: jest.fn().mockResolvedValue(undefined),
+      };
+
+      await provider.connect(mockConnection as any);
+      (provider as any).fullSyncCompleted = true;
+
+      await provider.deltaUpdate({
+        action: 'delete',
+        apiVersion: 'apps/v1',
+        kind: 'Deployment',
+        name: 'test-deployment',
+        namespace: 'default',
+        clusterName: 'test-cluster',
+      });
+
+      const deltaCalls = mockConnection.applyMutation.mock.calls.filter(
+        (call: any[]) => call[0].type === 'delta',
+      );
+      expect(deltaCalls).toHaveLength(1);
+
+      const removed = deltaCalls[0][0].removed;
+      // Should have removed entities but none of them should be System kind
+      expect(removed.length).toBeGreaterThan(0);
+      const systemEntities = removed.filter((e: any) => e.entity.kind === 'System');
+      expect(systemEntities).toHaveLength(0);
+    });
+
+    it('should include System entities in delta upsert additions', async () => {
+      const provider = new KubernetesEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+      );
+
+      const mockConnection = {
+        applyMutation: jest.fn().mockResolvedValue(undefined),
+      };
+
+      await provider.connect(mockConnection as any);
+      (provider as any).fullSyncCompleted = true;
+
+      mockResourceFetcher.proxyKubernetesRequest.mockResolvedValueOnce({
+        apiVersion: 'apps/v1',
+        kind: 'Deployment',
+        metadata: {
+          name: 'test-deployment',
+          namespace: 'default',
+          uid: 'uid-123',
+        },
+        spec: {},
+      });
+
+      await provider.deltaUpdate({
+        action: 'upsert',
+        apiVersion: 'apps/v1',
+        kind: 'Deployment',
+        name: 'test-deployment',
+        namespace: 'default',
+        clusterName: 'test-cluster',
+      });
+
+      const deltaCalls = mockConnection.applyMutation.mock.calls.filter(
+        (call: any[]) => call[0].type === 'delta',
+      );
+      expect(deltaCalls).toHaveLength(1);
+
+      const added = deltaCalls[0][0].added;
+      // Upserts should include System entities (unlike deletes)
+      const systemEntities = added.filter((e: any) => e.entity.kind === 'System');
+      expect(systemEntities.length).toBeGreaterThan(0);
+    });
+
+    it('should use cachedCrdMapping with composite group|kind key for API path', async () => {
+      const provider = new KubernetesEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+      );
+
+      const mockConnection = {
+        applyMutation: jest.fn().mockResolvedValue(undefined),
+      };
+
+      await provider.connect(mockConnection as any);
+      (provider as any).fullSyncCompleted = true;
+
+      // Populate cachedCrdMapping with a custom plural for a CRD kind
+      (provider as any).cachedCrdMapping = {
+        'example.io|Widget': 'widgets',
+      };
+
+      mockResourceFetcher.proxyKubernetesRequest.mockResolvedValueOnce({
+        apiVersion: 'example.io/v1',
+        kind: 'Widget',
+        metadata: { name: 'my-widget', namespace: 'default' },
+        spec: {},
+      });
+
+      await provider.deltaUpdate({
+        action: 'upsert',
+        apiVersion: 'example.io/v1',
+        kind: 'Widget',
+        name: 'my-widget',
+        namespace: 'default',
+        clusterName: 'test-cluster',
+      });
+
+      const proxyCalls = mockResourceFetcher.proxyKubernetesRequest.mock.calls;
+      expect(proxyCalls).toHaveLength(1);
+      expect(proxyCalls[0][1].path).toBe('/apis/example.io/v1/namespaces/default/widgets/my-widget');
+    });
+
+    it('should not collide when same Kind exists in different API groups', async () => {
+      const provider = new KubernetesEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+      );
+
+      const mockConnection = {
+        applyMutation: jest.fn().mockResolvedValue(undefined),
+      };
+
+      await provider.connect(mockConnection as any);
+      (provider as any).fullSyncCompleted = true;
+
+      // Two different groups both define a "Policy" kind with different plurals
+      (provider as any).cachedCrdMapping = {
+        'security.io|Policy': 'securitypolicies',
+        'networking.io|Policy': 'networkpolicies',
+      };
+
+      // First call: security.io/v1 Policy
+      mockResourceFetcher.proxyKubernetesRequest.mockResolvedValueOnce({
+        apiVersion: 'security.io/v1',
+        kind: 'Policy',
+        metadata: { name: 'sec-policy', namespace: 'default' },
+        spec: {},
+      });
+
+      await provider.deltaUpdate({
+        action: 'upsert',
+        apiVersion: 'security.io/v1',
+        kind: 'Policy',
+        name: 'sec-policy',
+        namespace: 'default',
+        clusterName: 'test-cluster',
+      });
+
+      // Second call: networking.io/v1 Policy
+      mockResourceFetcher.proxyKubernetesRequest.mockResolvedValueOnce({
+        apiVersion: 'networking.io/v1',
+        kind: 'Policy',
+        metadata: { name: 'net-policy', namespace: 'default' },
+        spec: {},
+      });
+
+      await provider.deltaUpdate({
+        action: 'upsert',
+        apiVersion: 'networking.io/v1',
+        kind: 'Policy',
+        name: 'net-policy',
+        namespace: 'default',
+        clusterName: 'test-cluster',
+      });
+
+      const proxyCalls = mockResourceFetcher.proxyKubernetesRequest.mock.calls;
+      expect(proxyCalls).toHaveLength(2);
+      expect(proxyCalls[0][1].path).toBe('/apis/security.io/v1/namespaces/default/securitypolicies/sec-policy');
+      expect(proxyCalls[1][1].path).toBe('/apis/networking.io/v1/namespaces/default/networkpolicies/net-policy');
+    });
+
+    it('should fall back to pluralize when kind is not in cachedCrdMapping', async () => {
+      const provider = new KubernetesEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+      );
+
+      const mockConnection = {
+        applyMutation: jest.fn().mockResolvedValue(undefined),
+      };
+
+      await provider.connect(mockConnection as any);
+      (provider as any).fullSyncCompleted = true;
+      (provider as any).cachedCrdMapping = {}; // empty mapping
+
+      mockResourceFetcher.proxyKubernetesRequest.mockResolvedValueOnce({
+        apiVersion: 'custom.io/v1beta1',
+        kind: 'Gadget',
+        metadata: { name: 'my-gadget', namespace: 'tools' },
+        spec: {},
+      });
+
+      await provider.deltaUpdate({
+        action: 'upsert',
+        apiVersion: 'custom.io/v1beta1',
+        kind: 'Gadget',
+        name: 'my-gadget',
+        namespace: 'tools',
+        clusterName: 'test-cluster',
+      });
+
+      const proxyCalls = mockResourceFetcher.proxyKubernetesRequest.mock.calls;
+      expect(proxyCalls).toHaveLength(1);
+      // pluralize('Gadget') => 'gadgets'
+      expect(proxyCalls[0][1].path).toBe('/apis/custom.io/v1beta1/namespaces/tools/gadgets/my-gadget');
+    });
+
+    it('should use correct plural for CRD-mapped kind and fallback for unmapped kind in same group', async () => {
+      const provider = new KubernetesEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+      );
+
+      const mockConnection = {
+        applyMutation: jest.fn().mockResolvedValue(undefined),
+      };
+
+      await provider.connect(mockConnection as any);
+      (provider as any).fullSyncCompleted = true;
+
+      // Only Mouse is mapped, Goose is not
+      (provider as any).cachedCrdMapping = {
+        'animals.io|Mouse': 'mice',
+      };
+
+      // Mouse uses CRD mapping
+      mockResourceFetcher.proxyKubernetesRequest.mockResolvedValueOnce({
+        apiVersion: 'animals.io/v1',
+        kind: 'Mouse',
+        metadata: { name: 'jerry', namespace: 'default' },
+        spec: {},
+      });
+
+      await provider.deltaUpdate({
+        action: 'upsert',
+        apiVersion: 'animals.io/v1',
+        kind: 'Mouse',
+        name: 'jerry',
+        namespace: 'default',
+        clusterName: 'test-cluster',
+      });
+
+      // Goose falls back to pluralize
+      mockResourceFetcher.proxyKubernetesRequest.mockResolvedValueOnce({
+        apiVersion: 'animals.io/v1',
+        kind: 'Goose',
+        metadata: { name: 'honk', namespace: 'default' },
+        spec: {},
+      });
+
+      await provider.deltaUpdate({
+        action: 'upsert',
+        apiVersion: 'animals.io/v1',
+        kind: 'Goose',
+        name: 'honk',
+        namespace: 'default',
+        clusterName: 'test-cluster',
+      });
+
+      const proxyCalls = mockResourceFetcher.proxyKubernetesRequest.mock.calls;
+      expect(proxyCalls).toHaveLength(2);
+      expect(proxyCalls[0][1].path).toBe('/apis/animals.io/v1/namespaces/default/mice/jerry');
+      expect(proxyCalls[1][1].path).toBe('/apis/animals.io/v1/namespaces/default/geese/honk');
+    });
+
+    it('should handle delete with explicit entityNames including various ref formats', async () => {
+      const provider = new KubernetesEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+      );
+
+      const mockConnection = {
+        applyMutation: jest.fn().mockResolvedValue(undefined),
+      };
+
+      await provider.connect(mockConnection as any);
+      (provider as any).fullSyncCompleted = true;
+
+      await provider.deltaUpdate({
+        action: 'delete',
+        apiVersion: 'apps/v1',
+        kind: 'Deployment',
+        name: 'test',
+        clusterName: 'test-cluster',
+        entityNames: [
+          'Component:prod/my-app',       // kind:namespace/name
+          'Resource:my-resource',          // kind:name (no namespace)
+          'API:default/my-api',            // API kind
+          'just-a-name',                   // bare name (no colon)
+        ],
+      });
+
+      const deltaCalls = mockConnection.applyMutation.mock.calls.filter(
+        (call: any[]) => call[0].type === 'delta',
+      );
+      expect(deltaCalls).toHaveLength(1);
+      const removed = deltaCalls[0][0].removed;
+      expect(removed).toHaveLength(4);
+
+      // Component:prod/my-app
+      expect(removed[0].entity.kind).toBe('Component');
+      expect(removed[0].entity.metadata.namespace).toBe('prod');
+      expect(removed[0].entity.metadata.name).toBe('my-app');
+
+      // Resource:my-resource (no slash = default namespace)
+      expect(removed[1].entity.kind).toBe('Resource');
+      expect(removed[1].entity.metadata.namespace).toBe('default');
+      expect(removed[1].entity.metadata.name).toBe('my-resource');
+
+      // API:default/my-api
+      expect(removed[2].entity.kind).toBe('API');
+      expect(removed[2].entity.metadata.namespace).toBe('default');
+      expect(removed[2].entity.metadata.name).toBe('my-api');
+
+      // bare name defaults to Component kind and default namespace
+      expect(removed[3].entity.kind).toBe('Component');
+      expect(removed[3].entity.metadata.namespace).toBe('default');
+      expect(removed[3].entity.metadata.name).toBe('just-a-name');
+    });
+
+    it('should not filter System entities when using explicit entityNames on delete', async () => {
+      const provider = new KubernetesEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+      );
+
+      const mockConnection = {
+        applyMutation: jest.fn().mockResolvedValue(undefined),
+      };
+
+      await provider.connect(mockConnection as any);
+      (provider as any).fullSyncCompleted = true;
+
+      // Explicit entityNames path does NOT filter — user is in control
+      await provider.deltaUpdate({
+        action: 'delete',
+        apiVersion: 'apps/v1',
+        kind: 'Deployment',
+        name: 'test',
+        clusterName: 'test-cluster',
+        entityNames: [
+          'System:default/my-system',
+          'Component:default/my-component',
+        ],
+      });
+
+      const deltaCalls = mockConnection.applyMutation.mock.calls.filter(
+        (call: any[]) => call[0].type === 'delta',
+      );
+      expect(deltaCalls).toHaveLength(1);
+      const removed = deltaCalls[0][0].removed;
+      expect(removed).toHaveLength(2);
+      expect(removed[0].entity.kind).toBe('System');
+      expect(removed[1].entity.kind).toBe('Component');
+    });
+
+    it('should reject delta update when full sync has not completed', async () => {
+      const provider = new KubernetesEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+      );
+
+      const mockConnection = {
+        applyMutation: jest.fn().mockResolvedValue(undefined),
+      };
+
+      await provider.connect(mockConnection as any);
+      // fullSyncCompleted is false by default
+
+      await expect(provider.deltaUpdate({
+        action: 'delete',
+        apiVersion: 'apps/v1',
+        kind: 'Deployment',
+        name: 'test',
+        clusterName: 'test-cluster',
+      })).rejects.toThrow('initial full sync has not completed');
+    });
+
+    it('should handle cluster-scoped resource (no namespace) paths correctly', async () => {
+      const provider = new KubernetesEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+      );
+
+      const mockConnection = {
+        applyMutation: jest.fn().mockResolvedValue(undefined),
+      };
+
+      await provider.connect(mockConnection as any);
+      (provider as any).fullSyncCompleted = true;
+
+      (provider as any).cachedCrdMapping = {
+        'rbac.authorization.k8s.io|ClusterRole': 'clusterroles',
+      };
+
+      mockResourceFetcher.proxyKubernetesRequest.mockResolvedValueOnce({
+        apiVersion: 'rbac.authorization.k8s.io/v1',
+        kind: 'ClusterRole',
+        metadata: { name: 'admin' },
+        spec: {},
+      });
+
+      await provider.deltaUpdate({
+        action: 'upsert',
+        apiVersion: 'rbac.authorization.k8s.io/v1',
+        kind: 'ClusterRole',
+        name: 'admin',
+        clusterName: 'test-cluster',
+        // no namespace
+      });
+
+      const proxyCalls = mockResourceFetcher.proxyKubernetesRequest.mock.calls;
+      expect(proxyCalls).toHaveLength(1);
+      // No namespace in path for cluster-scoped resources
+      expect(proxyCalls[0][1].path).toBe('/apis/rbac.authorization.k8s.io/v1/clusterroles/admin');
     });
   });
 });
