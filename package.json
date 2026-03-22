@@ -11,7 +11,7 @@
     "build:all": "backstage-cli repo build --all",
     "build-image": "yarn workspace backend build-image",
     "tsc": "tsc",
-    "tsc:full": "tsc --skipLibCheck false --incremental false",
+    "tsc:full": "tsc --incremental false",
     "clean": "backstage-cli repo clean",
     "test": "backstage-cli repo test",
     "test:all": "backstage-cli repo test --coverage",
@@ -53,7 +53,7 @@
     ]
   },
   "devDependencies": {
-    "@backstage/cli": "^0.35.4",
+    "@backstage/cli": "^0.36.0",
     "@backstage/e2e-test-utils": "^0.1.2",
     "@playwright/test": "^1.32.3",
     "jest": "^29",
@@ -66,7 +66,8 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/express": "^4.17.21",
-    "@types/express-serve-static-core": "^4.17.43"
+    "@types/express-serve-static-core": "^4.17.43",
+    "zod": "3.25.76"
   },
   "prettier": "@backstage/cli/config/prettier",
   "lint-staged": {

@@ -19,8 +19,10 @@ p, role:default/platformteam, policy.entity.read, read, allow
 p, role:default/platformteam, policy.entity.create, create, allow
 p, role:default/platformteam, policy.entity.update, update, allow
 p, role:default/platformteam, policy.entity.delete, delete, allow
-p, role:default/platformteam, scaffolder-action, use, allow
-p, role:default/platformteam, scaffolder-template, use, allow
+p, role:default/platformteam, scaffolder.template.step.read, read, allow
+p, role:default/platformteam, scaffolder.template.parameter.read, read, allow
+p, role:default/platformteam, scaffolder.action.execute, use, allow
+p, role:default/platformteam, scaffolder.template.management, use, allow
 p, role:default/platformteam, scaffolder.task.read, read, allow
 p, role:default/platformteam, scaffolder.task.cancel, use, allow
 p, role:default/platformteam, scaffolder.task.create, create, allow
@@ -38,9 +40,6 @@ p, role:default/platformteam, crossplane.overview.view, read, allow
 p, role:default/platformteam, crossplane.additional-resources.list, read, allow
 p, role:default/platformteam, crossplane.additional-resources.view-yaml, read, allow
 p, role:default/platformteam, crossplane.additional-resources.show-events, read, allow
-p, role:default/platformteam, scaffolder.template.step.read, read, allow
-p, role:default/platformteam, scaffolder.template.parameter.read, read, allow
-p, role:default/platformteam, scaffolder.action.execute, use, allow
 p, role:default/platformteam, kyverno.overview.view, read, allow
 p, role:default/platformteam, kyverno.policy.view-yaml, read, allow
 p, role:default/platformteam, kyverno.reports.view, read, allow
@@ -72,3 +71,4 @@ p, role:default/platformteam, spectrocloud.profile.view-info, read, allow
 p, role:default/platformteam, spectrocloud.profile.view-clusters, read, allow
 g, group:default/all_users, role:default/platformteam
 g, user:default/shlomofan_gmail.com, role:default/platformteam
+g, user:default/scott, role:default/platformteam
