@@ -50,9 +50,9 @@ jobs:
       - run: yarn tsc
       - run: |
           # Retry 3 times before the steps actually fails
-          (echo "===== Test Attempt: 1 ====" && yarn backstage-cli package test --coverage --all plugins/ -- --workerIdleMemoryLimit=512MB) || \
-          (sleep 10 && echo "===== Test Attempt: 2 ====" && yarn backstage-cli package test --coverage --all plugins/ -- --workerIdleMemoryLimit=512MB) || \
-          (sleep 10 && echo "===== Test Attempt: 3 ====" && yarn backstage-cli package test --coverage --all plugins/ -- --workerIdleMemoryLimit=512MB) || \
+          (echo "===== Test Attempt: 1 ====" && yarn backstage-cli package test --coverage --all plugins/) || \
+          (sleep 10 && echo "===== Test Attempt: 2 ====" && yarn backstage-cli package test --coverage --all plugins/) || \
+          (sleep 10 && echo "===== Test Attempt: 3 ====" && yarn backstage-cli package test --coverage --all plugins/) || \
           (echo "==== Test Step Failed ====" && exit 1)
       - run: yarn dedupe
       - run: yarn build:all
