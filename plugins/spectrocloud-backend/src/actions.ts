@@ -13,10 +13,6 @@ import {
   viewProfileInfoPermission,
   viewProfileClustersPermission,
 } from '@terasky/backstage-plugin-spectrocloud-common';
-import { z as zod } from 'zod';
-
-// Type for credentials
-type BackstageCredentials = Parameters<AuthService['getPluginRequestToken']>[0]['onBehalfOf'];
 
 export function registerMcpActions(
   actionsRegistry: typeof actionsRegistryServiceRef.T,
@@ -158,10 +154,10 @@ export function registerMcpActions(
     title: 'Get SpectroCloud Cluster Health Details',
     description: 'Get real-time health status, detailed cluster state, node health, and any issues for a SpectroCloud cluster',
     schema: {
-      input: (z: typeof zod) => z.object({
+      input: (z) => z.object({
         clusterName: z.string().describe('The cluster name (title) as shown in SpectroCloud'),
       }),
-      output: (z: typeof zod) => z.object({
+      output: (z) => z.object({
         cluster: z.object({
           name: z.string(),
           uid: z.string(),
@@ -178,7 +174,7 @@ export function registerMcpActions(
         }),
       }),
     },
-    action: async ({ input, credentials }: { input: { clusterName: string }; credentials?: BackstageCredentials }) => {
+    action: async ({ input, credentials }) => {
       // Check permission to view cluster info
       await checkPermission(viewClusterInfoPermission);
 
@@ -234,11 +230,11 @@ export function registerMcpActions(
     title: 'Download SpectroCloud Cluster Kubeconfig',
     description: 'Generate and download a kubeconfig file for the SpectroCloud cluster (client/OIDC access, not admin)',
     schema: {
-      input: (z: typeof zod) => z.object({
+      input: (z) => z.object({
         clusterName: z.string().describe('The cluster name (title) as shown in SpectroCloud'),
         frp: z.boolean().optional().default(true).describe('Use FRP (reverse-proxy) based kube config if available (default: true)'),
       }),
-      output: (z: typeof zod) => z.object({
+      output: (z) => z.object({
         cluster: z.object({
           name: z.string(),
           uid: z.string(),
@@ -248,7 +244,7 @@ export function registerMcpActions(
         accessType: z.string().describe('Type of access: "client-oidc"'),
       }),
     },
-    action: async ({ input, credentials }: { input: { clusterName: string; frp?: boolean }; credentials?: BackstageCredentials }) => {
+    action: async ({ input, credentials }) => {
       // Check permission to download kubeconfig
       await checkPermission(downloadKubeconfigPermission);
 
@@ -302,10 +298,10 @@ export function registerMcpActions(
     title: 'Get SpectroCloud Cluster Profile Pack Details',
     description: 'Show what packs and versions are in a cluster profile',
     schema: {
-      input: (z: typeof zod) => z.object({
+      input: (z) => z.object({
         profileName: z.string().describe('The cluster profile name (title) as shown in SpectroCloud'),
       }),
-      output: (z: typeof zod) => z.object({
+      output: (z) => z.object({
         profile: z.object({
           name: z.string(),
           uid: z.string(),
@@ -321,7 +317,7 @@ export function registerMcpActions(
         })).describe('List of packs in this profile'),
       }),
     },
-    action: async ({ input, credentials }: { input: { profileName: string }; credentials?: BackstageCredentials }) => {
+    action: async ({ input, credentials }) => {
       // Check permission to view pack values
       await checkPermission(viewPackValuesPermission);
 
@@ -382,10 +378,10 @@ export function registerMcpActions(
     title: 'Find Clusters Using SpectroCloud Profile',
     description: 'List all clusters using this cluster profile (reverse lookup)',
     schema: {
-      input: (z: typeof zod) => z.object({
+      input: (z) => z.object({
         profileName: z.string().describe('The cluster profile name (title) as shown in SpectroCloud'),
       }),
-      output: (z: typeof zod) => z.object({
+      output: (z) => z.object({
         profile: z.object({
           name: z.string(),
           uid: z.string(),
@@ -400,7 +396,7 @@ export function registerMcpActions(
         })).describe('List of clusters using this profile'),
       }),
     },
-    action: async ({ input, credentials }: { input: { profileName: string }; credentials?: BackstageCredentials }) => {
+    action: async ({ input, credentials }) => {
       // Check permission to view profile clusters
       await checkPermission(viewProfileClustersPermission);
 
@@ -477,11 +473,11 @@ export function registerMcpActions(
     title: 'List SpectroCloud Clusters',
     description: 'List all SpectroCloud clusters (optionally by project). Uses backend API token.',
     schema: {
-      input: (z: typeof zod) => z.object({
+      input: (z) => z.object({
         instanceName: z.string().optional().describe('SpectroCloud instance name when multiple are configured'),
         projectUid: z.string().optional().describe('Filter by project UID'),
       }),
-      output: (z: typeof zod) => z.object({
+      output: (z) => z.object({
         clusters: z.array(z.object({
           uid: z.string(),
           name: z.string(),
@@ -490,7 +486,7 @@ export function registerMcpActions(
         })).describe('List of clusters'),
       }),
     },
-    action: async ({ input }: { input: { instanceName?: string; projectUid?: string }; credentials?: BackstageCredentials }) => {
+    action: async ({ input }) => {
       await checkPermission(viewClusterInfoPermission);
       try {
         const client = getClientFromConfig(input.instanceName);
@@ -518,10 +514,10 @@ export function registerMcpActions(
     title: 'List SpectroCloud Virtual Clusters',
     description: 'List all SpectroCloud virtual clusters.',
     schema: {
-      input: (z: typeof zod) => z.object({
+      input: (z) => z.object({
         instanceName: z.string().optional().describe('SpectroCloud instance name when multiple are configured'),
       }),
-      output: (z: typeof zod) => z.object({
+      output: (z) => z.object({
         virtualClusters: z.array(z.object({
           uid: z.string(),
           name: z.string(),
@@ -529,7 +525,7 @@ export function registerMcpActions(
         })).describe('List of virtual clusters'),
       }),
     },
-    action: async ({ input }: { input: { instanceName?: string }; credentials?: BackstageCredentials }) => {
+    action: async ({ input }) => {
       await checkPermission(viewClusterInfoPermission);
       try {
         const client = getClientFromConfig(input.instanceName);
@@ -553,17 +549,17 @@ export function registerMcpActions(
     title: 'List SpectroCloud Projects',
     description: 'List all SpectroCloud projects.',
     schema: {
-      input: (z: typeof zod) => z.object({
+      input: (z) => z.object({
         instanceName: z.string().optional().describe('SpectroCloud instance name when multiple are configured'),
       }),
-      output: (z: typeof zod) => z.object({
+      output: (z) => z.object({
         projects: z.array(z.object({
           uid: z.string(),
           name: z.string(),
         })).describe('List of projects'),
       }),
     },
-    action: async ({ input }: { input: { instanceName?: string }; credentials?: BackstageCredentials }) => {
+    action: async ({ input }) => {
       await checkPermission(viewClusterInfoPermission);
       try {
         const client = getClientFromConfig(input.instanceName);
@@ -586,15 +582,15 @@ export function registerMcpActions(
     title: 'List SpectroCloud Cluster Groups',
     description: 'List cluster groups (optionally by project).',
     schema: {
-      input: (z: typeof zod) => z.object({
+      input: (z) => z.object({
         instanceName: z.string().optional().describe('SpectroCloud instance name when multiple are configured'),
         projectUid: z.string().optional().describe('Filter by project UID'),
       }),
-      output: (z: typeof zod) => z.object({
+      output: (z) => z.object({
         clusterGroups: z.array(z.record(z.unknown())).describe('List of cluster group summaries'),
       }),
     },
-    action: async ({ input }: { input: { instanceName?: string; projectUid?: string }; credentials?: BackstageCredentials }) => {
+    action: async ({ input }) => {
       await checkPermission(viewClusterInfoPermission);
       try {
         const client = getClientFromConfig(input.instanceName);
@@ -614,12 +610,12 @@ export function registerMcpActions(
     title: 'Search SpectroCloud Profiles by Names',
     description: 'Resolve profile UIDs and details by profile names.',
     schema: {
-      input: (z: typeof zod) => z.object({
+      input: (z) => z.object({
         names: z.array(z.string()).min(1).describe('Profile names to search for'),
         projectUid: z.string().optional(),
         instanceName: z.string().optional(),
       }),
-      output: (z: typeof zod) => z.object({
+      output: (z) => z.object({
         profiles: z.array(z.object({
           uid: z.string(),
           name: z.string(),
@@ -628,7 +624,7 @@ export function registerMcpActions(
         })).describe('Matching profiles'),
       }),
     },
-    action: async ({ input }: { input: { names: string[]; projectUid?: string; instanceName?: string }; credentials?: BackstageCredentials }) => {
+    action: async ({ input }) => {
       await checkPermission(viewProfileInfoPermission);
       try {
         const client = getClientFromConfig(input.instanceName);
@@ -653,18 +649,18 @@ export function registerMcpActions(
     title: 'Get SpectroCloud Profile Variables',
     description: 'Get variable definitions for a cluster profile. Identify by profile name (catalog) or by profile UID.',
     schema: {
-      input: (z: typeof zod) => z.object({
+      input: (z) => z.object({
         profileName: z.string().optional().describe('Profile name (title) in Backstage catalog'),
         profileUid: z.string().optional().describe('Profile UID when not using catalog'),
         projectUid: z.string().optional(),
         instanceName: z.string().optional(),
       }),
-      output: (z: typeof zod) => z.object({
+      output: (z) => z.object({
         profileUid: z.string(),
         variables: z.any().describe('Variable definitions from SpectroCloud'),
       }),
     },
-    action: async ({ input, credentials }: { input: { profileName?: string; profileUid?: string; projectUid?: string; instanceName?: string }; credentials?: BackstageCredentials }) => {
+    action: async ({ input, credentials }) => {
       await checkPermission(viewProfileInfoPermission);
       try {
         let profileUid: string;
@@ -703,13 +699,13 @@ export function registerMcpActions(
     title: 'List SpectroCloud Profiles for Project',
     description: 'List cluster profiles in a project with optional cloud/type filter.',
     schema: {
-      input: (z: typeof zod) => z.object({
+      input: (z) => z.object({
         projectUid: z.string().describe('Project UID'),
         cloudType: z.string().optional(),
         profileType: z.string().optional(),
         instanceName: z.string().optional(),
       }),
-      output: (z: typeof zod) => z.object({
+      output: (z) => z.object({
         profiles: z.array(z.object({
           uid: z.string(),
           name: z.string(),
@@ -718,7 +714,7 @@ export function registerMcpActions(
         })).describe('Profiles in the project'),
       }),
     },
-    action: async ({ input }: { input: { projectUid: string; cloudType?: string; profileType?: string; instanceName?: string }; credentials?: BackstageCredentials }) => {
+    action: async ({ input }) => {
       await checkPermission(viewProfileInfoPermission);
       try {
         const client = getClientFromConfig(input.instanceName);
@@ -743,20 +739,20 @@ export function registerMcpActions(
     title: 'Get SpectroCloud Pack Manifest for Cluster',
     description: 'Get manifest content for a pack on a cluster. Identify cluster by name (catalog) or by cluster UID.',
     schema: {
-      input: (z: typeof zod) => z.object({
+      input: (z) => z.object({
         clusterName: z.string().optional().describe('Cluster name (title) in Backstage catalog'),
         clusterUid: z.string().optional().describe('Cluster UID when not using catalog'),
         manifestUid: z.string().describe('Pack manifest UID'),
         projectUid: z.string().optional(),
         instanceName: z.string().optional(),
       }),
-      output: (z: typeof zod) => z.object({
+      output: (z) => z.object({
         clusterUid: z.string(),
         manifestUid: z.string(),
         manifest: z.any().describe('Pack manifest content'),
       }),
     },
-    action: async ({ input, credentials }: { input: { clusterName?: string; clusterUid?: string; manifestUid: string; projectUid?: string; instanceName?: string }; credentials?: BackstageCredentials }) => {
+    action: async ({ input, credentials }) => {
       await checkPermission(viewPackManifestsPermission);
       try {
         let clusterUid: string;
@@ -796,18 +792,18 @@ export function registerMcpActions(
     title: 'Get SpectroCloud Cluster Profiles',
     description: 'Get profiles and pack metadata attached to a cluster. Identify by cluster name (catalog) or cluster UID.',
     schema: {
-      input: (z: typeof zod) => z.object({
+      input: (z) => z.object({
         clusterName: z.string().optional().describe('Cluster name (title) in Backstage catalog'),
         clusterUid: z.string().optional().describe('Cluster UID when not using catalog'),
         projectUid: z.string().optional(),
         instanceName: z.string().optional(),
       }),
-      output: (z: typeof zod) => z.object({
+      output: (z) => z.object({
         clusterUid: z.string(),
         profiles: z.any().describe('Cluster profiles with pack metadata'),
       }),
     },
-    action: async ({ input, credentials }: { input: { clusterName?: string; clusterUid?: string; projectUid?: string; instanceName?: string }; credentials?: BackstageCredentials }) => {
+    action: async ({ input, credentials }) => {
       await checkPermission(viewPackValuesPermission);
       try {
         let clusterUid: string;
@@ -846,12 +842,12 @@ export function registerMcpActions(
     title: 'Get SpectroCloud Virtual Cluster Details',
     description: 'Get health and details for a virtual cluster. Provide virtualClusterUid (and optionally projectUid).',
     schema: {
-      input: (z: typeof zod) => z.object({
+      input: (z) => z.object({
         virtualClusterUid: z.string().describe('Virtual cluster UID'),
         projectUid: z.string().optional(),
         instanceName: z.string().optional(),
       }),
-      output: (z: typeof zod) => z.object({
+      output: (z) => z.object({
         cluster: z.object({
           name: z.string(),
           uid: z.string(),
@@ -859,7 +855,7 @@ export function registerMcpActions(
         }),
       }),
     },
-    action: async ({ input }: { input: { virtualClusterUid: string; projectUid?: string; instanceName?: string }; credentials?: BackstageCredentials }) => {
+    action: async ({ input }) => {
       await checkPermission(viewClusterInfoPermission);
       try {
         const client = getClientFromConfig(input.instanceName);
@@ -887,13 +883,13 @@ export function registerMcpActions(
     title: 'Download SpectroCloud Virtual Cluster Kubeconfig',
     description: 'Generate and download a kubeconfig for a SpectroCloud virtual cluster (client/OIDC access).',
     schema: {
-      input: (z: typeof zod) => z.object({
+      input: (z) => z.object({
         virtualClusterUid: z.string().describe('Virtual cluster UID'),
         projectUid: z.string().optional(),
         frp: z.boolean().optional().default(true).describe('Use FRP-based kube config if available'),
         instanceName: z.string().optional(),
       }),
-      output: (z: typeof zod) => z.object({
+      output: (z) => z.object({
         cluster: z.object({
           uid: z.string(),
           name: z.string().optional(),
@@ -902,7 +898,7 @@ export function registerMcpActions(
         accessType: z.string(),
       }),
     },
-    action: async ({ input }: { input: { virtualClusterUid: string; projectUid?: string; frp?: boolean; instanceName?: string }; credentials?: BackstageCredentials }) => {
+    action: async ({ input }) => {
       await checkPermission(downloadKubeconfigPermission);
       try {
         const client = getClientFromConfig(input.instanceName);
@@ -929,16 +925,16 @@ export function registerMcpActions(
     title: 'Get SpectroCloud Cluster Group',
     description: 'Get cluster group details by UID.',
     schema: {
-      input: (z: typeof zod) => z.object({
+      input: (z) => z.object({
         clusterGroupUid: z.string().describe('Cluster group UID'),
         projectUid: z.string().optional(),
         instanceName: z.string().optional(),
       }),
-      output: (z: typeof zod) => z.object({
+      output: (z) => z.object({
         clusterGroup: z.record(z.unknown()).describe('Cluster group object from SpectroCloud'),
       }),
     },
-    action: async ({ input }: { input: { clusterGroupUid: string; projectUid?: string; instanceName?: string }; credentials?: BackstageCredentials }) => {
+    action: async ({ input }) => {
       await checkPermission(viewClusterInfoPermission);
       try {
         const client = getClientFromConfig(input.instanceName);
@@ -957,19 +953,19 @@ export function registerMcpActions(
     title: 'List SpectroCloud Cloud Accounts',
     description: 'List cloud accounts for a cloud type (e.g. aws, azure, vsphere).',
     schema: {
-      input: (z: typeof zod) => z.object({
+      input: (z) => z.object({
         cloudType: z.string().describe('Cloud type: aws, azure, vsphere, etc.'),
         projectUid: z.string().optional(),
         instanceName: z.string().optional(),
       }),
-      output: (z: typeof zod) => z.object({
+      output: (z) => z.object({
         accounts: z.array(z.object({
           uid: z.string(),
           name: z.string(),
         })).describe('List of cloud accounts'),
       }),
     },
-    action: async ({ input }: { input: { cloudType: string; projectUid?: string; instanceName?: string }; credentials?: BackstageCredentials }) => {
+    action: async ({ input }) => {
       await checkPermission(viewClusterInfoPermission);
       try {
         const client = getClientFromConfig(input.instanceName);

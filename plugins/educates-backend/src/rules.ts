@@ -6,7 +6,7 @@ import {
   EDUCATES_TRAINING_PORTAL_RESOURCE_TYPE,
   EDUCATES_WORKSHOP_RESOURCE_TYPE 
 } from '@terasky/backstage-plugin-educates-common';
-import { z } from 'zod';
+import { z, type ZodType } from 'zod/v3';
 
 // Define resource types
 export interface EducatesPortalResource {
@@ -36,35 +36,36 @@ export const educatesWorkshopPermissionResourceRef = createPermissionResourceRef
 });
 
 // Portal permission rules
-export const isPortalOwner = createPermissionRule({
+export const isPortalOwner = createPermissionRule<
+  typeof educatesPortalPermissionResourceRef,
+  { userRefs: string[] }
+>({
   name: 'IS_PORTAL_OWNER',
   description: 'Allow users who are owners of a training portal',
   resourceRef: educatesPortalPermissionResourceRef,
   paramsSchema: z.object({
     userRefs: z.array(z.string()).describe('User entity refs to match'),
-  }),
+  }) as ZodType<{ userRefs: string[] }>,
   apply: (_resource: EducatesPortalResource, { userRefs }) => {
-    // For now, allow all users - this can be extended with actual ownership logic
-    // You could check if the user is in a specific group or has specific permissions
     return userRefs.length > 0;
   },
   toQuery: () => {
-    // Return a query that doesn't filter anything for now
-    // This would need to be implemented based on your data storage
     return { anyOf: [] };
   },
 });
 
-export const hasPortalAccess = createPermissionRule({
+export const hasPortalAccess = createPermissionRule<
+  typeof educatesPortalPermissionResourceRef,
+  { userRefs: string[]; portalName: string }
+>({
   name: 'HAS_PORTAL_ACCESS',
   description: 'Allow users who have been granted access to a specific portal',
   resourceRef: educatesPortalPermissionResourceRef,
   paramsSchema: z.object({
     userRefs: z.array(z.string()).describe('User entity refs to check'),
     portalName: z.string().describe('Portal name to check access for'),
-  }),
+  }) as ZodType<{ userRefs: string[]; portalName: string }>,
   apply: (resource: EducatesPortalResource, { userRefs, portalName }) => {
-    // Check if this is the portal they have access to
     return resource.portalName === portalName && userRefs.length > 0;
   },
   toQuery: ({ portalName }) => {
@@ -75,15 +76,17 @@ export const hasPortalAccess = createPermissionRule({
 });
 
 // Workshop permission rules
-export const isWorkshopOwner = createPermissionRule({
+export const isWorkshopOwner = createPermissionRule<
+  typeof educatesWorkshopPermissionResourceRef,
+  { userRefs: string[] }
+>({
   name: 'IS_WORKSHOP_OWNER',
   description: 'Allow users who are owners of a workshop',
   resourceRef: educatesWorkshopPermissionResourceRef,
   paramsSchema: z.object({
     userRefs: z.array(z.string()).describe('User entity refs to match'),
-  }),
+  }) as ZodType<{ userRefs: string[] }>,
   apply: (_resource: EducatesWorkshopResource, { userRefs }) => {
-    // For now, allow all users - this can be extended with actual ownership logic
     return userRefs.length > 0;
   },
   toQuery: () => {
@@ -91,7 +94,10 @@ export const isWorkshopOwner = createPermissionRule({
   },
 });
 
-export const hasWorkshopAccess = createPermissionRule({
+export const hasWorkshopAccess = createPermissionRule<
+  typeof educatesWorkshopPermissionResourceRef,
+  { userRefs: string[]; portalName: string; workshopName: string }
+>({
   name: 'HAS_WORKSHOP_ACCESS',
   description: 'Allow users who have been granted access to a specific workshop',
   resourceRef: educatesWorkshopPermissionResourceRef,
@@ -99,7 +105,7 @@ export const hasWorkshopAccess = createPermissionRule({
     userRefs: z.array(z.string()).describe('User entity refs to check'),
     portalName: z.string().describe('Portal name'),
     workshopName: z.string().describe('Workshop name to check access for'),
-  }),
+  }) as ZodType<{ userRefs: string[]; portalName: string; workshopName: string }>,
   apply: (resource: EducatesWorkshopResource, { userRefs, portalName, workshopName }) => {
     return resource.portalName === portalName && 
            resource.workshopName === workshopName && 
