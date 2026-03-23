@@ -49,11 +49,14 @@ jobs:
       - run: yarn workspaces foreach -W --include 'plugins/**' run build
       - run: yarn tsc
       - run: |
-          # Retry 3 times before the steps actually fails
-          (echo "===== Test Attempt: 1 ====" && yarn backstage-cli package test --coverage --all plugins/ --maxWorkers='50%') || \
-          (sleep 10 && echo "===== Test Attempt: 2 ====" && yarn backstage-cli package test --coverage --all plugins/ --maxWorkers='50%') || \
-          (sleep 10 && echo "===== Test Attempt: 3 ====" && yarn backstage-cli package test --coverage --all plugins/ --maxWorkers='50%') || \
-          (echo "==== Test Step Failed ====" && exit 1)
+          for plugin in plugins/*/; do
+            plugin_name=$(basename "$plugin")
+            echo "===== Testing $plugin_name ====="
+            (yarn backstage-cli package test --coverage --passWithNoTests "$plugin") || \
+            (sleep 10 && echo "===== Retry 1: $plugin_name =====" && yarn backstage-cli package test --coverage --passWithNoTests "$plugin") || \
+            (sleep 10 && echo "===== Retry 2: $plugin_name =====" && yarn backstage-cli package test --coverage --passWithNoTests "$plugin") || \
+            (echo "==== Tests failed for $plugin_name ====" && exit 1)
+          done
       - run: yarn dedupe
       - run: yarn build:all
       - run: ./publish.sh
