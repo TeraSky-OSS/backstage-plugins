@@ -2104,7 +2104,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/cli-defaults@npm:0.1.0, @backstage/cli-defaults@npm:^0.1.0":
+"@backstage/cli-defaults@npm:^0.1.0":
   version: 0.1.0
   resolution: "@backstage/cli-defaults@npm:0.1.0"
   dependencies:
@@ -3293,6 +3293,38 @@ __metadata:
     zod: "npm:^3.25.76 || ^4.0.0"
     zod-validation-error: "npm:^5.0.0"
   checksum: 10c0/ab260061c42c29719c1e422594fc2cf54dee1c960f2ca9282895660e73f5c4a910756c5137056dbea979931e2a8a8e45cf3454e2eb2bd4ac914b9706b143ceab
+  languageName: node
+  linkType: hard
+
+"@backstage/plugin-auth-backend@npm:^0.27.3":
+  version: 0.27.3
+  resolution: "@backstage/plugin-auth-backend@npm:0.27.3"
+  dependencies:
+    "@backstage/backend-plugin-api": "npm:^1.8.0"
+    "@backstage/catalog-model": "npm:^1.7.7"
+    "@backstage/config": "npm:^1.3.6"
+    "@backstage/errors": "npm:^1.2.7"
+    "@backstage/plugin-auth-node": "npm:^0.6.14"
+    "@backstage/plugin-catalog-node": "npm:^2.1.0"
+    "@backstage/types": "npm:^1.2.2"
+    "@google-cloud/firestore": "npm:^7.0.0"
+    connect-session-knex: "npm:^4.0.0"
+    cookie-parser: "npm:^1.4.5"
+    express: "npm:^4.22.0"
+    express-promise-router: "npm:^4.1.0"
+    express-session: "npm:^1.17.1"
+    ipaddr.js: "npm:^2.3.0"
+    jose: "npm:^5.0.0"
+    knex: "npm:^3.0.0"
+    lodash: "npm:^4.17.21"
+    luxon: "npm:^3.0.0"
+    matcher: "npm:^4.0.0"
+    minimatch: "npm:^10.2.1"
+    passport: "npm:^0.7.0"
+    uuid: "npm:^11.0.0"
+    zod: "npm:^3.25.76 || ^4.0.0"
+    zod-validation-error: "npm:^5.0.0"
+  checksum: 10c0/694cb1a2ae997f81d65f78c9c5d7ed0aa7b2752314dc27a925df7282bcf4a7141e187bff6eb6ecd2c99225e62e2a1c65650e3e19fa4fb62b7c9a1c71ff4bff18
   languageName: node
   linkType: hard
 
@@ -14227,7 +14259,7 @@ __metadata:
     "@backstage/frontend-plugin-api": "npm:^0.15.1"
     "@backstage/plugin-app-react": "npm:^0.2.1"
     "@terasky/backstage-plugin-spectrocloud-auth": "npm:^0.5.0"
-    "@terasky/backstage-plugin-vcfsso-auth": "npm:^0.2.0"
+    "@terasky/backstage-plugin-vcfsso-auth": "npm:^0.2.1"
     "@testing-library/jest-dom": "npm:^6.0.0"
     typescript: "npm:^5.8.3"
   languageName: unknown
@@ -14263,7 +14295,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-crossplane-resources-backend@npm:^1.13.0, @terasky/backstage-plugin-crossplane-resources-backend@workspace:plugins/crossplane-resources-backend":
+"@terasky/backstage-plugin-crossplane-resources-backend@npm:^1.13.1, @terasky/backstage-plugin-crossplane-resources-backend@workspace:plugins/crossplane-resources-backend":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-crossplane-resources-backend@workspace:plugins/crossplane-resources-backend"
   dependencies:
@@ -14272,7 +14304,7 @@ __metadata:
     "@backstage/backend-test-utils": "npm:^1.11.1"
     "@backstage/cli": "npm:^0.36.0"
     "@backstage/config": "npm:^1.3.6"
-    "@backstage/plugin-auth-backend": "npm:^0.27.2"
+    "@backstage/plugin-auth-backend": "npm:^0.27.3"
     "@backstage/plugin-auth-backend-module-guest-provider": "npm:^0.2.17"
     "@backstage/plugin-catalog-node": "npm:^2.1.0"
     "@backstage/plugin-permission-node": "npm:^0.10.11"
@@ -14549,7 +14581,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-kro-resources-backend@npm:^0.11.0, @terasky/backstage-plugin-kro-resources-backend@workspace:plugins/kro-resources-backend":
+"@terasky/backstage-plugin-kro-resources-backend@npm:^0.11.1, @terasky/backstage-plugin-kro-resources-backend@workspace:plugins/kro-resources-backend":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kro-resources-backend@workspace:plugins/kro-resources-backend"
   dependencies:
@@ -14558,7 +14590,7 @@ __metadata:
     "@backstage/backend-test-utils": "npm:^1.11.1"
     "@backstage/cli": "npm:^0.36.0"
     "@backstage/config": "npm:^1.3.6"
-    "@backstage/plugin-auth-backend": "npm:^0.27.2"
+    "@backstage/plugin-auth-backend": "npm:^0.27.3"
     "@backstage/plugin-auth-backend-module-guest-provider": "npm:^0.2.17"
     "@backstage/plugin-catalog-node": "npm:^2.1.0"
     "@backstage/plugin-permission-node": "npm:^0.10.11"
@@ -14623,7 +14655,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-kubernetes-ingestor@npm:^3.11.0, @terasky/backstage-plugin-kubernetes-ingestor@workspace:plugins/kubernetes-ingestor":
+"@terasky/backstage-plugin-kubernetes-ingestor@npm:^3.11.1, @terasky/backstage-plugin-kubernetes-ingestor@workspace:plugins/kubernetes-ingestor":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kubernetes-ingestor@workspace:plugins/kubernetes-ingestor"
   dependencies:
@@ -14634,7 +14666,7 @@ __metadata:
     "@backstage/catalog-model": "npm:^1.7.7"
     "@backstage/cli": "npm:^0.36.0"
     "@backstage/config": "npm:^1.3.6"
-    "@backstage/plugin-auth-backend": "npm:^0.27.2"
+    "@backstage/plugin-auth-backend": "npm:^0.27.3"
     "@backstage/plugin-auth-backend-module-guest-provider": "npm:^0.2.17"
     "@backstage/plugin-catalog-import": "npm:^0.13.11"
     "@backstage/plugin-catalog-node": "npm:^2.1.0"
@@ -14716,7 +14748,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-kubernetes-resources-permissions-backend@npm:^0.9.0, @terasky/backstage-plugin-kubernetes-resources-permissions-backend@workspace:plugins/kubernetes-resources-permissions-backend":
+"@terasky/backstage-plugin-kubernetes-resources-permissions-backend@npm:^0.9.1, @terasky/backstage-plugin-kubernetes-resources-permissions-backend@workspace:plugins/kubernetes-resources-permissions-backend":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kubernetes-resources-permissions-backend@workspace:plugins/kubernetes-resources-permissions-backend"
   dependencies:
@@ -14725,7 +14757,7 @@ __metadata:
     "@backstage/backend-test-utils": "npm:^1.11.1"
     "@backstage/cli": "npm:^0.36.0"
     "@backstage/config": "npm:^1.3.6"
-    "@backstage/plugin-auth-backend": "npm:^0.27.2"
+    "@backstage/plugin-auth-backend": "npm:^0.27.3"
     "@backstage/plugin-auth-backend-module-guest-provider": "npm:^0.2.17"
     "@backstage/plugin-permission-node": "npm:^0.10.11"
     "@terasky/backstage-plugin-kubernetes-resources-common": "npm:^0.2.19"
@@ -14751,7 +14783,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-kyverno-policy-reports-backend@npm:^1.12.0, @terasky/backstage-plugin-kyverno-policy-reports-backend@workspace:plugins/kyverno-policy-reports-backend":
+"@terasky/backstage-plugin-kyverno-policy-reports-backend@npm:^1.12.1, @terasky/backstage-plugin-kyverno-policy-reports-backend@workspace:plugins/kyverno-policy-reports-backend":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kyverno-policy-reports-backend@workspace:plugins/kyverno-policy-reports-backend"
   dependencies:
@@ -14760,7 +14792,7 @@ __metadata:
     "@backstage/backend-test-utils": "npm:^1.11.1"
     "@backstage/cli": "npm:^0.36.0"
     "@backstage/config": "npm:^1.3.6"
-    "@backstage/plugin-auth-backend": "npm:^0.27.2"
+    "@backstage/plugin-auth-backend": "npm:^0.27.3"
     "@backstage/plugin-auth-backend-module-guest-provider": "npm:^0.2.17"
     "@backstage/plugin-kubernetes-node": "npm:^0.4.2"
     "@backstage/plugin-permission-node": "npm:^0.10.11"
@@ -15369,7 +15401,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-vcfsso-auth@npm:^0.2.0, @terasky/backstage-plugin-vcfsso-auth@npm:^0.2.1, @terasky/backstage-plugin-vcfsso-auth@workspace:plugins/vcfsso-auth":
+"@terasky/backstage-plugin-vcfsso-auth@npm:^0.2.1, @terasky/backstage-plugin-vcfsso-auth@workspace:plugins/vcfsso-auth":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-vcfsso-auth@workspace:plugins/vcfsso-auth"
   dependencies:
@@ -18565,7 +18597,7 @@ __metadata:
     "@backstage/cli": "npm:^0.36.0"
     "@backstage/config": "npm:^1.3.6"
     "@backstage/plugin-app-backend": "npm:^0.5.12"
-    "@backstage/plugin-auth-backend": "npm:^0.27.2"
+    "@backstage/plugin-auth-backend": "npm:^0.27.3"
     "@backstage/plugin-auth-backend-module-github-provider": "npm:^0.5.1"
     "@backstage/plugin-auth-backend-module-gitlab-provider": "npm:^0.4.1"
     "@backstage/plugin-auth-backend-module-guest-provider": "npm:^0.2.17"
@@ -18597,12 +18629,12 @@ __metadata:
     "@roadiehq/scaffolder-backend-module-utils": "npm:^4.1.2"
     "@terasky/backstage-plugin-ai-rules-backend": "npm:^1.9.0"
     "@terasky/backstage-plugin-catalog-mcp-backend": "npm:^0.6.0"
-    "@terasky/backstage-plugin-crossplane-resources-backend": "npm:^1.13.0"
+    "@terasky/backstage-plugin-crossplane-resources-backend": "npm:^1.13.1"
     "@terasky/backstage-plugin-educates-backend": "npm:^1.8.0"
-    "@terasky/backstage-plugin-kro-resources-backend": "npm:^0.11.0"
-    "@terasky/backstage-plugin-kubernetes-ingestor": "npm:^3.11.0"
-    "@terasky/backstage-plugin-kubernetes-resources-permissions-backend": "npm:^0.9.0"
-    "@terasky/backstage-plugin-kyverno-policy-reports-backend": "npm:^1.12.0"
+    "@terasky/backstage-plugin-kro-resources-backend": "npm:^0.11.1"
+    "@terasky/backstage-plugin-kubernetes-ingestor": "npm:^3.11.1"
+    "@terasky/backstage-plugin-kubernetes-resources-permissions-backend": "npm:^0.9.1"
+    "@terasky/backstage-plugin-kyverno-policy-reports-backend": "npm:^1.12.1"
     "@terasky/backstage-plugin-rbac-mcp-backend": "npm:^0.7.1"
     "@terasky/backstage-plugin-scaffolder-backend-module-spring-initializer": "npm:^0.3.0"
     "@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils": "npm:^2.5.0"
@@ -34060,7 +34092,7 @@ __metadata:
   resolution: "root@workspace:."
   dependencies:
     "@backstage/cli": "npm:^0.36.0"
-    "@backstage/cli-defaults": "npm:0.1.0"
+    "@backstage/cli-defaults": "npm:^0.1.0"
     "@backstage/e2e-test-utils": "npm:^0.1.2"
     "@playwright/test": "npm:^1.32.3"
     jest: "npm:^29"
