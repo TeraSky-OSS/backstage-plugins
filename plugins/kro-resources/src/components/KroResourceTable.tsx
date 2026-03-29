@@ -207,6 +207,8 @@ interface ResourceTableRow {
   parentId?: string;
   isLastChild?: boolean;
   isExternal?: boolean;
+  scope?: 'Namespaced' | 'Cluster';
+  reconcilePaused?: boolean;
 }
 
 interface K8sEvent {
@@ -270,13 +272,20 @@ const removeManagedFields = (resource: KroResource) => {
       });
   }
 
-  // Add spec and status
+  // Add spec and status with priority, then any remaining top-level fields
+  // (e.g. ConfigMap uses `data`/`binaryData` instead of `spec`)
   if (resourceCopy.spec) {
       orderedResource.spec = resourceCopy.spec;
   }
   if (resourceCopy.status) {
       orderedResource.status = resourceCopy.status;
   }
+  const handledTopLevel = new Set(['apiVersion', 'kind', 'metadata', 'spec', 'status']);
+  Object.entries(resourceCopy).forEach(([key, value]) => {
+      if (!handledTopLevel.has(key)) {
+          orderedResource[key] = value;
+      }
+  });
 
   return orderedResource;
 };
@@ -1101,13 +1110,24 @@ const KroResourceTable = () => {
                     <span className={classes.externalBadge}>EXTERNAL</span>
                   </Tooltip>
                 )}
+                {row.reconcilePaused && (
+                  <Tooltip title="Reconciliation is paused for this instance (kro.run/reconcile: disabled)" arrow>
+                    <Chip size="small" label="Paused" style={{ backgroundColor: '#fff3e0', color: '#e65100', fontWeight: 'bold', fontSize: '10px', height: 18, marginLeft: 4 }} />
+                  </Tooltip>
+                )}
               </Box>
             </Box>
           </TableCell>
           <TableCell className={classes.tableCell}>
-            <Tooltip title={row.namespace ? `Namespace: ${row.namespace}` : 'Cluster-scoped resource'} arrow>
-              <span>{row.namespace || '-'}</span>
-            </Tooltip>
+            {row.scope === 'Cluster' ? (
+              <Tooltip title="Cluster-scoped resource (no namespace)" arrow>
+                <Chip size="small" label="Cluster-Scoped" style={{ backgroundColor: '#e3f2fd', color: '#1565c0', fontWeight: 'bold', fontSize: '10px', height: 18 }} />
+              </Tooltip>
+            ) : (
+              <Tooltip title={row.namespace ? `Namespace: ${row.namespace}` : 'Cluster-scoped resource'} arrow>
+                <span>{row.namespace || '-'}</span>
+              </Tooltip>
+            )}
           </TableCell>
           <TableCell className={classes.tableCell}>{row.group}</TableCell>
           <TableCell className={classes.tableCell}>{row.kind}</TableCell>

@@ -56,7 +56,9 @@ export interface KroResourceTableRow {
   level: number;
   parentId?: string;
   isLastChild?: boolean;
-  isExternal?: boolean; // Indicates if this is an external reference
+  isExternal?: boolean;
+  scope?: 'Namespaced' | 'Cluster';
+  reconcilePaused?: boolean;
 }
 
 export interface KroResourceListResponse {

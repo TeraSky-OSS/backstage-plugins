@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, Typography, Box, Grid, Tooltip, makeStyles } from '@material-ui/core';
+import { Card, CardContent, Typography, Box, Grid, Tooltip, makeStyles, Chip } from '@material-ui/core';
 import { useApi } from '@backstage/core-plugin-api';
 import { kroApiRef } from '../api/KroApi';
 import { useEntity } from '@backstage/plugin-catalog-react';
@@ -8,7 +8,8 @@ import { showOverview } from '@terasky/backstage-plugin-kro-common';
 import { configApiRef } from '@backstage/core-plugin-api';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import CancelIcon from '@material-ui/icons/Cancel';
-import { green, red } from '@material-ui/core/colors';
+import PauseCircleFilledIcon from '@material-ui/icons/PauseCircleFilled';
+import { green, red, orange } from '@material-ui/core/colors';
 
 const useStyles = makeStyles((theme) => ({
   button: {
@@ -31,6 +32,7 @@ const KroOverviewCard = () => {
   const canShowOverview = enablePermissions ? canShowOverviewTemp : true;
   const [rgd, setRgd] = useState<any | null>(null);
   const [instance, setInstance] = useState<any | null>(null);
+  const [instanceRow, setInstanceRow] = useState<any | null>(null);
   const classes = useStyles();
 
   useEffect(() => {
@@ -66,10 +68,12 @@ const KroOverviewCard = () => {
 
         // Find RGD and instance in the response
         const rgdResource = supportingResources.find(r => r.kind === 'ResourceGraphDefinition');
-        const instanceResource = resources.find(r => r.type === 'Instance')?.resource;
+        const instanceRowData = resources.find(r => r.type === 'Instance');
+        const instanceResource = instanceRowData?.resource;
 
         setRgd(rgdResource);
         setInstance(instanceResource);
+        setInstanceRow(instanceRowData);
       } catch (error) {
         console.error('Failed to fetch RGD:', error);
       }
@@ -97,6 +101,9 @@ const KroOverviewCard = () => {
   const renderStatusIcon = (status: string) => {
     return status === 'True' ? <CheckCircleIcon style={{ color: green[500] }} /> : <CancelIcon style={{ color: red[500] }} />;
   };
+
+  const isClusterScoped = instanceRow?.scope === 'Cluster';
+  const reconcilePaused = instanceRow?.reconcilePaused === true;
 
   const renderConditionTooltip = (condition: any) => (
     <Card style={{ width: '400px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)' }}>
@@ -157,7 +164,11 @@ const KroOverviewCard = () => {
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray' }}>Namespace</Typography>
-                <Typography variant="body2">{entity.metadata?.annotations?.['terasky.backstage.io/kro-instance-namespace']}</Typography>
+                {isClusterScoped ? (
+                  <Chip label="Cluster-Scoped" size="small" style={{ backgroundColor: '#e3f2fd', color: '#1565c0', fontWeight: 'bold' }} />
+                ) : (
+                  <Typography variant="body2">{entity.metadata?.annotations?.['terasky.backstage.io/kro-instance-namespace'] || 'default'}</Typography>
+                )}
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray' }}>Cluster</Typography>
@@ -167,6 +178,16 @@ const KroOverviewCard = () => {
                 <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray' }}>RGD API Version</Typography>
                 <Typography variant="body2">{rgd.apiVersion}</Typography>
               </Grid>
+              {reconcilePaused && (
+                <Grid item xs={12}>
+                  <Box display="flex" alignItems="center" style={{ gap: 8, marginTop: 4 }}>
+                    <PauseCircleFilledIcon style={{ color: orange[700] }} />
+                    <Typography variant="body2" style={{ color: orange[700], fontWeight: 'bold' }}>
+                      Reconciliation is paused for this instance
+                    </Typography>
+                  </Box>
+                </Grid>
+              )}
             </Grid>
           </Box>
         ) : (

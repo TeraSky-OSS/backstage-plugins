@@ -53,6 +53,10 @@ describe('KubernetesService', () => {
             },
           });
         }),
+        // GraphRevisions endpoint — return 404 to simulate kro < 0.9.0 (no GraphRevision CRD)
+        http.get('http://kubernetes-backend/proxy/apis/kro.run/v1alpha1/graphrevisions', () => {
+          return new HttpResponse(null, { status: 404 });
+        }),
         http.get('http://kubernetes-backend/proxy/apis/apiextensions.k8s.io/v1/customresourcedefinitions/tests.kro.run', () => {
           return HttpResponse.json({
             apiVersion: 'apiextensions.k8s.io/v1',

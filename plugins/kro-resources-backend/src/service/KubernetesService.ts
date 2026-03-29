@@ -53,12 +53,82 @@ export class KubernetesService {
     }
   }
 
+  /**
+   * Build a labelSelector string from a matchLabels object.
+   * CEL expressions in selector values are treated as literal strings since
+   * the Backstage plugin reads the RGD spec statically.
+   */
+  private buildMatchLabelsSelector(matchLabels: Record<string, string>): string {
+    return Object.entries(matchLabels)
+      .map(([k, v]) => `${k}=${v}`)
+      .join(',');
+  }
+
+  /**
+   * Attempt to fetch a Kubernetes resource. Returns null and logs a warning
+   * instead of throwing when the server returns a 404-class response, which
+   * happens on older kro versions that do not have the requested API kind yet.
+   */
+  private async tryProxyKubernetesRequest(clusterName: string, path: string): Promise<any | null> {
+    try {
+      const baseUrl = await this.discovery.getBaseUrl('kubernetes');
+      const credentials = await this.auth.getOwnServiceCredentials();
+      const { token } = await this.auth.getPluginRequestToken({
+        onBehalfOf: credentials,
+        targetPluginId: 'kubernetes',
+      });
+
+      const response = await fetch(`${baseUrl}/proxy${path}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Backstage-Kubernetes-Cluster': clusterName,
+        },
+      });
+
+      if (response.status === 404) {
+        this.logger.debug(`Resource not found (404) at ${path} — likely unsupported by this kro version`);
+        return null;
+      }
+
+      if (!response.ok) {
+        this.logger.warn(`Unexpected response ${response.status} at ${path}: ${response.statusText}`);
+        return null;
+      }
+
+      return await response.json();
+    } catch (error) {
+      this.logger.debug(`Request failed for ${path}: ${error}`);
+      return null;
+    }
+  }
+
+  /**
+   * Build the base path for listing/fetching resources, honouring cluster scope.
+   * For Cluster-scoped resources the namespace segment is omitted.
+   */
+  private resourceBasePath(
+    isCoreAPI: boolean,
+    group: string,
+    version: string,
+    plural: string,
+    namespace: string,
+    scope: 'Namespaced' | 'Cluster',
+  ): string {
+    if (isCoreAPI) {
+      return scope === 'Cluster'
+        ? `/api/v1/${plural}`
+        : `/api/v1/namespaces/${namespace}/${plural}`;
+    }
+    return scope === 'Cluster'
+      ? `/apis/${group}/${version}/${plural}`
+      : `/apis/${group}/${version}/namespaces/${namespace}/${plural}`;
+  }
 
   async getResources(
     clusterName: string,
     namespace: string,
     rgdName: string,
-    rgdId: string,
+    _rgdId: string,
     instanceId: string,
     instanceName: string,
     crdName: string,
@@ -74,6 +144,19 @@ export class KubernetesService {
       );
       supportingResources.push(rgd);
 
+      // Fetch GraphRevisions for this RGD (kro 0.9.0+). Gracefully skip on
+      // older clusters where the GraphRevision CRD does not exist yet.
+      const graphRevisionList = await this.tryProxyKubernetesRequest(
+        clusterName,
+        `/apis/kro.run/v1alpha1/graphrevisions?labelSelector=${encodeURIComponent(`kro.run/resource-graph-definition-name=${rgdName}`)}`,
+      );
+      if (graphRevisionList?.items) {
+        for (const gr of graphRevisionList.items) {
+          supportingResources.push(gr);
+        }
+        this.logger.info(`Found ${graphRevisionList.items.length} GraphRevision(s) for RGD ${rgdName}`);
+      }
+
       // Get CRD using the provided name
       const crd = await this.proxyKubernetesRequest(
         clusterName,
@@ -81,20 +164,31 @@ export class KubernetesService {
       );
       supportingResources.push(crd);
 
+      // Determine CRD scope: 'Cluster' (kro 0.9.0+) or 'Namespaced' (default)
+      const crdScope: 'Namespaced' | 'Cluster' =
+        crd.spec?.scope === 'Cluster' ? 'Cluster' : 'Namespaced';
+
       // Get the version from the CRD
       const version = crd.spec.versions.find((v: any) => v.served && v.storage)?.name || crd.spec.versions[0].name;
 
-      // Fetch the instance using CRD info
-      const instance = await this.proxyKubernetesRequest(
-        clusterName,
-        `/apis/${crd.spec.group}/${version}/namespaces/${namespace}/${crd.spec.names.plural}/${instanceName}`,
-      );
-      // Check for Ready condition (KRO v0.8+) or InstanceSynced (older versions)
+      // Fetch the instance — path depends on CRD scope
+      const instancePath =
+        crdScope === 'Cluster'
+          ? `/apis/${crd.spec.group}/${version}/${crd.spec.names.plural}/${instanceName}`
+          : `/apis/${crd.spec.group}/${version}/namespaces/${namespace}/${crd.spec.names.plural}/${instanceName}`;
+
+      const instance = await this.proxyKubernetesRequest(clusterName, instancePath);
+
+      // Check for Ready condition (kro v0.8+) or InstanceSynced (older versions)
       const isReady = instance.status?.conditions?.find((c: any) => 
         c.type === 'Ready' && c.status === 'True'
       ) || instance.status?.conditions?.find((c: any) => 
         c.type === 'InstanceSynced' && c.status === 'True'
       );
+
+      // Detect reconciliation-paused state (kro 0.9.0 uses an annotation)
+      const reconcilePaused =
+        instance.metadata?.annotations?.['kro.run/reconcile'] === 'disabled';
       
       resources.push({
         type: 'Instance',
@@ -110,7 +204,9 @@ export class KubernetesService {
         createdAt: instance.metadata?.creationTimestamp || '',
         resource: instance,
         level: 0,
-        parentId: undefined
+        parentId: undefined,
+        scope: crdScope,
+        reconcilePaused,
       });
 
       // Separate external refs from managed resources
@@ -121,15 +217,34 @@ export class KubernetesService {
       
       (rgd.spec?.resources || []).forEach((resource: any) => {
         if (resource.externalRef) {
-          this.logger.info(`Found external ref: ${resource.externalRef.kind}/${resource.externalRef.metadata?.name}`);
-          externalRefs.push({
-            apiVersion: resource.externalRef.apiVersion,
-            kind: resource.externalRef.kind,
-            name: resource.externalRef.metadata?.name,
-            namespace: resource.externalRef.metadata?.namespace || namespace,
-            id: resource.id,
-            isExternal: true,
-          });
+          const extRef = resource.externalRef;
+          // kro 0.9.0 places the selector inside metadata; scalar refs use metadata.name
+          const selector = extRef.metadata?.selector;
+          if (selector) {
+            // kro 0.9.0 collection external ref (matchLabels / matchExpressions)
+            this.logger.info(`Found collection external ref: ${extRef.kind} with selector`);
+            externalRefs.push({
+              apiVersion: extRef.apiVersion,
+              kind: extRef.kind,
+              namespace: extRef.metadata?.namespace || namespace,
+              id: resource.id,
+              isExternal: true,
+              isCollection: true,
+              selector,
+            });
+          } else {
+            // scalar external ref (0.8.x style)
+            this.logger.info(`Found scalar external ref: ${extRef.kind}/${extRef.metadata?.name}`);
+            externalRefs.push({
+              apiVersion: extRef.apiVersion,
+              kind: extRef.kind,
+              name: extRef.metadata?.name,
+              namespace: extRef.metadata?.namespace || namespace,
+              id: resource.id,
+              isExternal: true,
+              isCollection: false,
+            });
+          }
         } else if (resource.template) {
           const template = resource.template;
           this.logger.info(`Found managed resource: ${template.kind} (isCollection: ${!!resource.forEach})`);
@@ -148,40 +263,75 @@ export class KubernetesService {
       
       this.logger.info(`Found ${externalRefs.length} external refs and ${subResources.length} managed resources`);
 
-      // Fetch external references first
+      // Fetch external references
       for (const extRef of externalRefs) {
         try {
           const apiVersionParts = extRef.apiVersion.split('/');
-          const group = apiVersionParts.length === 2 ? apiVersionParts[0] : extRef.apiVersion;
-          const version = apiVersionParts.length === 2 ? apiVersionParts[1] : extRef.apiVersion;
+          const extGroup = apiVersionParts.length === 2 ? apiVersionParts[0] : extRef.apiVersion;
+          const extVersion = apiVersionParts.length === 2 ? apiVersionParts[1] : extRef.apiVersion;
           const pluralKind = this.getPluralKind(extRef.kind);
           const isCoreAPI = extRef.apiVersion === 'v1';
           
-          const resourcePath = isCoreAPI
-            ? `/api/v1/namespaces/${extRef.namespace}/${pluralKind}/${extRef.name}`
-            : `/apis/${group}/${version}/namespaces/${extRef.namespace}/${pluralKind}/${extRef.name}`;
+          if (extRef.isCollection) {
+            // Build label selector from matchLabels
+            const matchLabels: Record<string, string> = extRef.selector?.matchLabels || {};
+            const labelSelector = this.buildMatchLabelsSelector(matchLabels);
+            const listPath = isCoreAPI
+              ? `/api/v1/namespaces/${extRef.namespace}/${pluralKind}${labelSelector ? `?labelSelector=${encodeURIComponent(labelSelector)}` : ''}`
+              : `/apis/${extGroup}/${extVersion}/namespaces/${extRef.namespace}/${pluralKind}${labelSelector ? `?labelSelector=${encodeURIComponent(labelSelector)}` : ''}`;
 
-          const fullResource = await this.proxyKubernetesRequest(clusterName, resourcePath);
+            const list = await this.proxyKubernetesRequest(clusterName, listPath);
+            for (const item of list.items || []) {
+              // Kubernetes list responses omit apiVersion/kind on each item;
+              // inject them from the externalRef definition so the manifest
+              // viewer and graph nodes display the correct type.
+              if (!item.apiVersion) item.apiVersion = extRef.apiVersion;
+              if (!item.kind) item.kind = extRef.kind;
+              resources.push({
+                type: 'Resource',
+                name: item.metadata?.name || 'Unknown',
+                namespace: item.metadata?.namespace,
+                group: this.getApiGroup(item.apiVersion),
+                kind: item.kind,
+                status: {
+                  synced: true,
+                  ready: true,
+                  conditions: item.status?.conditions || []
+                },
+                createdAt: item.metadata?.creationTimestamp || '',
+                resource: item,
+                level: 1,
+                parentId: instance.metadata?.uid || `${instance.kind}-${instance.metadata?.name}`,
+                isExternal: true,
+              });
+            }
+          } else {
+            const resourcePath = isCoreAPI
+              ? `/api/v1/namespaces/${extRef.namespace}/${pluralKind}/${extRef.name}`
+              : `/apis/${extGroup}/${extVersion}/namespaces/${extRef.namespace}/${pluralKind}/${extRef.name}`;
 
-          resources.push({
-            type: 'Resource',
-            name: fullResource.metadata?.name || 'Unknown',
-            namespace: fullResource.metadata?.namespace,
-            group: this.getApiGroup(fullResource.apiVersion),
-            kind: fullResource.kind || extRef.kind,
-            status: {
-              synced: true,
-              ready: true,
-              conditions: fullResource.status?.conditions || []
-            },
-            createdAt: fullResource.metadata?.creationTimestamp || '',
-            resource: fullResource,
-            level: 1,
-            parentId: instance.metadata?.uid || `${instance.kind}-${instance.metadata?.name}`,
-            isExternal: true,
-          });
+            const fullResource = await this.proxyKubernetesRequest(clusterName, resourcePath);
+
+            resources.push({
+              type: 'Resource',
+              name: fullResource.metadata?.name || 'Unknown',
+              namespace: fullResource.metadata?.namespace,
+              group: this.getApiGroup(fullResource.apiVersion),
+              kind: fullResource.kind || extRef.kind,
+              status: {
+                synced: true,
+                ready: true,
+                conditions: fullResource.status?.conditions || []
+              },
+              createdAt: fullResource.metadata?.creationTimestamp || '',
+              resource: fullResource,
+              level: 1,
+              parentId: instance.metadata?.uid || `${instance.kind}-${instance.metadata?.name}`,
+              isExternal: true,
+            });
+          }
         } catch (error) {
-          this.logger.error(`Failed to fetch external reference ${extRef.kind}/${extRef.name}: ${error}`);
+          this.logger.error(`Failed to fetch external reference ${extRef.kind}: ${error}`);
         }
       }
 
@@ -189,77 +339,48 @@ export class KubernetesService {
       for (const resource of subResources) {
         const apiVersionParts = resource.apiVersion.split('/');
         const group = apiVersionParts.length === 2 ? apiVersionParts[0] : resource.apiVersion;
-        const version = apiVersionParts.length === 2 ? apiVersionParts[1] : resource.apiVersion;
+        const resVersion = apiVersionParts.length === 2 ? apiVersionParts[1] : resource.apiVersion;
         const pluralKind = this.getPluralKind(resource.kind);
         
         try {
-          // For collections (forEach), we can't predict the exact names, so we query by labels only
-          // For regular templates, we can try to predict the name for more efficient querying
-          let path: string;
-          
-          // Determine if this is a core API resource (apiVersion === "v1") or a named API group
           const isCoreAPI = resource.apiVersion === 'v1';
-          
+          let path: string;
+
+          // For cluster-scoped instances, managed resources that are namespaced
+          // will have an explicit namespace in their template; for listing we
+          // fall back to the instance namespace when building the label query.
+          const listNamespace = namespace;
+          const basePath = this.resourceBasePath(isCoreAPI, group, resVersion, pluralKind, listNamespace, crdScope);
+          // In kro 0.9.0, nested kro instances stamp their own RGD's ID in
+          // kro.run/resource-graph-definition-id rather than the parent's, so
+          // filtering by rgdId would exclude them. kro.run/instance-id (a UID)
+          // is sufficient to uniquely identify resources owned by this instance.
+          const kroLabelSelector = encodeURIComponent([
+            'kro.run/owned=true',
+            `kro.run/instance-id=${instanceId}`,
+          ].join(','));
+
           if (resource.isCollection) {
-            // Collections: use label selector only, no name filter
-            path = isCoreAPI
-              ? `/api/v1/namespaces/${namespace}/${pluralKind}?labelSelector=${encodeURIComponent([
-                  'kro.run/owned=true',
-                  `kro.run/instance-id=${instanceId}`,
-                  `kro.run/resource-graph-definition-id=${rgdId}`,
-                ].join(','))}`
-              : `/apis/${group}/${version}/namespaces/${namespace}/${pluralKind}?labelSelector=${encodeURIComponent([
-                  'kro.run/owned=true',
-                  `kro.run/instance-id=${instanceId}`,
-                  `kro.run/resource-graph-definition-id=${rgdId}`,
-                ].join(','))}`;
+            path = `${basePath}?labelSelector=${kroLabelSelector}`;
           } else {
-            // Regular template: try to predict name for more efficient query
-            // Handle basic CEL expressions in names
             let resourceName = resource.name || '';
-            
-            // Replace common template patterns
             resourceName = resourceName
               .replace(/\$\{schema\.spec\.name\}/g, instance.spec?.name || '')
               .replace(/\$\{schema\.metadata\.name\}/g, instance.metadata?.name || '')
               .replace(/\$\{service\.metadata\.name\}/g, `${instance.spec?.name}-service`);
-            
-            // If name still contains template variables or CEL expressions, query without name filter
+
             if (resourceName.includes('${') || resourceName.includes('+') || !resourceName) {
-              path = isCoreAPI
-                ? `/api/v1/namespaces/${namespace}/${pluralKind}?labelSelector=${encodeURIComponent([
-                    'kro.run/owned=true',
-                    `kro.run/instance-id=${instanceId}`,
-                    `kro.run/resource-graph-definition-id=${rgdId}`,
-                  ].join(','))}`
-                : `/apis/${group}/${version}/namespaces/${namespace}/${pluralKind}?labelSelector=${encodeURIComponent([
-                    'kro.run/owned=true',
-                    `kro.run/instance-id=${instanceId}`,
-                    `kro.run/resource-graph-definition-id=${rgdId}`,
-                  ].join(','))}`;
+              path = `${basePath}?labelSelector=${kroLabelSelector}`;
             } else {
-              // Name is fully resolved, use field selector for efficiency
-              path = isCoreAPI
-                ? `/api/v1/namespaces/${namespace}/${pluralKind}?labelSelector=${encodeURIComponent([
-                    'kro.run/owned=true',
-                    `kro.run/instance-id=${instanceId}`,
-                    `kro.run/resource-graph-definition-id=${rgdId}`,
-                  ].join(','))}&fieldSelector=metadata.name=${resourceName}`
-                : `/apis/${group}/${version}/namespaces/${namespace}/${pluralKind}?labelSelector=${encodeURIComponent([
-                    'kro.run/owned=true',
-                    `kro.run/instance-id=${instanceId}`,
-                    `kro.run/resource-graph-definition-id=${rgdId}`,
-                  ].join(','))}&fieldSelector=metadata.name=${resourceName}`;
+              path = `${basePath}?labelSelector=${kroLabelSelector}&fieldSelector=metadata.name=${resourceName}`;
             }
           }
 
-          // First try to fetch by label selectors (for managed resources)
           let resourceList;
           try {
             this.logger.info(`Querying for ${resource.kind} at path: ${path}`);
             resourceList = await this.proxyKubernetesRequest(clusterName, path);
           } catch (error) {
-            // If label selector query fails, try fetching by name directly (for nested KRO instances)
             this.logger.debug(`Label selector query failed for ${resource.kind}, trying direct fetch: ${error}`);
             resourceList = { items: [] };
           }
@@ -267,7 +388,7 @@ export class KubernetesService {
           let items = resourceList.items || [];
           this.logger.info(`Found ${items.length} ${resource.kind} resource(s) with KRO labels`);
 
-          // If no items found with label selectors, try direct name-based fetch (for nested KRO instances)
+          // If no items found with label selectors, try direct name-based fetch
           if (items.length === 0 && resource.name) {
             try {
               let resourceName = resource.name || '';
@@ -278,11 +399,9 @@ export class KubernetesService {
 
               if (!resourceName.includes('${') && !resourceName.includes('+')) {
                 this.logger.info(`Attempting direct fetch for ${resource.kind}/${resourceName}`);
-                const resourcePath = isCoreAPI
-                  ? `/api/v1/namespaces/${namespace}/${pluralKind}/${resourceName}`
-                  : `/apis/${group}/${version}/namespaces/${namespace}/${pluralKind}/${resourceName}`;
-                
-                const directResource = await this.proxyKubernetesRequest(clusterName, resourcePath);
+                const directBasePath = this.resourceBasePath(isCoreAPI, group, resVersion, pluralKind, namespace, 'Namespaced');
+                const directResourcePath = `${directBasePath}/${resourceName}`;
+                const directResource = await this.proxyKubernetesRequest(clusterName, directResourcePath);
                 items = [directResource];
               }
             } catch (error) {
@@ -291,18 +410,11 @@ export class KubernetesService {
           }
 
           for (const item of items) {
-            const resourcePath = isCoreAPI
-              ? `/api/v1/namespaces/${namespace}/${pluralKind}/${item.metadata.name}`
-              : `/apis/${group}/${version}/namespaces/${namespace}/${pluralKind}/${item.metadata.name}`;
+            const itemBasePath = this.resourceBasePath(isCoreAPI, group, resVersion, pluralKind, item.metadata?.namespace || namespace, 'Namespaced');
+            const fullResource = await this.proxyKubernetesRequest(clusterName, `${itemBasePath}/${item.metadata.name}`);
 
-            const fullResource = await this.proxyKubernetesRequest(clusterName, resourcePath);
-
-            // Check if this resource is itself a KRO instance (nested RGD)
-            // A KRO instance has group 'kro.run' and has the RGD labels
             const resourceGroup = this.getApiGroup(fullResource.apiVersion || '');
             const hasRgdLabel = !!fullResource.metadata?.labels?.['kro.run/resource-graph-definition-id'];
-            
-            // It's an instance if it's in the kro.run group (custom KRO-defined kinds)
             const isNestedKroInstance = resourceGroup === 'kro.run' && hasRgdLabel;
 
             resources.push({
@@ -361,7 +473,7 @@ export class KubernetesService {
     clusterName: string,
     namespace: string,
     rgdName: string,
-    rgdId: string,
+    _rgdId: string,
     instanceId: string,
     instanceName: string,
   ): Promise<KroResource[]> {
@@ -375,7 +487,7 @@ export class KubernetesService {
       );
       resources.push(rgd);
 
-      // Get CRD info from RGD schema (KRO v0.8.1 structure)
+      // Get CRD info from RGD schema (kro v0.8.1+ structure)
       const schemaGroup = rgd.spec?.schema?.group;
       const schemaKind = rgd.spec?.schema?.kind;
       
@@ -383,7 +495,6 @@ export class KubernetesService {
         throw new Error(`Could not determine group/kind from RGD spec.schema: ${JSON.stringify(rgd.spec?.schema)}`);
       }
       
-      // Pluralize the kind
       const kindLower = schemaKind.toLowerCase();
       let plural = kindLower + 's';
       if (kindLower.endsWith('s')) plural = kindLower + 'es';
@@ -399,14 +510,20 @@ export class KubernetesService {
       );
       resources.push(crd);
 
+      // Determine CRD scope
+      const crdScope: 'Namespaced' | 'Cluster' =
+        crd.spec?.scope === 'Cluster' ? 'Cluster' : 'Namespaced';
+
       // Get the version from the CRD
       const version = crd.spec.versions.find((v: any) => v.served && v.storage)?.name || crd.spec.versions[0].name;
 
-      // Fetch the instance using CRD info
-      const instance = await this.proxyKubernetesRequest(
-        clusterName,
-        `/apis/${schemaGroup}/${version}/namespaces/${namespace}/${plural}/${instanceName}`,
-      );
+      // Fetch the instance — path depends on CRD scope
+      const instancePath =
+        crdScope === 'Cluster'
+          ? `/apis/${schemaGroup}/${version}/${plural}/${instanceName}`
+          : `/apis/${schemaGroup}/${version}/namespaces/${namespace}/${plural}/${instanceName}`;
+
+      const instance = await this.proxyKubernetesRequest(clusterName, instancePath);
       resources.push(instance);
 
       // Separate external refs from managed resources
@@ -415,15 +532,30 @@ export class KubernetesService {
       
       (rgd.spec?.resources || []).forEach((resource: any) => {
         if (resource.externalRef) {
-          externalRefs.push({
-            apiVersion: resource.externalRef.apiVersion,
-            kind: resource.externalRef.kind,
-            name: resource.externalRef.metadata?.name,
-            namespace: resource.externalRef.metadata?.namespace || namespace,
-            id: resource.id,
-            isExternal: true,
-          });
-        } else {
+          const extRef = resource.externalRef;
+          const selector = extRef.metadata?.selector;
+          if (selector) {
+            externalRefs.push({
+              apiVersion: extRef.apiVersion,
+              kind: extRef.kind,
+              namespace: extRef.metadata?.namespace || namespace,
+              id: resource.id,
+              isExternal: true,
+              isCollection: true,
+              selector,
+            });
+          } else {
+            externalRefs.push({
+              apiVersion: extRef.apiVersion,
+              kind: extRef.kind,
+              name: extRef.metadata?.name,
+              namespace: extRef.metadata?.namespace || namespace,
+              id: resource.id,
+              isExternal: true,
+              isCollection: false,
+            });
+          }
+        } else if (resource.template) {
           const template = resource.template;
           subResources.push({
             apiVersion: template.apiVersion,
@@ -436,23 +568,39 @@ export class KubernetesService {
         }
       });
 
-      // Fetch external references first
+      // Fetch external references
       for (const extRef of externalRefs) {
         try {
           const apiVersionParts = extRef.apiVersion.split('/');
-          const group = apiVersionParts.length === 2 ? apiVersionParts[0] : extRef.apiVersion;
-          const version = apiVersionParts.length === 2 ? apiVersionParts[1] : extRef.apiVersion;
+          const extGroup = apiVersionParts.length === 2 ? apiVersionParts[0] : extRef.apiVersion;
+          const extVersion = apiVersionParts.length === 2 ? apiVersionParts[1] : extRef.apiVersion;
           const pluralKind = this.getPluralKind(extRef.kind);
           const isCoreAPI = extRef.apiVersion === 'v1';
-          
-          const resourcePath = isCoreAPI
-            ? `/api/v1/namespaces/${extRef.namespace}/${pluralKind}/${extRef.name}`
-            : `/apis/${group}/${version}/namespaces/${extRef.namespace}/${pluralKind}/${extRef.name}`;
 
-          const fullResource = await this.proxyKubernetesRequest(clusterName, resourcePath);
-          resources.push(fullResource);
+          if (extRef.isCollection) {
+            const matchLabels: Record<string, string> = extRef.selector?.matchLabels || {};
+            const labelSelector = this.buildMatchLabelsSelector(matchLabels);
+            const listPath = isCoreAPI
+              ? `/api/v1/namespaces/${extRef.namespace}/${pluralKind}${labelSelector ? `?labelSelector=${encodeURIComponent(labelSelector)}` : ''}`
+              : `/apis/${extGroup}/${extVersion}/namespaces/${extRef.namespace}/${pluralKind}${labelSelector ? `?labelSelector=${encodeURIComponent(labelSelector)}` : ''}`;
+
+            const list = await this.proxyKubernetesRequest(clusterName, listPath);
+            for (const item of list.items || []) {
+              // Inject apiVersion/kind — omitted by Kubernetes on list items
+              if (!item.apiVersion) item.apiVersion = extRef.apiVersion;
+              if (!item.kind) item.kind = extRef.kind;
+              resources.push(item);
+            }
+          } else {
+            const resourcePath = isCoreAPI
+              ? `/api/v1/namespaces/${extRef.namespace}/${pluralKind}/${extRef.name}`
+              : `/apis/${extGroup}/${extVersion}/namespaces/${extRef.namespace}/${pluralKind}/${extRef.name}`;
+
+            const fullResource = await this.proxyKubernetesRequest(clusterName, resourcePath);
+            resources.push(fullResource);
+          }
         } catch (error) {
-          this.logger.error(`Failed to fetch external reference ${extRef.kind}/${extRef.name}: ${error}`);
+          this.logger.error(`Failed to fetch external reference ${extRef.kind}: ${error}`);
         }
       }
 
@@ -460,67 +608,36 @@ export class KubernetesService {
       for (const resource of subResources) {
         const apiVersionParts = resource.apiVersion.split('/');
         const group = apiVersionParts.length === 2 ? apiVersionParts[0] : resource.apiVersion;
-        const version = apiVersionParts.length === 2 ? apiVersionParts[1] : resource.apiVersion;
+        const resVersion = apiVersionParts.length === 2 ? apiVersionParts[1] : resource.apiVersion;
         const pluralKind = this.getPluralKind(resource.kind);
         
         try {
-          // For collections (forEach), we can't predict the exact names, so we query by labels only
-          // For regular templates, we can try to predict the name for more efficient querying
-          let path: string;
-          
-          // Determine if this is a core API resource (apiVersion === "v1") or a named API group
           const isCoreAPI = resource.apiVersion === 'v1';
-          
+          // Same reasoning as getResources: omit kro.run/resource-graph-definition-id
+          // because nested kro instances use their own RGD's ID in that label.
+          const kroLabelSelector = encodeURIComponent([
+            'kro.run/owned=true',
+            `kro.run/instance-id=${instanceId}`,
+          ].join(','));
+
+          let path: string;
+
           if (resource.isCollection) {
-            // Collections: use label selector only, no name filter
-            path = isCoreAPI
-              ? `/api/v1/namespaces/${namespace}/${pluralKind}?labelSelector=${encodeURIComponent([
-                  'kro.run/owned=true',
-                  `kro.run/instance-id=${instanceId}`,
-                  `kro.run/resource-graph-definition-id=${rgdId}`,
-                ].join(','))}`
-              : `/apis/${group}/${version}/namespaces/${namespace}/${pluralKind}?labelSelector=${encodeURIComponent([
-                  'kro.run/owned=true',
-                  `kro.run/instance-id=${instanceId}`,
-                  `kro.run/resource-graph-definition-id=${rgdId}`,
-                ].join(','))}`;
+            const basePath = this.resourceBasePath(isCoreAPI, group, resVersion, pluralKind, namespace, crdScope);
+            path = `${basePath}?labelSelector=${kroLabelSelector}`;
           } else {
-            // Regular template: try to predict name for more efficient query
-            // Handle basic CEL expressions in names
             let resourceName = resource.name || '';
-            
-            // Replace common template patterns
             resourceName = resourceName
               .replace(/\$\{schema\.spec\.name\}/g, instance.spec?.name || '')
               .replace(/\$\{schema\.metadata\.name\}/g, instance.metadata?.name || '')
               .replace(/\$\{service\.metadata\.name\}/g, `${instance.spec?.name}-service`);
-            
-            // If name still contains template variables or CEL expressions, query without name filter
+
+            const basePath = this.resourceBasePath(isCoreAPI, group, resVersion, pluralKind, namespace, crdScope);
+
             if (resourceName.includes('${') || resourceName.includes('+') || !resourceName) {
-              path = isCoreAPI
-                ? `/api/v1/namespaces/${namespace}/${pluralKind}?labelSelector=${encodeURIComponent([
-                    'kro.run/owned=true',
-                    `kro.run/instance-id=${instanceId}`,
-                    `kro.run/resource-graph-definition-id=${rgdId}`,
-                  ].join(','))}`
-                : `/apis/${group}/${version}/namespaces/${namespace}/${pluralKind}?labelSelector=${encodeURIComponent([
-                    'kro.run/owned=true',
-                    `kro.run/instance-id=${instanceId}`,
-                    `kro.run/resource-graph-definition-id=${rgdId}`,
-                  ].join(','))}`;
+              path = `${basePath}?labelSelector=${kroLabelSelector}`;
             } else {
-              // Name is fully resolved, use field selector for efficiency
-              path = isCoreAPI
-                ? `/api/v1/namespaces/${namespace}/${pluralKind}?labelSelector=${encodeURIComponent([
-                    'kro.run/owned=true',
-                    `kro.run/instance-id=${instanceId}`,
-                    `kro.run/resource-graph-definition-id=${rgdId}`,
-                  ].join(','))}&fieldSelector=metadata.name=${resourceName}`
-                : `/apis/${group}/${version}/namespaces/${namespace}/${pluralKind}?labelSelector=${encodeURIComponent([
-                    'kro.run/owned=true',
-                    `kro.run/instance-id=${instanceId}`,
-                    `kro.run/resource-graph-definition-id=${rgdId}`,
-                  ].join(','))}&fieldSelector=metadata.name=${resourceName}`;
+              path = `${basePath}?labelSelector=${kroLabelSelector}&fieldSelector=metadata.name=${resourceName}`;
             }
           }
 
@@ -528,11 +645,8 @@ export class KubernetesService {
           const items = resourceList.items || [];
 
           for (const item of items) {
-            const resourcePath = isCoreAPI
-              ? `/api/v1/namespaces/${namespace}/${pluralKind}/${item.metadata.name}`
-              : `/apis/${group}/${version}/namespaces/${namespace}/${pluralKind}/${item.metadata.name}`;
-
-            const fullResource = await this.proxyKubernetesRequest(clusterName, resourcePath);
+            const itemBasePath = this.resourceBasePath(isCoreAPI, group, resVersion, pluralKind, item.metadata?.namespace || namespace, 'Namespaced');
+            const fullResource = await this.proxyKubernetesRequest(clusterName, `${itemBasePath}/${item.metadata.name}`);
             resources.push(fullResource);
           }
         } catch (error) {

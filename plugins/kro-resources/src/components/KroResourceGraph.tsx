@@ -116,6 +116,13 @@ const removeManagedFields = (resource: KubernetesObject) => {
     if (resourceCopy.status) {
         orderedResource.status = resourceCopy.status;
     }
+    // Copy any remaining top-level fields (e.g. ConfigMap `data`/`binaryData`)
+    const handledTopLevel = new Set(['apiVersion', 'kind', 'metadata', 'spec', 'status']);
+    Object.entries(resourceCopy).forEach(([key, value]) => {
+        if (!handledTopLevel.has(key)) {
+            orderedResource[key] = value;
+        }
+    });
 
     return orderedResource;
 };
@@ -302,13 +309,28 @@ const CustomNode = ({ data }: { data: any }) => {
 
             <div style={{
                 fontSize: '12px',
-                marginBottom: '6px',
+                marginBottom: data.categoryBadge === 'Instance' && !data.namespace ? '2px' : '6px',
                 wordBreak: 'break-word',
                 width: '100%',
                 color: theme.palette.text.primary
             }}>
                 {data.name}
             </div>
+
+            {data.categoryBadge === 'Instance' && !data.namespace && (
+                <div style={{
+                    marginBottom: '4px',
+                    fontSize: '10px',
+                    fontWeight: 'bold',
+                    backgroundColor: isDarkMode ? '#0d47a1' : '#e3f2fd',
+                    color: isDarkMode ? '#90caf9' : '#1565c0',
+                    padding: '1px 6px',
+                    borderRadius: '3px',
+                    display: 'inline-block',
+                }}>
+                    Cluster-Scoped
+                </div>
+            )}
 
             <div style={{
                 width: '100%',
@@ -742,6 +764,7 @@ const KroResourceGraph = () => {
                     kind: resourceKind,
                     apiVersion: apiVersion,
                     name: resourceName,
+                    namespace: resource.metadata?.namespace,
                     isSynced: isSynced,
           conditions: conditions,
                     categoryBadge: categoryBadge,
@@ -1033,12 +1056,18 @@ const KroResourceGraph = () => {
     }, [kroApi, entity, canShowResourceGraph]);
 
     const handleGetEvents = async (resource: KubernetesObject) => {
-        const namespace = resource.metadata?.namespace || 'default';
+        const namespace = resource.metadata?.namespace;
         const name = resource.metadata?.name;
         const clusterName = entity.metadata.annotations?.['backstage.io/managed-by-location']?.split(": ")[1];
 
+        // Cluster-scoped resources have no namespace; Kubernetes events are always
+        // namespaced so we cannot look them up without one. Skip silently.
         if (!namespace || !name || !clusterName) {
-            console.warn('Missing required data for fetching events:', { namespace, name, clusterName });
+            if (!namespace && name) {
+                console.info(`Skipping event fetch for cluster-scoped resource ${name} — no namespace`);
+            } else {
+                console.warn('Missing required data for fetching events:', { namespace, name, clusterName });
+            }
             return;
         }
 
