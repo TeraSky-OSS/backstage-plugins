@@ -156,11 +156,13 @@ export class RGDDataProvider {
         const group = crd.spec.group;
         crd.spec.versions.forEach((version: any) => {
           const key = `${kind}|${group}|${version.name}`;
-          lookup[key] = {
+          const value = {
             rgd,
             scope: crd.spec.scope,
             spec: crd.spec,
           };
+          lookup[key] = value;
+          lookup[key.toLowerCase()] = value;
         });
       }
     });

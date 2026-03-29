@@ -15,6 +15,7 @@ The Kubernetes Ingestor plugin is a powerful backend plugin for Backstage that a
 - **API-Only Ingestion**: Ingest CRDs, XRDs, and RGDs as API entities only without template generation
 - **Resource Entity Support**: Ingest Kubernetes objects as Resource entities instead of Component entities
 - **Relationship Mapping**: Track dependencies between resources and APIs
+- **Delta/Incremental Updates**: Real-time catalog mutations for individual resource changes without full re-sync
 - **Flexible Configuration**: Customize ingestion behavior and mapping
 - **Annotation Support**: Rich annotation system for entity customization
 - **Enhanced Repository Selection**: Dropdown pickers for repository and organization selection in scaffolder templates

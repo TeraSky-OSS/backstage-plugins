@@ -1013,6 +1013,78 @@ Similar to XRD configuration, when `allowRepoSelection` is enabled for KRO RGDs:
 
 This provides the same improved user experience as described in the XRD configuration section, ensuring consistent repository selection behavior across both Crossplane and KRO resource templates.
 
+## Delta/Incremental Mutations
+
+The `KubernetesEntityProvider` supports incremental catalog updates via its `deltaUpdate` method. Instead of waiting for the next full sync cycle, you can push individual resource changes to the provider in real time.
+
+### DeltaEvent Interface
+
+```typescript
+import { DeltaEvent } from '@terasky/backstage-plugin-kubernetes-ingestor';
+
+const event: DeltaEvent = {
+  action: 'upsert',       // 'upsert' or 'delete'
+  apiVersion: 'apps/v1',  // Kubernetes apiVersion
+  kind: 'Deployment',     // Kubernetes kind
+  name: 'my-app',         // Resource name
+  namespace: 'default',   // Optional: resource namespace
+  clusterName: 'my-cluster',
+  entityNames: [],        // Optional: explicit entity refs for deletes
+};
+```
+
+### Usage
+
+```typescript
+// Obtain a reference to the provider instance
+const provider = /* your KubernetesEntityProvider instance */;
+
+// Upsert: fetches the resource from the cluster and adds/updates entities
+await provider.deltaUpdate({
+  action: 'upsert',
+  apiVersion: 'apps/v1',
+  kind: 'Deployment',
+  name: 'my-app',
+  namespace: 'default',
+  clusterName: 'my-cluster',
+});
+
+// Delete: removes entities associated with the resource
+await provider.deltaUpdate({
+  action: 'delete',
+  apiVersion: 'apps/v1',
+  kind: 'Deployment',
+  name: 'my-app',
+  namespace: 'default',
+  clusterName: 'my-cluster',
+});
+```
+
+### Delete with Explicit Entity Names
+
+When the original resource used annotation-based naming (e.g., `terasky.backstage.io/name`), synthesizing a resource for deletion may not produce matching entity names. In this case, provide the exact entity refs:
+
+```typescript
+await provider.deltaUpdate({
+  action: 'delete',
+  apiVersion: 'apps/v1',
+  kind: 'Deployment',
+  name: 'my-app',
+  namespace: 'default',
+  clusterName: 'my-cluster',
+  entityNames: [
+    'Component:default/my-custom-name',
+  ],
+});
+```
+
+### Behavior Notes
+
+- **Prerequisites**: The initial full sync must complete before delta updates are accepted. Calling `deltaUpdate` before the first sync throws an error.
+- **Shared System entities**: When deleting a resource, the provider automatically filters out shared `System` entities from the removal list. System entities represent namespaces/clusters and are shared across multiple resources — removing them on a single resource deletion would break other entities referencing the same system.
+- **Concurrency**: Delta mutations are serialized via an internal mutex to prevent race conditions with concurrent updates or full syncs.
+- **Resource classification**: The provider uses cached lookups (Crossplane XRD kinds, KRO RGD kinds, CRD plural mappings) to classify resources correctly. These caches use composite keys (e.g., `group|kind`) to avoid collisions when the same Kind exists in different API groups.
+
 ## Best Practices
 
 1. **Resource Mapping**

@@ -1190,11 +1190,13 @@ describe('KubernetesDataProvider', () => {
       const crds = [
         {
           spec: {
+            group: 'apps',
             names: { kind: 'Deployment', plural: 'deployments' },
           },
         },
         {
           spec: {
+            group: 'core',
             names: { kind: 'Service', plural: 'services' },
           },
         },
@@ -1211,8 +1213,8 @@ describe('KubernetesDataProvider', () => {
       const result = await provider.fetchCRDMapping();
 
       expect(result).toEqual({
-        Deployment: 'deployments',
-        Service: 'services',
+        'apps|Deployment': 'deployments',
+        'core|Service': 'services',
       });
     });
 
@@ -1274,6 +1276,183 @@ describe('KubernetesDataProvider', () => {
 
       // Should not call getClusters when allowed clusters are configured
       expect(mockResourceFetcher.getClusters).not.toHaveBeenCalled();
+    });
+
+    it('should not collide when same Kind exists in different API groups', async () => {
+      mockConfig.getOptionalStringArray.mockImplementation((key: string) => {
+        if (key === 'kubernetesIngestor.allowedClusterNames') return ['cluster1'];
+        return undefined;
+      });
+
+      const crds = [
+        {
+          spec: {
+            group: 'security.io',
+            names: { kind: 'Policy', plural: 'securitypolicies' },
+          },
+        },
+        {
+          spec: {
+            group: 'networking.io',
+            names: { kind: 'Policy', plural: 'networkpolicies' },
+          },
+        },
+      ];
+
+      mockResourceFetcher.fetchResources.mockResolvedValue(crds);
+
+      const provider = new KubernetesDataProvider(
+        mockResourceFetcher as any,
+        mockConfig as any,
+        mockLogger as any,
+      );
+
+      const result = await provider.fetchCRDMapping();
+
+      // Both entries should exist with their respective group|kind keys
+      expect(result).toEqual({
+        'security.io|Policy': 'securitypolicies',
+        'networking.io|Policy': 'networkpolicies',
+      });
+      // Verify they are distinct entries
+      expect(Object.keys(result)).toHaveLength(2);
+    });
+
+    it('should use composite group|kind key and not overwrite across groups', async () => {
+      mockConfig.getOptionalStringArray.mockImplementation((key: string) => {
+        if (key === 'kubernetesIngestor.allowedClusterNames') return ['cluster1'];
+        return undefined;
+      });
+
+      const crds = [
+        {
+          spec: {
+            group: 'alpha.io',
+            names: { kind: 'Resource', plural: 'alpharesources' },
+          },
+        },
+        {
+          spec: {
+            group: 'beta.io',
+            names: { kind: 'Resource', plural: 'betaresources' },
+          },
+        },
+        {
+          spec: {
+            group: 'alpha.io',
+            names: { kind: 'Config', plural: 'alphaconfigs' },
+          },
+        },
+      ];
+
+      mockResourceFetcher.fetchResources.mockResolvedValue(crds);
+
+      const provider = new KubernetesDataProvider(
+        mockResourceFetcher as any,
+        mockConfig as any,
+        mockLogger as any,
+      );
+
+      const result = await provider.fetchCRDMapping();
+
+      expect(result['alpha.io|Resource']).toBe('alpharesources');
+      expect(result['beta.io|Resource']).toBe('betaresources');
+      expect(result['alpha.io|Config']).toBe('alphaconfigs');
+      expect(Object.keys(result)).toHaveLength(3);
+    });
+
+    it('should skip CRD entries missing group, kind, or plural', async () => {
+      mockConfig.getOptionalStringArray.mockImplementation((key: string) => {
+        if (key === 'kubernetesIngestor.allowedClusterNames') return ['cluster1'];
+        return undefined;
+      });
+
+      const crds = [
+        {
+          spec: {
+            group: 'valid.io',
+            names: { kind: 'Good', plural: 'goods' },
+          },
+        },
+        {
+          spec: {
+            // missing group
+            names: { kind: 'NoGroup', plural: 'nogroups' },
+          },
+        },
+        {
+          spec: {
+            group: 'valid.io',
+            names: { plural: 'nokinds' },
+            // missing kind
+          },
+        },
+        {
+          spec: {
+            group: 'valid.io',
+            names: { kind: 'NoPlural' },
+            // missing plural
+          },
+        },
+      ];
+
+      mockResourceFetcher.fetchResources.mockResolvedValue(crds);
+
+      const provider = new KubernetesDataProvider(
+        mockResourceFetcher as any,
+        mockConfig as any,
+        mockLogger as any,
+      );
+
+      const result = await provider.fetchCRDMapping();
+
+      expect(result).toEqual({
+        'valid.io|Good': 'goods',
+      });
+    });
+
+    it('should merge CRD mappings from multiple clusters without group collisions', async () => {
+      mockConfig.getOptionalStringArray.mockImplementation((key: string) => {
+        if (key === 'kubernetesIngestor.allowedClusterNames') return ['cluster1', 'cluster2'];
+        return undefined;
+      });
+
+      // Cluster 1 has security.io Policy
+      // Cluster 2 has networking.io Policy
+      let callCount = 0;
+      mockResourceFetcher.fetchResources.mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.resolve([
+            {
+              spec: {
+                group: 'security.io',
+                names: { kind: 'Policy', plural: 'securitypolicies' },
+              },
+            },
+          ]);
+        }
+        return Promise.resolve([
+          {
+            spec: {
+              group: 'networking.io',
+              names: { kind: 'Policy', plural: 'networkpolicies' },
+            },
+          },
+        ]);
+      });
+
+      const provider = new KubernetesDataProvider(
+        mockResourceFetcher as any,
+        mockConfig as any,
+        mockLogger as any,
+      );
+
+      const result = await provider.fetchCRDMapping();
+
+      // Both should be present — different groups, no collision
+      expect(result['security.io|Policy']).toBe('securitypolicies');
+      expect(result['networking.io|Policy']).toBe('networkpolicies');
     });
   });
 });
