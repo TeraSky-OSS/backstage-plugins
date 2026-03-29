@@ -196,6 +196,7 @@ nav:
               - About: plugins/rbac-mcp/backend/about.md
               - Install: plugins/rbac-mcp/backend/install.md
               - Configure: plugins/rbac-mcp/backend/configure.md
+              - Usage: plugins/rbac-mcp/backend/usage.md
       - Catalog MCP:
           - Overview: plugins/catalog-mcp/overview.md
           - Backend:
@@ -287,7 +288,7 @@ plugins:
 - search
 markdown_extensions:
   - pymdownx.highlight:
-      anchor_linenums: true
+      anchor_linenums: false
       line_spans: __span
       pygments_lang_class: true
   - pymdownx.inlinehilite
