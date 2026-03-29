@@ -19,57 +19,57 @@ The plugins support Aria Automation 8.x as well as VCF Automation 9.x, including
 ## Screenshots
 
 ### Project Overview
-![Project View](../../images/vcf-proj-overview.png)
+![Project View](../../../images/vcf-proj-overview.png)
 
 ### Project Details
-![Project Details 1](../../images/vcf-proj-details-1.png)
-![Project Details 2](../../images/vcf-proj-details-2.png)
-![Project Details 3](../../images/vcf-proj-details-3.png)
+![Project Details 1](../../../images/vcf-proj-details-1.png)
+![Project Details 2](../../../images/vcf-proj-details-2.png)
+![Project Details 3](../../../images/vcf-proj-details-3.png)
 
 ### Deployment Overview
-![Deployment View](../../images/vcf-deploy-overview.png)
+![Deployment View](../../../images/vcf-deploy-overview.png)
 
 ### Deployment Details
-![Deployment Details 1](../../images/vcf-deploy-details-1.png)
-![Deployment Details 2](../../images/vcf-deploy-details-2.png)
+![Deployment Details 1](../../../images/vcf-deploy-details-1.png)
+![Deployment Details 2](../../../images/vcf-deploy-details-2.png)
 
 ### vSphere VM Overview (VCFA 8 and VM Apps orgs in VCFA 9)
-![vSphere VM View](../../images/vcf-vm-overview.png)
+![vSphere VM View](../../../images/vcf-vm-overview.png)
 
 ### vSphere VM Details (VCFA 8 and VM Apps orgs in VCFA 9)
-![vSphere VM Details 1](../../images/vcf-vm-details-1.png)
-![vSphere VM Details 2](../../images/vcf-vm-details-2.png)
+![vSphere VM Details 1](../../../images/vcf-vm-details-1.png)
+![vSphere VM Details 2](../../../images/vcf-vm-details-2.png)
 
 ### Resource Overview (VCFA 8 and VM Apps orgs in VCFA 9)
-![Resource View](../../images/vcf-resource-overview.png)
+![Resource View](../../../images/vcf-resource-overview.png)
 
 ### Resource Details (VCFA 8 and VM Apps orgs in VCFA 9)
-![Resource Details](../../images/vcf-resource-details.png)
+![Resource Details](../../../images/vcf-resource-details.png)
 
 ### CCI Supervisor Namespace Overview (VCFA 9 All Apps Orgs)
-![CCI Supervisor Namespace View](../../images/vcfa-cci-ns.png)
+![CCI Supervisor Namespace View](../../../images/vcfa-cci-ns.png)
 
 ### CCI Supervisor Namespace Details (VCFA 9 All Apps Orgs)
-![CCI Supervisor Namespace Details 1](../../images/vcfa-cci-ns-details-1.png)
-![CCI Supervisor Namespace Details 2](../../images/vcfa-cci-ns-details-2.png)
+![CCI Supervisor Namespace Details 1](../../../images/vcfa-cci-ns-details-1.png)
+![CCI Supervisor Namespace Details 2](../../../images/vcfa-cci-ns-details-2.png)
 
 ### CCI Supervisor Resource Overview (VCFA 9 All Apps Orgs)
-![CCI Supervisor Resource View 1](../../images/vcfa-cci-resource-1.png)
-![CCI Supervisor Resource View 2](../../images/vcfa-cci-resource-2.png)
+![CCI Supervisor Resource View 1](../../../images/vcfa-cci-resource-1.png)
+![CCI Supervisor Resource View 2](../../../images/vcfa-cci-resource-2.png)
 
 ### CCI Supervisor Resource Details (VCFA 9 All Apps Orgs)
 #### Basic Information
-![CCI Supervisor Resource Details 1](../../images/vcfa-cci-resource-details-1.png)
+![CCI Supervisor Resource Details 1](../../../images/vcfa-cci-resource-details-1.png)
 #### Manifest Details
-![CCI Supervisor Resource Details 2](../../images/vcfa-cci-resource-details-2.png)
+![CCI Supervisor Resource Details 2](../../../images/vcfa-cci-resource-details-2.png)
 #### Object Status
-![CCI Supervisor Resource Details 3](../../images/vcfa-cci-resource-details-3.png)
+![CCI Supervisor Resource Details 3](../../../images/vcfa-cci-resource-details-3.png)
 #### Resource Conditions
-![CCI Supervisor Resource Details 4](../../images/vcfa-cci-resource-details-4.png)
+![CCI Supervisor Resource Details 4](../../../images/vcfa-cci-resource-details-4.png)
 #### Defined Resource Manifest
-![CCI Supervisor Resource Details 5](../../images/vcfa-cci-resource-details-5.png)
+![CCI Supervisor Resource Details 5](../../../images/vcfa-cci-resource-details-5.png)
 #### Live Kubernetes Object Manifest
-![CCI Supervisor Resource Details 6](../../images/vcfa-cci-resource-details-6.png)
+![CCI Supervisor Resource Details 6](../../../images/vcfa-cci-resource-details-6.png)
 
 ### CCI Supervisor Resource YAML Editing (VCFA 9 All Apps Orgs)
 The VCF Automation plugin provides powerful YAML editing capabilities for CCI Supervisor resources, allowing users to directly modify Kubernetes resource manifests through a professional Monaco Editor interface.
@@ -78,7 +78,7 @@ The VCF Automation plugin provides powerful YAML editing capabilities for CCI Su
 For CCI resources (both standalone and deployment-managed) with proper permissions, an "Edit Resource Manifest" button appears in the resource overview page, providing quick access to the YAML editor modal.
 
 #### YAML Editor Modal (Overview Page)
-![CCI YAML Editor Modal](../../images/vcfa-cci-yaml-editor-modal.png)
+![CCI YAML Editor Modal](../../../images/vcfa-cci-yaml-editor-modal.png)
 The modal includes:
 - **Monaco Editor**: Professional code editor with YAML syntax highlighting
 - **Real-time Validation**: Live YAML syntax validation with error feedback
@@ -86,7 +86,7 @@ The modal includes:
 - **Save Confirmation**: Confirmation dialog before applying changes
 
 #### Edit Manifest Tab (Details Page)  
-![CCI YAML Editor Tab](../../images/vcfa-cci-yaml-editor-tab.png)
+![CCI YAML Editor Tab](../../../images/vcfa-cci-yaml-editor-tab.png)
 The dedicated "Edit Manifest" tab provides:
 - **Integrated Editor**: Monaco Editor embedded directly in the details page
 - **Auto-loading**: Manifest automatically loads when tab is selected

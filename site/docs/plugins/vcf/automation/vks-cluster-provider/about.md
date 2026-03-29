@@ -6,7 +6,7 @@
 
 The VCFA VKS Cluster Provider plugin is a Kubernetes cluster supplier that automatically discovers and configures VKS (Kubernetes) clusters from VCF Automation for use with the Backstage Kubernetes plugin.
 
-> **Important:** Backstage currently supports only one custom cluster supplier at a time. If you are also using the [SpectroCloud Cluster Provider](../../spectrocloud/cluster-provider/about.md), only one of the two plugins can be enabled in your Backstage instance at a time.
+> **Important:** Backstage currently supports only one custom cluster supplier at a time. If you are also using the [SpectroCloud Cluster Provider](../../../spectrocloud/cluster-provider/about.md), only one of the two plugins can be enabled in your Backstage instance at a time.
 
 ## Features
 

@@ -461,6 +461,6 @@ If guest provider doesn't appear even when enabled:
 ## Additional Resources
 
 - [Backstage Authentication Docs](https://backstage.io/docs/auth/)
-- [Configuration Schema](../../../plugins/app-module-global-signin-page/config.d.ts)
+- Configuration Schema: `plugins/app-module-global-signin-page/config.d.ts`
 - [OAuth Provider Setup](https://backstage.io/docs/auth/oauth)
 

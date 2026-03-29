@@ -40,7 +40,7 @@ The VCF Operations plugin suite consists of three complementary packages:
 ## Screenshots
 
 ### Metrics Explorer Interface
-![VCF Operations Metrics Explorer](../../images/vcf-ops.png)
+![VCF Operations Metrics Explorer](../../../images/vcf-ops.png)
 
 The main interface features:
 - **Top Control Bar**: Time range, aggregation, and refresh controls

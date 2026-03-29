@@ -8,7 +8,7 @@ This guide will help you install and set up the SpectroCloud cluster provider pl
 2. The Backstage Kubernetes plugin installed
 3. SpectroCloud Palette API credentials
 
-> **Important:** Backstage currently supports only one custom cluster supplier at a time. If you are also using the [VCFA VKS Cluster Provider](../../vcf-automation/vks-cluster-provider/about.md), only one of the two plugins can be enabled in your Backstage instance at a time.
+> **Important:** Backstage currently supports only one custom cluster supplier at a time. If you are also using the [VCFA VKS Cluster Provider](../../vcf/automation/vks-cluster-provider/about.md), only one of the two plugins can be enabled in your Backstage instance at a time.
 
 ## Installation Steps
 
@@ -74,5 +74,5 @@ SpectroCloud: Created RBAC for cluster Y
 ## Next Steps
 
 1. Configure [project filtering](./configure.md)
-2. Customize [RBAC settings](./configure.md#rbac-customization)
+2. Customize [RBAC settings](./configure.md#rbac-configuration)
 

@@ -9,7 +9,7 @@ This guide will help you install and set up the VCFA VKS cluster provider plugin
 3. Access to a VCF Automation (VCFA) instance running version 9.x (`all-apps` organization type)
 4. VCFA user credentials with sufficient permissions to read supervisor resources and proxy API access
 
-> **Important:** Backstage currently supports only one custom cluster supplier at a time. If you are also using the [SpectroCloud Cluster Provider](../../spectrocloud/cluster-provider/about.md), only one of the two plugins can be enabled in your Backstage instance at a time.
+> **Important:** Backstage currently supports only one custom cluster supplier at a time. If you are also using the [SpectroCloud Cluster Provider](../../../spectrocloud/cluster-provider/about.md), only one of the two plugins can be enabled in your Backstage instance at a time.
 
 ## Installation Steps
 
