@@ -340,7 +340,6 @@ export const VirtualClusterViewerPage = () => {
             if (!profileData?.specSummary?.versions) return false;
             
             const versions = profileData.specSummary.versions;
-            const latestVersion = profileData.specSummary.version || versions[0]?.version;
             
             // Find the profile UID currently used by the virtual cluster
             const clusterProfileTemplate = clusterDetails.spec?.clusterProfileTemplates?.find(
@@ -353,7 +352,15 @@ export const VirtualClusterViewerPage = () => {
             const currentVersionData = versions.find(v => v.uid === profileUid);
             const currentVersion = currentVersionData?.version;
             
-            return currentVersion && latestVersion && currentVersion !== latestVersion;
+            const compareVersions = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true });
+
+            const latestVersion = versions?.reduce((max: string | null, v) => {
+              const version = v?.version;
+              if (!version) return max;
+              return !max || compareVersions(version, max) > 0 ? version : max;
+            }, null);
+
+            return Boolean(currentVersion && latestVersion && compareVersions(latestVersion, currentVersion) > 0);
           });
           
           if (hasAnyUpdates) {
