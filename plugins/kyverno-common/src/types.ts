@@ -10,14 +10,14 @@ export interface PolicyReportSummary {
 }
 
 export interface PolicyReportResult {
-  category: string;
-  message: string;
+  category?: string;
+  message?: string;
   policy: string;
-  result: string;
-  rule: string;
-  severity: string;
+  result?: string;
+  rule?: string;
+  severity?: string;
   source?: string;
-  timestamp: {
+  timestamp?: {
     seconds: number;
   };
 }

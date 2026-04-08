@@ -202,7 +202,7 @@ const KyvernoCrossplanePolicyReportsTable = () => {
         }
     };
 
-    const SeverityComponent = ({ severity }: { severity: string }) => {
+    const SeverityComponent = ({ severity }: { severity?: string }) => {
         switch (severity) {
             case 'high':
                 return <Chip label={severity} className={classes.error} />;
@@ -298,7 +298,7 @@ const KyvernoCrossplanePolicyReportsTable = () => {
                                                                 <TableBody>
                                                                     {report.results?.map((result, index) => (
                                                                         <TableRow key={index}>
-                                                                            <TableCell style={{ whiteSpace: 'nowrap' }}>{result.category}</TableCell>
+                                                                            <TableCell style={{ whiteSpace: 'nowrap' }}>{result.category || ''}</TableCell>
                                                                             <TableCell style={{ whiteSpace: 'nowrap' }}>
                                                                                 <StatusComponent status={result.result} />
                                                                             </TableCell>
@@ -327,7 +327,7 @@ const KyvernoCrossplanePolicyReportsTable = () => {
                                                                                 <SeverityComponent severity={result.severity} />
                                                                             </TableCell>
                                                                             <TableCell style={{ maxWidth: 300, wordBreak: 'break-word' }}>{result.message}</TableCell>
-                                                                            <TableCell style={{ whiteSpace: 'nowrap' }}>{new Date(result.timestamp.seconds * 1000).toLocaleString()}</TableCell>
+                                                                            <TableCell style={{ whiteSpace: 'nowrap' }}>{result.timestamp ? new Date(result.timestamp.seconds * 1000).toLocaleString() : ''}</TableCell>
                                                                         </TableRow>
                                                                     )) || (
                                                                         <TableRow>
