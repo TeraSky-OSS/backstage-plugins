@@ -1,6 +1,6 @@
 # API Docs Module - CRD Frontend
 
-[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-api-docs-module-crd/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-api-docs-module-crd)
+[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-api-docs-module-crd/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-api-docs-module-crd) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-api-docs-module-crd)
 
 ## Overview
 

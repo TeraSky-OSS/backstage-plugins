@@ -1,6 +1,6 @@
 # VCF SSO Authentication Backend Module
 
-[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-vcfsso-auth-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-vcfsso-auth-backend)
+[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-vcfsso-auth-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-vcfsso-auth-backend) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-vcfsso-auth-backend)
 
 ## Overview
 

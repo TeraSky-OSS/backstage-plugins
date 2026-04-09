@@ -1,6 +1,6 @@
 # Crossplane Resources Frontend Plugin
 
-[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-crossplane-resources-frontend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-crossplane-resources-frontend)
+[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-crossplane-resources-frontend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-crossplane-resources-frontend) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-crossplane-resources-frontend)
 
 ## Overview
 

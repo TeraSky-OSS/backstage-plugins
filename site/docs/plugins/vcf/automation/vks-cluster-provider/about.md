@@ -1,6 +1,6 @@
 # VCFA VKS Cluster Provider Plugin
 
-[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-vcfa-vks-cluster-provider/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-vcfa-vks-cluster-provider)
+[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-vcfa-vks-cluster-provider/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-vcfa-vks-cluster-provider) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-vcfa-vks-cluster-provider)
 
 ## Overview
 

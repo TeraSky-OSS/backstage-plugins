@@ -1,6 +1,6 @@
 # Entity Scaffolder Content Frontend Plugin
 
-[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-entity-scaffolder-content/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-entity-scaffolder-content)
+[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-entity-scaffolder-content/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-entity-scaffolder-content) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-entity-scaffolder-content)
 
 ## Overview
 

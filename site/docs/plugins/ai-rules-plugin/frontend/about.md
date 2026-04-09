@@ -1,6 +1,6 @@
 # AI Coding Rules Frontend Plugin
 
-[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-ai-rules/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-ai-rules)
+[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-ai-rules/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-ai-rules) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-ai-rules)
 
 ## Overview
 

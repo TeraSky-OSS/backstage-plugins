@@ -1,6 +1,6 @@
 # Educates Frontend Plugin
 
-[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-educates/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-educates)
+[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-educates/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-educates) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-educates)
 
 ## Overview
 

@@ -1,6 +1,6 @@
 # ScaleOps Backend Plugin
 
-[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-scaleops-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-scaleops-backend)
+[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-scaleops-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-scaleops-backend) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-scaleops-backend)
 
 ## Overview
 

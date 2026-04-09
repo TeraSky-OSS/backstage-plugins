@@ -1,6 +1,6 @@
 # RBAC MCP Backend Plugin
 
-[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-rbac-mcp-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-rbac-mcp-backend)
+[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-rbac-mcp-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-rbac-mcp-backend) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-rbac-mcp-backend)
 
 ## Overview
 

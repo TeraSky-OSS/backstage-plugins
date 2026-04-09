@@ -1,6 +1,6 @@
 # GitOps Manifest Updater Frontend Plugin
 
-[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-gitops-manifest-updater/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-gitops-manifest-updater)
+[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-gitops-manifest-updater/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-gitops-manifest-updater) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-gitops-manifest-updater)
 
 ## Overview
 

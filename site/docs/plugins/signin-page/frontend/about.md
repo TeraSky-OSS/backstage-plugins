@@ -1,6 +1,6 @@
 # Global Sign-In Page Frontend Module
 
-[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-app-module-global-signin-page/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-app-module-global-signin-page)
+[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-app-module-global-signin-page/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-app-module-global-signin-page) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-app-module-global-signin-page)
 
 ## Overview
 

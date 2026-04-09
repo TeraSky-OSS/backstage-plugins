@@ -6,109 +6,266 @@ These plugins are built and tested against Backstage version 1.49.4
 
 ## Plugin overviews
 There are 52 plugins currently:
-1. [Kubernetes Ingestor](./plugins/kubernetes-ingestor) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-kubernetes-ingestor/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-kubernetes-ingestor) - this plugin is a catalog entity provider which creates catalog entities directly from kubernetes resources. It has the ability to ingest by default all standard k8s workload types, allows supplying custom GVKs, and has the ability to auto-ingest all crossplane claims and KRO instances automatically as components. There are numerous annotations which can be put on the kubernetes workloads to influence the creation of the component in backstage. It also supports creating backstage templates and registers them in the catalog for every XRD in your cluster for the Claim resource type.
 
-2. [Crossplane Resources Frontend](./plugins/crossplane-resources) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-crossplane-resources-frontend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-crossplane-resources-frontend) - this is a frontend plugin which provides visibility into the crossplane claim, composite resource and managed resources associated with a component. This relies heavily on system generated annotations from the Kubernetes Ingestor but technically does not require it if you add all the needed annotations manually. The plugin exposes general data, provides a YAML viewer for each resource including the ability to copy to clipboard the content or download the yaml file. It also supports viewing the events related to a specific resource and includes a graph view of the resources related to a claim.
+1. [Kubernetes Ingestor](./plugins/kubernetes-ingestor)
 
-3. [Crossplane Resources Backend](./plugins/crossplane-resources-backend) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-crossplane-resources-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-crossplane-resources-backend) - This plugin implements the permission framework elements for the crossplane frontend plugin and provides necessary backend services.
+   [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-kubernetes-ingestor/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-kubernetes-ingestor) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-kubernetes-ingestor)  
+   this plugin is a catalog entity provider which creates catalog entities directly from kubernetes resources. It has the ability to ingest by default all standard k8s workload types, allows supplying custom GVKs, and has the ability to auto-ingest all crossplane claims and KRO instances automatically as components. There are numerous annotations which can be put on the kubernetes workloads to influence the creation of the component in backstage. It also supports creating backstage templates and registers them in the catalog for every XRD in your cluster for the Claim resource type.
 
-4. [Crossplane Common](./plugins/crossplane-common) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-crossplane-common/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-crossplane-common) - This is a shared common library between the frontend and backend crossplane plugins where the permission definitions reside. This is not added into a backstage instance directly, rather it is a dependency of both of the other plugins.
+2. [Crossplane Resources Frontend](./plugins/crossplane-resources)
 
-5. [ScaleOps Frontend](./plugins/scaleops-frontend) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-scaleops-frontend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-scaleops-frontend) - this is a frontend plugin which displays cost optimization data from ScaleOps for Kubernetes workloads on your component. It shows potential and realized savings, resource recommendations, and provides links to the ScaleOps dashboard.
+   [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-crossplane-resources-frontend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-crossplane-resources-frontend) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-crossplane-resources-frontend)  
+   this is a frontend plugin which provides visibility into the crossplane claim, composite resource and managed resources associated with a component. This relies heavily on system generated annotations from the Kubernetes Ingestor but technically does not require it if you add all the needed annotations manually. The plugin exposes general data, provides a YAML viewer for each resource including the ability to copy to clipboard the content or download the yaml file. It also supports viewing the events related to a specific resource and includes a graph view of the resources related to a claim.
 
-6. [ScaleOps Backend](./plugins/scaleops-backend) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-scaleops-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-scaleops-backend) - this backend plugin provides secure server-side authentication with ScaleOps, API proxying for the frontend plugin, and exposes 5 entity-centric MCP actions for AI agents and automation tools to query cost optimization data, recommendations, network usage, and policy definitions.
+3. [Crossplane Resources Backend](./plugins/crossplane-resources-backend)
 
-7. [Entity Scaffolder Content](./plugins/entity-scaffolder-content) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-entity-scaffolder-content/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-entity-scaffolder-content) - This allows embedding a tab with scaffolder templates on a component. This can also populate the list of templates and data in the templates based on the context from which it is run.
+   [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-crossplane-resources-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-crossplane-resources-backend) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-crossplane-resources-backend)  
+   This plugin implements the permission framework elements for the crossplane frontend plugin and provides necessary backend services.
 
-8. [Devpod Plugin](./plugins/devpod-plugin) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-devpod/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-devpod) - this plugin adds a grid item on the overview tab of components allowing for a "Open in Devpod" button. It supports allowing the user to choose the IDE it should open with, and also provides the CLI command the user could run to open it up from the command line.
+4. [Crossplane Common](./plugins/crossplane-common)
 
-9. [Scaffolder Actions](./plugins/scaffolder-backend-module-terasky-utils) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils) - this is a package of multiple scaffolder actions:
-  * **terasky:claim-template** - This action converts input parameters into a kubernetes yaml manifest for the crossplane claim and writes it to the filesystem of the action based on the format "\<cluster\>/\<namespace\>/\<kind\>/\<name\>.yaml"
-  * **terasky:crd-template** - This action converts input parameters into a kubernetes yaml manifest for the Kubernetes Custom Resource and writes it to the filesystem of the action based on the format "\<cluster\>/\<namespace\>/\<kind\>/\<name\>.yaml"
-  * **terasky:catalog-info-cleaner** - This action takes a backstage entity and cleans up runtime information and then outputs as a catalog-info.yaml file on the filesystem of the action the cleaned up manifest.
+   [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-crossplane-common/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-crossplane-common) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-crossplane-common)  
+   This is a shared common library between the frontend and backend crossplane plugins where the permission definitions reside. This is not added into a backstage instance directly, rather it is a dependency of both of the other plugins.
 
-10. [Kyverno Policy Reports Frontend](./plugins/kyverno-policy-reports) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-kyverno-policy-reports/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-kyverno-policy-reports) - this is a frontend plugin which displays policy report results for kubernetes workloads related to a catalog entity.
+5. [ScaleOps Frontend](./plugins/scaleops-frontend)
 
-11. [Kyverno Policy Reports Backend](./plugins/kyverno-policy-reports-backend) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-kyverno-policy-reports-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-kyverno-policy-reports-backend) - this is a backend for the kyverno policy reports plugin.
+   [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-scaleops-frontend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-scaleops-frontend) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-scaleops-frontend)  
+   this is a frontend plugin which displays cost optimization data from ScaleOps for Kubernetes workloads on your component. It shows potential and realized savings, resource recommendations, and provides links to the ScaleOps dashboard.
 
-12. [Kyverno Common](./plugins/kyverno-common) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-kyverno-common/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-kyverno-common) - this is a common library between the frontend and backend kyverno plugins where the permission definitions reside.
+6. [ScaleOps Backend](./plugins/scaleops-backend)
 
-13. [GitOps Manifest Updater](./plugins/gitops-manifest-updater) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-gitops-manifest-updater/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-gitops-manifest-updater) - this is a frontend plugin which allows for updating the gitops manifest of a component residing in a git repository. It supports updating the manifest in the repository and creating a PR with the update. The manifest can be provided in an entity annotations (terasky.backstage.io/source-manifest-url) or by providing a URL to the manifest in the repository within the form.
+   [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-scaleops-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-scaleops-backend) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-scaleops-backend)  
+   this backend plugin provides secure server-side authentication with ScaleOps, API proxying for the frontend plugin, and exposes 5 entity-centric MCP actions for AI agents and automation tools to query cost optimization data, recommendations, network usage, and policy definitions.
 
-14. [Kubernetes Resources Frontend](./plugins/kubernetes-resources) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-kubernetes-resources-frontend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-kubernetes-resources-frontend) - this plugin provides a visual graph representation of Kubernetes resources and their dependencies within your clusters.
+7. [Entity Scaffolder Content](./plugins/entity-scaffolder-content)
 
-15. [Kubernetes Resources Backend](./plugins/kubernetes-resources-permissions-backend) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-kubernetes-resources-permissions-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-kubernetes-resources-permissions-backend) - this is a backend plugin which implements the permission framework elements for the kubernetes resources frontend plugin.
+   [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-entity-scaffolder-content/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-entity-scaffolder-content) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-entity-scaffolder-content)  
+   This allows embedding a tab with scaffolder templates on a component. This can also populate the list of templates and data in the templates based on the context from which it is run.
 
-16. [Kubernetes Resources Common](./plugins/kubernetes-resources-common) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-kubernetes-resources-common/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-kubernetes-resources-common) - this is a shared library between the frontend and backend kubernetes resources plugins.
+8. [Devpod Plugin](./plugins/devpod-plugin)
 
-17. [VCF Automation Frontend](./plugins/vcf-automation) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-vcf-automation/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-vcf-automation) - this plugin provides visibility into VCF deployments, resources, and projects.
+   [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-devpod/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-devpod) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-devpod)  
+   this plugin adds a grid item on the overview tab of components allowing for a "Open in Devpod" button. It supports allowing the user to choose the IDE it should open with, and also provides the CLI command the user could run to open it up from the command line.
 
-18. [VCF Automation Backend](./plugins/vcf-automation-backend) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-vcf-automation-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-vcf-automation-backend) - this backend plugin provides the API integration with VCF services and manages permissions.
+9. [Scaffolder Actions](./plugins/scaffolder-backend-module-terasky-utils)
 
-19. [VCF Automation Common](./plugins/vcf-automation-common) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-vcf-automation-common/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-vcf-automation-common) - this is a shared library between the frontend and backend VCF Automation plugins.
+   [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils)  
+   this is a package of multiple scaffolder actions:
+   * **terasky:claim-template** - This action converts input parameters into a kubernetes yaml manifest for the crossplane claim and writes it to the filesystem of the action based on the format "\<cluster\>/\<namespace\>/\<kind\>/\<name\>.yaml"
+   * **terasky:crd-template** - This action converts input parameters into a kubernetes yaml manifest for the Kubernetes Custom Resource and writes it to the filesystem of the action based on the format "\<cluster\>/\<namespace\>/\<kind\>/\<name\>.yaml"
+   * **terasky:catalog-info-cleaner** - This action takes a backstage entity and cleans up runtime information and then outputs as a catalog-info.yaml file on the filesystem of the action the cleaned up manifest.
 
-20. [VCF Automation Ingestor](./plugins/vcf-automation-ingestor) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-vcf-automation-ingestor/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-vcf-automation-ingestor) - this plugin ingests VCF Automation deployments into the Backstage catalog.
+10. [Kyverno Policy Reports Frontend](./plugins/kyverno-policy-reports)
 
-21. [Educates Frontend](./plugins/educates) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-educates/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-educates) - this plugin provides a user interface for browsing and accessing Educates training workshops.
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-kyverno-policy-reports/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-kyverno-policy-reports) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-kyverno-policy-reports)  
+    this is a frontend plugin which displays policy report results for kubernetes workloads related to a catalog entity.
 
-22. [Educates Backend](./plugins/educates-backend) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-educates-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-educates-backend) - this backend plugin handles the integration with Educates training portals.
+11. [Kyverno Policy Reports Backend](./plugins/kyverno-policy-reports-backend)
 
-23. [Educates Common](./plugins/educates-common) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-educates-common/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-educates-common) - this is a shared library between the frontend and backend Educates plugins.
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-kyverno-policy-reports-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-kyverno-policy-reports-backend) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-kyverno-policy-reports-backend)  
+    this is a backend for the kyverno policy reports plugin.
 
-24. [AI Rules Frontend](./plugins/ai-rules-plugin) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-ai-rules/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-ai-rules) - this frontend plugin provides comprehensive visualization and management of AI coding rules from various sources.
+12. [Kyverno Common](./plugins/kyverno-common)
 
-25. [AI Rules Backend](./plugins/ai-rules-plugin-backend) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-ai-rules-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-ai-rules-backend) - this backend plugin provides server-side functionality for the AI Rules frontend plugin.
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-kyverno-common/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-kyverno-common) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-kyverno-common)  
+    this is a common library between the frontend and backend kyverno plugins where the permission definitions reside.
 
-26. [VCF Operations Frontend](./plugins/vcf-operations) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-vcf-operations/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-vcf-operations) - this plugin provides visibility into VCF Operations metrics.
+13. [GitOps Manifest Updater](./plugins/gitops-manifest-updater)
 
-27. [VCF Operations Backend](./plugins/vcf-operations-backend) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-vcf-operations-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-vcf-operations-backend) - this backend plugin provides the API integration with VCF operations.
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-gitops-manifest-updater/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-gitops-manifest-updater) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-gitops-manifest-updater)  
+    this is a frontend plugin which allows for updating the gitops manifest of a component residing in a git repository. It supports updating the manifest in the repository and creating a PR with the update. The manifest can be provided in an entity annotations (terasky.backstage.io/source-manifest-url) or by providing a URL to the manifest in the repository within the form.
 
-28. [VCF Operations Common](./plugins/vcf-operations-common) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-vcf-operations-common/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-vcf-operations-common) - this is a shared library between the frontend and backend VCF operations plugins.
+14. [Kubernetes Resources Frontend](./plugins/kubernetes-resources)
 
-29. [Terraform Scaffolder](./plugins/terraform-scaffolder) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-terraform-scaffolder/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-terraform-scaffolder) - this frontend plugin provides a custom field type for Software Templates that enables discovering and configuring Terraform modules.
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-kubernetes-resources-frontend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-kubernetes-resources-frontend) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-kubernetes-resources-frontend)  
+    this plugin provides a visual graph representation of Kubernetes resources and their dependencies within your clusters.
 
-30. [KRO Resources Frontend](./plugins/kro-resources) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-kro-resources-frontend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-kro-resources-frontend) - this plugin provides visibility into KRO RGDs, instances, and managed resources associated with a component.
+15. [Kubernetes Resources Backend](./plugins/kubernetes-resources-permissions-backend)
 
-31. [KRO Resources Backend](./plugins/kro-resources-backend) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-kro-resources-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-kro-resources-backend) - this plugin implements the backend elements for the KRO frontend plugin.
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-kubernetes-resources-permissions-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-kubernetes-resources-permissions-backend) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-kubernetes-resources-permissions-backend)  
+    this is a backend plugin which implements the permission framework elements for the kubernetes resources frontend plugin.
 
-32. [KRO Common](./plugins/kro-common) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-kro-common/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-kro-common) - this is a shared library between the frontend and backend KRO plugins.
+16. [Kubernetes Resources Common](./plugins/kubernetes-resources-common)
 
-33. [Scaffolder MCP Backend](./plugins/scaffolder-mcp-backend) - [![npm latest version](https://img.shields.io/npm/v/@terasky/plugin-scaffolder-mcp-backend/latest.svg)](https://www.npmjs.com/package/@terasky/plugin-scaffolder-mcp-backend) - this backend plugin provides Model Context Protocol (MCP) actions for interacting with Backstage software templates. It enables AI agents and automation tools to discover, inspect, and execute software templates programmatically through 7 comprehensive MCP actions covering template management, scaffolder actions discovery, and template extensions discovery.
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-kubernetes-resources-common/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-kubernetes-resources-common) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-kubernetes-resources-common)  
+    this is a shared library between the frontend and backend kubernetes resources plugins.
 
-34. [RBAC MCP Backend](./plugins/rbac-mcp-backend) - [![npm latest version](https://img.shields.io/npm/v/@terasky/plugin-rbac-mcp-backend/latest.svg)](https://www.npmjs.com/package/@terasky/plugin-rbac-mcp-backend) - this backend plugin provides Model Context Protocol (MCP) actions for managing Role-Based Access Control (RBAC) in Backstage. It enables AI agents and automation tools to discover, manage, and audit roles, permissions, and access policies programmatically through 10 comprehensive MCP actions covering discovery, management, and audit capabilities.
+17. [VCF Automation Frontend](./plugins/vcf-automation)
 
-35. [Catalog MCP Backend](./plugins/catalog-mcp-backend) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-catalog-mcp-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-catalog-mcp-backend) - this backend plugin provides Model Context Protocol (MCP) actions for querying the Backstage Catalog. It enables AI agents and automation tools to discover and query catalog entities programmatically through 5 flexible MCP actions supporting owner-based queries, annotation searches, entity type discovery, and custom filtering with field selection.
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-vcf-automation/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-vcf-automation) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-vcf-automation)  
+    this plugin provides visibility into VCF deployments, resources, and projects.
 
-36. [Global Sign-In Page Module](./plugins/app-module-global-signin-page) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-app-module-global-signin-page/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-app-module-global-signin-page) - this frontend plugin module provides a configuration-driven sign-in page for Backstage that supports all core authentication providers (including SpectroCloud) through simple YAML configuration, eliminating the need to write TypeScript code for sign-in page customization.
+18. [VCF Automation Backend](./plugins/vcf-automation-backend)
 
-37. [SpectroCloud Frontend](./plugins/spectrocloud) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-spectrocloud/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-spectrocloud) - this frontend plugin provides entity cards for visualizing SpectroCloud clusters and cluster profiles in the Backstage catalog. It displays cluster information including Kubernetes version, attached profiles, cloud type, and provides kubeconfig download functionality with permission-based access control.
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-vcf-automation-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-vcf-automation-backend) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-vcf-automation-backend)  
+    this backend plugin provides the API integration with VCF services and manages permissions.
 
-38. [SpectroCloud Backend](./plugins/spectrocloud-backend) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-spectrocloud-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-spectrocloud-backend) - this backend plugin provides HTTP API endpoints for the frontend plugin and MCP actions for AI agents. It handles kubeconfig downloads, cluster details retrieval, profile searches, and pack/manifest viewing with comprehensive permission support.
+19. [VCF Automation Common](./plugins/vcf-automation-common)
 
-39. [SpectroCloud Ingestor](./plugins/spectrocloud-ingestor) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-spectrocloud-ingestor/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-spectrocloud-ingestor) - this backend plugin is a catalog entity provider that automatically ingests SpectroCloud Palette resources (projects, cluster profiles, and clusters) into the Backstage catalog with proper relationship mapping.
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-vcf-automation-common/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-vcf-automation-common) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-vcf-automation-common)  
+    this is a shared library between the frontend and backend VCF Automation plugins.
 
-40. [SpectroCloud Common](./plugins/spectrocloud-common) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-spectrocloud-common/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-spectrocloud-common) - this is a shared library between the SpectroCloud frontend and backend plugins containing permission definitions, types, and common utilities.
+20. [VCF Automation Ingestor](./plugins/vcf-automation-ingestor)
 
-41. [SpectroCloud Kubernetes Cluster Provider](./plugins/spectrocloud-cluster-provider) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-spectrocloud-cluster-provider/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-spectrocloud-cluster-provider) - this backend plugin is a Kubernetes cluster supplier that automatically discovers and configures clusters from SpectroCloud Palette. It works seamlessly alongside existing cluster suppliers (config, catalog, gke, localKubectlProxy) and supports both service account authentication (with automatic RBAC setup) and OIDC authentication (user-level access without cluster resources).
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-vcf-automation-ingestor/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-vcf-automation-ingestor) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-vcf-automation-ingestor)  
+    this plugin ingests VCF Automation deployments into the Backstage catalog.
 
-42. [SpectroCloud Auth Backend](./plugins/spectrocloud-auth-backend) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-spectrocloud-auth-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-spectrocloud-auth-backend) - this backend module provides SpectroCloud OIDC authentication integration with proper token exchange for Backstage. It implements the OAuth2 authorization code flow to obtain RS256-signed ID tokens that can be used for user authentication and Kubernetes cluster access.
+21. [Educates Frontend](./plugins/educates)
 
-43. [SpectroCloud Auth Frontend](./plugins/spectrocloud-auth) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-spectrocloud-auth/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-spectrocloud-auth) - this frontend plugin provides the OAuth2 client implementation for SpectroCloud OIDC authentication. It creates the API references and OAuth2 client that enable sign-in functionality, session management, and integration with Backstage's authentication system.
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-educates/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-educates) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-educates)  
+    this plugin provides a user interface for browsing and accessing Educates training workshops.
 
-44. [SpectroCloud Kubernetes Auth Module](./plugins/spectrocloud-kubernetes-auth-module) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-spectrocloud-kubernetes-auth-module/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-spectrocloud-kubernetes-auth-module) - this frontend module extends the Backstage Kubernetes plugin to add SpectroCloud OIDC authentication support. It enables user-level authentication to Kubernetes clusters using SpectroCloud identity tokens, providing audit trails without requiring service account management.
+22. [Educates Backend](./plugins/educates-backend)
 
-45. [Spring Initializer Frontend](./plugins/spring-initializer) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-spring-initializer/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-spring-initializer) - this plugin provides a field extension for Software Templates that dynamically generates Spring Boot project configurations. It fetches metadata from Spring Initializer API, provides smart dependency filtering based on Spring Boot version compatibility, and supports admin configuration to enforce company standards through read-only fields, required dependencies, and disallowed dependencies.
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-educates-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-educates-backend) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-educates-backend)  
+    this backend plugin handles the integration with Educates training portals.
 
-46. [Spring Initializer Backend](./plugins/scaffolder-backend-module-spring-initializer) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-scaffolder-backend-module-spring-initializer/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-scaffolder-backend-module-spring-initializer) - this backend module provides the `terasky:spring-initializer` scaffolder action that generates Spring Boot projects by calling the Spring Initializer API, downloading the ZIP file, and extracting it to the workspace with detailed error handling and parameter validation.
+23. [Educates Common](./plugins/educates-common)
 
-47. [API Docs Module - CRD](./plugins/api-docs-module-crd) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-api-docs-module-crd/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-api-docs-module-crd) - this frontend module extends the Backstage API Docs plugin with interactive Kubernetes CRD documentation. It provides a doc.crds.dev-style visualization interface with multi-version support, property exploration with type information and descriptions, expand/collapse controls, example YAML manifest generation, and direct link sharing to specific CRD properties. It supports both standard Kubernetes CRD formats and simplified schemas.
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-educates-common/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-educates-common) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-educates-common)  
+    this is a shared library between the frontend and backend Educates plugins.
 
-48. [Template Builder](./plugins/template-builder) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-template-builder/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-template-builder) - this frontend plugin provides a visual WYSIWYG editor for creating and editing Backstage Software Templates. It features an interactive workflow canvas with React Flow for drag-and-drop action design, real-time YAML synchronization with Monaco editor including intelligent autocomplete for actions and parameters, automatic field extension discovery supporting all registered Backstage field types, comprehensive input parameter designer, template validation with error reporting, automatic graph layout (horizontal/vertical), and entity action integration for quick template editing from the catalog.
+24. [AI Rules Frontend](./plugins/ai-rules-plugin)
 
-49. [Frontend Extensions Explorer](./plugins/frontend-extensions-explorer) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-frontend-extensions-explorer/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-frontend-extensions-explorer) - this frontend plugin provides a live introspection page for the New Frontend System (NFS). It reads the runtime app extension tree via the built-in `appTreeApiRef` and displays all registered extensions grouped by plugin, showing each extension's type, enabled/disabled status, attachment point, active configuration, and output data refs — all without any backend or network calls.
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-ai-rules/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-ai-rules) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-ai-rules)  
+    this frontend plugin provides comprehensive visualization and management of AI coding rules from various sources.
 
-50. [VCFA VKS Cluster Provider](./plugins/vcfa-vks-cluster-provider) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-vcfa-vks-cluster-provider/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-vcfa-vks-cluster-provider) - this backend plugin is a Kubernetes cluster supplier that automatically discovers and configures VKS (Tanzu Kubernetes) clusters from VCF Automation. It authenticates with VCFA using the vCloud Director session API, discovers all VKS clusters via the supervisor resources API, fetches their admin kubeconfigs through the VCFA proxy API, and automatically sets up service account based read-only access in each cluster.
+25. [AI Rules Backend](./plugins/ai-rules-plugin-backend)
 
-51. [VCF SSO Auth Frontend](./plugins/vcfsso-auth) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-vcfsso-auth/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-vcfsso-auth) - this frontend plugin provides the OAuth2 client implementation for VCF SSO OIDC authentication in Backstage. It creates the `vcfSsoAuthApiRef` API reference and OAuth2 client that enable sign-in functionality and session management using VCF SSO as the identity provider, with a fullscreen popup for the authentication flow.
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-ai-rules-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-ai-rules-backend) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-ai-rules-backend)  
+    this backend plugin provides server-side functionality for the AI Rules frontend plugin.
 
-52. [VCF SSO Auth Backend](./plugins/vcfsso-auth-backend) - [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-vcfsso-auth-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-vcfsso-auth-backend) - this backend module integrates VCF SSO as an OIDC authentication provider for the Backstage auth backend. It uses the standard OIDC authenticator and includes a custom profile transform to handle VCF SSO's non-standard identity claims (the `acct` claim is used for the email address instead of the standard `email` claim), with support for all standard Backstage sign-in resolvers.
+26. [VCF Operations Frontend](./plugins/vcf-operations)
+
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-vcf-operations/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-vcf-operations) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-vcf-operations)  
+    this plugin provides visibility into VCF Operations metrics.
+
+27. [VCF Operations Backend](./plugins/vcf-operations-backend)
+
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-vcf-operations-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-vcf-operations-backend) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-vcf-operations-backend)  
+    this backend plugin provides the API integration with VCF operations.
+
+28. [VCF Operations Common](./plugins/vcf-operations-common)
+
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-vcf-operations-common/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-vcf-operations-common) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-vcf-operations-common)  
+    this is a shared library between the frontend and backend VCF operations plugins.
+
+29. [Terraform Scaffolder](./plugins/terraform-scaffolder)
+
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-terraform-scaffolder/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-terraform-scaffolder) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-terraform-scaffolder)  
+    this frontend plugin provides a custom field type for Software Templates that enables discovering and configuring Terraform modules.
+
+30. [KRO Resources Frontend](./plugins/kro-resources)
+
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-kro-resources-frontend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-kro-resources-frontend) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-kro-resources-frontend)  
+    this plugin provides visibility into KRO RGDs, instances, and managed resources associated with a component.
+
+31. [KRO Resources Backend](./plugins/kro-resources-backend)
+
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-kro-resources-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-kro-resources-backend) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-kro-resources-backend)  
+    this plugin implements the backend elements for the KRO frontend plugin.
+
+32. [KRO Common](./plugins/kro-common)
+
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-kro-common/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-kro-common) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-kro-common)  
+    this is a shared library between the frontend and backend KRO plugins.
+
+33. [Scaffolder MCP Backend](./plugins/scaffolder-mcp-backend)
+
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/plugin-scaffolder-mcp-backend/latest.svg)](https://www.npmjs.com/package/@terasky/plugin-scaffolder-mcp-backend) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/plugin-scaffolder-mcp-backend)  
+    this backend plugin provides Model Context Protocol (MCP) actions for interacting with Backstage software templates. It enables AI agents and automation tools to discover, inspect, and execute software templates programmatically through 7 comprehensive MCP actions covering template management, scaffolder actions discovery, and template extensions discovery.
+
+34. [RBAC MCP Backend](./plugins/rbac-mcp-backend)
+
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/plugin-rbac-mcp-backend/latest.svg)](https://www.npmjs.com/package/@terasky/plugin-rbac-mcp-backend) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/plugin-rbac-mcp-backend)  
+    this backend plugin provides Model Context Protocol (MCP) actions for managing Role-Based Access Control (RBAC) in Backstage. It enables AI agents and automation tools to discover, manage, and audit roles, permissions, and access policies programmatically through 10 comprehensive MCP actions covering discovery, management, and audit capabilities.
+
+35. [Catalog MCP Backend](./plugins/catalog-mcp-backend)
+
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-catalog-mcp-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-catalog-mcp-backend) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-catalog-mcp-backend)  
+    this backend plugin provides Model Context Protocol (MCP) actions for querying the Backstage Catalog. It enables AI agents and automation tools to discover and query catalog entities programmatically through 5 flexible MCP actions supporting owner-based queries, annotation searches, entity type discovery, and custom filtering with field selection.
+
+36. [Global Sign-In Page Module](./plugins/app-module-global-signin-page)
+
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-app-module-global-signin-page/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-app-module-global-signin-page) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-app-module-global-signin-page)  
+    this frontend plugin module provides a configuration-driven sign-in page for Backstage that supports all core authentication providers (including SpectroCloud) through simple YAML configuration, eliminating the need to write TypeScript code for sign-in page customization.
+
+37. [SpectroCloud Frontend](./plugins/spectrocloud)
+
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-spectrocloud/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-spectrocloud) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-spectrocloud)  
+    this frontend plugin provides entity cards for visualizing SpectroCloud clusters and cluster profiles in the Backstage catalog. It displays cluster information including Kubernetes version, attached profiles, cloud type, and provides kubeconfig download functionality with permission-based access control.
+
+38. [SpectroCloud Backend](./plugins/spectrocloud-backend)
+
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-spectrocloud-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-spectrocloud-backend) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-spectrocloud-backend)  
+    this backend plugin provides HTTP API endpoints for the frontend plugin and MCP actions for AI agents. It handles kubeconfig downloads, cluster details retrieval, profile searches, and pack/manifest viewing with comprehensive permission support.
+
+39. [SpectroCloud Ingestor](./plugins/spectrocloud-ingestor)
+
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-spectrocloud-ingestor/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-spectrocloud-ingestor) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-spectrocloud-ingestor)  
+    this backend plugin is a catalog entity provider that automatically ingests SpectroCloud Palette resources (projects, cluster profiles, and clusters) into the Backstage catalog with proper relationship mapping.
+
+40. [SpectroCloud Common](./plugins/spectrocloud-common)
+
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-spectrocloud-common/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-spectrocloud-common) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-spectrocloud-common)  
+    this is a shared library between the SpectroCloud frontend and backend plugins containing permission definitions, types, and common utilities.
+
+41. [SpectroCloud Kubernetes Cluster Provider](./plugins/spectrocloud-cluster-provider)
+
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-spectrocloud-cluster-provider/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-spectrocloud-cluster-provider) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-spectrocloud-cluster-provider)  
+    this backend plugin is a Kubernetes cluster supplier that automatically discovers and configures clusters from SpectroCloud Palette. It works seamlessly alongside existing cluster suppliers (config, catalog, gke, localKubectlProxy) and supports both service account authentication (with automatic RBAC setup) and OIDC authentication (user-level access without cluster resources).
+
+42. [SpectroCloud Auth Backend](./plugins/spectrocloud-auth-backend)
+
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-spectrocloud-auth-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-spectrocloud-auth-backend) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-spectrocloud-auth-backend)  
+    this backend module provides SpectroCloud OIDC authentication integration with proper token exchange for Backstage. It implements the OAuth2 authorization code flow to obtain RS256-signed ID tokens that can be used for user authentication and Kubernetes cluster access.
+
+43. [SpectroCloud Auth Frontend](./plugins/spectrocloud-auth)
+
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-spectrocloud-auth/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-spectrocloud-auth) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-spectrocloud-auth)  
+    this frontend plugin provides the OAuth2 client implementation for SpectroCloud OIDC authentication. It creates the API references and OAuth2 client that enable sign-in functionality, session management, and integration with Backstage's authentication system.
+
+44. [SpectroCloud Kubernetes Auth Module](./plugins/spectrocloud-kubernetes-auth-module)
+
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-spectrocloud-kubernetes-auth-module/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-spectrocloud-kubernetes-auth-module) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-spectrocloud-kubernetes-auth-module)  
+    this frontend module extends the Backstage Kubernetes plugin to add SpectroCloud OIDC authentication support. It enables user-level authentication to Kubernetes clusters using SpectroCloud identity tokens, providing audit trails without requiring service account management.
+
+45. [Spring Initializer Frontend](./plugins/spring-initializer)
+
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-spring-initializer/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-spring-initializer) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-spring-initializer)  
+    this plugin provides a field extension for Software Templates that dynamically generates Spring Boot project configurations. It fetches metadata from Spring Initializer API, provides smart dependency filtering based on Spring Boot version compatibility, and supports admin configuration to enforce company standards through read-only fields, required dependencies, and disallowed dependencies.
+
+46. [Spring Initializer Backend](./plugins/scaffolder-backend-module-spring-initializer)
+
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-scaffolder-backend-module-spring-initializer/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-scaffolder-backend-module-spring-initializer) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-scaffolder-backend-module-spring-initializer)  
+    this backend module provides the `terasky:spring-initializer` scaffolder action that generates Spring Boot projects by calling the Spring Initializer API, downloading the ZIP file, and extracting it to the workspace with detailed error handling and parameter validation.
+
+47. [API Docs Module - CRD](./plugins/api-docs-module-crd)
+
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-api-docs-module-crd/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-api-docs-module-crd) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-api-docs-module-crd)  
+    this frontend module extends the Backstage API Docs plugin with interactive Kubernetes CRD documentation. It provides a doc.crds.dev-style visualization interface with multi-version support, property exploration with type information and descriptions, expand/collapse controls, example YAML manifest generation, and direct link sharing to specific CRD properties. It supports both standard Kubernetes CRD formats and simplified schemas.
+
+48. [Template Builder](./plugins/template-builder)
+
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-template-builder/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-template-builder) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-template-builder)  
+    this frontend plugin provides a visual WYSIWYG editor for creating and editing Backstage Software Templates. It features an interactive workflow canvas with React Flow for drag-and-drop action design, real-time YAML synchronization with Monaco editor including intelligent autocomplete for actions and parameters, automatic field extension discovery supporting all registered Backstage field types, comprehensive input parameter designer, template validation with error reporting, automatic graph layout (horizontal/vertical), and entity action integration for quick template editing from the catalog.
+
+49. [Frontend Extensions Explorer](./plugins/frontend-extensions-explorer)
+
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-frontend-extensions-explorer/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-frontend-extensions-explorer) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-frontend-extensions-explorer)  
+    this frontend plugin provides a live introspection page for the New Frontend System (NFS). It reads the runtime app extension tree via the built-in `appTreeApiRef` and displays all registered extensions grouped by plugin, showing each extension's type, enabled/disabled status, attachment point, active configuration, and output data refs — all without any backend or network calls.
+
+50. [VCFA VKS Cluster Provider](./plugins/vcfa-vks-cluster-provider)
+
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-vcfa-vks-cluster-provider/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-vcfa-vks-cluster-provider) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-vcfa-vks-cluster-provider)  
+    this backend plugin is a Kubernetes cluster supplier that automatically discovers and configures VKS (Tanzu Kubernetes) clusters from VCF Automation. It authenticates with VCFA using the vCloud Director session API, discovers all VKS clusters via the supervisor resources API, fetches their admin kubeconfigs through the VCFA proxy API, and automatically sets up service account based read-only access in each cluster.
+
+51. [VCF SSO Auth Frontend](./plugins/vcfsso-auth)
+
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-vcfsso-auth/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-vcfsso-auth) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-vcfsso-auth)  
+    this frontend plugin provides the OAuth2 client implementation for VCF SSO OIDC authentication in Backstage. It creates the `vcfSsoAuthApiRef` API reference and OAuth2 client that enable sign-in functionality and session management using VCF SSO as the identity provider, with a fullscreen popup for the authentication flow.
+
+52. [VCF SSO Auth Backend](./plugins/vcfsso-auth-backend)
+
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-vcfsso-auth-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-vcfsso-auth-backend) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-vcfsso-auth-backend)  
+    this backend module integrates VCF SSO as an OIDC authentication provider for the Backstage auth backend. It uses the standard OIDC authenticator and includes a custom profile transform to handle VCF SSO's non-standard identity claims (the `acct` claim is used for the email address instead of the standard `email` claim), with support for all standard Backstage sign-in resolvers.

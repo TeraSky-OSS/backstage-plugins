@@ -1,6 +1,6 @@
 # Template Builder Frontend Plugin
 
-[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-template-builder/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-template-builder)
+[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-template-builder/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-template-builder) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-template-builder)
 
 ## Overview
 

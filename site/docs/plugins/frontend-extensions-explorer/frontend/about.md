@@ -1,6 +1,6 @@
 # Frontend Extensions Explorer Plugin
 
-[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-frontend-extensions-explorer/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-frontend-extensions-explorer)
+[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-frontend-extensions-explorer/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-frontend-extensions-explorer) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-frontend-extensions-explorer)
 
 ## Overview
 

@@ -1,6 +1,6 @@
 # VCF Automation Frontend Plugin
 
-[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-vcf-automation/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-vcf-automation)
+[![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-vcf-automation/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-vcf-automation) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-vcf-automation)
 
 ## Overview
 

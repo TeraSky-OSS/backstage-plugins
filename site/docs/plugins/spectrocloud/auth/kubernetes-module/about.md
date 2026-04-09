@@ -1,6 +1,6 @@
 # SpectroCloud Kubernetes Authentication Module
 
-[![npm latest version](https://img.shields.io/npm/v/@terasky/spectrocloud-kubernetes-auth-module/latest.svg)](https://www.npmjs.com/package/@terasky/spectrocloud-kubernetes-auth-module)
+[![npm latest version](https://img.shields.io/npm/v/@terasky/spectrocloud-kubernetes-auth-module/latest.svg)](https://www.npmjs.com/package/@terasky/spectrocloud-kubernetes-auth-module) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/spectrocloud-kubernetes-auth-module)
 
 ## Overview
 
