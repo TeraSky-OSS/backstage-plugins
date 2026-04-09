@@ -234,7 +234,12 @@ export const ScaleOpsDashboard = () => {
         },
         body: JSON.stringify({ label: labelSelector.split(',') }),
       });
-      
+
+      if (!response.ok) {
+        console.error(`ScaleOps workloads request failed: ${response.status} ${response.statusText}`);
+        return;
+      }
+
       const data = await response.json();
       if (!data.workloads || !Array.isArray(data.workloads) || data.workloads.length === 0) {
         setWorkloads([]);
@@ -308,6 +313,12 @@ export const ScaleOpsDashboard = () => {
           labels: labelSelector.split(','),
         }),
       });
+
+      if (!response.ok) {
+        console.error(`ScaleOps cost report request failed: ${response.status} ${response.statusText}`);
+        return;
+      }
+
       const data = await response.json();
       const aggregatedWorkloadData = data.aggregatedWorkloads.find((w: any) => w.id.toLowerCase() === selectedWorkload.id.toLowerCase());
       setAggregatedWorkload(aggregatedWorkloadData);
@@ -335,6 +346,12 @@ export const ScaleOpsDashboard = () => {
           Authorization: `Bearer ${token.token}` 
         },
       });
+
+      if (!response.ok) {
+        console.error(`ScaleOps network cost check failed: ${response.status} ${response.statusText}`);
+        return;
+      }
+
       const data = await response.json();
       if (selectedWorkload && data.networkCostEnabled[selectedWorkload.clusterName]) {
         setNetworkCostEnabled(true);
@@ -371,6 +388,12 @@ export const ScaleOpsDashboard = () => {
           Authorization: `Bearer ${token.token}` 
         },
       });
+
+      if (!response.ok) {
+        console.error(`ScaleOps network usage request failed: ${response.status} ${response.statusText}`);
+        return;
+      }
+
       const data = await response.json();
       setNetworkUsage(data.destinations);
     };

@@ -21,7 +21,7 @@ jest.mock('@backstage/core-components', () => ({
 }));
 
 const mockConfigApi = {
-  getString: jest.fn().mockReturnValue('http://localhost:7007'),
+  getString: jest.fn().mockReturnValue('http://backstage-test'),
   getOptionalString: jest.fn(),
   getConfig: jest.fn(),
   getOptionalConfig: jest.fn(),
@@ -69,20 +69,11 @@ const createMockResponse = (overrides = {}) => ({
   ...overrides,
 });
 
-const createFetchMock = (responseData = createMockResponse()) => {
-  return jest.fn().mockImplementation(() =>
-    Promise.resolve({
-      ok: true,
-      json: () => Promise.resolve(responseData),
-    })
-  );
-};
 
 describe('ScaleOpsDashboard', () => {
-  let originalFetch: typeof global.fetch;
+  let fetchSpy: jest.SpyInstance;
 
   beforeEach(() => {
-    originalFetch = global.fetch;
     jest.clearAllMocks();
 
     // Re-configure mocks after clearing
@@ -91,13 +82,18 @@ describe('ScaleOpsDashboard', () => {
     const { useEntity } = require('@backstage/plugin-catalog-react');
     useEntity.mockReturnValue({ entity: mockEntity });
 
-    // Set up default fetch mock
-    global.fetch = createFetchMock();
+    // Use spyOn so Node 24's built-in fetch is reliably intercepted
+    fetchSpy = jest.spyOn(global, 'fetch').mockImplementation(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(createMockResponse()),
+      } as any),
+    );
   });
 
   afterEach(() => {
+    fetchSpy?.mockRestore();
     cleanup();
-    global.fetch = originalFetch;
     jest.clearAllTimers();
   });
 
@@ -216,13 +212,13 @@ describe('ScaleOpsDashboard', () => {
   });
 
   it('should handle non-ok response gracefully', async () => {
-    global.fetch = jest.fn().mockImplementation(() =>
+    fetchSpy.mockImplementation(() =>
       Promise.resolve({
         ok: false,
         status: 500,
         statusText: 'Internal Server Error',
         json: () => Promise.resolve({ error: 'Server Error' }),
-      })
+      } as any),
     );
 
     const { container } = render(
@@ -303,7 +299,12 @@ describe('ScaleOpsDashboard', () => {
       ],
     });
 
-    global.fetch = createFetchMock(mockData);
+    fetchSpy.mockImplementation(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(mockData),
+      } as any),
+    );
 
     const { getAllByTestId } = render(
       <TestApiProvider
