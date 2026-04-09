@@ -3941,9 +3941,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/plugin-mcp-actions-backend@npm:^0.1.10":
-  version: 0.1.10
-  resolution: "@backstage/plugin-mcp-actions-backend@npm:0.1.10"
+"@backstage/plugin-mcp-actions-backend@npm:^0.1.11":
+  version: 0.1.11
+  resolution: "@backstage/plugin-mcp-actions-backend@npm:0.1.11"
   dependencies:
     "@backstage/backend-plugin-api": "npm:^1.8.0"
     "@backstage/catalog-client": "npm:^1.14.0"
@@ -3957,7 +3957,7 @@ __metadata:
     express-promise-router: "npm:^4.1.0"
     minimatch: "npm:^10.2.1"
     zod: "npm:^3.25.76 || ^4.0.0"
-  checksum: 10c0/15aa843e199480a2ec042174aacd30b3db166c29bf9826afb2f5b265b5a15b7a36cf2ad1d962b0cf22f0d2571f831045555a010e3db367e33b04c6069f8feabb
+  checksum: 10c0/8286f71202de90ca814edc9ba98d79f58fa129da3c3ada287ca5e44a993223f88f2622fdffcb748ead51f56e60720e0c3b55a68c82f7c14b97c21b1327418ab0
   languageName: node
   linkType: hard
 
@@ -4249,9 +4249,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/plugin-scaffolder-backend@npm:^3.2.0":
-  version: 3.2.0
-  resolution: "@backstage/plugin-scaffolder-backend@npm:3.2.0"
+"@backstage/plugin-scaffolder-backend@npm:^3.3.0":
+  version: 3.3.0
+  resolution: "@backstage/plugin-scaffolder-backend@npm:3.3.0"
   dependencies:
     "@backstage/backend-openapi-utils": "npm:^0.6.7"
     "@backstage/backend-plugin-api": "npm:^1.8.0"
@@ -4264,7 +4264,7 @@ __metadata:
     "@backstage/plugin-permission-common": "npm:^0.9.7"
     "@backstage/plugin-permission-node": "npm:^0.10.11"
     "@backstage/plugin-scaffolder-common": "npm:^2.0.0"
-    "@backstage/plugin-scaffolder-node": "npm:^0.13.0"
+    "@backstage/plugin-scaffolder-node": "npm:^0.13.1"
     "@backstage/types": "npm:^1.2.2"
     "@opentelemetry/api": "npm:^1.9.0"
     "@types/luxon": "npm:^3.0.0"
@@ -4289,7 +4289,7 @@ __metadata:
     zen-observable: "npm:^0.10.0"
     zod: "npm:^3.25.76 || ^4.0.0"
     zod-to-json-schema: "npm:^3.25.1"
-  checksum: 10c0/c06fe90c40b1b4c669f321da7e7a6dd978aceec99c493d1d82c4dcefb0c2d0d181609b184debf1b60f5cec84e20a8e0f91bf0c3d533a226b0afab772583e5fe7
+  checksum: 10c0/16d1e250a57ca79034edb6352e99c9300e1cf0f181c01b205724500f9488329a2b61a002ecb5a17c5f12fe6383b1f102b44f1c7142c383351d44ee570e6f34db
   languageName: node
   linkType: hard
 
@@ -4411,6 +4411,40 @@ __metadata:
     "@backstage/backend-test-utils":
       optional: true
   checksum: 10c0/13432e89adbfe5efc82211643b66eda6e08075b5983abb8ad88d5901e8fc9f3825f690631953c3865ec5dd4f2ee3149cc10464c2b57436df337a2b1743df61f0
+  languageName: node
+  linkType: hard
+
+"@backstage/plugin-scaffolder-node@npm:^0.13.1":
+  version: 0.13.1
+  resolution: "@backstage/plugin-scaffolder-node@npm:0.13.1"
+  dependencies:
+    "@backstage/backend-plugin-api": "npm:^1.8.0"
+    "@backstage/catalog-model": "npm:^1.7.7"
+    "@backstage/errors": "npm:^1.2.7"
+    "@backstage/integration": "npm:^2.0.0"
+    "@backstage/plugin-permission-common": "npm:^0.9.7"
+    "@backstage/plugin-permission-node": "npm:^0.10.11"
+    "@backstage/plugin-scaffolder-common": "npm:^2.0.0"
+    "@backstage/types": "npm:^1.2.2"
+    "@isomorphic-git/pgp-plugin": "npm:^0.0.7"
+    concat-stream: "npm:^2.0.0"
+    fs-extra: "npm:^11.2.0"
+    globby: "npm:^11.0.0"
+    isomorphic-git: "npm:^1.23.0"
+    jsonschema: "npm:^1.5.0"
+    lodash: "npm:^4.17.21"
+    p-limit: "npm:^3.1.0"
+    tar: "npm:^7.5.6"
+    winston: "npm:^3.2.1"
+    winston-transport: "npm:^4.7.0"
+    zod: "npm:^3.25.76 || ^4.0.0"
+    zod-to-json-schema: "npm:^3.25.1"
+  peerDependencies:
+    "@backstage/backend-test-utils": ^1.11.1
+  peerDependenciesMeta:
+    "@backstage/backend-test-utils":
+      optional: true
+  checksum: 10c0/856f8b4f5e72629896f33e5b46cf34441be8fa7bfcd16bfd369a8198b4bb1e2cd887fe1d1f813d9988a86cf6534551b0a4daf91c1c67afc6c26e2da0ab869f8c
   languageName: node
   linkType: hard
 
@@ -14840,7 +14874,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-kyverno-common@npm:^1.3.1, @terasky/backstage-plugin-kyverno-common@workspace:plugins/kyverno-common":
+"@terasky/backstage-plugin-kyverno-common@npm:^1.3.2, @terasky/backstage-plugin-kyverno-common@workspace:plugins/kyverno-common":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kyverno-common@workspace:plugins/kyverno-common"
   dependencies:
@@ -14850,7 +14884,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-kyverno-policy-reports-backend@npm:^1.12.1, @terasky/backstage-plugin-kyverno-policy-reports-backend@workspace:plugins/kyverno-policy-reports-backend":
+"@terasky/backstage-plugin-kyverno-policy-reports-backend@npm:^1.12.2, @terasky/backstage-plugin-kyverno-policy-reports-backend@workspace:plugins/kyverno-policy-reports-backend":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kyverno-policy-reports-backend@workspace:plugins/kyverno-policy-reports-backend"
   dependencies:
@@ -14863,7 +14897,7 @@ __metadata:
     "@backstage/plugin-auth-backend-module-guest-provider": "npm:^0.2.17"
     "@backstage/plugin-kubernetes-node": "npm:^0.4.2"
     "@backstage/plugin-permission-node": "npm:^0.10.11"
-    "@terasky/backstage-plugin-kyverno-common": "npm:^1.3.1"
+    "@terasky/backstage-plugin-kyverno-common": "npm:^1.3.2"
     "@types/express": "npm:^4.17.22"
     "@types/supertest": "npm:^2.0.12"
     express: "npm:^4.17.1"
@@ -14876,7 +14910,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-kyverno-policy-reports@npm:^1.14.1, @terasky/backstage-plugin-kyverno-policy-reports@workspace:plugins/kyverno-policy-reports":
+"@terasky/backstage-plugin-kyverno-policy-reports@npm:^1.14.2, @terasky/backstage-plugin-kyverno-policy-reports@workspace:plugins/kyverno-policy-reports":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-kyverno-policy-reports@workspace:plugins/kyverno-policy-reports"
   dependencies:
@@ -14895,7 +14929,7 @@ __metadata:
     "@material-ui/core": "npm:^4.12.4"
     "@material-ui/icons": "npm:^4.11.3"
     "@material-ui/lab": "npm:^4.0.0-alpha.61"
-    "@terasky/backstage-plugin-kyverno-common": "npm:^1.3.1"
+    "@terasky/backstage-plugin-kyverno-common": "npm:^1.3.2"
     "@testing-library/jest-dom": "npm:^6.0.0"
     "@testing-library/react": "npm:^14.0.0"
     "@testing-library/user-event": "npm:^14.0.0"
@@ -14939,13 +14973,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-scaffolder-backend-module-spring-initializer@npm:^0.3.0, @terasky/backstage-plugin-scaffolder-backend-module-spring-initializer@workspace:plugins/scaffolder-backend-module-spring-initializer":
+"@terasky/backstage-plugin-scaffolder-backend-module-spring-initializer@npm:^0.3.1, @terasky/backstage-plugin-scaffolder-backend-module-spring-initializer@workspace:plugins/scaffolder-backend-module-spring-initializer":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-scaffolder-backend-module-spring-initializer@workspace:plugins/scaffolder-backend-module-spring-initializer"
   dependencies:
     "@backstage/backend-plugin-api": "npm:^1.8.0"
     "@backstage/cli": "npm:^0.36.0"
-    "@backstage/plugin-scaffolder-node": "npm:^0.13.0"
+    "@backstage/plugin-scaffolder-node": "npm:^0.13.1"
     "@backstage/plugin-scaffolder-node-test-utils": "npm:^0.3.9"
     "@types/adm-zip": "npm:^0.5.7"
     "@types/node-fetch": "npm:^2.6.13"
@@ -14955,13 +14989,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils@npm:^2.5.0, @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils@workspace:plugins/scaffolder-backend-module-terasky-utils":
+"@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils@npm:^2.5.1, @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils@workspace:plugins/scaffolder-backend-module-terasky-utils":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils@workspace:plugins/scaffolder-backend-module-terasky-utils"
   dependencies:
     "@backstage/backend-plugin-api": "npm:^1.8.0"
     "@backstage/cli": "npm:^0.36.0"
-    "@backstage/plugin-scaffolder-node": "npm:^0.13.0"
+    "@backstage/plugin-scaffolder-node": "npm:^0.13.1"
     "@backstage/plugin-scaffolder-node-test-utils": "npm:^0.3.9"
     "@types/fs-extra": "npm:^9.0.13"
     "@types/js-yaml": "npm:^4"
@@ -15155,7 +15189,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-spectrocloud@npm:^0.5.1, @terasky/backstage-plugin-spectrocloud@workspace:plugins/spectrocloud":
+"@terasky/backstage-plugin-spectrocloud@npm:^0.5.2, @terasky/backstage-plugin-spectrocloud@workspace:plugins/spectrocloud":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-spectrocloud@workspace:plugins/spectrocloud"
   dependencies:
@@ -18018,9 +18052,9 @@ __metadata:
     "@terasky/backstage-plugin-gitops-manifest-updater": "npm:^2.6.1"
     "@terasky/backstage-plugin-kro-resources-frontend": "npm:^0.12.0"
     "@terasky/backstage-plugin-kubernetes-resources-frontend": "npm:^0.13.1"
-    "@terasky/backstage-plugin-kyverno-policy-reports": "npm:^1.14.1"
+    "@terasky/backstage-plugin-kyverno-policy-reports": "npm:^1.14.2"
     "@terasky/backstage-plugin-scaleops-frontend": "npm:^2.3.1"
-    "@terasky/backstage-plugin-spectrocloud": "npm:^0.5.1"
+    "@terasky/backstage-plugin-spectrocloud": "npm:^0.5.2"
     "@terasky/backstage-plugin-spectrocloud-auth": "npm:^0.5.0"
     "@terasky/backstage-plugin-spectrocloud-kubernetes-auth-module": "npm:^0.3.0"
     "@terasky/backstage-plugin-spring-initializer": "npm:^0.3.0"
@@ -18676,13 +18710,13 @@ __metadata:
     "@backstage/plugin-catalog-backend-module-msgraph": "npm:^0.9.1"
     "@backstage/plugin-catalog-backend-module-scaffolder-entity-model": "npm:^0.2.18"
     "@backstage/plugin-kubernetes-backend": "npm:^0.21.2"
-    "@backstage/plugin-mcp-actions-backend": "npm:^0.1.10"
+    "@backstage/plugin-mcp-actions-backend": "npm:^0.1.11"
     "@backstage/plugin-permission-backend": "npm:^0.7.10"
     "@backstage/plugin-permission-backend-module-allow-all-policy": "npm:^0.2.17"
     "@backstage/plugin-permission-common": "npm:^0.9.7"
     "@backstage/plugin-permission-node": "npm:^0.10.11"
     "@backstage/plugin-proxy-backend": "npm:^0.6.11"
-    "@backstage/plugin-scaffolder-backend": "npm:^3.2.0"
+    "@backstage/plugin-scaffolder-backend": "npm:^3.3.0"
     "@backstage/plugin-scaffolder-backend-module-azure": "npm:^0.2.19"
     "@backstage/plugin-scaffolder-backend-module-bitbucket": "npm:^0.3.19"
     "@backstage/plugin-scaffolder-backend-module-github": "npm:^0.9.7"
@@ -18701,10 +18735,10 @@ __metadata:
     "@terasky/backstage-plugin-kro-resources-backend": "npm:^0.12.0"
     "@terasky/backstage-plugin-kubernetes-ingestor": "npm:^3.12.1"
     "@terasky/backstage-plugin-kubernetes-resources-permissions-backend": "npm:^0.9.1"
-    "@terasky/backstage-plugin-kyverno-policy-reports-backend": "npm:^1.12.1"
+    "@terasky/backstage-plugin-kyverno-policy-reports-backend": "npm:^1.12.2"
     "@terasky/backstage-plugin-rbac-mcp-backend": "npm:^0.7.1"
-    "@terasky/backstage-plugin-scaffolder-backend-module-spring-initializer": "npm:^0.3.0"
-    "@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils": "npm:^2.5.0"
+    "@terasky/backstage-plugin-scaffolder-backend-module-spring-initializer": "npm:^0.3.1"
+    "@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils": "npm:^2.5.1"
     "@terasky/backstage-plugin-scaffolder-mcp-backend": "npm:^0.7.1"
     "@terasky/backstage-plugin-spectrocloud-auth-backend": "npm:^0.4.0"
     "@terasky/backstage-plugin-spectrocloud-backend": "npm:^0.5.0"
