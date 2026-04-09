@@ -234,6 +234,8 @@ Then open [http://localhost:8000](http://localhost:8000) in your browser.
 ### Code
 We follow the backstag style guides documented [here](https://github.com/backstage/backstage/blob/master/STYLE.md).
   
+All major changes must have tests accompany the feature change.
+
 ### Commit Messages
 
 This project follows the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification. Every commit message must have a structured format:
