@@ -10,6 +10,4 @@ Please reach out if you find any vulnerabilities in these packages and we will t
 
 ## Security Assurance Case
 
-The project's security assurance case — including the threat model, trust boundary analysis, secure design principles, and countermeasures for common implementation weaknesses — is published at:
-
-**https://terasky-oss.github.io/backstage-plugins/security/assurance-case/**
+The project's security assurance case — including the threat model, trust boundary analysis, secure design principles, and countermeasures for common implementation weaknesses — is published [here](./SECURITY_REVIEW.md)
