@@ -206,8 +206,19 @@ const manualParseFrontmatter = (content: string) => {
 
 const constructFileUrl = (gitUrl: string, filePath: string): string => {
   const cleanGitUrl = gitUrl.replace(/\/+$/, '');
-  if (cleanGitUrl.includes('github.com')) return `${cleanGitUrl}/blob/main/${filePath}`;
-  if (cleanGitUrl.includes('gitlab.com')) return `${cleanGitUrl}/-/blob/main/${filePath}`;
+
+  try {
+    const host = new URL(cleanGitUrl).hostname.toLowerCase();
+    if (host === 'github.com' || host.endsWith('.github.com')) {
+      return `${cleanGitUrl}/blob/main/${filePath}`;
+    }
+    if (host === 'gitlab.com' || host.endsWith('.gitlab.com')) {
+      return `${cleanGitUrl}/-/blob/main/${filePath}`;
+    }
+  } catch (_e) {
+    // Fallback to default format when URL parsing fails.
+  }
+
   return `${cleanGitUrl}/blob/main/${filePath}`;
 };
 
