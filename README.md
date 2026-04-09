@@ -1,5 +1,8 @@
 # TeraSky's Backstage Plugins
-These plugins are built and tested against Backstage version 1.49.3
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) 
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/12423/badge)](https://www.bestpractices.dev/projects/12423)
+
+These plugins are built and tested against Backstage version 1.49.4
 
 ## Plugin overviews
 There are 52 plugins currently:
