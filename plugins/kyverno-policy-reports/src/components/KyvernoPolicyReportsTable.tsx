@@ -187,7 +187,7 @@ const KyvernoPolicyReportsTable = () => {
         return acc;
     }, {});
 
-    const StatusComponent = ({ status }: { status: string }) => {
+    const StatusComponent = ({ status }: { status: string | undefined }) => {
         switch (status) {
             case 'pass':
                 return <StatusOK>PASS</StatusOK>;
