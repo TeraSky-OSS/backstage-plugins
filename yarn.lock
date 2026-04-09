@@ -15056,7 +15056,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-scaleops-frontend@npm:^2.3.1, @terasky/backstage-plugin-scaleops-frontend@workspace:plugins/scaleops-frontend":
+"@terasky/backstage-plugin-scaleops-frontend@npm:^2.3.2, @terasky/backstage-plugin-scaleops-frontend@workspace:plugins/scaleops-frontend":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-scaleops-frontend@workspace:plugins/scaleops-frontend"
   dependencies:
@@ -18053,7 +18053,7 @@ __metadata:
     "@terasky/backstage-plugin-kro-resources-frontend": "npm:^0.12.0"
     "@terasky/backstage-plugin-kubernetes-resources-frontend": "npm:^0.13.1"
     "@terasky/backstage-plugin-kyverno-policy-reports": "npm:^1.14.2"
-    "@terasky/backstage-plugin-scaleops-frontend": "npm:^2.3.1"
+    "@terasky/backstage-plugin-scaleops-frontend": "npm:^2.3.2"
     "@terasky/backstage-plugin-spectrocloud": "npm:^0.5.2"
     "@terasky/backstage-plugin-spectrocloud-auth": "npm:^0.5.0"
     "@terasky/backstage-plugin-spectrocloud-kubernetes-auth-module": "npm:^0.3.0"
