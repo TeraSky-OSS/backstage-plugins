@@ -67,7 +67,17 @@ export class AgentConfigsService {
 
   private async fetchFileContent(gitUrl: string, filePath: string): Promise<string> {
     const cleanGitUrl = gitUrl.replace(/\/+$/, '');
-    const fileUrl = cleanGitUrl.includes('github.com')
+    let isGitHubHost = false;
+
+    try {
+      const parsedUrl = new URL(cleanGitUrl);
+      const hostname = parsedUrl.hostname.toLowerCase();
+      isGitHubHost = hostname === 'github.com' || hostname.endsWith('.github.com');
+    } catch {
+      isGitHubHost = false;
+    }
+
+    const fileUrl = isGitHubHost
       ? `${cleanGitUrl}/raw/main/${filePath}`
       : `${cleanGitUrl}/blob/HEAD/${filePath}`;
 
