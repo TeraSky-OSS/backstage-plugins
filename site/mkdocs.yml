@@ -240,6 +240,7 @@ nav:
               - Install: plugins/frontend-extensions-explorer/frontend/install.md
               - Configure: plugins/frontend-extensions-explorer/frontend/configure.md
 
+
 theme:
   icon:
     edit: material/pencil 
