@@ -390,14 +390,21 @@ export const SpectroCloudClusterCard = () => {
     }
 
     const versions = profileData.specSummary.versions;
-    const latestVersion = profileData.specSummary.version || versions[0]?.version || 'N/A';
     
     // Find the current version being used (match by uid)
     const currentVersionData = versions.find(v => v.uid === profileUid);
     const currentVersion = currentVersionData?.version || 'N/A';
     
+    const compareVersions = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true });
+
+    const latestVersion = versions?.reduce((max: string | null, v) => {
+      const version = v?.version;
+      if (!version) return max;
+      return !max || compareVersions(version, max) > 0 ? version : max;
+    }, null) ?? 'N/A';
+
     // Check if there's a newer version available
-    const hasUpgrade = currentVersion !== latestVersion && latestVersion !== 'N/A' && currentVersion !== 'N/A';
+    const hasUpgrade = currentVersion !== 'N/A' && latestVersion !== 'N/A' && compareVersions(latestVersion, currentVersion) > 0;
 
     return {
       currentVersion,
