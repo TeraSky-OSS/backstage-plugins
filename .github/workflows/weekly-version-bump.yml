@@ -32,7 +32,7 @@ jobs:
           echo "formattedTime=$(date --utc '+%Y%m%d-%H-%M')" >> $GITHUB_OUTPUT
       - name: Create Pull Request
         id: cpr
-        uses: peter-evans/create-pull-request@8.1.0
+        uses: peter-evans/create-pull-request@v8.1.0
         with:
           commit-message: Update dependencies
           committer: GitHub <noreply@github.com>
