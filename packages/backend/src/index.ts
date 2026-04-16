@@ -38,6 +38,7 @@ backend.add(
     if (config.getOptionalBoolean('vcfAutomation.enabled') ?? true) {
       yield import('@terasky/backstage-plugin-vcf-automation-backend');
       yield import('@terasky/backstage-plugin-vcf-automation-ingestor');
+      yield import('@terasky/backstage-plugin-vcfa-vks-cluster-provider');
     }
     if (config.getOptionalBoolean('vcfOperations.enabled') ?? true) {
       yield import('@terasky/backstage-plugin-vcf-operations-backend');

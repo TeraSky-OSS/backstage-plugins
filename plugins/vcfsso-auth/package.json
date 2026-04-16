@@ -1,6 +1,6 @@
 {
   "name": "@terasky/backstage-plugin-vcfsso-auth",
-  "version": "0.2.1",
+  "version": "0.4.0",
   "description": "VCF SSO OIDC authentication frontend plugin for Backstage",
   "license": "Apache-2.0",
   "main": "src/index.ts",
@@ -34,12 +34,12 @@
     "postpack": "backstage-cli package postpack"
   },
   "dependencies": {
-    "@backstage/core-app-api": "^1.19.6",
-    "@backstage/core-plugin-api": "^1.12.4",
-    "@backstage/frontend-plugin-api": "^0.15.1"
+    "@backstage/core-app-api": "^1.20.0",
+    "@backstage/core-plugin-api": "^1.12.5",
+    "@backstage/frontend-plugin-api": "^0.16.1"
   },
   "devDependencies": {
-    "@backstage/cli": "^0.36.0"
+    "@backstage/cli": "^0.36.1"
   },
   "files": [
     "dist"

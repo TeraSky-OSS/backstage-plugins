@@ -1,4 +1,5 @@
 .vscode/mcp.json
+dynamic-plugins-root/
 # macOS
 .DS_Store
 # API Dev Docs
