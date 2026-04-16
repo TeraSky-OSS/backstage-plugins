@@ -18,7 +18,10 @@ RUN apk add nodejs-$NODE_VERSION yarn
 RUN --mount=type=cache,target=/var/cache/apk,sharing=locked \
     --mount=type=cache,target=/var/lib/apk,sharing=locked \
     apk update && \
-    apk add curl tini wget sqlite-dev python-$PYTHON_VERSION py3-pip python-3-dev py3-setuptools build-base gcc libffi-dev glibc-dev openssl-dev brotli-dev c-ares-dev nghttp2-dev icu-dev zlib-dev gcc-12 libuv-dev && \
+    for i in 1 2 3; do \
+        apk add curl tini wget sqlite-dev python-$PYTHON_VERSION py3-pip python-3-dev py3-setuptools build-base gcc libffi-dev glibc-dev openssl-dev brotli-dev c-ares-dev nghttp2-dev icu-dev zlib-dev gcc-12 libuv-dev && break; \
+        echo "APK install failed, retrying in 10s (attempt $i)..." && sleep 10; \
+    done && \
     yarn config set python /usr/bin/python3
 
 ENV VIRTUAL_ENV=/opt/venv
