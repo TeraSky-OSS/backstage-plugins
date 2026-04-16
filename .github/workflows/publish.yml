@@ -93,7 +93,9 @@ jobs:
             image="${tag}@${DIGEST}"
             cosign sign --yes --output-signature "dist/${DIGEST}.sig" --output-certificate "dist/${DIGEST}.cert" --oidc-issuer=https://token.actions.githubusercontent.com ${image}
           done
-
+      - name: Bundle and publish dynamic plugins
+        run: |
+          ./build-and-push-plugins.sh
       - name: Generate release notes
         run: |
           cp ./hack/plugin-release-notes.md RELEASE_NOTES.md
