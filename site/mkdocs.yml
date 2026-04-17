@@ -9,6 +9,7 @@ nav:
               - About: plugins/kubernetes-ingestor/backend/about.md
               - Install: plugins/kubernetes-ingestor/backend/install.md
               - Configure: plugins/kubernetes-ingestor/backend/configure.md
+              - XRD Field Ordering (x-ui-order): plugins/kubernetes-ingestor/backend/xrd-ui-order.md
       - Crossplane:
           - Overview: plugins/crossplane/overview.md
           - Backend:
