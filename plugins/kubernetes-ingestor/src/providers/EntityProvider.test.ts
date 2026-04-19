@@ -2885,4 +2885,184 @@ describe('XRDTemplateEntityProvider', () => {
       } as any)).resolves.not.toThrow();
     });
   });
+
+  // ── x-ui-order ──────────────────────────────────────────────────────────────
+
+  describe('extractParameters – x-ui-order field ordering', () => {
+    const taskRunner = { run: jest.fn() };
+
+    const makeProvider = () =>
+      new XRDTemplateEntityProvider(
+        taskRunner as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+      );
+
+    const makeXrd = (kind = 'MyResource') => ({
+      metadata: { name: `myresources.example.com` },
+      spec: {
+        scope: 'Cluster',
+        names: { kind },
+        group: 'example.com',
+      },
+      clusters: ['test-cluster'],
+    });
+
+    const makeVersion = (specProps: Record<string, any>) => ({
+      name: 'v1alpha1',
+      schema: {
+        openAPIV3Schema: {
+          type: 'object',
+          properties: {
+            spec: {
+              type: 'object',
+              properties: specProps,
+            },
+          },
+        },
+      },
+    });
+
+    it('sorts spec fields by x-ui-order when annotations are present', () => {
+      const provider = makeProvider();
+      const version = makeVersion({
+        gamma: { type: 'string', 'x-ui-order': 3 },
+        alpha: { type: 'string', 'x-ui-order': 1 },
+        beta:  { type: 'string', 'x-ui-order': 2 },
+      });
+
+      const params = (provider as any).extractParameters(version, ['test-cluster'], makeXrd());
+      // Find the spec parameters group (title: 'Resource Spec')
+      const specGroup = params.find((p: any) => p.title === 'Resource Spec');
+      expect(specGroup).toBeDefined();
+
+      const keys = Object.keys(specGroup.properties);
+      expect(keys.indexOf('alpha')).toBeLessThan(keys.indexOf('beta'));
+      expect(keys.indexOf('beta')).toBeLessThan(keys.indexOf('gamma'));
+    });
+
+    it('places fields without x-ui-order at the end, sorted alphabetically', () => {
+      const provider = makeProvider();
+      const version = makeVersion({
+        zebra:   { type: 'string' },
+        one:     { type: 'string', 'x-ui-order': 1 },
+        ant:     { type: 'string' },
+        two:     { type: 'string', 'x-ui-order': 2 },
+      });
+
+      const params = (provider as any).extractParameters(version, ['test-cluster'], makeXrd());
+      const specGroup = params.find((p: any) => p.title === 'Resource Spec');
+      const keys = Object.keys(specGroup.properties);
+
+      // x-ui-order fields come first
+      expect(keys.indexOf('one')).toBeLessThan(keys.indexOf('ant'));
+      expect(keys.indexOf('two')).toBeLessThan(keys.indexOf('ant'));
+      // unordered fields are alphabetical: ant < zebra
+      expect(keys.indexOf('ant')).toBeLessThan(keys.indexOf('zebra'));
+    });
+
+    it('preserves original insertion order when no x-ui-order is used', () => {
+      const provider = makeProvider();
+      const version = makeVersion({
+        charlie: { type: 'string' },
+        alice:   { type: 'string' },
+        bob:     { type: 'string' },
+      });
+
+      const params = (provider as any).extractParameters(version, ['test-cluster'], makeXrd());
+      const specGroup = params.find((p: any) => p.title === 'Resource Spec');
+      // no x-ui-order → no reordering, original object order is preserved
+      expect(Object.keys(specGroup.properties)).toEqual(['charlie', 'alice', 'bob']);
+    });
+
+    it('sets ui:order on array items whose properties carry x-ui-order', () => {
+      const provider = makeProvider();
+      const version = makeVersion({
+        ports: {
+          type: 'array',
+          'x-ui-order': 1,
+          items: {
+            type: 'object',
+            properties: {
+              protocol:    { type: 'string', 'x-ui-order': 3 },
+              publicPort:  { type: 'integer', 'x-ui-order': 1 },
+              privatePort: { type: 'integer', 'x-ui-order': 2 },
+            },
+          },
+        },
+      });
+
+      const params = (provider as any).extractParameters(version, ['test-cluster'], makeXrd());
+      const specGroup = params.find((p: any) => p.title === 'Resource Spec');
+      const portsField = specGroup.properties.ports;
+
+      expect(portsField.items['ui:order']).toEqual(['publicPort', 'privatePort', 'protocol', '*']);
+    });
+
+    it('sets ui:order on object fields whose properties carry x-ui-order', () => {
+      const provider = makeProvider();
+      const version = makeVersion({
+        disk: {
+          type: 'object',
+          'x-ui-order': 1,
+          properties: {
+            format: { type: 'string', 'x-ui-order': 2 },
+            size:   { type: 'integer', 'x-ui-order': 1 },
+          },
+        },
+      });
+
+      const params = (provider as any).extractParameters(version, ['test-cluster'], makeXrd());
+      const specGroup = params.find((p: any) => p.title === 'Resource Spec');
+      const diskField = specGroup.properties.disk;
+
+      expect(diskField['ui:order']).toEqual(['size', 'format', '*']);
+    });
+
+    it('does not set ui:order on nested fields without x-ui-order', () => {
+      const provider = makeProvider();
+      const version = makeVersion({
+        ports: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              protocol:   { type: 'string' },
+              publicPort: { type: 'integer' },
+            },
+          },
+        },
+      });
+
+      const params = (provider as any).extractParameters(version, ['test-cluster'], makeXrd());
+      const specGroup = params.find((p: any) => p.title === 'Resource Spec');
+      expect(specGroup.properties.ports.items['ui:order']).toBeUndefined();
+    });
+
+    it('applies ui:order recursively to deeply nested object properties', () => {
+      const provider = makeProvider();
+      const version = makeVersion({
+        config: {
+          type: 'object',
+          'x-ui-order': 1,
+          properties: {
+            network: {
+              type: 'object',
+              properties: {
+                dns:     { type: 'string', 'x-ui-order': 2 },
+                gateway: { type: 'string', 'x-ui-order': 1 },
+              },
+            },
+          },
+        },
+      });
+
+      const params = (provider as any).extractParameters(version, ['test-cluster'], makeXrd());
+      const specGroup = params.find((p: any) => p.title === 'Resource Spec');
+      const networkField = specGroup.properties.config.properties.network;
+
+      expect(networkField['ui:order']).toEqual(['gateway', 'dns', '*']);
+    });
+  });
 });

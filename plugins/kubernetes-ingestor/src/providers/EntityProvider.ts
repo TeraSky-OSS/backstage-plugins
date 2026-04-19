@@ -796,9 +796,46 @@ export class XRDTemplateEntityProvider implements EntityProvider {
       }
       return processedProperties;
     };
-    const processedSpec = version.schema?.openAPIV3Schema?.properties?.spec
+
+    const rawSpec = version.schema?.openAPIV3Schema?.properties?.spec
       ? processProperties(version.schema.openAPIV3Schema.properties.spec.properties)
       : {};
+
+    // Sort spec fields by x-ui-order annotation when present.
+    // Fields with x-ui-order are placed first (ascending), fields without it
+    // are appended at the end sorted alphabetically.
+    const sortSpecByXUiOrder = (spec: Record<string, any>): Record<string, any> => {
+      const withOrder = Object.entries(spec).filter(([, v]) => typeof v['x-ui-order'] === 'number');
+      const withoutOrder = Object.entries(spec).filter(([, v]) => typeof v['x-ui-order'] !== 'number');
+      withOrder.sort((a, b) => (a[1]['x-ui-order'] as number) - (b[1]['x-ui-order'] as number));
+      withoutOrder.sort((a, b) => a[0].localeCompare(b[0]));
+      return Object.fromEntries([...withOrder, ...withoutOrder]);
+    };
+
+    const hasXUiOrder = Object.values(rawSpec).some(v => typeof v['x-ui-order'] === 'number');
+    const processedSpec = hasXUiOrder ? sortSpecByXUiOrder(rawSpec) : rawSpec;
+
+    // Recursively inject ui:order into object/array schemas whose immediate
+    // child properties carry x-ui-order annotations.
+    const applyNestedUiOrder = (schema: Record<string, any>): void => {
+      if (schema.type === 'object' && schema.properties) {
+        const ordered = Object.entries(schema.properties)
+          .filter(([, v]) => typeof (v as any)['x-ui-order'] === 'number')
+          .sort((a, b) => (a[1] as any)['x-ui-order'] - (b[1] as any)['x-ui-order']);
+        if (ordered.length > 0) {
+          schema['ui:order'] = [...ordered.map(([key]) => key), '*'];
+        }
+        Object.values(schema.properties).forEach(child =>
+          applyNestedUiOrder(child as Record<string, any>),
+        );
+      } else if (schema.type === 'array' && schema.items) {
+        applyNestedUiOrder(schema.items as Record<string, any>);
+      }
+    };
+    Object.values(processedSpec).forEach(field =>
+      applyNestedUiOrder(field as Record<string, any>),
+    );
+
     const additionalParameters = {
       title: 'Resource Spec',
       properties: processedSpec,
