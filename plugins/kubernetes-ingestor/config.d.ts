@@ -57,11 +57,13 @@ export interface Config {
      * event as a delta against the provider without waiting for the next
      * periodic full sync. Downstream integrations are responsible for
      * publishing events in the documented payload shape:
-     * `{ action: 'upsert' | 'delete', apiVersion, kind, name, namespace?, clusterName }`.
+     * `{ action: 'upsert' | 'delete', apiVersion, kind, name, namespace?, clusterName, entityNames? }`.
+     * @visibility backend
      */
     events?: {
       /**
        * Name of the events-bus topic to subscribe to.
+       * @visibility backend
        */
       topic?: string;
     };

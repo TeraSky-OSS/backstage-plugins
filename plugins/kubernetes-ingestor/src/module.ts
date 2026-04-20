@@ -16,21 +16,30 @@ interface DeltaEventPayload {
   name: string;
   namespace?: string;
   clusterName: string;
+  entityNames?: string[];
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+function parseEntityNames(value: unknown): string[] | undefined | null {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value) || value.some(v => typeof v !== 'string')) return null;
+  return value as string[];
+}
+
 function parseDeltaEventPayload(payload: unknown): DeltaEventPayload | undefined {
   if (!isRecord(payload)) return undefined;
-  const { action, apiVersion, kind, name, namespace, clusterName } = payload;
+  const { action, apiVersion, kind, name, namespace, clusterName, entityNames } = payload;
   if (action !== 'upsert' && action !== 'delete') return undefined;
   if (typeof apiVersion !== 'string' || apiVersion.length === 0) return undefined;
   if (typeof kind !== 'string' || kind.length === 0) return undefined;
   if (typeof name !== 'string' || name.length === 0) return undefined;
   if (typeof clusterName !== 'string' || clusterName.length === 0) return undefined;
   if (namespace !== undefined && typeof namespace !== 'string') return undefined;
+  const parsedEntityNames = parseEntityNames(entityNames);
+  if (parsedEntityNames === null) return undefined;
   return {
     action,
     apiVersion,
@@ -38,8 +47,11 @@ function parseDeltaEventPayload(payload: unknown): DeltaEventPayload | undefined
     name,
     namespace: namespace === '' ? undefined : namespace,
     clusterName,
+    entityNames: parsedEntityNames,
   };
 }
+
+const FULL_SYNC_NOT_READY_MESSAGE = 'initial full sync has not completed';
 
 export const catalogModuleKubernetesIngestor = createBackendModule({
   pluginId: 'catalog',
@@ -150,12 +162,19 @@ export const catalogModuleKubernetesIngestor = createBackendModule({
               try {
                 await templateEntityProvider.deltaUpdate(deltaEvent);
               } catch (error) {
-                logger.warn('Failed to apply kubernetes-ingestor delta event', {
+                const message = error instanceof Error ? error.message : String(error);
+                // Events that arrive before the initial full sync completes
+                // are expected during startup; log them at debug to avoid
+                // noise and let the next full sync reconcile.
+                const level = message.includes(FULL_SYNC_NOT_READY_MESSAGE)
+                  ? 'debug'
+                  : 'warn';
+                logger[level]('Failed to apply kubernetes-ingestor delta event', {
                   topic: params.topic,
                   clusterName: deltaEvent.clusterName,
                   kind: deltaEvent.kind,
                   name: deltaEvent.name,
-                  error: error instanceof Error ? error.message : String(error),
+                  error: message,
                 });
               }
             },
