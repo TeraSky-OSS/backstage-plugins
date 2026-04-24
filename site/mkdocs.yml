@@ -10,6 +10,7 @@ nav:
               - Install: plugins/kubernetes-ingestor/backend/install.md
               - Configure: plugins/kubernetes-ingestor/backend/configure.md
               - XRD Field Ordering (x-ui-order): plugins/kubernetes-ingestor/backend/xrd-ui-order.md
+              - XRD Form Visibility (x-ui-hidden, x-ui-advanced): plugins/kubernetes-ingestor/backend/xrd-ui-hidden-advanced.md
       - Crossplane:
           - Overview: plugins/crossplane/overview.md
           - Backend:
