@@ -1,6 +1,6 @@
 {
   "name": "@terasky/backstage-plugin-spectrocloud-kubernetes-auth-module",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Kubernetes authentication module with SpectroCloud OIDC support",
   "license": "Apache-2.0",
   "main": "src/index.ts",
@@ -34,9 +34,9 @@
     "postpack": "backstage-cli package postpack"
   },
   "dependencies": {
-    "@backstage/frontend-plugin-api": "^0.16.1",
+    "@backstage/frontend-plugin-api": "^0.16.2",
     "@backstage/plugin-kubernetes-react": "^0.5.18",
-    "@terasky/backstage-plugin-spectrocloud-auth": "^0.7.0"
+    "@terasky/backstage-plugin-spectrocloud-auth": "^0.8.0"
   },
   "devDependencies": {
     "@backstage/cli": "^0.36.1",

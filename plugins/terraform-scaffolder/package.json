@@ -1,7 +1,7 @@
 {
   "name": "@terasky/backstage-plugin-terraform-scaffolder",
   "description": "The Terraform Scaffolder plugin for Backstage",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "main": "src/index.ts",
   "types": "src/index.ts",
   "configSchema": "config.d.ts",
@@ -37,7 +37,7 @@
     "@backstage/config": "^1.3.7",
     "@backstage/core-components": "^0.18.9",
     "@backstage/core-plugin-api": "^1.12.5",
-    "@backstage/frontend-plugin-api": "^0.16.1",
+    "@backstage/frontend-plugin-api": "^0.16.2",
     "@backstage/plugin-scaffolder": "^1.36.2",
     "@backstage/plugin-scaffolder-react": "^1.20.1",
     "@backstage/theme": "^0.7.3",
