@@ -52,6 +52,22 @@ export interface Config {
      */
     allowedClusterNames?: string[];
     /**
+     * Optional incremental-update subscription. When configured, the module
+     * subscribes to this topic on the Backstage events bus and applies each
+     * event as a delta against the provider without waiting for the next
+     * periodic full sync. Downstream integrations are responsible for
+     * publishing events in the documented payload shape:
+     * `{ action: 'upsert' | 'delete', apiVersion, kind, name, namespace?, clusterName, entityNames? }`.
+     * @visibility backend
+     */
+    events?: {
+      /**
+       * Name of the events-bus topic to subscribe to.
+       * @visibility backend
+       */
+      topic?: string;
+    };
+    /**
      * Cluster name mapping for entity annotations
      * Maps backend cluster names (used for ingestion) to frontend cluster names (used in kubernetes-cluster annotations)
      * Supports both prefix-based replacement and explicit mappings

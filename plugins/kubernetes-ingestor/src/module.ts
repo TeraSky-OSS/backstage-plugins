@@ -5,8 +5,53 @@ import {
 import {
   catalogProcessingExtensionPoint,
 } from '@backstage/plugin-catalog-node';
+import { EventParams, eventsServiceRef } from '@backstage/plugin-events-node';
 import { KubernetesEntityProvider, RGDTemplateEntityProvider, XRDTemplateEntityProvider } from './providers';
 import { DefaultKubernetesResourceFetcher } from './services';
+
+interface DeltaEventPayload {
+  action: 'upsert' | 'delete';
+  apiVersion: string;
+  kind: string;
+  name: string;
+  namespace?: string;
+  clusterName: string;
+  entityNames?: string[];
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function parseEntityNames(value: unknown): string[] | undefined | null {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value) || value.some(v => typeof v !== 'string')) return null;
+  return value as string[];
+}
+
+function parseDeltaEventPayload(payload: unknown): DeltaEventPayload | undefined {
+  if (!isRecord(payload)) return undefined;
+  const { action, apiVersion, kind, name, namespace, clusterName, entityNames } = payload;
+  if (action !== 'upsert' && action !== 'delete') return undefined;
+  if (typeof apiVersion !== 'string' || apiVersion.length === 0) return undefined;
+  if (typeof kind !== 'string' || kind.length === 0) return undefined;
+  if (typeof name !== 'string' || name.length === 0) return undefined;
+  if (typeof clusterName !== 'string' || clusterName.length === 0) return undefined;
+  if (namespace !== undefined && typeof namespace !== 'string') return undefined;
+  const parsedEntityNames = parseEntityNames(entityNames);
+  if (parsedEntityNames === null) return undefined;
+  return {
+    action,
+    apiVersion,
+    kind,
+    name,
+    namespace: namespace === '' ? undefined : namespace,
+    clusterName,
+    entityNames: parsedEntityNames,
+  };
+}
+
+const FULL_SYNC_NOT_READY_MESSAGE = 'initial full sync has not completed';
 
 export const catalogModuleKubernetesIngestor = createBackendModule({
   pluginId: 'catalog',
@@ -21,6 +66,7 @@ export const catalogModuleKubernetesIngestor = createBackendModule({
         scheduler: coreServices.scheduler,
         auth: coreServices.auth,
         urlReader: coreServices.urlReader,
+        events: eventsServiceRef,
       },
       async init({
         catalog,
@@ -30,6 +76,7 @@ export const catalogModuleKubernetesIngestor = createBackendModule({
         scheduler,
         auth,
         urlReader,
+        events,
       }) {
         const taskRunner = scheduler.createScheduledTaskRunner({
           frequency: {
@@ -92,6 +139,49 @@ export const catalogModuleKubernetesIngestor = createBackendModule({
         // Only disable if explicitly set to false; default is enabled
         if (xrdEnabled !== false) {
           await catalog.addEntityProvider(xrdTemplateEntityProvider);
+        }
+
+        // Optional incremental-update subscription. When `kubernetesIngestor.events.topic`
+        // is configured, the module subscribes to the topic on the Backstage events bus
+        // and applies each event as a delta against the provider, without waiting for
+        // the next periodic full sync. Downstream integrations are responsible for
+        // publishing events in the documented payload shape.
+        const deltaTopic = config.getOptionalString('kubernetesIngestor.events.topic');
+        if (deltaTopic) {
+          await events.subscribe({
+            id: 'kubernetes-ingestor-delta',
+            topics: [deltaTopic],
+            onEvent: async (params: EventParams) => {
+              const deltaEvent = parseDeltaEventPayload(params.eventPayload);
+              if (!deltaEvent) {
+                logger.debug('Dropping malformed kubernetes-ingestor delta event', {
+                  topic: params.topic,
+                });
+                return;
+              }
+              try {
+                await templateEntityProvider.deltaUpdate(deltaEvent);
+              } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                // Events that arrive before the initial full sync completes
+                // are expected during startup; log them at debug to avoid
+                // noise and let the next full sync reconcile.
+                const level = message.includes(FULL_SYNC_NOT_READY_MESSAGE)
+                  ? 'debug'
+                  : 'warn';
+                logger[level]('Failed to apply kubernetes-ingestor delta event', {
+                  topic: params.topic,
+                  clusterName: deltaEvent.clusterName,
+                  kind: deltaEvent.kind,
+                  name: deltaEvent.name,
+                  error: message,
+                });
+              }
+            },
+          });
+          logger.info('Kubernetes ingestor subscribed to delta events', {
+            topic: deltaTopic,
+          });
         }
       },
     });
