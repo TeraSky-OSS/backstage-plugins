@@ -751,11 +751,17 @@ export class XRDTemplateEntityProvider implements EntityProvider {
     };
     // Additional parameters
     const convertDefaultValuesToPlaceholders = this.config.getOptionalBoolean('kubernetesIngestor.crossplane.xrds.convertDefaultValuesToPlaceholders');
-    const processProperties = (properties: Record<string, any>): Record<string, any> => {
+    const processProperties = (properties: Record<string, any>): { properties: Record<string, any>; dependencies: Record<string, any> } => {
       const processedProperties: Record<string, any> = {};
+      const generatedDependencies: Record<string, any> = {};
+
       for (const [key, value] of Object.entries(properties)) {
         const typedValue = value as Record<string, any>;
-        
+
+        if (typedValue['x-ui-hidden'] === true) {
+          continue;
+        }
+
         // Handle fields with x-kubernetes-preserve-unknown-fields: true
         if (typedValue['x-kubernetes-preserve-unknown-fields'] === true && !typedValue.type) {
           processedProperties[key] = {
@@ -767,11 +773,19 @@ export class XRDTemplateEntityProvider implements EntityProvider {
             },
           };
         } else if (typedValue.type === 'object' && typedValue.properties) {
-          const subProperties = processProperties(typedValue.properties);
-          processedProperties[key] = { ...typedValue, properties: subProperties };
+          const { properties: subProps, dependencies: subDeps } = processProperties(typedValue.properties);
+          processedProperties[key] = {
+            ...typedValue,
+            properties: subProps,
+            dependencies: {
+              ...typedValue.dependencies,
+              ...subDeps,
+            },
+          };
           if (typedValue.properties.enabled && typedValue.properties.enabled.type === 'boolean') {
             const siblingKeys = Object.keys(typedValue.properties).filter(k => k !== 'enabled');
             processedProperties[key].dependencies = {
+              ...processedProperties[key].dependencies,
               enabled: {
                 if: {
                   properties: {
@@ -794,12 +808,76 @@ export class XRDTemplateEntityProvider implements EntityProvider {
           }
         }
       }
-      return processedProperties;
+
+      // Group x-ui-advanced fields under a togglable "Show Advanced Settings" section.
+      // RJSF auto-populates defaults for all fields with `default`; moving advanced fields
+      // into a conditional dependency with defaults stripped prevents them from appearing
+      // in every generated manifest when the user never touched those fields.
+      const finalProperties: Record<string, any> = {};
+      const advancedProperties: Record<string, any> = {};
+
+      for (const [key, value] of Object.entries(processedProperties)) {
+        if (value['x-ui-advanced'] === true) {
+          const advancedValue = { ...value };
+          delete advancedValue['x-ui-advanced'];
+
+          if (advancedValue.type === 'object' && advancedValue.properties) {
+            const removeDefaults = (props: Record<string, any>) => {
+              Object.values(props).forEach((p: any) => {
+                if (p.default !== undefined) {
+                  if (p.type !== 'boolean') p['ui:placeholder'] = String(p.default);
+                  delete p.default;
+                }
+                if (p.type === 'object' && p.properties) removeDefaults(p.properties);
+              });
+            };
+            removeDefaults(advancedValue.properties);
+          } else if (advancedValue.default !== undefined) {
+            if (advancedValue.type !== 'boolean') {
+              advancedValue['ui:placeholder'] = String(advancedValue.default);
+            }
+            delete advancedValue.default;
+          }
+
+          advancedProperties[key] = advancedValue;
+        } else {
+          finalProperties[key] = value;
+        }
+      }
+
+      if (Object.keys(advancedProperties).length > 0) {
+        // Sort advanced fields by x-ui-order so the dependency section respects
+        // the same ordering intent as the main form fields.
+        const advWithOrder = Object.entries(advancedProperties)
+          .filter(([, v]) => typeof v['x-ui-order'] === 'number')
+          .sort((a, b) => (a[1]['x-ui-order'] as number) - (b[1]['x-ui-order'] as number));
+        const advWithoutOrder = Object.entries(advancedProperties)
+          .filter(([, v]) => typeof v['x-ui-order'] !== 'number');
+        const sortedAdvancedProperties = Object.fromEntries([...advWithOrder, ...advWithoutOrder]);
+
+        finalProperties['showAdvancedSettings'] = {
+          title: 'Show Advanced Settings',
+          type: 'boolean',
+          default: false,
+        };
+        generatedDependencies['showAdvancedSettings'] = {
+          if: {
+            properties: {
+              showAdvancedSettings: { const: true },
+            },
+          },
+          then: {
+            properties: sortedAdvancedProperties,
+          },
+        };
+      }
+
+      return { properties: finalProperties, dependencies: generatedDependencies };
     };
 
-    const rawSpec = version.schema?.openAPIV3Schema?.properties?.spec
+    const { properties: rawSpec, dependencies: specDependencies } = version.schema?.openAPIV3Schema?.properties?.spec
       ? processProperties(version.schema.openAPIV3Schema.properties.spec.properties)
-      : {};
+      : { properties: {}, dependencies: {} };
 
     // Sort spec fields by x-ui-order annotation when present.
     // Fields with x-ui-order are placed first (ascending), fields without it
@@ -839,6 +917,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
     const additionalParameters = {
       title: 'Resource Spec',
       properties: processedSpec,
+      dependencies: specDependencies,
       type: 'object',
     };
     // Crossplane settings
@@ -1828,7 +1907,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
 
       for (const [key, value] of Object.entries(properties)) {
         const typedValue = value as Record<string, any>;
-        
+
         // Handle fields with x-kubernetes-preserve-unknown-fields: true
         if (typedValue['x-kubernetes-preserve-unknown-fields'] === true && !typedValue.type) {
           const { required: _, ...restValue } = typedValue;
