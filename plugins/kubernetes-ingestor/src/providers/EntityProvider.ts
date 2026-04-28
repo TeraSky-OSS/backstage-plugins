@@ -774,6 +774,8 @@ export class XRDTemplateEntityProvider implements EntityProvider {
           };
         } else if (typedValue.type === 'object' && typedValue.properties) {
           const { properties: subProps, dependencies: subDeps } = processProperties(typedValue.properties);
+          // Trim required to only reference keys that survived processProperties (x-ui-hidden removes fields).
+          const trimmedRequired = (typedValue.required || []).filter((k: string) => k in subProps);
           processedProperties[key] = {
             ...typedValue,
             properties: subProps,
@@ -782,8 +784,15 @@ export class XRDTemplateEntityProvider implements EntityProvider {
               ...subDeps,
             },
           };
-          if (typedValue.properties.enabled && typedValue.properties.enabled.type === 'boolean') {
-            const siblingKeys = Object.keys(typedValue.properties).filter(k => k !== 'enabled');
+          if (trimmedRequired.length > 0) {
+            processedProperties[key].required = trimmedRequired;
+          } else {
+            delete processedProperties[key].required;
+          }
+          // Use the normalized (post-processProperties) schema for the enabled dependency so that
+          // fields removed or moved by processProperties do not resurface in the then-branch.
+          if (subProps.enabled && subProps.enabled.type === 'boolean') {
+            const siblingKeys = Object.keys(processedProperties[key].properties).filter(k => k !== 'enabled');
             processedProperties[key].dependencies = {
               ...processedProperties[key].dependencies,
               enabled: {
@@ -793,12 +802,58 @@ export class XRDTemplateEntityProvider implements EntityProvider {
                   },
                 },
                 then: {
-                  properties: siblingKeys.reduce((acc, k) => ({ ...acc, [k]: typedValue.properties[k] }), {}),
+                  properties: siblingKeys.reduce((acc, k) => ({ ...acc, [k]: processedProperties[key].properties[k] }), {}),
                 },
               },
             };
             siblingKeys.forEach(k => delete processedProperties[key].properties[k]);
           }
+        } else if (typedValue.type === 'array' && typedValue.items) {
+          // Recursively normalize array item schemas so that x-ui-hidden, x-ui-advanced,
+          // convertDefaultValuesToPlaceholders, and the enabled dependency logic all apply to
+          // object (and nested-array-of-object) items the same way they do for plain objects.
+          const processItemSchema = (itemSchema: Record<string, any>): Record<string, any> => {
+            if (itemSchema.type === 'object' && itemSchema.properties) {
+              const { properties: subProps, dependencies: subDeps } = processProperties(itemSchema.properties);
+              const trimmedRequired = (itemSchema.required || []).filter((k: string) => k in subProps);
+              const processed: Record<string, any> = {
+                ...itemSchema,
+                properties: subProps,
+                dependencies: { ...itemSchema.dependencies, ...subDeps },
+              };
+              if (trimmedRequired.length > 0) {
+                processed.required = trimmedRequired;
+              } else {
+                delete processed.required;
+              }
+              if (convertDefaultValuesToPlaceholders && processed.default !== undefined && processed.type !== 'boolean') {
+                processed['ui:placeholder'] = String(processed.default);
+                delete processed.default;
+              }
+              if (subProps.enabled && subProps.enabled.type === 'boolean') {
+                const siblingKeys = Object.keys(processed.properties).filter((k: string) => k !== 'enabled');
+                processed.dependencies = {
+                  ...processed.dependencies,
+                  enabled: {
+                    if: { properties: { enabled: { const: true } } },
+                    then: {
+                      properties: siblingKeys.reduce(
+                        (acc: Record<string, any>, k: string) => ({ ...acc, [k]: processed.properties[k] }),
+                        {},
+                      ),
+                    },
+                  },
+                };
+                siblingKeys.forEach((k: string) => delete processed.properties[k]);
+              }
+              return processed;
+            }
+            if (itemSchema.type === 'array' && itemSchema.items) {
+              return { ...itemSchema, items: processItemSchema(itemSchema.items) };
+            }
+            return itemSchema;
+          };
+          processedProperties[key] = { ...typedValue, items: processItemSchema(typedValue.items) };
         } else {
           if (convertDefaultValuesToPlaceholders && typedValue.default !== undefined && typedValue.type !== 'boolean') {
             processedProperties[key] = { ...typedValue, 'ui:placeholder': typedValue.default };

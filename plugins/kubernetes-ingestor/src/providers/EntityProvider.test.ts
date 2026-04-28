@@ -3310,4 +3310,83 @@ describe('XRDTemplateEntityProvider', () => {
       expect(net.dependencies.showAdvancedSettings.then.properties.mtu['ui:placeholder']).toBe('1500');
     });
   });
+
+  // ── array-of-object item schema normalization ────────────────────────────
+
+  describe('extractParameters – array-of-object item schema normalization', () => {
+    const taskRunner = { run: jest.fn() };
+
+    const makeProvider = () =>
+      new XRDTemplateEntityProvider(
+        taskRunner as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+      );
+
+    const makeXrd = (kind = 'MyResource') => ({
+      metadata: { name: 'myresources.example.com' },
+      spec: {
+        scope: 'Cluster',
+        names: { kind },
+        group: 'example.com',
+      },
+      clusters: ['test-cluster'],
+    });
+
+    const makeVersion = (specProps: Record<string, any>) => ({
+      name: 'v1alpha1',
+      schema: {
+        openAPIV3Schema: {
+          type: 'object',
+          properties: {
+            spec: { type: 'object', properties: specProps },
+          },
+        },
+      },
+    });
+
+    it('removes x-ui-hidden items, keeps visible items, and moves x-ui-advanced items into showAdvancedSettings on the items schema', () => {
+      const provider = makeProvider();
+      const params = (provider as any).extractParameters(
+        makeVersion({
+          ports: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                secretName: { type: 'string', 'x-ui-hidden': true },
+                tuning:     { type: 'string', 'x-ui-advanced': true, default: 'fast' },
+                visible:    { type: 'string' },
+              },
+            },
+          },
+        }),
+        ['test-cluster'],
+        makeXrd(),
+      );
+      const specGroup = params.find((p: any) => p.title === 'Resource Spec');
+      const itemsSchema = specGroup.properties.ports.items;
+
+      // x-ui-hidden field must be removed from the items schema
+      expect(itemsSchema.properties.secretName).toBeUndefined();
+
+      // plain visible field must remain
+      expect(itemsSchema.properties.visible).toBeDefined();
+
+      // x-ui-advanced field must be moved out of items.properties …
+      expect(itemsSchema.properties.tuning).toBeUndefined();
+
+      // … and into a showAdvancedSettings dependency on the items schema
+      expect(itemsSchema.properties.showAdvancedSettings).toBeDefined();
+      expect(itemsSchema.properties.showAdvancedSettings.type).toBe('boolean');
+
+      const dep = itemsSchema.dependencies?.showAdvancedSettings;
+      expect(dep).toBeDefined();
+      expect(dep.then.properties.tuning).toBeDefined();
+      // default must be converted to ui:placeholder with no residual default
+      expect(dep.then.properties.tuning['ui:placeholder']).toBe('fast');
+      expect(dep.then.properties.tuning.default).toBeUndefined();
+    });
+  });
 });
