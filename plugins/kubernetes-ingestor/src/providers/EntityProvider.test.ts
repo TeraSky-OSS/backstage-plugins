@@ -3065,4 +3065,249 @@ describe('XRDTemplateEntityProvider', () => {
       expect(networkField['ui:order']).toEqual(['gateway', 'dns', '*']);
     });
   });
+
+  // ── x-ui-hidden ─────────────────────────────────────────────────────────
+
+  describe('extractParameters – x-ui-hidden field filtering', () => {
+    const taskRunner = { run: jest.fn() };
+
+    const makeProvider = () =>
+      new XRDTemplateEntityProvider(
+        taskRunner as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+      );
+
+    const makeXrd = (kind = 'MyResource') => ({
+      metadata: { name: 'myresources.example.com' },
+      spec: {
+        scope: 'Cluster',
+        names: { kind },
+        group: 'example.com',
+      },
+      clusters: ['test-cluster'],
+    });
+
+    const makeVersion = (specProps: Record<string, any>) => ({
+      name: 'v1alpha1',
+      schema: {
+        openAPIV3Schema: {
+          type: 'object',
+          properties: {
+            spec: { type: 'object', properties: specProps },
+          },
+        },
+      },
+    });
+
+    it('excludes fields marked with x-ui-hidden: true from the form schema', () => {
+      const provider = makeProvider();
+      const params = (provider as any).extractParameters(
+        makeVersion({
+          visible: { type: 'string' },
+          hidden:  { type: 'string', 'x-ui-hidden': true },
+        }),
+        ['test-cluster'],
+        makeXrd(),
+      );
+      const specGroup = params.find((p: any) => p.title === 'Resource Spec');
+      expect(specGroup.properties.visible).toBeDefined();
+      expect(specGroup.properties.hidden).toBeUndefined();
+    });
+
+    it('excludes nested object fields marked with x-ui-hidden: true', () => {
+      const provider = makeProvider();
+      const params = (provider as any).extractParameters(
+        makeVersion({
+          config: {
+            type: 'object',
+            properties: {
+              public:   { type: 'string' },
+              internal: { type: 'string', 'x-ui-hidden': true },
+            },
+          },
+        }),
+        ['test-cluster'],
+        makeXrd(),
+      );
+      const specGroup = params.find((p: any) => p.title === 'Resource Spec');
+      expect(specGroup.properties.config.properties.public).toBeDefined();
+      expect(specGroup.properties.config.properties.internal).toBeUndefined();
+    });
+
+    it('does NOT require deprecated: true — x-ui-hidden works independently', () => {
+      // x-ui-hidden is for fields being migrated or that should be hidden from
+      // users without being marked deprecated in the XRD schema.
+      const provider = makeProvider();
+      const params = (provider as any).extractParameters(
+        makeVersion({
+          migrating:        { type: 'string', 'x-ui-hidden': true },
+          deprecatedHidden: { type: 'string', 'x-ui-hidden': true, deprecated: true },
+          notHidden:        { type: 'string' },
+        }),
+        ['test-cluster'],
+        makeXrd(),
+      );
+      const specGroup = params.find((p: any) => p.title === 'Resource Spec');
+      expect(specGroup.properties.migrating).toBeUndefined();
+      expect(specGroup.properties.deprecatedHidden).toBeUndefined();
+      expect(specGroup.properties.notHidden).toBeDefined();
+    });
+  });
+
+  // ── x-ui-advanced ───────────────────────────────────────────────────────
+
+  describe('extractParameters – x-ui-advanced field grouping', () => {
+    const taskRunner = { run: jest.fn() };
+
+    const makeProvider = () =>
+      new XRDTemplateEntityProvider(
+        taskRunner as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+      );
+
+    const makeXrd = (kind = 'MyResource') => ({
+      metadata: { name: 'myresources.example.com' },
+      spec: {
+        scope: 'Cluster',
+        names: { kind },
+        group: 'example.com',
+      },
+      clusters: ['test-cluster'],
+    });
+
+    const makeVersion = (specProps: Record<string, any>) => ({
+      name: 'v1alpha1',
+      schema: {
+        openAPIV3Schema: {
+          type: 'object',
+          properties: {
+            spec: { type: 'object', properties: specProps },
+          },
+        },
+      },
+    });
+
+    it('moves x-ui-advanced fields into showAdvancedSettings dependency', () => {
+      const provider = makeProvider();
+      const params = (provider as any).extractParameters(
+        makeVersion({
+          primary:  { type: 'string' },
+          advanced: { type: 'string', 'x-ui-advanced': true },
+        }),
+        ['test-cluster'],
+        makeXrd(),
+      );
+      const specGroup = params.find((p: any) => p.title === 'Resource Spec');
+      expect(specGroup.properties.primary).toBeDefined();
+      expect(specGroup.properties.advanced).toBeUndefined();
+      expect(specGroup.properties.showAdvancedSettings).toBeDefined();
+      expect(specGroup.properties.showAdvancedSettings.type).toBe('boolean');
+      expect(specGroup.properties.showAdvancedSettings.default).toBe(false);
+      const dep = specGroup.dependencies?.showAdvancedSettings;
+      expect(dep).toBeDefined();
+      expect(dep.then.properties.advanced).toBeDefined();
+    });
+
+    it('converts non-boolean defaults to ui:placeholder for advanced fields', () => {
+      const provider = makeProvider();
+      const params = (provider as any).extractParameters(
+        makeVersion({
+          timeout: { type: 'string', default: '30s', 'x-ui-advanced': true },
+        }),
+        ['test-cluster'],
+        makeXrd(),
+      );
+      const specGroup = params.find((p: any) => p.title === 'Resource Spec');
+      const dep = specGroup.dependencies?.showAdvancedSettings;
+      expect(dep.then.properties.timeout['ui:placeholder']).toBe('30s');
+      expect(dep.then.properties.timeout.default).toBeUndefined();
+    });
+
+    it('removes boolean defaults without adding ui:placeholder for advanced fields', () => {
+      const provider = makeProvider();
+      const params = (provider as any).extractParameters(
+        makeVersion({
+          debug: { type: 'boolean', default: false, 'x-ui-advanced': true },
+        }),
+        ['test-cluster'],
+        makeXrd(),
+      );
+      const specGroup = params.find((p: any) => p.title === 'Resource Spec');
+      const dep = specGroup.dependencies?.showAdvancedSettings;
+      expect(dep.then.properties.debug['ui:placeholder']).toBeUndefined();
+      expect(dep.then.properties.debug.default).toBeUndefined();
+    });
+
+    it('strips x-ui-advanced marker from the moved field', () => {
+      const provider = makeProvider();
+      const params = (provider as any).extractParameters(
+        makeVersion({
+          opt: { type: 'string', 'x-ui-advanced': true },
+        }),
+        ['test-cluster'],
+        makeXrd(),
+      );
+      const specGroup = params.find((p: any) => p.title === 'Resource Spec');
+      const dep = specGroup.dependencies?.showAdvancedSettings;
+      expect(dep.then.properties.opt['x-ui-advanced']).toBeUndefined();
+    });
+
+    it('does not add showAdvancedSettings when no advanced fields exist', () => {
+      const provider = makeProvider();
+      const params = (provider as any).extractParameters(
+        makeVersion({
+          simple: { type: 'string' },
+        }),
+        ['test-cluster'],
+        makeXrd(),
+      );
+      const specGroup = params.find((p: any) => p.title === 'Resource Spec');
+      expect(specGroup.properties.showAdvancedSettings).toBeUndefined();
+      expect(specGroup.dependencies).toEqual({});
+    });
+
+    it('sorts x-ui-advanced fields by x-ui-order within the dependency section', () => {
+      const provider = makeProvider();
+      const params = (provider as any).extractParameters(
+        makeVersion({
+          affinity:  { type: 'string', 'x-ui-advanced': true, 'x-ui-order': 7, default: 'None' },
+          statefull: { type: 'boolean', 'x-ui-advanced': true, 'x-ui-order': 1, default: false },
+        }),
+        ['test-cluster'],
+        makeXrd(),
+      );
+      const specGroup = params.find((p: any) => p.title === 'Resource Spec');
+      const dep = specGroup.dependencies?.showAdvancedSettings;
+      const keys = Object.keys(dep.then.properties);
+      // statefull (x-ui-order: 1) must appear before affinity (x-ui-order: 7)
+      expect(keys.indexOf('statefull')).toBeLessThan(keys.indexOf('affinity'));
+    });
+
+    it('propagates nested object advanced fields into sub-dependencies', () => {
+      const provider = makeProvider();
+      const params = (provider as any).extractParameters(
+        makeVersion({
+          networking: {
+            type: 'object',
+            properties: {
+              mode: { type: 'string' },
+              mtu:  { type: 'integer', default: 1500, 'x-ui-advanced': true },
+            },
+          },
+        }),
+        ['test-cluster'],
+        makeXrd(),
+      );
+      const specGroup = params.find((p: any) => p.title === 'Resource Spec');
+      const net = specGroup.properties.networking;
+      expect(net.properties.mode).toBeDefined();
+      expect(net.properties.mtu).toBeUndefined();
+      expect(net.dependencies?.showAdvancedSettings).toBeDefined();
+      expect(net.dependencies.showAdvancedSettings.then.properties.mtu['ui:placeholder']).toBe('1500');
+    });
+  });
 });
