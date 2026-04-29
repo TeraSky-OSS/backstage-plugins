@@ -41,40 +41,6 @@ const examplePage = PageBlueprint.make({
 
 ---
 
-### NavItemBlueprint
-
-Creates navigation items, typically rendered in the sidebar.
-
-**Package**: `@backstage/frontend-plugin-api`
-
-**Key Features**:
-- Integrates with `app.nav` extension
-- Default sidebar rendering
-- Route-aware navigation
-
-**Usage Pattern**:
-
-```tsx
-import { NavItemBlueprint } from '@backstage/frontend-plugin-api';
-import { rootRouteRef } from './routes';
-import ExampleIcon from '@material-ui/icons/Extension';
-
-const exampleNavItem = NavItemBlueprint.make({
-  params: {
-    routeRef: rootRouteRef,
-    title: 'Example',
-    icon: ExampleIcon,
-  },
-});
-```
-
-**Parameters**:
-- `routeRef`: Route reference to navigate to
-- `title`: Display text for navigation item
-- `icon`: MUI icon component or custom SVG icon
-
----
-
 ### EntityContentBlueprint
 
 Creates content tabs for entity pages in the catalog plugin.
@@ -290,11 +256,9 @@ Use descriptive names that reflect the extension's purpose:
 ```tsx
 // Good
 const userDashboardPage = PageBlueprint.make({ ... });
-const settingsNavItem = NavItemBlueprint.make({ ... });
 
 // Bad
 const page1 = PageBlueprint.make({ ... });
-const nav = NavItemBlueprint.make({ ... });
 ```
 
 ---

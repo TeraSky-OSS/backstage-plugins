@@ -1,7 +1,6 @@
 import {
   createFrontendPlugin,
   PageBlueprint,
-  NavItemBlueprint,
   ApiBlueprint,
   discoveryApiRef,
   fetchApiRef,
@@ -45,6 +44,8 @@ export const templateBuilderEditPage: ExtensionDefinition =
   PageBlueprint.make({
   name: 'template-builder-edit-page',
   params: {
+    title: 'Template Builder',
+    icon: <BuildIcon />,
     path: '/template-builder/edit/:namespace/:kind/:name',
     routeRef: editTemplateRouteRef,
     loader: () =>
@@ -54,15 +55,6 @@ export const templateBuilderEditPage: ExtensionDefinition =
   },
 });
 
-export const templateBuilderNavItem: ExtensionDefinition =
-  NavItemBlueprint.make({
-  name: 'template-builder-nav',
-  params: {
-    title: 'Template Builder',
-    routeRef: rootRouteRef,
-    icon: BuildIcon,
-  },
-});
 
 export const templateEditorEntityCard: ExtensionDefinition =
   EntityCardBlueprint.make({
@@ -80,7 +72,6 @@ export const templateBuilderPlugin: FrontendPlugin = createFrontendPlugin({
     templateBuilderApi,
     templateBuilderPage,
     templateBuilderEditPage,
-    templateBuilderNavItem,
     templateEditorEntityCard,
   ],
   routes: {

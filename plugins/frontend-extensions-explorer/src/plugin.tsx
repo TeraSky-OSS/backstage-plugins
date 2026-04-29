@@ -1,13 +1,13 @@
 import {
   createFrontendPlugin,
   PageBlueprint,
-  NavItemBlueprint,
 } from '@backstage/frontend-plugin-api';
-import ExtensionIcon from '@material-ui/icons/Extension';
 import { rootRouteRef } from './routes';
-
+import ExtensionIcon from '@material-ui/icons/Extension';
 const frontendExtensionsExplorerPage = PageBlueprint.make({
   params: {
+    title: 'Extensions Explorer',
+    icon: <ExtensionIcon />,
     path: '/frontend-extensions-explorer',
     routeRef: rootRouteRef,
     loader: () =>
@@ -17,17 +17,10 @@ const frontendExtensionsExplorerPage = PageBlueprint.make({
   },
 });
 
-const frontendExtensionsExplorerNavItem = NavItemBlueprint.make({
-  params: {
-    routeRef: rootRouteRef,
-    title: 'Extensions Explorer',
-    icon: ExtensionIcon,
-  },
-});
 
 export const frontendExtensionsExplorerPlugin = createFrontendPlugin({
   pluginId: 'frontend-extensions-explorer',
-  extensions: [frontendExtensionsExplorerPage, frontendExtensionsExplorerNavItem],
+  extensions: [frontendExtensionsExplorerPage],
   routes: {
     root: rootRouteRef,
   },

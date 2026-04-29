@@ -257,7 +257,6 @@ The plugin supports both **legacy** and **new frontend system** approaches:
   - `EntityCardBlueprint` for cluster and profile cards
   - `EntityContentBlueprint` for Kubernetes resources tab
   - `PageBlueprint` for deployment and viewer pages
-  - `NavItemBlueprint` for navigation
 
 ### API Integration
 

@@ -16,10 +16,6 @@ describe('educates alpha exports', () => {
       expect(alpha.educatesPage).toBeDefined();
     });
 
-    it('should export educatesNavItem', async () => {
-      const alpha = await import('./alpha');
-      expect(alpha.educatesNavItem).toBeDefined();
-    });
   });
 
   describe('plugin configuration', () => {
@@ -38,10 +34,6 @@ describe('educates alpha exports', () => {
       expect(alpha.educatesPage).toBeDefined();
     });
 
-    it('should include nav item blueprint', async () => {
-      const alpha = await import('./alpha');
-      expect(alpha.educatesNavItem).toBeDefined();
-    });
   });
 });
 

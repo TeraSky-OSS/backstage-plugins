@@ -5,9 +5,7 @@ import {
   discoveryApiRef,
   fetchApiRef,
   createRouteRef,
-  NavItemBlueprint,
 } from '@backstage/frontend-plugin-api';
-import SchoolIcon from '@material-ui/icons/School';
 import { EducatesClient, educatesApiRef } from './api/EducatesClient';
 
 const rootRouteRef = createRouteRef();
@@ -36,19 +34,11 @@ export const educatesPage = PageBlueprint.make({
   disabled: false,
 });
 
-export const educatesNavItem = NavItemBlueprint.make({
-  name: 'educates',
-  params: {
-    icon: SchoolIcon,
-    title: 'Educates',
-    routeRef: rootRouteRef
-  },
-});
 
 /** @alpha */
 export const educatesPlugin = createFrontendPlugin({
   pluginId: 'educates',
-  extensions: [educatesApi, educatesPage, educatesNavItem]
+  extensions: [educatesApi, educatesPage]
 });
 
 export default educatesPlugin;

@@ -40,7 +40,7 @@ Before building a frontend plugin, clearly understand:
 Load reference files as needed based on the plugin requirements:
 
 **For Extension Development:**
-- [📋 Extension Blueprints Reference](./reference/blueprints.md) - Comprehensive guide to PageBlueprint, NavItemBlueprint, EntityContentBlueprint, and ApiBlueprint
+- [📋 Extension Blueprints Reference](./reference/blueprints.md) - Comprehensive guide to PageBlueprint, EntityContentBlueprint, and ApiBlueprint
 
 **For Utility API Development:**
 - [🔌 Utility APIs Reference](./reference/utility_apis.md) - Creating and using Utility APIs for shared logic
@@ -88,7 +88,7 @@ Before publishing:
 
 - Create a plugin with `yarn new` → select plugin; it generates `plugins/<pluginId>/`.
 - The plugin instance is built with `createFrontendPlugin` from `@backstage/frontend-plugin-api`. Export it as the default from `src/index.ts`.
-- Functionality is provided via extensions (e.g., `PageBlueprint`, `NavItemBlueprint`, `EntityContentBlueprint`). These are lazy‑loaded using dynamic imports.
+- Functionality is provided via extensions (e.g., `PageBlueprint`, `EntityContentBlueprint`). These are lazy‑loaded using dynamic imports.
 - Define route references with `createRouteRef` (usually in `src/routes.ts`) and use them in blueprints.
 - Use Utility APIs for shared logic (`createApiRef` + `ApiBlueprint`), consumed via `useApi`.
 
@@ -283,7 +283,6 @@ Load these resources as needed during development:
 ### Extension Development
 - [📋 Extension Blueprints Reference](./reference/blueprints.md) - Complete guide to all extension blueprints including:
   - PageBlueprint for creating pages
-  - NavItemBlueprint for navigation items
   - EntityContentBlueprint for entity tabs
   - ApiBlueprint for Utility APIs
   - Advanced features like `makeWithOverrides`
