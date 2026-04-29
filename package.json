@@ -83,8 +83,9 @@
     "koa": "^3.2.0",
     "hono": "^4.12.12",
     "@hono/node-server": "^1.19.13",
-    "basic-ftp": "^5.2.2",
-    "prismjs": "^1.30.0"
+    "prismjs": "^1.30.0",
+    "protobufjs": "^7.5.5",
+    "basic-ftp": "^5.3.1"
   },
   "prettier": "@backstage/cli/config/prettier",
   "lint-staged": {
