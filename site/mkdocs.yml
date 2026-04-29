@@ -241,6 +241,12 @@ nav:
               - About: plugins/frontend-extensions-explorer/frontend/about.md
               - Install: plugins/frontend-extensions-explorer/frontend/install.md
               - Configure: plugins/frontend-extensions-explorer/frontend/configure.md
+      - Module Federation CDN:
+          - Overview: plugins/module-federation-cdn/overview.md
+          - Backend:
+              - About: plugins/module-federation-cdn/backend/about.md
+              - Install: plugins/module-federation-cdn/backend/install.md
+              - Configure: plugins/module-federation-cdn/backend/configure.md
 
 
 theme:

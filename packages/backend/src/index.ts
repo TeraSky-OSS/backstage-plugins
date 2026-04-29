@@ -107,4 +107,5 @@ backend.add(import('@backstage/plugin-mcp-actions-backend'));
 backend.add(import('@terasky/backstage-plugin-scaffolder-backend-module-spring-initializer'));
 backend.add(import('@terasky/backstage-plugin-spectrocloud-auth-backend'));
 backend.add(import('@terasky/backstage-plugin-vcfsso-auth-backend'));
+backend.add(import('@terasky/backstage-plugin-module-federation-cdn-backend'));
 backend.start();

@@ -5,7 +5,7 @@
 These plugins are built and tested against Backstage version 1.50.3
 
 ## Plugin overviews
-There are 52 plugins currently:
+There are 53 plugins currently:
 
 1. [Kubernetes Ingestor](./plugins/kubernetes-ingestor)
 
@@ -269,3 +269,8 @@ There are 52 plugins currently:
 
     [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-vcfsso-auth-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-vcfsso-auth-backend) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-vcfsso-auth-backend)  
     this backend module integrates VCF SSO as an OIDC authentication provider for the Backstage auth backend. It uses the standard OIDC authenticator and includes a custom profile transform to handle VCF SSO's non-standard identity claims (the `acct` claim is used for the email address instead of the standard `email` claim), with support for all standard Backstage sign-in resolvers.
+
+53. [Module Federation CDN Backend](./plugins/module-federation-cdn-backend)
+
+    [![npm latest version](https://img.shields.io/npm/v/@terasky/backstage-plugin-module-federation-cdn-backend/latest.svg)](https://www.npmjs.com/package/@terasky/backstage-plugin-module-federation-cdn-backend) ![NPM Downloads](https://img.shields.io/npm/dy/@terasky/backstage-plugin-module-federation-cdn-backend)  
+    this backend plugin enables dynamic Backstage frontend plugins to be loaded directly from a CDN using Module Federation, without requiring any files in the `dynamic-plugins-root` directory. At startup it fetches each plugin's `mf-manifest.json` from the CDN, patches the public path so all JavaScript chunks are served from the CDN, and injects virtual plugin entries into the dynamic features service so the Backstage frontend discovers and loads them automatically.
