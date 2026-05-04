@@ -4,8 +4,8 @@
 cd "$(dirname "$0")/.." || exit
 
 # Print table header
-echo "| Folder | Type | Package | Version | Link |"
-echo "|--------|------|---------|----------|------|"
+echo "| Folder | Type | Package | Version | Links |"
+echo "|--------|------|---------|----------|-------|"
 
 # List immediate subdirectories of plugins and process their package.json files
 for dir in plugins/*/; do
@@ -45,7 +45,20 @@ for dir in plugins/*/; do
         # Create markdown table row
         folder_link="[Code](./${folder}/)"
         npm_link="[NPMJS](https://www.npmjs.com/package/${name}/v/${version})"
+
+        # Build links column: shared modules have no GHCR image, all others do
+        if [[ $type == "Shared Module" ]]; then
+            links="$npm_link"
+        elif [[ $name == "@terasky/backstage-plugin-module-federation-cdn-backend" ]]; then
+            links="$npm_link"
+        else
+            # Derive GHCR image name: strip leading '@' and replace '/' with '-'
+            ghcr_name="${name#@}"
+            ghcr_name="${ghcr_name/\//-}"
+            ghcr_link="[GHCR](https://github.com/TeraSky-OSS/backstage-plugins/pkgs/container/${ghcr_name})"
+            links="$npm_link, $ghcr_link"
+        fi
         
-        echo "| $folder_link | $type | $name | $version | $npm_link |"
+        echo "| $folder_link | $type | $name | $version | $links |"
     fi
 done | sort
