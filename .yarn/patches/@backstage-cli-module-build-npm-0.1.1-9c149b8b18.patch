@@ -1,0 +1,16 @@
+diff --git a/dist/lib/bundler/config.cjs.js b/dist/lib/bundler/config.cjs.js
+index 3fe00ad9ac51582e1e5648936f9486bcbaa5621d..b32fbf29a7283b0d81e5d23b69f90c931a74c95d 100644
+--- a/dist/lib/bundler/config.cjs.js
++++ b/dist/lib/bundler/config.cjs.js
+@@ -307,6 +307,11 @@ async function createConfig(paths, options) {
+       ignoreWarnings: [
+         {
+           message: /No version specified and unable to automatically determine one\. No version in description file/
++        },
++        // protobufjs (via @asyncapi/* in @backstage/plugin-api-docs) uses dynamic require in inquire
++        {
++          message: /Critical dependency: the request of a dependency is an expression/,
++          module: /@protobufjs[\\/]inquire/
+         }
+       ]
+     }

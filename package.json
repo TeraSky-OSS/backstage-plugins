@@ -85,7 +85,8 @@
     "@hono/node-server": "^1.19.13",
     "prismjs": "^1.30.0",
     "protobufjs": "^7.5.5",
-    "basic-ftp": "^5.3.1"
+    "basic-ftp": "^5.3.1",
+    "@backstage/cli-module-build@npm:^0.1.1": "patch:@backstage/cli-module-build@npm%3A0.1.1#~/.yarn/patches/@backstage-cli-module-build-npm-0.1.1-9c149b8b18.patch"
   },
   "prettier": "@backstage/cli/config/prettier",
   "lint-staged": {
