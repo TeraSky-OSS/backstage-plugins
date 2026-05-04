@@ -20,6 +20,10 @@ for plugin_dir in "$PLUGINS_DIR"/*/; do
     echo "    Skipping $plugin_name (common package)"
     continue
   fi
+  if [[ "$plugin_name" == module-federation-cdn-backend ]]; then
+    echo "    Skipping $plugin_name (skipped by default)"
+    continue
+  fi
 
   echo "    Bundling $plugin_name"
   (cd "$plugin_dir" && yarn backstage-cli package bundle --output-destination "$OUTPUT_DIR")

@@ -18,7 +18,10 @@
   "homepage": "https://terasky.com",
   "backstage": {
     "role": "backend-plugin",
-    "pluginId": "module-federation-cdn"
+    "pluginId": "module-federation-cdn",
+    "pluginPackages": [
+      "@terasky/backstage-plugin-module-federation-cdn-backend"
+    ]
   },
   "scripts": {
     "start": "backstage-cli package start",
