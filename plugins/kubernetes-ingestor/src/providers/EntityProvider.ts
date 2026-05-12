@@ -420,6 +420,27 @@ export class XRDTemplateEntityProvider implements EntityProvider {
     return templates.filter((template: Entity) => this.validateEntityName(template));
   }
 
+  private extractApiAnnotations(annotations: Record<string, string>): Record<string, string> {
+    const prefix = this.getAnnotationPrefix();
+    const apiAnnotationsKey = `${prefix}/api-annotations`;
+
+    if (!annotations[apiAnnotationsKey]) {
+      return {};
+    }
+
+    return (splitAnnotationValues(annotations[apiAnnotationsKey]) || []).reduce((acc: Record<string, string>, pair) => {
+      const separatorIndex = pair.indexOf('=');
+      if (separatorIndex !== -1) {
+        const key = pair.substring(0, separatorIndex).trim();
+        const value = pair.substring(separatorIndex + 1).trim();
+        if (key && value) {
+          acc[key] = value;
+        }
+      }
+      return acc;
+    }, {});
+  }
+
   private translateXRDVersionsToAPI(xrd: any): Entity[] {
     if (!xrd?.metadata || !xrd?.spec) {
       this.logger.warn(`Skipping XRD API generation for ${xrd?.metadata?.name || 'unknown'} due to missing metadata or spec`);
@@ -437,6 +458,11 @@ export class XRDTemplateEntityProvider implements EntityProvider {
     const scope = xrd.spec?.scope || (isV2 ? 'LegacyCluster' : 'Cluster');
     const isLegacyCluster = isV2 && scope === 'LegacyCluster';
     // --- END VERSION/SCOPE LOGIC REFACTOR ---
+
+    // Extract custom annotations for API entities from XRD annotations
+    const xrdAnnotations = xrd.metadata.annotations || {};
+    const apiAnnotations = this.extractApiAnnotations(xrdAnnotations);
+
     // Prefer spec.names.plural/kind if available, fallback to metadata.name
     const resourcePlural = (!isV2 || isLegacyCluster)
       ? xrd.spec.claimNames?.plural
@@ -662,6 +688,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
             annotations: {
               'backstage.io/managed-by-location': `cluster origin: ${xrd.clusterName}`,
               'backstage.io/managed-by-origin-location': `cluster origin: ${xrd.clusterName}`,
+              ...apiAnnotations,
             },
           },
           spec: {
@@ -684,6 +711,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
             annotations: {
               'backstage.io/managed-by-location': `cluster origin: ${xrd.clusterName}`,
               'backstage.io/managed-by-origin-location': `cluster origin: ${xrd.clusterName}`,
+              ...apiAnnotations,
             },
           },
           spec: {
@@ -1567,6 +1595,10 @@ export class XRDTemplateEntityProvider implements EntityProvider {
       throw new Error('Invalid CRD object');
     }
 
+    // Extract custom annotations for API entities from CRD annotations
+    const crdAnnotations = crd.metadata.annotations || {};
+    const apiAnnotations = this.extractApiAnnotations(crdAnnotations);
+
     const apis = crd.spec.versions.map((version: any = {}) => {
       let crdOpenAPIDoc: any = {};
       crdOpenAPIDoc.openapi = "3.0.0";
@@ -1878,6 +1910,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
             annotations: {
               'backstage.io/managed-by-location': `cluster origin: ${crd.clusterName}`,
               'backstage.io/managed-by-origin-location': `cluster origin: ${crd.clusterName}`,
+              ...apiAnnotations,
             },
           },
           spec: {
@@ -1900,6 +1933,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
             annotations: {
               'backstage.io/managed-by-location': `cluster origin: ${crd.clusterName}`,
               'backstage.io/managed-by-origin-location': `cluster origin: ${crd.clusterName}`,
+              ...apiAnnotations,
             },
           },
           spec: {
