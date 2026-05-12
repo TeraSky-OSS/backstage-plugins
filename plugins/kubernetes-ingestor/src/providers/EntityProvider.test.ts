@@ -3524,5 +3524,38 @@ describe('XRDTemplateEntityProvider', () => {
       expect(apis[0].metadata.annotations['backstage.io/source-location']).toBe('url:https://github.com/org/repo');
       expect(apis[0].metadata.annotations['backstage.io/managed-by-location']).toBe('cluster origin: test-cluster');
     });
+
+    it('should pass api-annotations in OpenAPI mode (ingestAPIsAsCRDs=false)', () => {
+      const openApiConfig = new ConfigReader({
+        kubernetesIngestor: {
+          crossplane: { enabled: true, xrdTemplateGeneration: { enabled: true } },
+          annotationPrefix: 'terasky.backstage.io',
+          ingestAPIsAsCRDs: false,
+        },
+        kubernetes: {
+          clusterLocatorMethods: [
+            { type: 'config', clusters: [{ name: 'test-cluster', url: 'http://k8s.example.com' }] },
+          ],
+        },
+      });
+
+      const provider = new XRDTemplateEntityProvider(
+        taskRunner as any,
+        mockLogger,
+        openApiConfig,
+        mockResourceFetcher as any,
+      );
+
+      const xrd = makeXrd({
+        'terasky.backstage.io/api-annotations': 'backstage.io/source-location=url:https://github.com/org/repo,custom.io/team=platform',
+      });
+
+      const apis = (provider as any).translateXRDVersionsToAPI(xrd);
+      expect(apis).toHaveLength(1);
+      expect(apis[0].spec.type).toBe('openapi');
+      expect(apis[0].metadata.annotations['backstage.io/source-location']).toBe('url:https://github.com/org/repo');
+      expect(apis[0].metadata.annotations['custom.io/team']).toBe('platform');
+      expect(apis[0].metadata.annotations['backstage.io/managed-by-location']).toBe('cluster origin: test-cluster');
+    });
   });
 });
