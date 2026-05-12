@@ -3389,4 +3389,140 @@ describe('XRDTemplateEntityProvider', () => {
       expect(dep.then.properties.tuning.default).toBeUndefined();
     });
   });
+
+  // ── api-annotations ─────────────────────────────────────────────────────────
+
+  describe('api-annotations on XRD-derived API entities', () => {
+    const taskRunner = { run: jest.fn() };
+
+    const makeProvider = () =>
+      new XRDTemplateEntityProvider(
+        taskRunner as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+      );
+
+    const makeXrd = (annotations: Record<string, string> = {}) => ({
+      metadata: {
+        name: 'xwidgets.example.com',
+        annotations,
+      },
+      spec: {
+        group: 'example.com',
+        claimNames: { plural: 'widgets', kind: 'Widget' },
+        versions: [
+          {
+            name: 'v1',
+            schema: {
+              openAPIV3Schema: {
+                properties: {
+                  spec: { type: 'object', properties: { size: { type: 'string' } } },
+                },
+              },
+            },
+          },
+        ],
+      },
+      clusterName: 'test-cluster',
+      clusterDetails: [{ name: 'test-cluster', url: 'http://k8s.example.com' }],
+      generatedCRD: {
+        apiVersion: 'apiextensions.k8s.io/v1',
+        kind: 'CustomResourceDefinition',
+        spec: {
+          group: 'example.com',
+          names: { plural: 'xwidgets', kind: 'XWidget' },
+          versions: [
+            {
+              name: 'v1',
+              storage: true,
+              schema: {
+                openAPIV3Schema: {
+                  properties: {
+                    spec: { type: 'object', properties: { size: { type: 'string' } } },
+                  },
+                },
+              },
+            },
+          ],
+        },
+      },
+    });
+
+    it('should pass api-annotations through to generated API entities (comma-separated)', () => {
+      const provider = makeProvider();
+      const xrd = makeXrd({
+        'terasky.backstage.io/api-annotations': 'backstage.io/techdocs-ref=dir:.,custom.io/foo=bar',
+      });
+
+      const apis = (provider as any).translateXRDVersionsToAPI(xrd);
+      expect(apis).toHaveLength(1);
+      expect(apis[0].metadata.annotations['backstage.io/techdocs-ref']).toBe('dir:.');
+      expect(apis[0].metadata.annotations['custom.io/foo']).toBe('bar');
+      // managed-by annotations should still be present
+      expect(apis[0].metadata.annotations['backstage.io/managed-by-location']).toBe('cluster origin: test-cluster');
+    });
+
+    it('should pass api-annotations through to generated API entities (newline-separated)', () => {
+      const provider = makeProvider();
+      const xrd = makeXrd({
+        'terasky.backstage.io/api-annotations': 'backstage.io/techdocs-ref=dir:.\ncustom.io/baz=qux\n',
+      });
+
+      const apis = (provider as any).translateXRDVersionsToAPI(xrd);
+      expect(apis).toHaveLength(1);
+      expect(apis[0].metadata.annotations['backstage.io/techdocs-ref']).toBe('dir:.');
+      expect(apis[0].metadata.annotations['custom.io/baz']).toBe('qux');
+    });
+
+    it('should produce API entities without extra annotations when api-annotations is absent', () => {
+      const provider = makeProvider();
+      const xrd = makeXrd();
+
+      const apis = (provider as any).translateXRDVersionsToAPI(xrd);
+      expect(apis).toHaveLength(1);
+      expect(Object.keys(apis[0].metadata.annotations)).toEqual([
+        'backstage.io/managed-by-location',
+        'backstage.io/managed-by-origin-location',
+      ]);
+    });
+
+    it('should pass api-annotations through to CRD-derived API entities', () => {
+      const provider = makeProvider();
+      const crd = {
+        metadata: {
+          name: 'things.example.com',
+          annotations: {
+            'terasky.backstage.io/api-annotations': 'backstage.io/source-location=url:https://github.com/org/repo',
+          },
+        },
+        apiVersion: 'apiextensions.k8s.io/v1',
+        kind: 'CustomResourceDefinition',
+        spec: {
+          group: 'example.com',
+          scope: 'Namespaced',
+          names: { plural: 'things', singular: 'thing', kind: 'Thing' },
+          versions: [
+            {
+              name: 'v1',
+              schema: {
+                openAPIV3Schema: {
+                  properties: {
+                    spec: { type: 'object', properties: { count: { type: 'integer' } } },
+                  },
+                },
+              },
+            },
+          ],
+        },
+        clusterName: 'test-cluster',
+        clusterDetails: [{ name: 'test-cluster', url: 'http://k8s.example.com' }],
+      };
+
+      const apis = (provider as any).translateCRDVersionsToAPI(crd);
+      expect(apis).toHaveLength(1);
+      expect(apis[0].metadata.annotations['backstage.io/source-location']).toBe('url:https://github.com/org/repo');
+      expect(apis[0].metadata.annotations['backstage.io/managed-by-location']).toBe('cluster origin: test-cluster');
+    });
+  });
 });
