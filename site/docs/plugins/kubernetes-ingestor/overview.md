@@ -102,6 +102,13 @@ Workload Resource Annotations:
   terasky.backstage.io/name: string
   terasky.backstage.io/description: string
 
+XRD/CRD API Entity Annotations:
+  terasky.backstage.io/api-annotations: string        # comma or newline separated (key=value)
+                                                      #   Allows injecting custom annotations into API entities
+                                                      #   generated from XRDs and CRDs. Follows the same format
+                                                      #   as component-annotations but targets API entities.
+                                                      #   Example: backstage.io/techdocs-ref=dir:.,backstage.io/source-location=url:https://github.com/org/repo
+
 API Auto-Registration Annotations:
   terasky.backstage.io/provides-api-from-def: string      # URL for $text reference (runtime fetch)
   terasky.backstage.io/provides-api-from-url: string      # URL to fetch and embed at ingestion
