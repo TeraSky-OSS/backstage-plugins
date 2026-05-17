@@ -35,6 +35,12 @@ export interface Config {
      */
     organizationType?: 'vm-apps' | 'all-apps';
     /**
+     * List of CCI supervisor resource kinds to ingest for all-apps instances.
+     * Each kind is fetched in a separate request (the API only allows one kind per request).
+     * Defaults to ['VirtualMachine', 'Cluster', 'VirtualMachineService', 'PersistentVolumeClaim'].
+     */
+    supervisorResourceKinds?: string[];
+    /**
      * Authentication configuration (legacy single instance)
      */
     authentication?: {
@@ -76,6 +82,12 @@ export interface Config {
        * Organization type (vm-apps or all-apps)
        */
       organizationType?: 'vm-apps' | 'all-apps';
+      /**
+       * List of CCI supervisor resource kinds to ingest for all-apps instances.
+       * Each kind is fetched in a separate request (the API only allows one kind per request).
+       * Defaults to ['VirtualMachine', 'Cluster', 'VirtualMachineService', 'PersistentVolumeClaim'].
+       */
+      supervisorResourceKinds?: string[];
       /**
        * Authentication configuration
        */

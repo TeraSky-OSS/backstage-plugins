@@ -188,6 +188,13 @@ interface VcfSupervisorNamespaceResponse {
   };
 }
 
+const DEFAULT_SUPERVISOR_RESOURCE_KINDS = [
+  'VirtualMachine',
+  'Cluster',
+  'VirtualMachineService',
+  'PersistentVolumeClaim',
+];
+
 interface VcfInstance {
   baseUrl: string;
   name: string;
@@ -199,6 +206,7 @@ interface VcfInstance {
   };
   orgName?: string;
   organizationType?: 'vm-apps' | 'all-apps';
+  supervisorResourceKinds: string[];
   token?: string;
   tokenExpiry?: Date;
 }
@@ -236,6 +244,7 @@ export class VcfAutomationEntityProvider implements EntityProvider {
             },
             orgName: instanceConfig.getOptionalString('orgName'),
             organizationType: (instanceConfig.getOptionalString('organizationType') ?? 'vm-apps') as 'vm-apps' | 'all-apps',
+            supervisorResourceKinds: instanceConfig.getOptionalStringArray('supervisorResourceKinds') ?? DEFAULT_SUPERVISOR_RESOURCE_KINDS,
           };
         });
       } else {
@@ -252,6 +261,7 @@ export class VcfAutomationEntityProvider implements EntityProvider {
           },
           orgName: config.getOptionalString('vcfAutomation.orgName'),
           organizationType: (config.getOptionalString('vcfAutomation.organizationType') ?? 'vm-apps') as 'vm-apps' | 'all-apps',
+          supervisorResourceKinds: config.getOptionalStringArray('vcfAutomation.supervisorResourceKinds') ?? DEFAULT_SUPERVISOR_RESOURCE_KINDS,
         }];
       }
     } catch (error) {
@@ -501,58 +511,96 @@ export class VcfAutomationEntityProvider implements EntityProvider {
     }
   }
 
+  private async fetchSupervisorResourcesByKind(instance: VcfInstance, kind: string): Promise<VcfSupervisorResource[]> {
+    const resources: VcfSupervisorResource[] = [];
+    let page = 0;
+    let hasMorePages = true;
+
+    while (hasMorePages) {
+      this.logger.debug(`Fetching supervisor resources (kind=${kind}) page ${page + 1} from instance ${instance.name}`);
+      const response = await fetch(
+        `${instance.baseUrl}/deployment/api/supervisor-resources?page=${page}&size=20&kinds=${encodeURIComponent(kind)}`,
+        {
+          headers: {
+            Authorization: `Bearer ${instance.token}`,
+            Accept: 'application/json',
+          },
+        },
+      );
+
+      if (response.status === 404) {
+        this.logger.debug(`No more pages for kind=${kind} after page ${page} from instance ${instance.name}`);
+        break;
+      }
+
+      if (!response.ok) {
+        let errorBody = '';
+        try {
+          errorBody = await response.text();
+        } catch (_) {
+          // ignore body read errors
+        }
+        throw new Error(
+          `Failed to fetch supervisor resources (kind=${kind}) page ${page + 1} from instance ${instance.name} with status ${response.status}: ${response.statusText} — ${errorBody}`,
+        );
+      }
+
+      const data: VcfSupervisorResourceResponse = await response.json();
+
+      if (!data.content || !Array.isArray(data.content) || data.content.length === 0) {
+        this.logger.debug(`No more supervisor resources (kind=${kind}) found after page ${page} from instance ${instance.name}`);
+        break;
+      }
+
+      // Filter out resources that have a deployment property (those are handled by deployment ingestion)
+      const standaloneResources = data.content.filter(resource => !resource.deployment);
+      this.logger.debug(
+        `Retrieved ${standaloneResources.length} standalone (kind=${kind}) resources from page ${page + 1} from instance ${instance.name} (filtered from ${data.content.length} total)`,
+      );
+      resources.push(...standaloneResources);
+
+      if (page >= data.totalPages - 1 || data.content.length === 0) {
+        hasMorePages = false;
+      } else {
+        page++;
+      }
+    }
+
+    return resources;
+  }
+
   private async fetchStandaloneSupervisorResources(instance: VcfInstance): Promise<VcfSupervisorResource[]> {
     try {
       await this.authenticate(instance);
-      const resources: VcfSupervisorResource[] = [];
-      let page = 0;
-      let hasMorePages = true;
 
-      this.logger.info(`Starting to fetch standalone supervisor resources from VCF Automation instance ${instance.name}`);
+      this.logger.info(
+        `Starting to fetch standalone supervisor resources from VCF Automation instance ${instance.name} (kinds: ${instance.supervisorResourceKinds.join(', ')})`,
+      );
 
-      while (hasMorePages) {
-        this.logger.debug(`Fetching supervisor resources page ${page + 1} from instance ${instance.name}`);
-        const response = await fetch(
-          `${instance.baseUrl}/deployment/api/supervisor-resources?page=${page}&size=20`,
-          {
-            headers: {
-              Authorization: `Bearer ${instance.token}`,
-            },
-          },
-        );
+      const allResources: VcfSupervisorResource[] = [];
+      const seenIds = new Set<string>();
 
-        // If we get a 404, it means we've gone past the last page
-        if (response.status === 404) {
-          this.logger.debug(`No more pages available after page ${page} from instance ${instance.name}`);
-          break;
-        }
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch supervisor resources page ${page + 1} from instance ${instance.name} with status ${response.status}: ${response.statusText}`);
-        }
-
-        const data: VcfSupervisorResourceResponse = await response.json();
-        
-        if (!data.content || !Array.isArray(data.content) || data.content.length === 0) {
-          this.logger.debug(`No more supervisor resources found after page ${page} from instance ${instance.name}`);
-          break;
-        }
-
-        // Filter out resources that have a deployment property (those are handled by deployment ingestion)
-        const standaloneResources = data.content.filter(resource => !resource.deployment);
-        this.logger.debug(`Retrieved ${standaloneResources.length} standalone supervisor resources from page ${page + 1} from instance ${instance.name} (filtered from ${data.content.length} total)`);
-        resources.push(...standaloneResources);
-
-        // Check if we've reached the last page
-        if (page >= data.totalPages - 1 || data.content.length === 0) {
-          hasMorePages = false;
-        } else {
-          page++;
+      for (const kind of instance.supervisorResourceKinds) {
+        try {
+          const kindResources = await this.fetchSupervisorResourcesByKind(instance, kind);
+          this.logger.info(`Successfully fetched ${kindResources.length} standalone ${kind} resources from instance ${instance.name}`);
+          for (const resource of kindResources) {
+            if (!seenIds.has(resource.id)) {
+              seenIds.add(resource.id);
+              allResources.push(resource);
+            }
+          }
+        } catch (kindError) {
+          this.logger.error(
+            `Failed to fetch supervisor resources for kind=${kind} from instance ${instance.name}`,
+            { error: kindError instanceof Error ? kindError.message : String(kindError) },
+          );
+          // Continue with remaining kinds
         }
       }
 
-      this.logger.info(`Successfully fetched ${resources.length} standalone supervisor resources in total from instance ${instance.name}`);
-      return resources;
+      this.logger.info(`Successfully fetched ${allResources.length} standalone supervisor resources in total from instance ${instance.name}`);
+      return allResources;
     } catch (error) {
       this.logger.error(`Failed to fetch standalone supervisor resources from VCF Automation instance ${instance.name}`, {
         error: error instanceof Error ? error.message : String(error),
@@ -1045,12 +1093,18 @@ export class VcfAutomationEntityProvider implements EntityProvider {
             }
           }
           
+          const cciResourceName =
+            resource.properties?.object?.metadata?.name ||
+            resource.properties?.manifest?.metadata?.name ||
+            baseEntity.metadata.title;
+
           entities.push({
             apiVersion: 'backstage.io/v1alpha1',
             kind: 'Component',
             ...baseEntity,
             metadata: {
               ...baseEntity.metadata,
+              title: cciResourceName,
               tags,
               links: additionalLinks,
               annotations: {
