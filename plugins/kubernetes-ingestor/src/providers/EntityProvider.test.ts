@@ -3275,7 +3275,7 @@ describe('XRDTemplateEntityProvider', () => {
       const params = (provider as any).extractParameters(
         makeVersion({
           affinity:  { type: 'string', 'x-ui-advanced': true, 'x-ui-order': 7, default: 'None' },
-          statefull: { type: 'boolean', 'x-ui-advanced': true, 'x-ui-order': 1, default: false },
+          stateful: { type: 'boolean', 'x-ui-advanced': true, 'x-ui-order': 1, default: false },
         }),
         ['test-cluster'],
         makeXrd(),
@@ -3283,8 +3283,8 @@ describe('XRDTemplateEntityProvider', () => {
       const specGroup = params.find((p: any) => p.title === 'Resource Spec');
       const dep = specGroup.dependencies?.showAdvancedSettings;
       const keys = Object.keys(dep.then.properties);
-      // statefull (x-ui-order: 1) must appear before affinity (x-ui-order: 7)
-      expect(keys.indexOf('statefull')).toBeLessThan(keys.indexOf('affinity'));
+      // stateful (x-ui-order: 1) must appear before affinity (x-ui-order: 7)
+      expect(keys.indexOf('stateful')).toBeLessThan(keys.indexOf('affinity'));
     });
 
     it('propagates nested object advanced fields into sub-dependencies', () => {
@@ -3556,6 +3556,105 @@ describe('XRDTemplateEntityProvider', () => {
       expect(apis[0].metadata.annotations['backstage.io/source-location']).toBe('url:https://github.com/org/repo');
       expect(apis[0].metadata.annotations['custom.io/team']).toBe('platform');
       expect(apis[0].metadata.annotations['backstage.io/managed-by-location']).toBe('cluster origin: test-cluster');
+    });
+  });
+
+  // ── extractSteps – showAdvancedSettings exclusion & specFieldOrder ────────────
+
+  describe('extractSteps – showAdvancedSettings and specFieldOrder', () => {
+    const makeStepsProvider = () =>
+      new XRDTemplateEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+      );
+
+    const makeXrdForSteps = () => ({
+      metadata: { name: 'myresources.example.com' },
+      spec: {
+        scope: 'Cluster',
+        names: { kind: 'MyResource', plural: 'myresources' },
+        group: 'example.com',
+      },
+    });
+
+    const makeVersionWithOrder = (specProps: Record<string, any>) => ({
+      name: 'v1alpha1',
+      schema: {
+        openAPIV3Schema: {
+          type: 'object',
+          properties: {
+            spec: { type: 'object', properties: specProps },
+          },
+        },
+      },
+    });
+
+    const getGenerateStep = (steps: any[]) => steps.find((s: any) => s.id === 'generateManifest');
+
+    it('includes showAdvancedSettings in excludeParams in generated steps', () => {
+      const provider = makeStepsProvider();
+      const version = makeVersionWithOrder({
+        dc: { type: 'string', 'x-ui-order': 1 },
+        affinity: { type: 'string', 'x-ui-advanced': true, 'x-ui-order': 7 },
+      });
+
+      const steps: any[] = (provider as any).extractSteps(version, makeXrdForSteps());
+      const step = getGenerateStep(steps);
+      expect(step).toBeDefined();
+      expect(step.input.excludeParams).toContain('showAdvancedSettings');
+    });
+
+    it('generates specFieldOrder sorted by x-ui-order', () => {
+      const provider = makeStepsProvider();
+      const version = makeVersionWithOrder({
+        gamma: { type: 'string', 'x-ui-order': 3 },
+        alpha: { type: 'string', 'x-ui-order': 1 },
+        beta:  { type: 'string', 'x-ui-order': 2 },
+      });
+
+      const steps: any[] = (provider as any).extractSteps(version, makeXrdForSteps());
+      const step = getGenerateStep(steps);
+      expect(step.input.specFieldOrder).toEqual(['alpha', 'beta', 'gamma']);
+    });
+
+    it('includes x-ui-advanced fields in specFieldOrder based on x-ui-order', () => {
+      const provider = makeStepsProvider();
+      const version = makeVersionWithOrder({
+        cluster:   { type: 'string', 'x-ui-order': 2 },
+        dc:        { type: 'string', 'x-ui-order': 1 },
+        stateful: { type: 'boolean', 'x-ui-advanced': true, 'x-ui-order': 1 },
+        affinity:  { type: 'string',  'x-ui-advanced': true, 'x-ui-order': 7 },
+      });
+
+      const steps: any[] = (provider as any).extractSteps(version, makeXrdForSteps());
+      const order: string[] = getGenerateStep(steps).input.specFieldOrder;
+      expect(order.indexOf('dc')).toBeLessThan(order.indexOf('cluster'));
+      expect(order.indexOf('stateful')).toBeLessThan(order.indexOf('cluster'));
+      expect(order.indexOf('stateful')).toBeLessThan(order.indexOf('affinity'));
+    });
+
+    it('does not include x-ui-hidden fields in specFieldOrder', () => {
+      const provider = makeStepsProvider();
+      const version = makeVersionWithOrder({
+        visible: { type: 'string', 'x-ui-order': 1 },
+        hidden:  { type: 'string', 'x-ui-hidden': true, 'x-ui-order': 0 },
+      });
+
+      const steps: any[] = (provider as any).extractSteps(version, makeXrdForSteps());
+      const order: string[] = getGenerateStep(steps).input.specFieldOrder;
+      expect(order).toContain('visible');
+      expect(order).not.toContain('hidden');
+    });
+
+    it('omits specFieldOrder when no spec properties exist', () => {
+      const provider = makeStepsProvider();
+      const version = { name: 'v1alpha1', schema: { openAPIV3Schema: { type: 'object', properties: {} } } };
+
+      const steps: any[] = (provider as any).extractSteps(version, makeXrdForSteps());
+      const step = getGenerateStep(steps);
+      expect(step.input.specFieldOrder).toBeUndefined();
     });
   });
 });

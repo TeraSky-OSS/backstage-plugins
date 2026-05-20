@@ -42,12 +42,13 @@ export function createCrossplaneClaimAction({config}: {config: any}) {
         parameters: z => z.record(z.any()).describe('Pass through of input parameters'),
         nameParam: z => z.string().describe('Template parameter to map to the name of the claim').default('xrName'),
         namespaceParam: z => z.string().describe('Template parameter to map to the namespace of the claim').default('xrNamespace'),
-        excludeParams: z => z.array(z.string()).describe('Template parameters to exclude from the claim').default(['xrName', 'xrNamespace', 'clusters', 'targetBranch', 'repoUrl', '_editData']),
+        excludeParams: z => z.array(z.string()).describe('Template parameters to exclude from the claim').default(['xrName', 'xrNamespace', 'clusters', 'targetBranch', 'repoUrl', '_editData', 'showAdvancedSettings']),
         apiVersion: z => z.string().describe('API Version of the claim'),
         kind: z => z.string().describe('Kind of the claim'),
         clusters: z => z.array(z.string()).min(1).describe('The target clusters to apply the resource to'),
         removeEmptyParams: z => z.boolean().describe('If set to false, empty parameters will be rendered in the manifest. by default they are removed').default(true),
         ownerParam: z => z.string().describe('Template parameter to map to the owner of the claim'),
+        specFieldOrder: z => z.array(z.string()).describe('Ordered list of spec field names (derived from x-ui-order) to control key order in the generated manifest').optional(),
       },
       output: {
         manifest: z => z.string().describe('The templated Kubernetes resource manifest'),
@@ -67,7 +68,7 @@ export function createCrossplaneClaimAction({config}: {config: any}) {
         throw new Error(`myParameter cannot be 'foo'`);
       }
 
-      // Remove excluded parameters
+      // Remove excluded parameters (always exclude showAdvancedSettings regardless of excludeParams list)
       const filteredParameters = { ...input.parameters };
       // Helper to delete nested keys using dot notation
       function deleteNested(obj: any, path: string) {
@@ -79,9 +80,24 @@ export function createCrossplaneClaimAction({config}: {config: any}) {
         }
         delete current[parts[parts.length - 1]];
       }
-      input.excludeParams.forEach((param: string) => {
-        deleteNested(filteredParameters, param);
+      function removeNestedKey(obj: any, keyName: string) {
+        if (Array.isArray(obj)) {
+          obj.forEach(item => removeNestedKey(item, keyName));
+          return;
+        }
+        if (!obj || typeof obj !== 'object') {
+          return;
+        }
+        delete obj[keyName];
+        Object.values(obj).forEach(value => removeNestedKey(value, keyName));
+      }
+      const excludeSet = new Set([...input.excludeParams, 'showAdvancedSettings']);
+      excludeSet.forEach((param: string) => {
+        if (param !== 'showAdvancedSettings') {
+          deleteNested(filteredParameters, param);
+        }
       });
+      removeNestedKey(filteredParameters, 'showAdvancedSettings');
 
       // Remove empty parameters if removeEmptyParams is true
       if (input.removeEmptyParams) {
@@ -150,6 +166,23 @@ export function createCrossplaneClaimAction({config}: {config: any}) {
           sourceFileUrl = generateSourceFileUrl(sourceInfo.gitRepo, sourceInfo.gitBranch, filePath, scmType);
         }
 
+        // Reorder spec fields according to specFieldOrder (derived from x-ui-order in XRD)
+        let specObj: Record<string, any> = filteredParameters;
+        if (input.specFieldOrder && input.specFieldOrder.length > 0) {
+          const ordered: Record<string, any> = {};
+          for (const key of input.specFieldOrder) {
+            if (key in filteredParameters) {
+              ordered[key] = filteredParameters[key];
+            }
+          }
+          for (const key of Object.keys(filteredParameters)) {
+            if (!(key in ordered)) {
+              ordered[key] = filteredParameters[key];
+            }
+          }
+          specObj = ordered;
+        }
+
         // Create the manifest with the correct annotation for this cluster
         const manifest = {
           apiVersion: input.apiVersion,
@@ -165,7 +198,7 @@ export function createCrossplaneClaimAction({config}: {config: any}) {
             name: (input.parameters as any)[input.nameParam],
             ...((input.parameters as any)[input.namespaceParam] && (input.parameters as any)[input.namespaceParam] !== '' ? { namespace: (input.parameters as any)[input.namespaceParam] } : {}),
           },
-          spec: filteredParameters,
+          spec: specObj,
         };
 
         manifestYaml = yaml.dump(manifest, {

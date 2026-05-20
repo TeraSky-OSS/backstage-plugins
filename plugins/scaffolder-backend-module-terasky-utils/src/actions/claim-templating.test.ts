@@ -1,6 +1,7 @@
 import { createCrossplaneClaimAction } from './claim-templating';
 import { ConfigReader } from '@backstage/config';
 import fs from 'fs-extra';
+import yaml from 'js-yaml';
 
 jest.mock('fs-extra');
 
@@ -379,6 +380,90 @@ describe('createCrossplaneClaimAction', () => {
       await action.handler!(ctx as any);
 
       expect(fs.outputFileSync).toHaveBeenCalled();
+    });
+
+    it('should always exclude showAdvancedSettings from the manifest spec', async () => {
+      const action = createCrossplaneClaimAction({ config: mockConfig });
+      const ctx = createMockContext({
+        parameters: {
+          xrName: 'test-claim',
+          xrNamespace: 'test-ns',
+          showAdvancedSettings: true,
+          someParam: 'value',
+        },
+        nameParam: 'xrName',
+        namespaceParam: 'xrNamespace',
+        excludeParams: ['xrName', 'xrNamespace'],
+        apiVersion: 'test.io/v1',
+        kind: 'TestClaim',
+        clusters: ['cluster-1'],
+        removeEmptyParams: false,
+        ownerParam: 'owner',
+      });
+
+      await action.handler!(ctx as any);
+
+      const writtenContent: string = (fs.outputFileSync as jest.Mock).mock.calls[0][1];
+      const manifest = yaml.load(writtenContent) as any;
+      expect(manifest.spec).not.toHaveProperty('showAdvancedSettings');
+      expect(manifest.spec).toHaveProperty('someParam', 'value');
+    });
+
+    it('should order spec fields according to specFieldOrder', async () => {
+      const action = createCrossplaneClaimAction({ config: mockConfig });
+      const ctx = createMockContext({
+        parameters: {
+          xrName: 'test-claim',
+          xrNamespace: 'test-ns',
+          gamma: 'g',
+          alpha: 'a',
+          beta: 'b',
+        },
+        nameParam: 'xrName',
+        namespaceParam: 'xrNamespace',
+        excludeParams: ['xrName', 'xrNamespace'],
+        apiVersion: 'test.io/v1',
+        kind: 'TestClaim',
+        clusters: ['cluster-1'],
+        removeEmptyParams: false,
+        ownerParam: 'owner',
+        specFieldOrder: ['alpha', 'beta', 'gamma'],
+      });
+
+      await action.handler!(ctx as any);
+
+      const writtenContent: string = (fs.outputFileSync as jest.Mock).mock.calls[0][1];
+      const manifest = yaml.load(writtenContent) as any;
+      const specKeys = Object.keys(manifest.spec);
+      expect(specKeys).toEqual(['alpha', 'beta', 'gamma']);
+    });
+
+    it('should place fields not in specFieldOrder after ordered fields', async () => {
+      const action = createCrossplaneClaimAction({ config: mockConfig });
+      const ctx = createMockContext({
+        parameters: {
+          xrName: 'test-claim',
+          xrNamespace: 'test-ns',
+          extra: 'e',
+          first: 'f',
+        },
+        nameParam: 'xrName',
+        namespaceParam: 'xrNamespace',
+        excludeParams: ['xrName', 'xrNamespace'],
+        apiVersion: 'test.io/v1',
+        kind: 'TestClaim',
+        clusters: ['cluster-1'],
+        removeEmptyParams: false,
+        ownerParam: 'owner',
+        specFieldOrder: ['first'],
+      });
+
+      await action.handler!(ctx as any);
+
+      const writtenContent: string = (fs.outputFileSync as jest.Mock).mock.calls[0][1];
+      const manifest = yaml.load(writtenContent) as any;
+      const specKeys = Object.keys(manifest.spec);
+      expect(specKeys).toEqual(['first', 'extra']);
     });
   });
 });
