@@ -2,7 +2,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) 
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/12423/badge)](https://www.bestpractices.dev/projects/12423)
 
-These plugins are built and tested against Backstage version 1.50.3
+These plugins are built and tested against Backstage version 1.51.0
 
 ## Plugin overviews
 There are 53 plugins currently:
