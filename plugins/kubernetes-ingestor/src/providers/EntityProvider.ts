@@ -1399,6 +1399,25 @@ export class XRDTemplateEntityProvider implements EntityProvider {
     const isCluster = scope === 'Cluster';
     const isNamespaced = scope === 'Namespaced';
     // --- END VERSION/SCOPE LOGIC REFACTOR ---
+
+    // Compute specFieldOrder from x-ui-order annotations in the XRD spec properties.
+    // All visible fields (regular and x-ui-advanced) are sorted together by x-ui-order,
+    // matching the logical ordering intent in the XRD schema.
+    const rawSpecProps: Record<string, any> = version.schema?.openAPIV3Schema?.properties?.spec?.properties || {};
+    const visibleSpecFields = Object.entries(rawSpecProps).filter(([, v]) => (v as any)['x-ui-hidden'] !== true);
+    const specFieldsWithOrder = visibleSpecFields
+      .filter(([, v]) => typeof (v as any)['x-ui-order'] === 'number')
+      .sort((a, b) => (a[1] as any)['x-ui-order'] - (b[1] as any)['x-ui-order'])
+      .map(([k]) => k);
+    const specFieldsWithoutOrder = visibleSpecFields
+      .filter(([, v]) => typeof (v as any)['x-ui-order'] !== 'number')
+      .map(([k]) => k)
+      .sort();
+    const specFieldOrder = [...specFieldsWithOrder, ...specFieldsWithoutOrder];
+    const specFieldOrderYaml = specFieldOrder.length > 0
+      ? '    specFieldOrder: [' + specFieldOrder.map(f => `'${f}'`).join(', ') + ']\n'
+      : '';
+
     let baseStepsYaml = '';
     // Compose the YAML as a string, not a template literal with JS expressions inside
     if (isV2 && (isCluster || isNamespaced) && !isLegacyCluster) {
@@ -1412,11 +1431,12 @@ export class XRDTemplateEntityProvider implements EntityProvider {
         '    nameParam: xrName\n' +
         (isNamespaced ? '    namespaceParam: xrNamespace\n' : '    namespaceParam: ""\n') +
         '    ownerParam: owner\n' +
-        '    excludeParams: [\'crossplane.compositionSelectionStrategy\',\'owner\',\'pushToGit\',\'basePath\',\'manifestLayout\',\'_editData\',\'targetBranch\',\'repoUrl\',\'clusters\',\'xrName\'' + (isNamespaced ? ', \'xrNamespace\'' : '') + ']\n' +
+        '    excludeParams: [\'crossplane.compositionSelectionStrategy\',\'owner\',\'pushToGit\',\'basePath\',\'manifestLayout\',\'_editData\',\'targetBranch\',\'repoUrl\',\'clusters\',\'xrName\',\'showAdvancedSettings\'' + (isNamespaced ? ', \'xrNamespace\'' : '') + ']\n' +
         '    apiVersion: {API_VERSION}\n' +
         '    kind: {KIND}\n' +
         '    clusters: ${{ parameters.clusters if parameters.manifestLayout === \'cluster-scoped\' and parameters.pushToGit else [\'temp\'] }}\n' +
-        '    removeEmptyParams: true\n';
+        '    removeEmptyParams: true\n' +
+        specFieldOrderYaml;
     } else {
       // v1 or v2 LegacyCluster: keep current logic
       baseStepsYaml =
@@ -1428,11 +1448,12 @@ export class XRDTemplateEntityProvider implements EntityProvider {
         '    nameParam: xrName\n' +
         '    namespaceParam: xrNamespace\n' +
         '    ownerParam: owner\n' +
-        '    excludeParams: [\'owner\', \'compositionSelectionStrategy\',\'pushToGit\',\'basePath\',\'manifestLayout\',\'_editData\', \'targetBranch\', \'repoUrl\', \'clusters\', \'xrName\', \'xrNamespace\']\n' +
+        '    excludeParams: [\'owner\', \'compositionSelectionStrategy\',\'pushToGit\',\'basePath\',\'manifestLayout\',\'_editData\', \'targetBranch\', \'repoUrl\', \'clusters\', \'xrName\', \'xrNamespace\', \'showAdvancedSettings\']\n' +
         '    apiVersion: {API_VERSION}\n' +
         '    kind: {KIND}\n' +
         '    clusters: ${{ parameters.clusters if parameters.manifestLayout === \'cluster-scoped\' and parameters.pushToGit else [\'temp\'] }}\n' +
-        '    removeEmptyParams: true\n'
+        '    removeEmptyParams: true\n' +
+        specFieldOrderYaml
     }
     const publishPhaseTarget = this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.target')?.toLowerCase();
     let action = '';

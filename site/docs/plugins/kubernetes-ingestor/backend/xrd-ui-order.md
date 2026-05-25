@@ -227,6 +227,20 @@ order instead of the schema-declaration order.
 
 ---
 
+## What affects XR file generation
+
+For `x-ui-*` annotations, the generated XR manifest file is affected by these rules:
+
+| Factor | Effect on generated XR file |
+|---|---|
+| `x-ui-order` on `spec` fields | Defines `specFieldOrder`, which controls key order in `spec` inside the generated YAML |
+| Missing `x-ui-order` | Such fields are appended after ordered ones (alphabetically) |
+| `x-ui-hidden: true` | Field is hidden from UI/form ordering (`specFieldOrder`), but it is not auto-removed from generated `spec` unless explicitly excluded via `excludeParams` |
+| `x-ui-advanced: true` | Field is grouped behind `showAdvancedSettings` in UI, but still participates in `x-ui-order` when enabled |
+| `x-ui-advanced` UI toggle field (`showAdvancedSettings`) | Is UI-only and never written to XR `spec` |
+
+---
+
 ## Notes
 
 - `x-ui-order` must be a **number** (integer or float). String values are ignored.
