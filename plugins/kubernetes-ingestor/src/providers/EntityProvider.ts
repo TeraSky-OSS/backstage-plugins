@@ -1180,7 +1180,13 @@ export class XRDTemplateEntityProvider implements EntityProvider {
         type: 'object',
       };
     }
-    // Publish parameters (unchanged)
+    // When target-path annotation is set, path is fully controlled by the annotation →
+    // hide manifestLayout and clusters from the form entirely.
+    const annotPrefix = this.getAnnotationPrefix();
+    const rawTargetPath = xrd.metadata?.annotations?.[`${annotPrefix}/target-path`]?.trim() ?? '';
+    const hasTargetPath = XRDTemplateEntityProvider.isValidPathTemplate(rawTargetPath);
+
+    // Publish parameters
     let allowedHosts: string[] = [];
     const publishPhaseTarget = this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.target')?.toLowerCase();
     const allowedTargets = this.config.getOptionalStringArray('kubernetesIngestor.crossplane.xrds.publishPhase.allowedTargets');
@@ -1214,6 +1220,48 @@ export class XRDTemplateEntityProvider implements EntityProvider {
         secretsKey: 'USER_OAUTH_TOKEN',
       };
     }
+    // clusters selector shown only when target-path annotation is absent
+    const clusterScopedBranch = hasTargetPath
+      ? { properties: { manifestLayout: { enum: ['cluster-scoped'] } } }
+      : {
+          properties: {
+            manifestLayout: { enum: ['cluster-scoped'] },
+            clusters: {
+              title: 'Target Clusters',
+              description: 'The target clusters to apply the resource to',
+              type: 'array',
+              minItems: 1,
+              items: { enum: normalizedClusters, type: 'string' },
+              uniqueItems: true,
+              'ui:widget': 'checkboxes',
+            },
+          },
+          required: ['clusters'],
+        };
+
+    const manifestLayoutDependencies = {
+      manifestLayout: {
+        oneOf: [
+          clusterScopedBranch,
+          {
+            properties: {
+              manifestLayout: { enum: ['custom'] },
+              basePath: {
+                type: 'string',
+                description: 'Base path in GitOps repository to push the manifest to',
+              },
+            },
+            required: ['basePath'],
+          },
+          {
+            properties: {
+              manifestLayout: { enum: ['namespace-scoped'] },
+            },
+          },
+        ],
+      },
+    };
+
     const publishParameters = this.config.getOptionalBoolean('kubernetesIngestor.crossplane.xrds.publishPhase.allowRepoSelection')
       ? {
         title: 'Creation Settings',
@@ -1246,54 +1294,18 @@ export class XRDTemplateEntityProvider implements EntityProvider {
                     description: 'Target Branch for the PR',
                     default: 'main',
                   },
-                  manifestLayout: {
-                    type: 'string',
-                    description: 'Layout of the manifest',
-                    default: 'cluster-scoped',
-                    'ui:help':
-                      'Choose how the manifest should be generated in the repo.\n* Cluster-scoped - a manifest is created for each selected cluster under the root directory of the clusters name\n* namespace-scoped - a manifest is created for the resource under the root directory with the namespace name\n* custom - a manifest is created under the specified base path',
-                    enum: ['cluster-scoped', 'namespace-scoped', 'custom'],
-                  },
+                  ...(!hasTargetPath && {
+                    manifestLayout: {
+                      type: 'string',
+                      description: 'Layout of the manifest',
+                      default: 'cluster-scoped',
+                      'ui:help':
+                        'Choose how the manifest should be generated in the repo.\n* Cluster-scoped - a manifest is created for each selected cluster under the root directory of the clusters name\n* namespace-scoped - a manifest is created for the resource under the root directory with the namespace name\n* custom - a manifest is created under the specified base path',
+                      enum: ['cluster-scoped', 'namespace-scoped', 'custom'],
+                    },
+                  }),
                 },
-                dependencies: {
-                  manifestLayout: {
-                    oneOf: [
-                      {
-                        properties: {
-                          manifestLayout: { enum: ['cluster-scoped'] },
-                          clusters: {
-                            title: 'Target Clusters',
-                            description: 'The target clusters to apply the resource to',
-                            type: 'array',
-                            minItems: 1,
-                            items: {
-                              enum: normalizedClusters,
-                              type: 'string',
-                            },
-                            uniqueItems: true,
-                            'ui:widget': 'checkboxes',
-                          },
-                        },
-                        required: ['clusters'],
-                      },
-                      {
-                        properties: {
-                          manifestLayout: { enum: ['custom'] },
-                          basePath: {
-                            type: 'string',
-                            description: 'Base path in GitOps repository to push the manifest to',
-                          },
-                        },
-                        required: ['basePath'],
-                      },
-                      {
-                        properties: {
-                          manifestLayout: { enum: ['namespace-scoped'] },
-                        },
-                      },
-                    ],
-                  },
-                },
+                ...(!hasTargetPath && { dependencies: manifestLayoutDependencies }),
               },
             ],
           },
@@ -1330,54 +1342,18 @@ export class XRDTemplateEntityProvider implements EntityProvider {
                         },
                       }
                     : {}),
-                  manifestLayout: {
-                    type: 'string',
-                    description: 'Layout of the manifest',
-                    default: 'cluster-scoped',
-                    'ui:help':
-                      'Choose how the manifest should be generated in the repo.\n* Cluster-scoped - a manifest is created for each selected cluster under the root directory of the clusters name\n* namespace-scoped - a manifest is created for the resource under the root directory with the namespace name\n* custom - a manifest is created under the specified base path',
-                    enum: ['cluster-scoped', 'namespace-scoped', 'custom'],
-                  },
+                  ...(!hasTargetPath && {
+                    manifestLayout: {
+                      type: 'string',
+                      description: 'Layout of the manifest',
+                      default: 'cluster-scoped',
+                      'ui:help':
+                        'Choose how the manifest should be generated in the repo.\n* Cluster-scoped - a manifest is created for each selected cluster under the root directory of the clusters name\n* namespace-scoped - a manifest is created for the resource under the root directory with the namespace name\n* custom - a manifest is created under the specified base path',
+                      enum: ['cluster-scoped', 'namespace-scoped', 'custom'],
+                    },
+                  }),
                 },
-                dependencies: {
-                  manifestLayout: {
-                    oneOf: [
-                      {
-                        properties: {
-                          manifestLayout: { enum: ['cluster-scoped'] },
-                          clusters: {
-                            title: 'Target Clusters',
-                            description: 'The target clusters to apply the resource to',
-                            type: 'array',
-                            minItems: 1,
-                            items: {
-                              enum: normalizedClusters,
-                              type: 'string',
-                            },
-                            uniqueItems: true,
-                            'ui:widget': 'checkboxes',
-                          },
-                        },
-                        required: ['clusters'],
-                      },
-                      {
-                        properties: {
-                          manifestLayout: { enum: ['custom'] },
-                          basePath: {
-                            type: 'string',
-                            description: 'Base path in GitOps repository to push the manifest to',
-                          },
-                        },
-                        required: ['basePath'],
-                      },
-                      {
-                        properties: {
-                          manifestLayout: { enum: ['namespace-scoped'] },
-                        },
-                      },
-                    ],
-                  },
-                },
+                ...(!hasTargetPath && { dependencies: manifestLayoutDependencies }),
               },
             ],
           },
@@ -1418,6 +1394,25 @@ export class XRDTemplateEntityProvider implements EntityProvider {
       ? '    specFieldOrder: [' + specFieldOrder.map(f => `'${f}'`).join(', ') + ']\n'
       : '';
 
+    // Read target-path and create-kustomization-file annotations from XRD
+    const annotPrefix = this.getAnnotationPrefix();
+    const rawXrdPathTemplate = xrd.metadata?.annotations?.[`${annotPrefix}/target-path`]?.trim() ?? '';
+    const generateKustomization = xrd.metadata?.annotations?.[`${annotPrefix}/create-kustomization-file`] === 'true';
+
+    // Reject templates that are empty or contain traversal sequences before embedding into YAML.
+    const safeXrdPathTemplate = XRDTemplateEntityProvider.isValidPathTemplate(rawXrdPathTemplate)
+      ? rawXrdPathTemplate
+      : undefined;
+
+    // When target-path annotation is set the clusters selector is hidden from the form →
+    // use a static value so the action receives a valid non-empty array.
+    const clustersLine = safeXrdPathTemplate
+      ? "    clusters: ['temp']\n"
+      : "    clusters: ${{ parameters.clusters if parameters.manifestLayout === 'cluster-scoped' and parameters.pushToGit else ['temp'] }}\n";
+    const xrdPathLines =
+      (safeXrdPathTemplate ? `    xrdPathTemplate: '${safeXrdPathTemplate.replace(/'/g, "''")}'\n` : '') +
+      (generateKustomization ? '    generateKustomization: true\n' : '');
+
     let baseStepsYaml = '';
     // Compose the YAML as a string, not a template literal with JS expressions inside
     if (isV2 && (isCluster || isNamespaced) && !isLegacyCluster) {
@@ -1434,9 +1429,10 @@ export class XRDTemplateEntityProvider implements EntityProvider {
         '    excludeParams: [\'crossplane.compositionSelectionStrategy\',\'owner\',\'pushToGit\',\'basePath\',\'manifestLayout\',\'_editData\',\'targetBranch\',\'repoUrl\',\'clusters\',\'xrName\',\'showAdvancedSettings\'' + (isNamespaced ? ', \'xrNamespace\'' : '') + ']\n' +
         '    apiVersion: {API_VERSION}\n' +
         '    kind: {KIND}\n' +
-        '    clusters: ${{ parameters.clusters if parameters.manifestLayout === \'cluster-scoped\' and parameters.pushToGit else [\'temp\'] }}\n' +
+        clustersLine +
         '    removeEmptyParams: true\n' +
-        specFieldOrderYaml;
+        specFieldOrderYaml +
+        xrdPathLines;
     } else {
       // v1 or v2 LegacyCluster: keep current logic
       baseStepsYaml =
@@ -1451,10 +1447,12 @@ export class XRDTemplateEntityProvider implements EntityProvider {
         '    excludeParams: [\'owner\', \'compositionSelectionStrategy\',\'pushToGit\',\'basePath\',\'manifestLayout\',\'_editData\', \'targetBranch\', \'repoUrl\', \'clusters\', \'xrName\', \'xrNamespace\', \'showAdvancedSettings\']\n' +
         '    apiVersion: {API_VERSION}\n' +
         '    kind: {KIND}\n' +
-        '    clusters: ${{ parameters.clusters if parameters.manifestLayout === \'cluster-scoped\' and parameters.pushToGit else [\'temp\'] }}\n' +
+        clustersLine +
         '    removeEmptyParams: true\n' +
-        specFieldOrderYaml
+        specFieldOrderYaml +
+        xrdPathLines;
     }
+
     const publishPhaseTarget = this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.target')?.toLowerCase();
     let action = '';
     switch (publishPhaseTarget) {
@@ -1526,6 +1524,18 @@ export class XRDTemplateEntityProvider implements EntityProvider {
     // Parse the populated default steps YAML string
     const defaultSteps = yaml.load(populatedStepsYaml) as any[];
 
+    // Inject targetPath into publish step when target-path annotation is set on XRD.
+    // {param} variables are converted to Jinja2 expressions resolved by the scaffolder engine.
+    if (safeXrdPathTemplate) {
+      const resolvedTargetPath = XRDTemplateEntityProvider.resolvePathTemplateToJinja2(safeXrdPathTemplate);
+      for (const step of defaultSteps) {
+        if (step?.input && ('targetBranchName' in step.input || 'branchName' in step.input)) {
+          step.input.targetPath = resolvedTargetPath;
+          break;
+        }
+      }
+    }
+
     // Retrieve additional steps from the version if defined
     const additionalStepsYamlString = version.schema?.openAPIV3Schema?.properties?.steps?.default;
     const additionalSteps = additionalStepsYamlString
@@ -1534,6 +1544,19 @@ export class XRDTemplateEntityProvider implements EntityProvider {
 
     // Combine default steps with any additional steps
     return [...defaultSteps, ...additionalSteps];
+  }
+
+  // Returns true when the template is non-empty and contains no traversal segments ('.' or '..').
+  private static isValidPathTemplate(template: string): boolean {
+    const trimmed = template.trim();
+    if (!trimmed) return false;
+    return !trimmed.split('/').some(s => s === '.' || s === '..');
+  }
+
+  // Converts {param} placeholders to Jinja2 scaffolder expressions.
+  // e.g. 'clusters/{dc}/{xrName}' → 'clusters/${{ parameters.dc | lower }}/${{ parameters.xrName | lower }}'
+  private static resolvePathTemplateToJinja2(template: string): string {
+    return template.replace(/\{(\w+)\}/g, (_: string, p: string) => `\${{ parameters.${p} | lower }}`);
   }
 
   private getPullRequestUrl(): string {
