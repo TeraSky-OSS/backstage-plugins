@@ -133,7 +133,7 @@ export const VCFAutomationDeploymentDetails = () => {
     });
 
     // Get all resources that belong to this system
-    const resources = await catalogApi.getEntities({
+    const resourceEntities = await catalogApi.getEntities({
       filter: {
         kind: 'Resource',
         'spec.system': deploymentId,
@@ -149,7 +149,7 @@ export const VCFAutomationDeploymentDetails = () => {
         type: getEntityType(component),
         namespace: component.metadata.namespace || 'default',
       })),
-      ...resources.items.map((resource: Entity) => ({
+      ...resourceEntities.items.map((resource: Entity) => ({
         name: resource.metadata.name,
         title: resource.metadata.title || resource.metadata.name,
         kind: resource.kind,

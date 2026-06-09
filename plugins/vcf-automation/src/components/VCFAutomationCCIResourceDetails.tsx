@@ -186,16 +186,8 @@ export const VCFAutomationCCIResourceDetails = () => {
       createdAt,
       origin,
     };
-  }, [
-    entity.metadata.annotations?.['terasky.backstage.io/vcf-automation-resource-properties'],
-    entity.metadata.annotations?.['terasky.backstage.io/vcf-automation-cci-resource-manifest'],
-    entity.metadata.annotations?.['terasky.backstage.io/vcf-automation-cci-resource-object'],
-    entity.metadata.annotations?.['terasky.backstage.io/vcf-automation-cci-resource-context'],
-    entity.metadata.annotations?.['terasky.backstage.io/vcf-automation-resource-state'],
-    entity.metadata.annotations?.['terasky.backstage.io/vcf-automation-resource-sync-status'],
-    entity.metadata.annotations?.['terasky.backstage.io/vcf-automation-resource-created-at'],
-    entity.metadata.annotations?.['terasky.backstage.io/vcf-automation-resource-origin'],
-  ]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entity.metadata.annotations]);
 
   // Check if we need to make API call
   const needsApiCall = !annotationData.resourceData || !annotationData.manifest || !annotationData.objectData;
@@ -259,6 +251,7 @@ export const VCFAutomationCCIResourceDetails = () => {
       }
       return null;
     } catch (apiError) {
+      // eslint-disable-next-line no-console
       console.error('Failed to fetch resource data:', apiError);
       return null;
     }
@@ -309,8 +302,9 @@ export const VCFAutomationCCIResourceDetails = () => {
       if (parentEntity) {
         return await findCCINamespaceParent(parentEntity, depth + 1);
       }
-    } catch (error) {
-      console.warn('Failed to fetch parent entity:', parentRef, error);
+    } catch (caughtError) {
+      // eslint-disable-next-line no-console
+      console.warn('Failed to fetch parent entity:', parentRef, caughtError);
     }
     
     return undefined;
@@ -325,17 +319,18 @@ export const VCFAutomationCCIResourceDetails = () => {
       let contextData = null;
       try {
         contextData = typeof resourceContext === 'string' ? JSON.parse(resourceContext || '{}') : resourceContext;
-      } catch (error) {
+      } catch (caughtError) {
+        // eslint-disable-next-line no-console
         console.log('Debug - Resource context is not JSON, treating as string:', resourceContext);
         contextData = null;
       }
       
       return contextData?.namespaceUrnId || namespaceName;
-    } else {
+    } 
       // For deployment-managed resources, traverse parent hierarchy to find CCI Supervisor Namespace
       const urnId = await findCCINamespaceParent(entity);
       return urnId || namespaceName; // Fallback to namespace name if not found
-    }
+    
   }, [namespaceName, resourceContext, isStandalone, entity, findCCINamespaceParent]);
 
   // Load manifest for editing
@@ -365,10 +360,10 @@ export const VCFAutomationCCIResourceDetails = () => {
       });
       setEditingYaml(yamlContent);
       setYamlValidationError('');
-    } catch (error) {
+    } catch (caughtError) {
       setSnackbar({
         open: true,
-        message: `Failed to fetch resource manifest: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `Failed to fetch resource manifest: ${caughtError instanceof Error ? caughtError.message : 'Unknown error'}`,
         severity: 'error',
       });
     } finally {
@@ -382,8 +377,8 @@ export const VCFAutomationCCIResourceDetails = () => {
       yaml.load(yamlString);
       setYamlValidationError('');
       return true;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Invalid YAML syntax';
+    } catch (caughtError) {
+      const errorMessage = caughtError instanceof Error ? caughtError.message : 'Invalid YAML syntax';
       setYamlValidationError(errorMessage);
       return false;
     }
@@ -428,10 +423,10 @@ export const VCFAutomationCCIResourceDetails = () => {
       });
 
       setTimeout(() => window.location.reload(), 1000);
-    } catch (error) {
+    } catch (caughtError) {
       setSnackbar({
         open: true,
-        message: `Failed to update resource manifest: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `Failed to update resource manifest: ${caughtError instanceof Error ? caughtError.message : 'Unknown error'}`,
         severity: 'error',
       });
     } finally {
@@ -529,7 +524,7 @@ export const VCFAutomationCCIResourceDetails = () => {
         noRefs: true,
         sortKeys: false 
       });
-    } catch (error) {
+    } catch (caughtError) {
       return JSON.stringify(data, null, 2);
     }
   };
@@ -552,17 +547,17 @@ export const VCFAutomationCCIResourceDetails = () => {
     if (!manifest) return {};
     
     const info: any = {};
-    if (manifest.kind) info['Kind'] = manifest.kind;
+    if (manifest.kind) info.Kind = manifest.kind;
     if (manifest.apiVersion) info['API Version'] = manifest.apiVersion;
     if (manifest.metadata?.name) info['Manifest Name'] = manifest.metadata.name;
-    if (manifest.metadata?.namespace) info['Namespace'] = manifest.metadata.namespace;
+    if (manifest.metadata?.namespace) info.Namespace = manifest.metadata.namespace;
     if (manifest.metadata?.labels) {
       const labelCount = Object.keys(manifest.metadata.labels).length;
-      info['Labels'] = `${labelCount} label(s)`;
+      info.Labels = `${labelCount} label(s)`;
     }
     if (manifest.metadata?.annotations) {
       const annotationCount = Object.keys(manifest.metadata.annotations).length;
-      info['Annotations'] = `${annotationCount} annotation(s)`;
+      info.Annotations = `${annotationCount} annotation(s)`;
     }
     
     return info;
@@ -575,10 +570,10 @@ export const VCFAutomationCCIResourceDetails = () => {
     const statusInfo: any = {};
     
     if (status.powerState) statusInfo['Power State'] = status.powerState;
-    if (status.phase) statusInfo['Phase'] = status.phase;
+    if (status.phase) statusInfo.Phase = status.phase;
     if (status.primaryIP4) statusInfo['Primary IP'] = status.primaryIP4;
-    if (status.host) statusInfo['Host'] = status.host;
-    if (status.zone) statusInfo['Zone'] = status.zone;
+    if (status.host) statusInfo.Host = status.host;
+    if (status.zone) statusInfo.Zone = status.zone;
     if (status.uniqueID) statusInfo['Unique ID'] = status.uniqueID;
     if (status.instanceUUID) statusInfo['Instance UUID'] = status.instanceUUID;
     if (status.biosUUID) statusInfo['BIOS UUID'] = status.biosUUID;
@@ -931,15 +926,17 @@ export const VCFAutomationCCIResourceDetails = () => {
                       
                       {/* Fixed Validation Status Bar */}
                       <Box className={classes.validationStatus}>
-                        {yamlValidationError ? (
+                        {yamlValidationError && (
                           <Typography className={classes.yamlValidationError}>
                             ⚠️ YAML Validation Error: {yamlValidationError}
                           </Typography>
-                        ) : editingYaml.trim() ? (
+                        )}
+                        {!yamlValidationError && editingYaml.trim() && (
                           <Typography variant="caption" color="textSecondary">
                             ✅ YAML syntax is valid
                           </Typography>
-                        ) : (
+                        )}
+                        {!yamlValidationError && !editingYaml.trim() && (
                           <Typography variant="caption" color="textSecondary">
                             Enter YAML content above
                           </Typography>

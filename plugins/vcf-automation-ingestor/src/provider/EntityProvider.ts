@@ -768,10 +768,11 @@ export class VcfAutomationEntityProvider implements EntityProvider {
           });
         }
         
+        const domainViewUrlForV9 = instance.organizationType === 'all-apps'
+          ? `${instance.baseUrl}/automation/#/build-and-deploy/all-resources/deployments?projects=%5B"${deployment.project.id}"%5D`
+          : `${instance.baseUrl}/automation/#/consume/deployment?projects=%5B"${deployment.project.id}"%5D`;
         const domainViewUrl = instance.majorVersion >= 9 
-          ? (instance.organizationType === 'all-apps'
-              ? `${instance.baseUrl}/automation/#/build-and-deploy/all-resources/deployments?projects=%5B"${deployment.project.id}"%5D`
-              : `${instance.baseUrl}/automation/#/consume/deployment?projects=%5B"${deployment.project.id}"%5D`)
+          ? domainViewUrlForV9
           : `${instance.baseUrl}/automation/#/service/catalog/consume/deployment?projects=%5B"${deployment.project.id}"%5D`;
         
         entities.push({
@@ -798,10 +799,11 @@ export class VcfAutomationEntityProvider implements EntityProvider {
       }
 
       // Create System entity for the deployment
+      const systemViewUrlForV9 = instance.organizationType === 'all-apps'
+        ? `${instance.baseUrl}/automation/#/build-and-deploy/all-resources/deployments/${deployment.id}`
+        : `${instance.baseUrl}/automation/#/consume/deployment/${deployment.id}`;
       const systemViewUrl = instance.majorVersion >= 9 
-        ? (instance.organizationType === 'all-apps'
-            ? `${instance.baseUrl}/automation/#/build-and-deploy/all-resources/deployments/${deployment.id}`
-            : `${instance.baseUrl}/automation/#/consume/deployment/${deployment.id}`)
+        ? systemViewUrlForV9
         : `${instance.baseUrl}/automation/#/service/catalog/consume/deployment/${deployment.id}`;
       
       const systemLinks = [{
@@ -936,10 +938,10 @@ export class VcfAutomationEntityProvider implements EntityProvider {
               if (depResource && (depResource.type === 'CCI.Supervisor.Namespace' || depResource.type === 'CCI.Supervisor.Resource')) {
                 // CCI resources are created as Components
                 return `component:default/${depId.toLowerCase()}`;
-              } else {
+              } 
                 // Other resources use the default entity reference
                 return getEntityRef(depId);
-              }
+              
             }).filter((ref): ref is string => ref !== undefined) || [],
           },
         };
@@ -1074,7 +1076,7 @@ export class VcfAutomationEntityProvider implements EntityProvider {
           }
 
           // Generate additional links for VirtualMachine components in all-apps organizations
-          let additionalLinks = [...resourceLinks];
+          const additionalLinks = [...resourceLinks];
           if (instance.organizationType === 'all-apps' && 
               (resource.properties?.object?.kind === 'VirtualMachine' || resource.properties?.manifest?.kind === 'VirtualMachine')) {
             
@@ -1184,10 +1186,11 @@ export class VcfAutomationEntityProvider implements EntityProvider {
           }
         }
         
+        const domainViewUrlForV9 = instance.organizationType === 'all-apps'
+          ? `${instance.baseUrl}/automation/#/build-and-deploy/all-resources/deployments?projects=%5B"${projectId}"%5D`
+          : `${instance.baseUrl}/automation/#/consume/deployment?projects=%5B"${projectId}"%5D`;
         const domainViewUrl = instance.majorVersion >= 9 
-          ? (instance.organizationType === 'all-apps'
-              ? `${instance.baseUrl}/automation/#/build-and-deploy/all-resources/deployments?projects=%5B"${projectId}"%5D`
-              : `${instance.baseUrl}/automation/#/consume/deployment?projects=%5B"${projectId}"%5D`)
+          ? domainViewUrlForV9
           : `${instance.baseUrl}/automation/#/service/catalog/consume/deployment?projects=%5B"${projectId}"%5D`;
         
         const domainEntity: DomainEntity = {
@@ -1336,10 +1339,11 @@ export class VcfAutomationEntityProvider implements EntityProvider {
           }
         }
         
+        const domainViewUrlForV9 = instance.organizationType === 'all-apps'
+          ? `${instance.baseUrl}/automation/#/build-and-deploy/all-resources/deployments?projects=%5B"${resource.project.id}"%5D`
+          : `${instance.baseUrl}/automation/#/consume/deployment?projects=%5B"${resource.project.id}"%5D`;
         const domainViewUrl = instance.majorVersion >= 9 
-          ? (instance.organizationType === 'all-apps'
-              ? `${instance.baseUrl}/automation/#/build-and-deploy/all-resources/deployments?projects=%5B"${resource.project.id}"%5D`
-              : `${instance.baseUrl}/automation/#/consume/deployment?projects=%5B"${resource.project.id}"%5D`)
+          ? domainViewUrlForV9
           : `${instance.baseUrl}/automation/#/service/catalog/consume/deployment?projects=%5B"${resource.project.id}"%5D`;
         
         const projectEntity: DomainEntity = {
@@ -1425,7 +1429,7 @@ export class VcfAutomationEntityProvider implements EntityProvider {
       };
 
       const resourceLink = generateResourceLink(resource.kind, resource.metadata.name);
-      let links = resourceLink ? [resourceLink] : [];
+      const links = resourceLink ? [resourceLink] : [];
 
       // Add remote console link for VirtualMachine standalone resources
       if (resource.kind === 'VirtualMachine') {

@@ -69,11 +69,8 @@ export const VCFAutomationCCINamespaceOverview = () => {
       isStandalone: origin === 'SUPERVISOR_NAMESPACE',
       origin: origin || '',
     };
-  }, [
-    entity.metadata.annotations?.['terasky.backstage.io/vcf-automation-resource-properties'],
-    entity.metadata.annotations?.['terasky.backstage.io/vcf-automation-supervisor-namespace-data'],
-    entity.metadata.annotations?.['terasky.backstage.io/vcf-automation-resource-origin'],
-  ]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entity.metadata.annotations]);
 
   // Check if we need to make API call
   const needsApiCall = !annotationData.namespaceData;
@@ -111,6 +108,7 @@ export const VCFAutomationCCINamespaceOverview = () => {
       }
       return null;
     } catch (apiError) {
+      // eslint-disable-next-line no-console
       console.error('Failed to fetch namespace data:', apiError);
       return null;
     }

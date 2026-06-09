@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { render, screen, waitFor } from '@testing-library/react';
 import { VCFAutomationDeploymentOverview } from './VCFAutomationDeploymentOverview';
 import { TestApiProvider } from '@backstage/test-utils';

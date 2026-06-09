@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useApi } from '@backstage/core-plugin-api';
 import { vcfAutomationApiRef } from '../api/VcfAutomationClient';
 import { VmPowerAction, VmPowerActionType, StandaloneVmStatus } from '../types';
@@ -119,7 +119,7 @@ export const VCFAutomationVMPowerManagement: React.FC<VCFAutomationVMPowerManage
         isStandalone: true,
         vmData: vmStatus,
       };
-    } else {
+    } 
       // For deployment-managed VMs, check both power actions
       const [powerOnAction, powerOffAction] = await Promise.all([
         api.checkVmPowerAction(resourceId, 'PowerOn', instanceName),
@@ -137,7 +137,7 @@ export const VCFAutomationVMPowerManagement: React.FC<VCFAutomationVMPowerManage
           PowerOff: powerOffAction as VmPowerAction,
         },
       };
-    }
+    
   }, [resourceId, instanceName, isStandalone, vmName, namespaceName, namespaceUrnId]);
 
   // Determine which action is available
@@ -146,7 +146,7 @@ export const VCFAutomationVMPowerManagement: React.FC<VCFAutomationVMPowerManage
     
     if (isStandalone) {
       return vmData.powerState === 'PoweredOff' ? 'PowerOn' : 'PowerOff';
-    } else {
+    } 
       // For deployment-managed VMs, check which action is valid
       const powerOnValid = vmData.availableActions?.PowerOn?.valid;
       const powerOffValid = vmData.availableActions?.PowerOff?.valid;
@@ -154,7 +154,7 @@ export const VCFAutomationVMPowerManagement: React.FC<VCFAutomationVMPowerManage
       if (powerOnValid) return 'PowerOn';
       if (powerOffValid) return 'PowerOff';
       return null;
-    }
+    
   }, [vmData, isStandalone]);
 
   const handleActionClick = useCallback((action: VmPowerActionType) => {
@@ -194,10 +194,10 @@ export const VCFAutomationVMPowerManagement: React.FC<VCFAutomationVMPowerManage
       
       // Refresh the data
       setTimeout(() => window.location.reload(), 1000); // Wait a bit for the action to take effect
-    } catch (error) {
+    } catch (caughtError) {
       setSnackbar({
         open: true,
-        message: `Failed to execute ${confirmDialog.action} action: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `Failed to execute ${confirmDialog.action} action: ${caughtError instanceof Error ? caughtError.message : 'Unknown error'}`,
         severity: 'error',
       });
     } finally {
@@ -240,6 +240,8 @@ export const VCFAutomationVMPowerManagement: React.FC<VCFAutomationVMPowerManage
   const buttonIcon = availableAction === 'PowerOn' ? <PlayArrowIcon /> : <StopIcon />;
   const buttonClass = availableAction === 'PowerOn' ? classes.powerOnButton : classes.powerOffButton;
   const buttonText = availableAction === 'PowerOn' ? 'Power On' : 'Power Off';
+  const actionTitle = !availableAction ? 'No power action available' : `${buttonText} this virtual machine`;
+  const buttonTitle = !hasPermission ? 'You do not have permission to manage VM power state' : actionTitle;
 
   return (
     <>
@@ -251,13 +253,7 @@ export const VCFAutomationVMPowerManagement: React.FC<VCFAutomationVMPowerManage
           className={buttonClass}
           disabled={!canExecuteAction}
           onClick={() => availableAction && handleActionClick(availableAction)}
-          title={
-            !hasPermission 
-              ? 'You do not have permission to manage VM power state'
-              : !availableAction
-              ? 'No power action available'
-              : `${buttonText} this virtual machine`
-          }
+          title={buttonTitle}
         >
           {executing ? <CircularProgress size={16} color="inherit" /> : buttonText}
         </Button>
@@ -302,6 +298,7 @@ export const VCFAutomationVMPowerManagement: React.FC<VCFAutomationVMPowerManage
             onClick={handleConfirmAction} 
             color="primary" 
             variant="contained"
+            // eslint-disable-next-line jsx-a11y/no-autofocus
             autoFocus
           >
             {confirmDialog.actionDisplayName}

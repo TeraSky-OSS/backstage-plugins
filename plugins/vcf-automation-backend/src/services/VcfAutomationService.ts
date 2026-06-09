@@ -129,7 +129,7 @@ export class VcfAutomationService {
           instance.tokenExpiry = new Date(Date.now() + 60 * 60 * 1000);
           this.logger.debug(`Successfully authenticated with VCF Automation instance ${instance.name} (version 9+)`);
           return;
-        } else {
+        } 
           // Version 8 authentication using CSP API
           const response = await fetch(`${instance.baseUrl}/csp/gateway/am/api/login`, {
             method: 'POST',
@@ -149,7 +149,7 @@ export class VcfAutomationService {
           instance.tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
           this.logger.debug(`Successfully authenticated with VCF Automation instance ${instance.name} (version 8)`);
           return;
-        }
+        
       } catch (error) {
         this.logger.warn(`Authentication attempt ${attempt} failed for instance ${instance.name}`, {
           error: error instanceof Error ? error.message : String(error),
@@ -454,10 +454,10 @@ export class VcfAutomationService {
     
     if (group) {
       return `/proxy/k8s/namespaces/${namespaceUrnId}/apis/${group}/${version}/namespaces/${namespaceName}/${resourceType}/${resourceName}`;
-    } else {
+    } 
       // Core API resources (like pods, services, etc.)
       return `/proxy/k8s/namespaces/${namespaceUrnId}/api/${version}/namespaces/${namespaceName}/${resourceType}/${resourceName}`;
-    }
+    
   }
 
   // Helper method to convert Kind to resource type (plural form used in API paths)
@@ -482,7 +482,7 @@ export class VcfAutomationService {
 
     // Otherwise, convert to lowercase and add 's' (basic pluralization)
     // This is a fallback and may not work for all resource types
-    return kind.toLowerCase() + 's';
+    return `${kind.toLowerCase()  }s`;
   }
 
   // Supervisor Resource Manifest Management

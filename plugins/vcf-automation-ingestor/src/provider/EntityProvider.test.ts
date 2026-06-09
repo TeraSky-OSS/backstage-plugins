@@ -159,11 +159,12 @@ describe('VcfAutomationEntityProvider', () => {
       } as any;
 
       expect(() => {
-        new VcfAutomationEntityProvider(
+        const _provider = new VcfAutomationEntityProvider(
           config,
           mockScheduler as any,
           mockLogger,
         );
+        return _provider;
       }).toThrow('Failed to initialize VCF Automation provider');
     });
 
@@ -178,11 +179,12 @@ describe('VcfAutomationEntityProvider', () => {
       // The ConfigReader will return an empty array for instances
       // but the provider should still throw because there are no valid instances
       expect(() => {
-        new VcfAutomationEntityProvider(
+        const _provider = new VcfAutomationEntityProvider(
           configWithNoInstances,
           mockScheduler as any,
           mockLogger,
         );
+        return _provider;
       }).toThrow();
     });
   });

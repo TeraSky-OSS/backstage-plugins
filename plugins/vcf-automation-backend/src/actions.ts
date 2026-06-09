@@ -340,7 +340,7 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
         }
         
         // Handle standalone VMs
-        else {
+        
           // First get current VM status
           const vmStatus = await service.getStandaloneVmStatus(
             input.namespaceUrnId!,
@@ -384,7 +384,7 @@ export function registerMcpActions(actionsRegistry: typeof actionsRegistryServic
               details: result,
             },
           };
-        }
+        
       } catch (error) {
         if (error instanceof InputError) {
           throw error;

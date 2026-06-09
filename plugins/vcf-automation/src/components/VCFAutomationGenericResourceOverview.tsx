@@ -44,12 +44,12 @@ export const VCFAutomationGenericResourceOverview = () => {
   // Extract the overview fields if they exist
   const overviewData: Record<string, any> = {};
   
-  if (resourceData.name) overviewData['Name'] = resourceData.name;
-  if (resourceData.type) overviewData['Type'] = resourceData.type;
+  if (resourceData.name) overviewData.Name = resourceData.name;
+  if (resourceData.type) overviewData.Type = resourceData.type;
   if (resourceData.createdAt) overviewData['Created At'] = new Date(resourceData.createdAt).toLocaleString();
   if (resourceData.syncStatus) overviewData['Sync Status'] = resourceData.syncStatus;
-  if (resourceData.origin) overviewData['Origin'] = resourceData.origin;
-  if (resourceData.status) overviewData['Status'] = resourceData.status;
+  if (resourceData.origin) overviewData.Origin = resourceData.origin;
+  if (resourceData.status) overviewData.Status = resourceData.status;
 
   return (
     <InfoCard title="Resource Overview">

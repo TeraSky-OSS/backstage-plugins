@@ -145,12 +145,8 @@ export const VCFAutomationCCIResourceOverview = () => {
       objectData: resourceObject && resourceObject !== '{}' ? JSON.parse(resourceObject) : null,
       resourceContext: resourceContext || '',
     };
-  }, [
-    entity.metadata.annotations?.['terasky.backstage.io/vcf-automation-resource-properties'],
-    entity.metadata.annotations?.['terasky.backstage.io/vcf-automation-cci-resource-manifest'],
-    entity.metadata.annotations?.['terasky.backstage.io/vcf-automation-cci-resource-object'],
-    entity.metadata.annotations?.['terasky.backstage.io/vcf-automation-cci-resource-context'],
-  ]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entity.metadata.annotations]);
 
   // Check if we need to make API call
   const needsApiCall = !annotationData.resourceData || !annotationData.manifest || !annotationData.objectData;
@@ -214,6 +210,7 @@ export const VCFAutomationCCIResourceOverview = () => {
       }
       return null;
     } catch (apiError) {
+      // eslint-disable-next-line no-console
       console.error('Failed to fetch resource data:', apiError);
       return null;
     }
@@ -263,8 +260,9 @@ export const VCFAutomationCCIResourceOverview = () => {
       if (parentEntity) {
         return await findCCINamespaceParent(parentEntity, depth + 1);
       }
-    } catch (error) {
-      console.warn('Failed to fetch parent entity:', parentRef, error);
+    } catch (caughtError) {
+      // eslint-disable-next-line no-console
+      console.warn('Failed to fetch parent entity:', parentRef, caughtError);
     }
     
     return undefined;
@@ -280,12 +278,14 @@ export const VCFAutomationCCIResourceOverview = () => {
       let contextData = null;
       try {
         contextData = typeof resourceContext === 'string' ? JSON.parse(resourceContext || '{}') : resourceContext;
-      } catch (error) {
+      } catch (caughtError) {
+        // eslint-disable-next-line no-console
         console.log('Debug - Resource context is not JSON, treating as string:', resourceContext);
         contextData = null;
       }
       
       const urnId = contextData?.namespaceUrnId || namespaceName;
+      // eslint-disable-next-line no-console
       console.log('Debug - Standalone CCI Resource URN ID resolution:', {
         namespaceName,
         resourceContext,
@@ -294,11 +294,13 @@ export const VCFAutomationCCIResourceOverview = () => {
       });
       
       return urnId;
-    } else {
+    } 
       // For deployment-managed resources, traverse parent hierarchy to find CCI Supervisor Namespace
+      // eslint-disable-next-line no-console
       console.log('Debug - Looking for CCI Supervisor Namespace parent for deployment-managed resource');
       const urnId = await findCCINamespaceParent(entity);
       
+      // eslint-disable-next-line no-console
       console.log('Debug - Deployment-managed CCI Resource URN ID resolution:', {
         namespaceName,
         urnId,
@@ -306,7 +308,7 @@ export const VCFAutomationCCIResourceOverview = () => {
       });
       
       return urnId || namespaceName; // Fallback to namespace name if not found
-    }
+    
   }, [namespaceName, resourceContext, isStandalone, entity, findCCINamespaceParent]);
 
   // Handle edit resource manifest action
@@ -337,10 +339,10 @@ export const VCFAutomationCCIResourceOverview = () => {
       });
       setEditingYaml(yamlContent);
       setYamlValidationError(''); // Reset validation error
-    } catch (error) {
+    } catch (caughtError) {
       setSnackbar({
         open: true,
-        message: `Failed to fetch resource manifest: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `Failed to fetch resource manifest: ${caughtError instanceof Error ? caughtError.message : 'Unknown error'}`,
         severity: 'error',
       });
       setEditModalOpen(false);
@@ -381,10 +383,10 @@ export const VCFAutomationCCIResourceOverview = () => {
 
       // Refresh the page after a brief delay
       setTimeout(() => window.location.reload(), 1000);
-    } catch (error) {
+    } catch (caughtError) {
       setSnackbar({
         open: true,
-        message: `Failed to update resource manifest: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `Failed to update resource manifest: ${caughtError instanceof Error ? caughtError.message : 'Unknown error'}`,
         severity: 'error',
       });
     } finally {
@@ -402,8 +404,8 @@ export const VCFAutomationCCIResourceOverview = () => {
       yaml.load(yamlString);
       setYamlValidationError('');
       return true;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Invalid YAML syntax';
+    } catch (caughtError) {
+      const errorMessage = caughtError instanceof Error ? caughtError.message : 'Invalid YAML syntax';
       setYamlValidationError(errorMessage);
       return false;
     }
@@ -485,7 +487,7 @@ export const VCFAutomationCCIResourceOverview = () => {
         noRefs: true,
         sortKeys: false 
       });
-    } catch (error) {
+    } catch (caughtError) {
       return JSON.stringify(data, null, 2);
     }
   };
@@ -506,10 +508,10 @@ export const VCFAutomationCCIResourceOverview = () => {
     const statusInfo: any = {};
     
     if (status.powerState) statusInfo['Power State'] = status.powerState;
-    if (status.phase) statusInfo['Phase'] = status.phase;
+    if (status.phase) statusInfo.Phase = status.phase;
     if (status.primaryIP4) statusInfo['Primary IP'] = status.primaryIP4;
-    if (status.host) statusInfo['Host'] = status.host;
-    if (status.zone) statusInfo['Zone'] = status.zone;
+    if (status.host) statusInfo.Host = status.host;
+    if (status.zone) statusInfo.Zone = status.zone;
     if (status.uniqueID) statusInfo['Unique ID'] = status.uniqueID;
     if (status.instanceUUID) statusInfo['Instance UUID'] = status.instanceUUID;
     if (status.biosUUID) statusInfo['BIOS UUID'] = status.biosUUID;
@@ -788,15 +790,17 @@ export const VCFAutomationCCIResourceOverview = () => {
               
               {/* Fixed Validation Status Bar */}
               <Box className={classes.validationStatus}>
-                {yamlValidationError ? (
+                {yamlValidationError && (
                   <Typography className={classes.yamlValidationError}>
                     ⚠️ YAML Validation Error: {yamlValidationError}
                   </Typography>
-                ) : editingYaml.trim() ? (
+                )}
+                {!yamlValidationError && editingYaml.trim() && (
                   <Typography variant="caption" color="textSecondary">
                     ✅ YAML syntax is valid
                   </Typography>
-                ) : (
+                )}
+                {!yamlValidationError && !editingYaml.trim() && (
                   <Typography variant="caption" color="textSecondary">
                     Enter YAML content above
                   </Typography>
