@@ -4,6 +4,7 @@ import { ApiFromResourceRef } from '../types';
 // Mock node-fetch
 jest.mock('node-fetch', () => jest.fn());
 import fetch from 'node-fetch';
+
 const mockFetch = fetch as jest.MockedFunction<typeof fetch>;
 
 describe('ApiDefinitionFetcher', () => {

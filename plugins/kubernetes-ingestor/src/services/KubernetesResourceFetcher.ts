@@ -64,7 +64,7 @@ export class DefaultKubernetesResourceFetcher implements KubernetesResourceFetch
     }
     if (query) {
       const queryString = new URLSearchParams(query).toString();
-      path += path.includes('?') ? '&' : '?' + queryString;
+      path += path.includes('?') ? '&' : `?${  queryString}`;
     }
 
     const response = await fetch(`${baseUrl}/proxy${path}`, {

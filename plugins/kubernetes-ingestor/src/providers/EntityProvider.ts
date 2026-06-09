@@ -482,7 +482,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
       }
       const schemaProps = crdSchemaProps || version.schema.openAPIV3Schema.properties;
 
-      let xrdOpenAPIDoc: any = {};
+      const xrdOpenAPIDoc: any = {};
       xrdOpenAPIDoc.openapi = "3.0.0";
       xrdOpenAPIDoc.info = {
         title: `${resourcePlural}.${xrd.spec.group}`,
@@ -699,7 +699,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
             definition: yaml.dump(crdWithMetadata),
           },
         };
-      } else {
+      } 
         // Use OpenAPI type with generated OpenAPI definition
         return {
           apiVersion: 'backstage.io/v1alpha1',
@@ -722,7 +722,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
             definition: yaml.dump(xrdOpenAPIDoc),
           },
         };
-      }
+      
     });
 
     // Filter out invalid APIs
@@ -742,7 +742,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
     const isNamespaced = scope === 'Namespaced';
     // --- END VERSION/SCOPE LOGIC REFACTOR ---
     // Main parameter group
-    let mainParameterGroup: any = {
+    const mainParameterGroup: any = {
       title: 'Resource Metadata',
       required: ['xrName', 'owner'],
       properties: {
@@ -938,12 +938,12 @@ export class XRDTemplateEntityProvider implements EntityProvider {
           .filter(([, v]) => typeof v['x-ui-order'] !== 'number');
         const sortedAdvancedProperties = Object.fromEntries([...advWithOrder, ...advWithoutOrder]);
 
-        finalProperties['showAdvancedSettings'] = {
+        finalProperties.showAdvancedSettings = {
           title: 'Show Advanced Settings',
           type: 'boolean',
           default: false,
         };
-        generatedDependencies['showAdvancedSettings'] = {
+        generatedDependencies.showAdvancedSettings = {
           if: {
             properties: {
               showAdvancedSettings: { const: true },
@@ -1391,7 +1391,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
       .sort();
     const specFieldOrder = [...specFieldsWithOrder, ...specFieldsWithoutOrder];
     const specFieldOrderYaml = specFieldOrder.length > 0
-      ? '    specFieldOrder: [' + specFieldOrder.map(f => `'${f}'`).join(', ') + ']\n'
+      ? `    specFieldOrder: [${  specFieldOrder.map(f => `'${f}'`).join(', ')  }]\n`
       : '';
 
     // Read target-path and create-kustomization-file annotations from XRD
@@ -1418,39 +1418,39 @@ export class XRDTemplateEntityProvider implements EntityProvider {
     if (isV2 && (isCluster || isNamespaced) && !isLegacyCluster) {
       // v2 Cluster/Namespaced: no claim, use resource template action, only set namespaceParam if Namespaced
       baseStepsYaml =
-        '- id: generateManifest\n' +
-        '  name: Generate Kubernetes Resource Manifest\n' +
-        '  action: terasky:claim-template\n' +
-        '  input:\n' +
-        '    parameters: ${{ parameters }}\n' +
-        '    nameParam: xrName\n' +
-        (isNamespaced ? '    namespaceParam: xrNamespace\n' : '    namespaceParam: ""\n') +
-        '    ownerParam: owner\n' +
-        '    excludeParams: [\'crossplane.compositionSelectionStrategy\',\'owner\',\'pushToGit\',\'basePath\',\'manifestLayout\',\'_editData\',\'targetBranch\',\'repoUrl\',\'clusters\',\'xrName\',\'showAdvancedSettings\'' + (isNamespaced ? ', \'xrNamespace\'' : '') + ']\n' +
-        '    apiVersion: {API_VERSION}\n' +
-        '    kind: {KIND}\n' +
-        clustersLine +
-        '    removeEmptyParams: true\n' +
-        specFieldOrderYaml +
-        xrdPathLines;
+        `- id: generateManifest\n` +
+        `  name: Generate Kubernetes Resource Manifest\n` +
+        `  action: terasky:claim-template\n` +
+        `  input:\n` +
+        `    parameters: \${{ parameters }}\n` +
+        `    nameParam: xrName\n${ 
+        isNamespaced ? '    namespaceParam: xrNamespace\n' : '    namespaceParam: ""\n' 
+        }    ownerParam: owner\n` +
+        `    excludeParams: ['crossplane.compositionSelectionStrategy','owner','pushToGit','basePath','manifestLayout','_editData','targetBranch','repoUrl','clusters','xrName','showAdvancedSettings'${  isNamespaced ? ', \'xrNamespace\'' : ''  }]\n` +
+        `    apiVersion: {API_VERSION}\n` +
+        `    kind: {KIND}\n${ 
+        clustersLine 
+        }    removeEmptyParams: true\n${ 
+        specFieldOrderYaml 
+        }${xrdPathLines}`;
     } else {
       // v1 or v2 LegacyCluster: keep current logic
       baseStepsYaml =
-        '- id: generateManifest\n' +
-        '  name: Generate Kubernetes Resource Manifest\n' +
-        '  action: terasky:claim-template\n' +
-        '  input:\n' +
-        '    parameters: ${{ parameters }}\n' +
-        '    nameParam: xrName\n' +
-        '    namespaceParam: xrNamespace\n' +
-        '    ownerParam: owner\n' +
-        '    excludeParams: [\'owner\', \'compositionSelectionStrategy\',\'pushToGit\',\'basePath\',\'manifestLayout\',\'_editData\', \'targetBranch\', \'repoUrl\', \'clusters\', \'xrName\', \'xrNamespace\', \'showAdvancedSettings\']\n' +
-        '    apiVersion: {API_VERSION}\n' +
-        '    kind: {KIND}\n' +
-        clustersLine +
-        '    removeEmptyParams: true\n' +
-        specFieldOrderYaml +
-        xrdPathLines;
+        `- id: generateManifest\n` +
+        `  name: Generate Kubernetes Resource Manifest\n` +
+        `  action: terasky:claim-template\n` +
+        `  input:\n` +
+        `    parameters: \${{ parameters }}\n` +
+        `    nameParam: xrName\n` +
+        `    namespaceParam: xrNamespace\n` +
+        `    ownerParam: owner\n` +
+        `    excludeParams: ['owner', 'compositionSelectionStrategy','pushToGit','basePath','manifestLayout','_editData', 'targetBranch', 'repoUrl', 'clusters', 'xrName', 'xrNamespace', 'showAdvancedSettings']\n` +
+        `    apiVersion: {API_VERSION}\n` +
+        `    kind: {KIND}\n${ 
+        clustersLine 
+        }    removeEmptyParams: true\n${ 
+        specFieldOrderYaml 
+        }${xrdPathLines}`;
     }
 
     const publishPhaseTarget = this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.target')?.toLowerCase();
@@ -1476,17 +1476,17 @@ export class XRDTemplateEntityProvider implements EntityProvider {
       ? '    token: ${{ secrets.USER_OAUTH_TOKEN }}\n'
       : '';
     const repoSelectionStepsYaml =
-      '- id: create-pull-request\n' +
-      '  name: create-pull-request\n' +
+      `- id: create-pull-request\n` +
+      `  name: create-pull-request\n` +
       `  action: ${action}\n` +
-      '  if: ${{ parameters.pushToGit }}\n' +
-      '  input:\n' +
-      '    repoUrl: ${{ parameters.repoUrl }}\n' +
-      '    branchName: create-${{ parameters.xrName }}-resource\n' +
-      '    title: Create {KIND} Resource ${{ parameters.xrName }}\n' +
-      '    description: Create {KIND} Resource ${{ parameters.xrName }}\n' +
-      '    targetBranchName: ${{ parameters.targetBranch }}\n' +
-      userOAuthTokenInput;
+      `  if: \${{ parameters.pushToGit }}\n` +
+      `  input:\n` +
+      `    repoUrl: \${{ parameters.repoUrl }}\n` +
+      `    branchName: create-\${{ parameters.xrName }}-resource\n` +
+      `    title: Create {KIND} Resource \${{ parameters.xrName }}\n` +
+      `    description: Create {KIND} Resource \${{ parameters.xrName }}\n` +
+      `    targetBranchName: \${{ parameters.targetBranch }}\n${ 
+      userOAuthTokenInput}`;
 
     let defaultStepsYaml = baseStepsYaml;
 
@@ -1496,17 +1496,17 @@ export class XRDTemplateEntityProvider implements EntityProvider {
       }
       else {
         const repoHardcodedStepsYaml =
-          '- id: create-pull-request\n' +
-          '  name: create-pull-request\n' +
+          `- id: create-pull-request\n` +
+          `  name: create-pull-request\n` +
           `  action: ${action}\n` +
-          '  if: ${{ parameters.pushToGit }}\n' +
-          '  input:\n' +
+          `  if: \${{ parameters.pushToGit }}\n` +
+          `  input:\n` +
           `    repoUrl: ${this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.git.repoUrl')}\n` +
-          '    branchName: create-${{ parameters.xrName }}-resource\n' +
-          '    title: Create {KIND} Resource ${{ parameters.xrName }}\n' +
-          '    description: Create {KIND} Resource ${{ parameters.xrName }}\n' +
-          `    targetBranchName: ${this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.git.targetBranch')}\n` +
-          userOAuthTokenInput;
+          `    branchName: create-\${{ parameters.xrName }}-resource\n` +
+          `    title: Create {KIND} Resource \${{ parameters.xrName }}\n` +
+          `    description: Create {KIND} Resource \${{ parameters.xrName }}\n` +
+          `    targetBranchName: ${this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.git.targetBranch')}\n${ 
+          userOAuthTokenInput}`;
         defaultStepsYaml += repoHardcodedStepsYaml;
       }
     }
@@ -1644,7 +1644,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
     const apiAnnotations = this.extractApiAnnotations(crdAnnotations);
 
     const apis = crd.spec.versions.map((version: any = {}) => {
-      let crdOpenAPIDoc: any = {};
+      const crdOpenAPIDoc: any = {};
       crdOpenAPIDoc.openapi = "3.0.0";
       crdOpenAPIDoc.info = {
         title: `${crd.spec.names.plural}.${crd.spec.group}`,
@@ -1965,7 +1965,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
             definition: yaml.dump(crdWithMetadata),
           },
         };
-      } else {
+      } 
         // Use OpenAPI type with generated OpenAPI definition
         return {
           apiVersion: 'backstage.io/v1alpha1',
@@ -1988,7 +1988,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
             definition: yaml.dump(crdOpenAPIDoc),
           },
         };
-      }
+      
     }
     );
 
@@ -2285,19 +2285,19 @@ export class XRDTemplateEntityProvider implements EntityProvider {
   }
 
   private extractCRDSteps(version: any, crd: any): any[] {
-    let baseStepsYaml =
-      '- id: generateManifest\n' +
-      '  name: Generate Kubernetes Resource Manifest\n' +
-      '  action: terasky:crd-template\n' +
-      '  input:\n' +
-      '    parameters: ${{ parameters }}\n' +
-      '    nameParam: name\n' +
-      (crd.spec.scope === 'Namespaced' ? '    namespaceParam: namespace\n' : '    namespaceParam: ""\n') +
-      '    excludeParams: [\'compositionSelectionStrategy\',\'pushToGit\',\'basePath\',\'manifestLayout\',\'_editData\', \'targetBranch\', \'repoUrl\', \'clusters\', \'name\', \'namespace\', \'owner\']\n' +
+    const baseStepsYaml =
+      `- id: generateManifest\n` +
+      `  name: Generate Kubernetes Resource Manifest\n` +
+      `  action: terasky:crd-template\n` +
+      `  input:\n` +
+      `    parameters: \${{ parameters }}\n` +
+      `    nameParam: name\n${ 
+      crd.spec.scope === 'Namespaced' ? '    namespaceParam: namespace\n' : '    namespaceParam: ""\n' 
+      }    excludeParams: ['compositionSelectionStrategy','pushToGit','basePath','manifestLayout','_editData', 'targetBranch', 'repoUrl', 'clusters', 'name', 'namespace', 'owner']\n` +
       `    apiVersion: ${crd.spec.group}/${version.name}\n` +
       `    kind: ${crd.spec.names.kind}\n` +
-      '    clusters: ${{ parameters.clusters if parameters.manifestLayout === \'cluster-scoped\' and parameters.pushToGit else [\'temp\'] }}\n' +
-      '    removeEmptyParams: true\n';
+      `    clusters: \${{ parameters.clusters if parameters.manifestLayout === 'cluster-scoped' and parameters.pushToGit else ['temp'] }}\n` +
+      `    removeEmptyParams: true\n`;
 
     const publishPhaseTarget = this.config.getOptionalString('kubernetesIngestor.genericCRDTemplates.publishPhase.target')?.toLowerCase();
     let action = '';
@@ -2327,30 +2327,30 @@ export class XRDTemplateEntityProvider implements EntityProvider {
     if (publishPhaseTarget !== 'yaml') {
       if (allowRepoSelection) {
         defaultStepsYaml +=
-          '- id: create-pull-request\n' +
-          '  name: create-pull-request\n' +
+          `- id: create-pull-request\n` +
+          `  name: create-pull-request\n` +
           `  action: ${action}\n` +
-          '  if: ${{ parameters.pushToGit }}\n' +
-          '  input:\n' +
-          '    repoUrl: ${{ parameters.repoUrl }}\n' +
-          '    branchName: create-${{ parameters.name }}-resource\n' +
+          `  if: \${{ parameters.pushToGit }}\n` +
+          `  input:\n` +
+          `    repoUrl: \${{ parameters.repoUrl }}\n` +
+          `    branchName: create-\${{ parameters.name }}-resource\n` +
           `    title: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}\n` +
           `    description: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}\n` +
-          '    targetBranchName: ${{ parameters.targetBranch }}\n' +
-          userOAuthTokenInput;
+          `    targetBranchName: \${{ parameters.targetBranch }}\n${ 
+          userOAuthTokenInput}`;
       } else {
         defaultStepsYaml +=
-          '- id: create-pull-request\n' +
-          '  name: create-pull-request\n' +
+          `- id: create-pull-request\n` +
+          `  name: create-pull-request\n` +
           `  action: ${action}\n` +
-          '  if: ${{ parameters.pushToGit }}\n' +
-          '  input:\n' +
+          `  if: \${{ parameters.pushToGit }}\n` +
+          `  input:\n` +
           `    repoUrl: ${this.config.getOptionalString('kubernetesIngestor.genericCRDTemplates.publishPhase.git.repoUrl')}\n` +
-          '    branchName: create-${{ parameters.name }}-resource\n' +
+          `    branchName: create-\${{ parameters.name }}-resource\n` +
           `    title: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}\n` +
           `    description: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}\n` +
-          `    targetBranchName: ${this.config.getOptionalString('kubernetesIngestor.genericCRDTemplates.publishPhase.git.targetBranch')}\n` +
-          userOAuthTokenInput;
+          `    targetBranchName: ${this.config.getOptionalString('kubernetesIngestor.genericCRDTemplates.publishPhase.git.targetBranch')}\n${ 
+          userOAuthTokenInput}`;
       }
     }
     return yaml.load(defaultStepsYaml) as any[];
@@ -2615,7 +2615,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         // Fetch all Kubernetes resources and build a CRD mapping
         const kubernetesData = await kubernetesDataProvider.fetchKubernetesObjects();
         const crdMapping = await kubernetesDataProvider.fetchCRDMapping();
-        let claimCount = 0, compositeCount = 0, k8sCount = 0, kroCount = 0;
+        let claimCount = 0; let compositeCount = 0; let k8sCount = 0; let kroCount = 0;
         
         // Process resources and collect entities (including API entities)
         const allEntities: Entity[] = [];

@@ -87,6 +87,36 @@ const KubernetesResourceGraph = () => {
     const canShowResourceGraphTemp = usePermission({ permission: showResourceGraphPermission }).allowed;
     const canShowResourceGraph = enablePermissions ? canShowResourceGraphTemp : true;
 
+    // Add the parallel processing helper function
+    const parallelProcess = async <T, R>(
+        items: T[],
+        processItem: (item: T) => Promise<R>,
+        concurrency: number
+    ): Promise<R[]> => {
+        const results: R[] = [];
+        const inProgress = new Set<Promise<void>>();
+    
+        for (const item of items) {
+            if (inProgress.size >= concurrency) {
+                await Promise.race(inProgress);
+            }
+    
+            const promise: Promise<void> = new Promise<void>(async (resolve) => {
+                try {
+                    const result = await processItem(item);
+                    results.push(result);
+                } finally {
+                    inProgress.delete(promise);
+                    resolve();
+                }
+            });
+            inProgress.add(promise);
+        }
+    
+        await Promise.all(inProgress);
+        return results;
+    };
+
     const processResourceDependencies = async (deps: DependencyResource, clusterName: string): Promise<KubernetesObject[]> => {
         const results: KubernetesObject[] = [];
         const concurrency = config.getOptionalNumber('kubernetesResources.concurrency') ?? 5;
@@ -118,41 +148,10 @@ const KubernetesResourceGraph = () => {
                 results.push(...dependantResults.flat());
             }
         } catch (error) {
+            // eslint-disable-next-line no-console
             console.error(`Failed to fetch resource ${deps.kind}/${deps.name}:`, error);
         }
 
-        return results;
-    };
-
-    // Add the parallel processing helper function
-    const parallelProcess = async <T, R>(
-        items: T[],
-        processItem: (item: T) => Promise<R>,
-        concurrency: number
-    ): Promise<R[]> => {
-        const results: R[] = [];
-        const inProgress = new Set<Promise<void>>();
-    
-        for (const item of items) {
-            if (inProgress.size >= concurrency) {
-                await Promise.race(inProgress);
-            }
-    
-            let promiseToAdd: Promise<void>;
-            const promise = new Promise<void>(async (resolve) => {
-                try {
-                    const result = await processItem(item);
-                    results.push(result);
-                } finally {
-                    inProgress.delete(promiseToAdd);
-                    resolve();
-                }
-            });
-            promiseToAdd = promise;
-            inProgress.add(promiseToAdd);
-        }
-    
-        await Promise.all(inProgress);
         return results;
     };
 
@@ -217,6 +216,7 @@ const KubernetesResourceGraph = () => {
             const clusterName = annotations['backstage.io/managed-by-origin-location']?.split(': ')[1];
 
             if (!resourceName || !resourceKind || !resourceApiVersion || !clusterName) {
+                // eslint-disable-next-line no-console
                 console.warn('Missing required annotations:', {
                     resourceName,
                     resourceKind,
@@ -252,6 +252,7 @@ const KubernetesResourceGraph = () => {
                 setResources(allResources);
                 generateGraphElements(allResources, dependencyData);
             } catch (error) {
+                // eslint-disable-next-line no-console
                 console.error('Failed to fetch resources:', error);
             } finally {
                 setLoading(false);
@@ -259,6 +260,7 @@ const KubernetesResourceGraph = () => {
         };
 
         fetchResources();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [entity, kubernetesApi, configApi]); // Add configApi to dependencies array
 
     const handleGetEvents = async (resource: KubernetesObject) => {

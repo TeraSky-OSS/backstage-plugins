@@ -184,7 +184,7 @@ export class KROEntityProvider implements EntityProvider {
 
     const crd = rgd.generatedCRD;
     const apis = crd.spec.versions.map((version: any = {}) => {
-      let rgdOpenAPIDoc: any = {};
+      const rgdOpenAPIDoc: any = {};
       rgdOpenAPIDoc.openapi = "3.0.0";
       rgdOpenAPIDoc.info = {
         title: `${crd.spec.names.plural}.${crd.spec.group}`,
@@ -401,7 +401,7 @@ export class KROEntityProvider implements EntityProvider {
             definition: yaml.dump(crdWithMetadata),
           },
         };
-      } else {
+      } 
         // Use OpenAPI type with generated OpenAPI definition
         return {
           apiVersion: 'backstage.io/v1alpha1',
@@ -422,7 +422,7 @@ export class KROEntityProvider implements EntityProvider {
             definition: yaml.dump(rgdOpenAPIDoc),
           },
         };
-      }
+      
     });
 
     // Filter out invalid APIs
@@ -730,7 +730,7 @@ export class KROEntityProvider implements EntityProvider {
   }
 
   private extractSteps(crd: any, _rgd: any): any[] {
-    let baseStepsYaml =
+    const baseStepsYaml =
       '- id: generateManifest\n' +
       '  name: Generate Kubernetes Resource Manifest\n' +
       '  action: terasky:crd-template\n' +
@@ -788,30 +788,30 @@ export class KROEntityProvider implements EntityProvider {
     if (publishPhaseTarget !== 'yaml') {
       if (allowRepoSelection) {
         defaultStepsYaml +=
-          '- id: create-pull-request\n' +
-          '  name: create-pull-request\n' +
+          `- id: create-pull-request\n` +
+          `  name: create-pull-request\n` +
           `  action: ${action}\n` +
-          '  if: ${{ parameters.pushToGit }}\n' +
-          '  input:\n' +
-          '    repoUrl: ${{ parameters.repoUrl }}\n' +
-          '    branchName: create-${{ parameters.name }}-resource\n' +
+          `  if: \${{ parameters.pushToGit }}\n` +
+          `  input:\n` +
+          `    repoUrl: \${{ parameters.repoUrl }}\n` +
+          `    branchName: create-\${{ parameters.name }}-resource\n` +
           `    title: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}\n` +
           `    description: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}\n` +
-          '    targetBranchName: ${{ parameters.targetBranch }}\n' +
-          userOAuthTokenInput;
+          `    targetBranchName: \${{ parameters.targetBranch }}\n${ 
+          userOAuthTokenInput}`;
       } else {
         defaultStepsYaml +=
-          '- id: create-pull-request\n' +
-          '  name: create-pull-request\n' +
+          `- id: create-pull-request\n` +
+          `  name: create-pull-request\n` +
           `  action: ${action}\n` +
-          '  if: ${{ parameters.pushToGit }}\n' +
-          '  input:\n' +
+          `  if: \${{ parameters.pushToGit }}\n` +
+          `  input:\n` +
           `    repoUrl: ${this.config.getOptionalString('kubernetesIngestor.kro.rgds.publishPhase.git.repoUrl')}\n` +
-          '    branchName: create-${{ parameters.name }}-resource\n' +
+          `    branchName: create-\${{ parameters.name }}-resource\n` +
           `    title: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}\n` +
           `    description: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}\n` +
-          `    targetBranchName: ${this.config.getOptionalString('kubernetesIngestor.kro.rgds.publishPhase.git.targetBranch')}\n` +
-          userOAuthTokenInput;
+          `    targetBranchName: ${this.config.getOptionalString('kubernetesIngestor.kro.rgds.publishPhase.git.targetBranch')}\n${ 
+          userOAuthTokenInput}`;
       }
     }
 

@@ -93,18 +93,16 @@ const parallelProcess = async <T, R>(
             await Promise.race(inProgress);
         }
 
-        let promiseToAdd: Promise<void>;
-        const promise = new Promise<void>(async (resolve) => {
+        const promise: Promise<void> = new Promise<void>(async (resolve) => {
             try {
                 const result = await processItem(item);
                 results.push(result);
             } finally {
-                inProgress.delete(promiseToAdd);
+                inProgress.delete(promise);
                 resolve();
             }
         });
-        promiseToAdd = promise;
-        inProgress.add(promiseToAdd);
+        inProgress.add(promise);
     }
 
     await Promise.all(inProgress);
@@ -173,6 +171,7 @@ const KubernetesResourcesPage = () => {
                 results.push(...dependantResults.flat());
             }
         } catch (error) {
+            // eslint-disable-next-line no-console
             console.error(`Failed to fetch resource ${deps.kind}/${deps.name}:`, error);
         }
 
@@ -209,6 +208,7 @@ const KubernetesResourcesPage = () => {
             const clusterName = annotations['backstage.io/managed-by-origin-location']?.split(': ')[1];
 
             if (!resourceName || !resourceKind || !resourceApiVersion || !clusterName) {
+                // eslint-disable-next-line no-console
                 console.warn('Missing required annotations:', {
                     resourceName,
                     resourceKind,
@@ -251,6 +251,7 @@ const KubernetesResourcesPage = () => {
                     setResources([]);
                 }
             } catch (error) {
+                // eslint-disable-next-line no-console
                 console.error('Failed to fetch resources:', error);
             } finally {
                 setLoading(false);
@@ -258,6 +259,7 @@ const KubernetesResourcesPage = () => {
         };
 
         fetchResources();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [entity, kubernetesApi, configApi, canListResources, canListSecrets]);
 
     const handleGetEvents = async (resource: KubernetesObject) => {
@@ -320,7 +322,7 @@ const KubernetesResourcesPage = () => {
         return acc;
     }, {} as Record<string, ExtendedKubernetesObject[]>);
 
-    const renderResourceTable = (resources: ExtendedKubernetesObject[], kind: string) => (
+    const renderResourceTable = (kindResources: ExtendedKubernetesObject[], kind: string) => (
         <Accordion key={kind}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Typography variant="h6">{kind}</Typography>
@@ -330,7 +332,7 @@ const KubernetesResourcesPage = () => {
                     <TableHead>
                         <TableRow>
                             <TableCell>Name</TableCell>
-                            {resources.some(r => r.metadata?.namespace) && (
+                            {kindResources.some(r => r.metadata?.namespace) && (
                                 <TableCell>Namespace</TableCell>
                             )}
                             <TableCell>Conditions</TableCell>
@@ -338,10 +340,10 @@ const KubernetesResourcesPage = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {resources.map((resource) => (
+                        {kindResources.map((resource) => (
                             <TableRow key={resource.metadata?.uid}>
                                 <TableCell>{resource.metadata?.name}</TableCell>
-                                {resources.some(r => r.metadata?.namespace) && (
+                                {kindResources.some(r => r.metadata?.namespace) && (
                                     <TableCell>{resource.metadata?.namespace}</TableCell>
                                 )}
                                 <TableCell>
@@ -393,8 +395,8 @@ const KubernetesResourcesPage = () => {
             <Typography variant="h4" gutterBottom>
                 Kubernetes Resources
             </Typography>
-            {Object.entries(groupedResources).map(([kind, resources]) => 
-                renderResourceTable(resources, kind)
+            {Object.entries(groupedResources).map(([kind, kindResources]) => 
+                renderResourceTable(kindResources, kind)
             )}
             <Drawer anchor="right" open={drawerOpen} onClose={handleCloseDrawer}>
                 <div style={{ width: '50vw', padding: '16px', backgroundColor: theme.palette.background.default, color: theme.palette.text.primary }}>
