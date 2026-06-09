@@ -3,7 +3,9 @@ import { KubernetesObject } from '@backstage/plugin-kubernetes';
 import { Table, TableBody, TableCell, TableHead, TableRow, Paper, IconButton, Box, Collapse, Typography, LinearProgress, Chip, Drawer, Button, useTheme } from '@material-ui/core';
 import { configApiRef, useApi } from '@backstage/core-plugin-api';
 import { useEntity } from '@backstage/plugin-catalog-react';
-import { ExpandMore, ExpandLess, Close as CloseIcon } from '@material-ui/icons';
+import ExpandMore from '@material-ui/icons/ExpandMore';
+import ExpandLess from '@material-ui/icons/ExpandLess';
+import CloseIcon from '@material-ui/icons/Close';
 import { makeStyles } from '@material-ui/core/styles';
 import {
   StatusAborted,
@@ -129,6 +131,7 @@ const KyvernoPolicyReportsTable = () => {
                 });
                 setPolicyReports(response.items);
             } catch (error) {
+                // eslint-disable-next-line no-console
                 console.error('Failed to fetch policy reports:', error);
             }
             setLoading(false);
@@ -158,6 +161,7 @@ const KyvernoPolicyReportsTable = () => {
             setPolicyYaml(YAML.dump(removeManagedFields(response.policy)));
             setIsPolicyDeprecated(isDeprecatedPolicy(response.policy as any));
         } catch (error) {
+            // eslint-disable-next-line no-console
             console.error(`Failed to fetch policy ${policyName}:`, error);
             setPolicyYaml(null);
         }
