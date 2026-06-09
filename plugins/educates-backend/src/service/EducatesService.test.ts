@@ -8,6 +8,7 @@ jest.mock('node-fetch', () => {
 });
 
 import fetch from 'node-fetch';
+
 const mockFetch = fetch as jest.MockedFunction<typeof fetch>;
 
 describe('EducatesService', () => {
