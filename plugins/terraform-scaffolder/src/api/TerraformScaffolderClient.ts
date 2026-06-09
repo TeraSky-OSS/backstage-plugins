@@ -40,6 +40,7 @@ export class TerraformScaffolderClient implements TerraformScaffolderApi {
           };
         });
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Error fetching terraform modules from catalog:', error);
       return [];
     }
@@ -47,6 +48,7 @@ export class TerraformScaffolderClient implements TerraformScaffolderApi {
 
   public async getModuleVersions(moduleRef: TerraformModuleReference): Promise<string[]> {
     // Only proceed if this is a registry module
+    // eslint-disable-next-line no-console
     console.log('moduleRef', JSON.stringify(moduleRef, null, 2));
     if (!moduleRef.isRegistryModule) {
       return moduleRef.refs || [];
@@ -75,6 +77,7 @@ export class TerraformScaffolderClient implements TerraformScaffolderApi {
       );
 
       if (!response.ok) {
+        // eslint-disable-next-line no-console
         console.error(`Failed to fetch versions for module ${namespace}/${name}/${provider}:`, response.statusText);
         return [];
       }
@@ -95,6 +98,7 @@ export class TerraformScaffolderClient implements TerraformScaffolderApi {
           return versionB[2] - versionA[2];
         });
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error(`Error fetching versions for module ${namespace}/${name}:`, error);
       return [];
     }
@@ -124,6 +128,7 @@ export class TerraformScaffolderClient implements TerraformScaffolderApi {
           });
 
           if (!response.ok) {
+            // eslint-disable-next-line no-console
             console.error(`Failed to fetch modules for namespace ${namespace}:`, response.statusText);
             break;
           }
@@ -165,6 +170,7 @@ export class TerraformScaffolderClient implements TerraformScaffolderApi {
 
       return modules;
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Error fetching terraform modules from registry:', error);
       return [];
     }
@@ -196,7 +202,7 @@ export class TerraformScaffolderClient implements TerraformScaffolderApi {
             description: moduleRef.getOptionalString('description'),
             isRegistryModule: false
           };
-        } else {
+        } 
           // Assume it's a registry module if it's not a GitHub URL
           // Parse registry path into components
           const [org, module, provider] = url.split('/');
@@ -207,9 +213,10 @@ export class TerraformScaffolderClient implements TerraformScaffolderApi {
             description: moduleRef.getOptionalString('description'),
             isRegistryModule: false
           };
-        }
+        
       });
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Error reading terraform module references from config:', error);
       return [];
     }
@@ -226,6 +233,7 @@ export class TerraformScaffolderClient implements TerraformScaffolderApi {
       return [...configModules, ...catalogModules, ...registryModules]
         .sort((a, b) => a.name.localeCompare(b.name));
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Error fetching terraform module references:', error);
       return [];
     }
@@ -280,6 +288,7 @@ export class TerraformScaffolderClient implements TerraformScaffolderApi {
 
       return variables;
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Error fetching module variables:', error);
       throw error;
     }
@@ -326,18 +335,18 @@ export class TerraformScaffolderClient implements TerraformScaffolderApi {
   }
 
   private parseDefaultValue(value: string, type: string): any {
-    value = value.trim();
+    const trimmedValue = value.trim();
 
     // Handle quoted strings
-    if (value.startsWith('"') && value.endsWith('"')) {
-      return value.slice(1, -1);
+    if (trimmedValue.startsWith('"') && trimmedValue.endsWith('"')) {
+      return trimmedValue.slice(1, -1);
     }
 
     // Handle HCL lists with maps
-    if (value.startsWith('[') && type.startsWith('list(map(')) {
+    if (trimmedValue.startsWith('[') && type.startsWith('list(map(')) {
       try {
         // Extract each map from the list
-        const matches = value.match(/\{[^}]+\}/g);
+        const matches = trimmedValue.match(/\{[^}]+\}/g);
         if (!matches) return [];
 
         return matches.map(item => {
@@ -358,26 +367,25 @@ export class TerraformScaffolderClient implements TerraformScaffolderApi {
             const cleanVal = val.trim();
 
             // Handle quoted strings and numbers
-            obj[cleanKey] = cleanVal.startsWith('"') && cleanVal.endsWith('"')
-              ? cleanVal.slice(1, -1)
-              : !isNaN(Number(cleanVal))
-                ? Number(cleanVal)
-                : cleanVal;
+            const isQuoted = cleanVal.startsWith('"') && cleanVal.endsWith('"');
+            const numOrStringVal = !isNaN(Number(cleanVal)) ? Number(cleanVal) : cleanVal;
+            obj[cleanKey] = isQuoted ? cleanVal.slice(1, -1) : numOrStringVal;
           });
 
           return obj;
         });
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Error parsing list(map) default value:', error);
         return [];
       }
     }
 
     // Handle regular HCL lists
-    if (value.startsWith('[')) {
+    if (trimmedValue.startsWith('[')) {
       try {
         // Convert HCL list to JSON array
-        const listStr = value
+        const listStr = trimmedValue
           .replace(/\[|\]/g, '') // Remove brackets
           .split(',') // Split by comma
           .map(v => v.trim()) // Trim each value
@@ -400,10 +408,10 @@ export class TerraformScaffolderClient implements TerraformScaffolderApi {
     }
 
     // Handle HCL maps
-    if (value.startsWith('{')) {
+    if (trimmedValue.startsWith('{')) {
       try {
         // Convert HCL map to object
-        const mapStr = value
+        const mapStr = trimmedValue
           .slice(1, -1) // Remove braces
           .split(',') // Split by comma
           .map(pair => pair.trim()) // Trim each pair
@@ -411,11 +419,9 @@ export class TerraformScaffolderClient implements TerraformScaffolderApi {
           .reduce((acc, pair) => {
             const [key, val] = pair.split('=').map(p => p.trim());
             // Handle quoted strings in map
-            const parsedVal = val.startsWith('"') && val.endsWith('"') 
-              ? val.slice(1, -1)
-              : !isNaN(Number(val)) 
-                ? Number(val)
-                : val;
+            const isQuotedString = val.startsWith('"') && val.endsWith('"');
+            const numOrStrVal = !isNaN(Number(val)) ? Number(val) : val;
+            const parsedVal = isQuotedString ? val.slice(1, -1) : numOrStrVal;
             return { ...acc, [key]: parsedVal };
           }, {});
         return mapStr;
@@ -425,18 +431,18 @@ export class TerraformScaffolderClient implements TerraformScaffolderApi {
     }
 
     // Handle booleans
-    if (value === 'true') return true;
-    if (value === 'false') return false;
+    if (trimmedValue === 'true') return true;
+    if (trimmedValue === 'false') return false;
 
     // Handle numbers
-    if (type === 'number' && !isNaN(Number(value))) {
-      return Number(value);
+    if (type === 'number' && !isNaN(Number(trimmedValue))) {
+      return Number(trimmedValue);
     }
 
     // Handle null
-    if (value === 'null') return null;
+    if (trimmedValue === 'null') return null;
 
     // Default to string
-    return value;
+    return trimmedValue;
   }
 }

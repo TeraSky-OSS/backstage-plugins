@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState, useEffect, useCallback, ChangeEvent } from 'react';
 import { useApi } from '@backstage/core-plugin-api';
 import { Progress } from '@backstage/core-components';
 import { Alert } from '@material-ui/lab';
@@ -191,14 +191,14 @@ export const TerraformModuleForm = ({
 }: FieldExtensionComponentProps<TerraformModuleData>): JSX.Element => {
   const classes = useStyles();
   const api = useApi(terraformScaffolderApiRef);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string>();
-  const [modules, setModules] = React.useState<TerraformModuleReference[]>([]);
-  const [schema, setSchema] = React.useState<ExtendedRJSFSchema | null>(null);
-  const [selectedModule, setSelectedModule] = React.useState<TerraformModuleReference | null>(null);
-  const [selectedVersion, setSelectedVersion] = React.useState<string>('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>();
+  const [modules, setModules] = useState<TerraformModuleReference[]>([]);
+  const [schema, setSchema] = useState<ExtendedRJSFSchema | null>(null);
+  const [selectedModule, setSelectedModule] = useState<TerraformModuleReference | null>(null);
+  const [selectedVersion, setSelectedVersion] = useState<string>('');
 
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchModules = async () => {
       try {
         const moduleRefs = await api.getModuleReferences();
@@ -213,7 +213,7 @@ export const TerraformModuleForm = ({
     fetchModules();
   }, [api]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchVariables = async () => {
       if (!formData?.module || !selectedVersion) {
         setSchema(null);
@@ -238,7 +238,7 @@ export const TerraformModuleForm = ({
     fetchVariables();
   }, [api, formData?.module, modules, selectedVersion]);
 
-  const handleModuleChange = React.useCallback(async (event: React.ChangeEvent<{ value: unknown }>) => {
+  const handleModuleChange = useCallback(async (event: ChangeEvent<{ value: unknown }>) => {
     const moduleName = event.target.value as string;
     const moduleRef = modules.find(m => m.name === moduleName);
     
@@ -246,6 +246,7 @@ export const TerraformModuleForm = ({
       setLoading(true);
       try {
         // If it's a registry module, fetch all versions
+        // eslint-disable-next-line no-console
         console.log('moduleRef', JSON.stringify(moduleRef, null, 2));
         let versions = moduleRef.refs || [];
         if (moduleRef.isRegistryModule) {
@@ -274,7 +275,7 @@ export const TerraformModuleForm = ({
     }
   }, [onChange, modules, api]);
 
-  const handleVersionChange = React.useCallback((event: React.ChangeEvent<{ value: unknown }>) => {
+  const handleVersionChange = useCallback((event: ChangeEvent<{ value: unknown }>) => {
     const version = event.target.value as string;
     setSelectedVersion(version);
     
@@ -288,7 +289,7 @@ export const TerraformModuleForm = ({
     }
   }, [onChange, selectedModule, formData]);
 
-  const handleChange = React.useCallback((data: { formData?: Record<string, unknown> }) => {
+  const handleChange = useCallback((data: { formData?: Record<string, unknown> }) => {
     if (data.formData && selectedModule) {
       // Get the original variables.tf content from the schema's originalDefinition
       const variableDefinitions = (schema as ExtendedRJSFSchema)?.originalDefinition;
@@ -302,7 +303,7 @@ export const TerraformModuleForm = ({
         variableDefinitions: variableDefinitions || '',
       });
     }
-  }, [onChange, formData, selectedModule, schema]);
+  }, [onChange, formData, selectedModule, schema, selectedVersion]);
 
   if (loading) {
     return <Progress />;
@@ -359,7 +360,7 @@ export const TerraformModuleForm = ({
           validator={validator}
           liveValidate
           showErrorList={false}
-          children={true} // This hides the submit button
+          children // This hides the submit button
         />
       )}
     </div>
