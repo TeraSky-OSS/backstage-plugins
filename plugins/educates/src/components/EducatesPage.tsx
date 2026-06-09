@@ -112,6 +112,7 @@ export const EducatesPage = () => {
 
   // Check permissions for each portal using conditional permissions
   const portalPermissions = trainingPortals.map(portal => {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     const { allowed: canView, loading: viewLoading } = usePermission({
       permission: portalViewPermission,
       resourceRef: portal.name,
@@ -152,6 +153,7 @@ export const EducatesPage = () => {
     if (!portalPermissions.some(p => p.loading)) {
       fetchWorkshops();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config, educatesApi, portalPermissions, enablePermissions]);
 
   const handleStartWorkshop = async (

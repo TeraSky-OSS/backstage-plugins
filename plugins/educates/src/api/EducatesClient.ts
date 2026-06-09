@@ -39,6 +39,7 @@ export class EducatesClient implements EducatesApi {
       const html = await response.text();
       return html;
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Error fetching catalog HTML:', error);
       return undefined;
     }
@@ -49,6 +50,7 @@ export class EducatesClient implements EducatesApi {
       const logoMatch = html.match(/src="(data:image\/png;base64,[^"]+)"/);
       return logoMatch?.[1];
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Error extracting logo from HTML:', error);
       return undefined;
     }
