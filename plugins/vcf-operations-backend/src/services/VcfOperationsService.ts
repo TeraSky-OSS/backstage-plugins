@@ -197,9 +197,13 @@ export class VcfOperationsService {
       ...options.headers,
     };
 
+    let debugBody: unknown;
+    if (options.body) {
+      debugBody = typeof options.body === 'string' ? JSON.parse(options.body) : options.body;
+    }
     this.logger.debug(`Making request to ${url}`, {
       method: options.method || 'GET',
-      body: options.body ? (typeof options.body === 'string' ? JSON.parse(options.body) : options.body) : undefined,
+      body: debugBody,
     });
 
     const response = await fetch(url, {
@@ -209,11 +213,13 @@ export class VcfOperationsService {
 
     if (!response.ok) {
       const errorText = await response.text();
+      const errorBodyParsed = typeof options.body === 'string' ? JSON.parse(options.body) : 'Binary data';
+      const errorBody = options.body ? errorBodyParsed : undefined;
       this.logger.error(`Request failed: ${response.status} - ${errorText}`, {
         url,
         method: options.method || 'GET',
         headers: { ...headers, Authorization: '[REDACTED]' },
-        body: options.body ? (typeof options.body === 'string' ? JSON.parse(options.body) : 'Binary data') : undefined,
+        body: errorBody,
       });
       throw new Error(`Request failed: ${response.status} - ${errorText}`);
     }

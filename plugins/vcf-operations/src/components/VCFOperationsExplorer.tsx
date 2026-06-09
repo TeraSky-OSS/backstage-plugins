@@ -17,7 +17,8 @@ import {
   IconButton,
   Collapse,
 } from '@material-ui/core';
-import { ExpandMore, ChevronRight } from '@material-ui/icons';
+import ExpandMore from '@material-ui/icons/ExpandMore';
+import ChevronRight from '@material-ui/icons/ChevronRight';
 import { Alert } from '@material-ui/lab';
 import { makeStyles } from '@material-ui/core/styles';
 import { useApi } from '@backstage/core-plugin-api';
@@ -523,8 +524,8 @@ export const VCFOperationsExplorer = () => {
   const allMetrics = getAllMetricsFromCategories(currentMetricCategories);
 
   // Default selected metrics based on resource kind
-  const getDefaultMetrics = (entityType?: string, tags?: string[]): MetricSelection[] => {
-    if (entityType === 'CCI.Supervisor.Namespace') {
+  const getDefaultMetrics = (resourceType?: string, tags?: string[]): MetricSelection[] => {
+    if (resourceType === 'CCI.Supervisor.Namespace') {
       return [
         { key: 'badge|health', label: 'Health Badge' },
         { key: 'badge|compliance', label: 'Compliance Badge' },
@@ -532,7 +533,7 @@ export const VCFOperationsExplorer = () => {
         { key: 'mem|consumed_average', label: 'Memory Consumed (KB)' },
       ];
     }
-    if (entityType === 'vcf-automation-project') {
+    if (resourceType === 'vcf-automation-project') {
       return [
         { key: 'badge|health', label: 'Health Badge' },
         { key: 'badge|compliance', label: 'Compliance Badge' },
@@ -631,7 +632,7 @@ export const VCFOperationsExplorer = () => {
 
       try {
         const entityKind = entity.kind;
-        const entityType = entity.spec?.type as string;
+        const detectedEntityType = entity.spec?.type as string;
         const entityTitle = entity.metadata.title || entity.metadata.name;
         const tags = entity.metadata.tags || [];
 
@@ -729,7 +730,7 @@ export const VCFOperationsExplorer = () => {
         }
 
         // Check for supervisor namespace components with spec.type === 'CCI.Supervisor.Namespace'
-        if (entityType === 'CCI.Supervisor.Namespace') {
+        if (detectedEntityType === 'CCI.Supervisor.Namespace') {
           // For supervisor namespaces, try to find by title/name first
           try {
             const resource = await vcfOperationsApi.findResourceByName(
@@ -758,7 +759,7 @@ export const VCFOperationsExplorer = () => {
         }
 
         // Check for Cloud.vSphere.Machine components
-        if (entityType === 'Cloud.vSphere.Machine') {
+        if (detectedEntityType === 'Cloud.vSphere.Machine') {
           const morefAnnotation = entity.metadata.annotations?.['terasky.backstage.io/vcf-automation-vm-moref-id'];
           
           if (!morefAnnotation) {
@@ -837,7 +838,7 @@ export const VCFOperationsExplorer = () => {
         }
 
         // Check for VCF Automation project domains
-        if (entityKind.toLowerCase() === 'domain' && entityType === 'vcf-automation-project') {
+        if (entityKind.toLowerCase() === 'domain' && detectedEntityType === 'vcf-automation-project') {
           try {
             const resource = await vcfOperationsApi.findResourceByName(
               entityTitle,
@@ -865,7 +866,7 @@ export const VCFOperationsExplorer = () => {
         }
 
         // Check for deployment systems - not implemented
-        if (entityKind.toLowerCase() === 'system' && entityType === 'deployment') {
+        if (entityKind.toLowerCase() === 'system' && detectedEntityType === 'deployment') {
           setResourceDetection({
             found: false,
             notImplemented: {
@@ -892,7 +893,7 @@ export const VCFOperationsExplorer = () => {
         // Default: No specific mapping found
         setResourceDetection({
           found: false,
-          error: `No direct VCF Operations resource mapping found for this entity type (${entityKind}:${entityType}).`,
+          error: `No direct VCF Operations resource mapping found for this entity type (${entityKind}:${detectedEntityType}).`,
         });
 
       } catch (err) {
@@ -930,6 +931,7 @@ export const VCFOperationsExplorer = () => {
     
     // Debug logging for troubleshooting
     if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
       console.log('Time range params:', {
         now: new Date(now).toISOString(),
         begin: new Date(begin).toISOString(),
@@ -986,6 +988,7 @@ export const VCFOperationsExplorer = () => {
     if (resourceDetection.found && selectedMetrics.length > 0 && selectedInstance) {
       fetchMetrics();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedMetrics, timeRange, rollUpType, selectedInstance, resourceDetection.found]);
 
   const handleMetricToggle = (metric: MetricSelection) => {
@@ -1022,13 +1025,13 @@ export const VCFOperationsExplorer = () => {
       if (areAllCategorySelected) {
         // Deselect all metrics in this category
         return prev.filter(metric => !categoryMetricKeys.includes(metric.key));
-      } else {
+      } 
         // Select all metrics in this category (add any that aren't already selected)
         const newMetrics = category.metrics.filter(metric => 
           !prev.some(selected => selected.key === metric.key)
         );
         return [...prev, ...newMetrics];
-      }
+      
     });
   };
 

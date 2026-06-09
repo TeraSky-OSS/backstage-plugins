@@ -31,12 +31,12 @@ export const authModuleVcfSsoProvider = createBackendModule({
               // and `user_name` for the short username. The standard `email` claim
               // is not populated.
               const acct =
-                typeof userinfo['acct'] === 'string'
-                  ? userinfo['acct']
+                typeof userinfo.acct === 'string'
+                  ? userinfo.acct
                   : undefined;
               const userName =
-                typeof userinfo['user_name'] === 'string'
-                  ? userinfo['user_name']
+                typeof userinfo.user_name === 'string'
+                  ? userinfo.user_name
                   : undefined;
 
               const email = acct ?? userinfo.email;
