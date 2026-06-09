@@ -3,7 +3,7 @@ import { useApi, configApiRef, identityApiRef } from '@backstage/core-plugin-api
 import { Table, TableColumn } from '@backstage/core-components';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { useTheme, Card, CardContent, Typography, Grid, Box } from '@material-ui/core';
-//import './ScaleOpsDashboard.css';
+// import './ScaleOpsDashboard.css';
 
 interface Workload {
   id: string;
@@ -219,6 +219,7 @@ export const ScaleOpsDashboard = () => {
       const token = await identityApi.getCredentials(); 
       
       if (!token.token) {
+        // eslint-disable-next-line no-console
         console.error('No Backstage token available');
         return;
       }
@@ -236,6 +237,7 @@ export const ScaleOpsDashboard = () => {
       });
 
       if (!response.ok) {
+        // eslint-disable-next-line no-console
         console.error(`ScaleOps workloads request failed: ${response.status} ${response.statusText}`);
         return;
       }
@@ -280,7 +282,7 @@ export const ScaleOpsDashboard = () => {
     };
 
     fetchWorkloads();
-  }, [configApi, entity]);
+  }, [configApi, entity, identityApi]);
 
   useEffect(() => {
     if (!selectedWorkload) return;
@@ -292,6 +294,7 @@ export const ScaleOpsDashboard = () => {
       const token = await identityApi.getCredentials(); 
       
       if (!token.token) {
+        // eslint-disable-next-line no-console
         console.error('No Backstage token available');
         return;
       }
@@ -315,6 +318,7 @@ export const ScaleOpsDashboard = () => {
       });
 
       if (!response.ok) {
+        // eslint-disable-next-line no-console
         console.error(`ScaleOps cost report request failed: ${response.status} ${response.statusText}`);
         return;
       }
@@ -325,13 +329,14 @@ export const ScaleOpsDashboard = () => {
     };
 
     fetchAggregatedWorkload();
-  }, [selectedWorkload, configApi, entity]);
+  }, [selectedWorkload, configApi, entity, identityApi]);
 
   useEffect(() => {
     const checkNetworkCostEnabled = async () => {
       const token = await identityApi.getCredentials(); 
       
       if (!token.token) {
+        // eslint-disable-next-line no-console
         console.error('No Backstage token available');
         return;
       }
@@ -348,6 +353,7 @@ export const ScaleOpsDashboard = () => {
       });
 
       if (!response.ok) {
+        // eslint-disable-next-line no-console
         console.error(`ScaleOps network cost check failed: ${response.status} ${response.statusText}`);
         return;
       }
@@ -361,7 +367,7 @@ export const ScaleOpsDashboard = () => {
     };
 
     checkNetworkCostEnabled();
-  }, [selectedWorkload, configApi]);
+  }, [selectedWorkload, configApi, identityApi]);
 
   useEffect(() => {
     if (!selectedWorkload || !networkCostEnabled) return;
@@ -370,6 +376,7 @@ export const ScaleOpsDashboard = () => {
       const token = await identityApi.getCredentials(); 
       
       if (!token.token) {
+        // eslint-disable-next-line no-console
         console.error('No Backstage token available');
         return;
       }
@@ -390,6 +397,7 @@ export const ScaleOpsDashboard = () => {
       });
 
       if (!response.ok) {
+        // eslint-disable-next-line no-console
         console.error(`ScaleOps network usage request failed: ${response.status} ${response.statusText}`);
         return;
       }
@@ -399,7 +407,7 @@ export const ScaleOpsDashboard = () => {
     };
 
     fetchNetworkUsage();
-  }, [selectedWorkload, networkCostEnabled, configApi]);
+  }, [selectedWorkload, networkCostEnabled, configApi, identityApi]);
 
   return (
     <>

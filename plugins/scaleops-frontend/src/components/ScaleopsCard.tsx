@@ -57,6 +57,7 @@ export const ScaleopsCard = () => {
       const token = await identityApi.getCredentials();
       
       if (!token.token) {
+        // eslint-disable-next-line no-console
         console.error('No Backstage token available');
         return;
       }

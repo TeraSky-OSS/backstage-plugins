@@ -106,8 +106,8 @@ describe('createRouter', () => {
     let capturedHeaders: any;
 
     mswServer.use(
-      http.get('http://scaleops.example.com/workloads', ({ request }) => {
-        capturedHeaders = Object.fromEntries(request.headers.entries());
+      http.get('http://scaleops.example.com/workloads', ({ request: req }) => {
+        capturedHeaders = Object.fromEntries(req.headers.entries());
         return HttpResponse.json({ workloads: [] });
       }),
     );
