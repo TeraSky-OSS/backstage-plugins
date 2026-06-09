@@ -1,1 +1,9 @@
 playwright.config.ts
+temp/
+dist/
+**/dist/
+dist-types/
+**/dist-types/
+coverage/
+**/coverage/
+dynamic-plugins-root/
