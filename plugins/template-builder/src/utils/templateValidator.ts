@@ -170,7 +170,8 @@ function validateExpression(
   const expressionRegex = /\$\{\{\s*([^}]+)\s*\}\}/g;
   let match;
 
-  while ((match = expressionRegex.exec(expr)) !== null) {
+  match = expressionRegex.exec(expr);
+  while (match !== null) {
     const expression = match[1].trim();
     
     // Check if it references parameters
@@ -208,6 +209,7 @@ function validateExpression(
         });
       }
     }
+    match = expressionRegex.exec(expr);
   }
 
   // Check for unmatched braces

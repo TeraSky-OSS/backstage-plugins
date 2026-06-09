@@ -197,22 +197,18 @@ describe('layoutEngine', () => {
 
       expect(node).not.toBeNull();
       expect(node!.type).toBe('parameter-group');
-      if (node && node.data.type === 'parameter-group') {
-        expect(node.data.parameters).toHaveLength(2);
-        expect(node.data.parameters[0].name).toBe('name');
-        expect(node.data.parameters[1].name).toBe('email');
-      }
+      expect((node as any).data.parameters).toHaveLength(2);
+      expect((node as any).data.parameters[0].name).toBe('name');
+      expect((node as any).data.parameters[1].name).toBe('email');
     });
 
     it('should calculate usage count for each parameter', () => {
       const node = createParameterGroupNode(parameters, actionNodes);
 
       expect(node).not.toBeNull();
-      if (node && node.data.type === 'parameter-group') {
-        expect(node.data.parameters[0].usageCount).toBe(1);
-        expect(node.data.parameters[1].usageCount).toBe(1);
-        expect(node.data.totalUsageCount).toBe(2);
-      }
+      expect((node as any).data.parameters[0].usageCount).toBe(1);
+      expect((node as any).data.parameters[1].usageCount).toBe(1);
+      expect((node as any).data.totalUsageCount).toBe(2);
     });
 
     it('should return null when no parameters', () => {
@@ -225,9 +221,7 @@ describe('layoutEngine', () => {
       const node = createParameterGroupNode(parameters, actionNodes, 'horizontal');
 
       expect(node).not.toBeNull();
-      if (node && node.data.type === 'parameter-group') {
-        expect(node.data.layoutDirection).toBe('horizontal');
-      }
+      expect((node as any).data.layoutDirection).toBe('horizontal');
     });
   });
 
@@ -251,30 +245,24 @@ describe('layoutEngine', () => {
 
       expect(node).not.toBeNull();
       expect(node!.type).toBe('output-group');
-      if (node && node.data.type === 'output-group') {
-        expect(node.data.outputs).toHaveLength(2);
-        expect(node.data.outputs[0].title).toBe('Repository');
-        expect(node.data.outputs[1].title).toBe('Pull Request');
-      }
+      expect((node as any).data.outputs).toHaveLength(2);
+      expect((node as any).data.outputs[0].title).toBe('Repository');
+      expect((node as any).data.outputs[1].title).toBe('Pull Request');
     });
 
     it('should extract step references from output URLs', () => {
       const node = createOutputGroupNode(templateOutput, []);
 
       expect(node).not.toBeNull();
-      if (node && node.data.type === 'output-group') {
-        expect(node.data.outputs[0].stepRefs).toContain('publish');
-        expect(node.data.outputs[1].stepRefs).toContain('create-pr');
-      }
+      expect((node as any).data.outputs[0].stepRefs).toContain('publish');
+      expect((node as any).data.outputs[1].stepRefs).toContain('create-pr');
     });
 
     it('should extract step references from if conditions', () => {
       const node = createOutputGroupNode(templateOutput, []);
 
       expect(node).not.toBeNull();
-      if (node && node.data.type === 'output-group') {
-        expect(node.data.outputs[1].stepRefs).toContain('create-pr');
-      }
+      expect((node as any).data.outputs[1].stepRefs).toContain('create-pr');
     });
 
     it('should return null when no outputs', () => {
@@ -287,9 +275,7 @@ describe('layoutEngine', () => {
       const node = createOutputGroupNode(templateOutput, [], 'horizontal');
 
       expect(node).not.toBeNull();
-      if (node && node.data.type === 'output-group') {
-        expect(node.data.layoutDirection).toBe('horizontal');
-      }
+      expect((node as any).data.layoutDirection).toBe('horizontal');
     });
   });
 

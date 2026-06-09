@@ -220,7 +220,7 @@ export function ActionConfigPanel(props: ActionConfigPanelProps) {
                   )}
                   <Box mt={0.5} p={0.5} bgcolor="grey.100" borderRadius={1}>
                     <Typography variant="caption" component="code" style={{ fontFamily: 'monospace' }}>
-                      {'${{ steps.' + nodeId + '.output.' + propName + ' }}'}
+                      {`\${{ steps.${  nodeId  }.output.${  propName  } }}`}
                     </Typography>
                   </Box>
                 </Box>

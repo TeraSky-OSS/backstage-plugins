@@ -12,6 +12,7 @@ describe('ErrorBoundary', () => {
   });
 
   afterEach(() => {
+    // eslint-disable-next-line no-console
     (console.error as jest.Mock).mockRestore();
   });
 

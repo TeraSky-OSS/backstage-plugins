@@ -297,7 +297,7 @@ export function EditorLayout(props: EditorLayoutProps) {
   };
 
   useEffect(() => {
-    if (!isResizing) return;
+    if (!isResizing) return () => {};
 
     // Add cursor style to body during resize
     document.body.style.cursor = 'col-resize';

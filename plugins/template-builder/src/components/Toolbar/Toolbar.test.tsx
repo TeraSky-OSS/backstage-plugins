@@ -62,9 +62,9 @@ describe('Toolbar', () => {
     render(
       <Toolbar
         templateName="test-template"
-        hasUnsavedChanges={true}
-        canUndo={true}
-        canRedo={true}
+        hasUnsavedChanges
+        canUndo
+        canRedo
         onNameChange={mockOnNameChange}
         onDownload={mockOnDownload}
         onValidate={mockOnValidate}

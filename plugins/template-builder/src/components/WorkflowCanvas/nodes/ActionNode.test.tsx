@@ -1,11 +1,11 @@
-import React from 'react';
+import { ReactElement } from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { ReactFlowProvider } from '@xyflow/react';
 import { ActionNode } from './ActionNode';
 import type { ActionNodeData } from '../../../types';
 
-const renderWithReactFlow = (component: React.ReactElement) => {
+const renderWithReactFlow = (component: ReactElement) => {
   return render(<ReactFlowProvider>{component}</ReactFlowProvider>);
 };
 
@@ -51,7 +51,7 @@ describe('ActionNode', () => {
       onDelete,
     };
 
-    renderWithReactFlow(<ActionNode data={dataWithDelete} selected={true} />);
+    renderWithReactFlow(<ActionNode data={dataWithDelete} selected />);
     
     // The delete button is visible when selected and onDelete is provided
     // We just verify the component renders without errors

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   ReactFlow,
   Background,
@@ -251,11 +251,11 @@ export function WorkflowCanvas(props: WorkflowCanvasProps) {
         className={classes.reactFlow}
         minZoom={0.1}
         maxZoom={2}
-        nodesDraggable={true}
+        nodesDraggable
         nodesConnectable={false}
-        elementsSelectable={true}
+        elementsSelectable
         elevateEdgesOnSelect={false}
-        elevateNodesOnSelect={true}
+        elevateNodesOnSelect
         edgesFocusable={false}
       >
         <Background />

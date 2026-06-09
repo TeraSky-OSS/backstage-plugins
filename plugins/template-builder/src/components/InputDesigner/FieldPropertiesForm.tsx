@@ -258,7 +258,7 @@ export function FieldPropertiesForm(props: FieldPropertiesFormProps) {
               label="Min Length"
               type="number"
               value={field.minLength ?? ''}
-              onChange={e => onUpdate({ minLength: e.target.value ? parseInt(e.target.value) : undefined })}
+              onChange={e => onUpdate({ minLength: e.target.value ? parseInt(e.target.value, 10) : undefined })}
               variant="outlined"
               size="small"
               margin="dense"
@@ -268,7 +268,7 @@ export function FieldPropertiesForm(props: FieldPropertiesFormProps) {
               label="Max Length"
               type="number"
               value={field.maxLength ?? ''}
-              onChange={e => onUpdate({ maxLength: e.target.value ? parseInt(e.target.value) : undefined })}
+              onChange={e => onUpdate({ maxLength: e.target.value ? parseInt(e.target.value, 10) : undefined })}
               variant="outlined"
               size="small"
               margin="dense"
@@ -386,7 +386,7 @@ export function FieldPropertiesForm(props: FieldPropertiesFormProps) {
                 label="Rows (for textarea)"
                 type="number"
                 value={(field.uiOptions as any)?.rows || ''}
-                onChange={e => handleUiOptionsChange('rows', e.target.value ? parseInt(e.target.value) : undefined)}
+                onChange={e => handleUiOptionsChange('rows', e.target.value ? parseInt(e.target.value, 10) : undefined)}
                 variant="outlined"
                 size="small"
                 margin="dense"
@@ -705,7 +705,7 @@ export function FieldPropertiesForm(props: FieldPropertiesFormProps) {
                   label="Minimum Items"
                   type="number"
                   value={field.minLength ?? ''}
-                  onChange={e => onUpdate({ minLength: e.target.value ? parseInt(e.target.value) : undefined })}
+                  onChange={e => onUpdate({ minLength: e.target.value ? parseInt(e.target.value, 10) : undefined })}
                   variant="outlined"
                   size="small"
                   margin="dense"
@@ -716,7 +716,7 @@ export function FieldPropertiesForm(props: FieldPropertiesFormProps) {
                   label="Maximum Items"
                   type="number"
                   value={field.maxLength ?? ''}
-                  onChange={e => onUpdate({ maxLength: e.target.value ? parseInt(e.target.value) : undefined })}
+                  onChange={e => onUpdate({ maxLength: e.target.value ? parseInt(e.target.value, 10) : undefined })}
                   variant="outlined"
                   size="small"
                   margin="dense"

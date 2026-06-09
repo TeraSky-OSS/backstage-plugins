@@ -128,7 +128,9 @@ export function YAMLEditor(props: YAMLEditorProps) {
       };
       
       // Method 3: Wrap console.error to suppress React error overlay
+      // eslint-disable-next-line no-console
       const originalConsoleError = console.error;
+      // eslint-disable-next-line no-console
       console.error = (...args: any[]) => {
         const errorStr = args.join(' ');
         
@@ -234,9 +236,9 @@ export function YAMLEditor(props: YAMLEditorProps) {
               let propertiesIndent = -1;
               
               for (let i = 0; i < lines.length; i++) {
-                const line = lines[i];
-                const indent = line.search(/\S/);
-                const trimmed = line.trim();
+                const innerLine = lines[i];
+                const indent = innerLine.search(/\S/);
+                const trimmed = innerLine.trim();
                 
                 if (trimmed === 'properties:') {
                   // Check if this is under parameters section (look back)
@@ -355,7 +357,7 @@ export function YAMLEditor(props: YAMLEditorProps) {
                 suggestions.push({
                   label: stepId,
                   kind: monaco.languages.CompletionItemKind.Variable,
-                  insertText: stepId + "']",
+                  insertText: `${stepId  }']`,
                   documentation: `Step: ${stepId}`,
                   range: range,
                 });
@@ -451,7 +453,7 @@ export function YAMLEditor(props: YAMLEditorProps) {
                 suggestions.push({
                   label: key,
                   kind: monaco.languages.CompletionItemKind.Property,
-                  insertText: key + ': ',
+                  insertText: `${key  }: `,
                   documentation: doc,
                   range: range,
                 });
@@ -469,7 +471,7 @@ export function YAMLEditor(props: YAMLEditorProps) {
                   suggestions.push({
                     label: key,
                     kind: monaco.languages.CompletionItemKind.Property,
-                    insertText: key + ': ',
+                    insertText: `${key  }: `,
                     detail: `${schema.title || key} (${context.actionId})`,
                     documentation: schema.description || `Input for ${context.actionId}`,
                     range: range,
@@ -492,9 +494,9 @@ export function YAMLEditor(props: YAMLEditorProps) {
               
               // Scan backwards to find ui:options and ui:field
               for (let i = position.lineNumber - 2; i >= 0; i--) {
-                const line = lines[i];
-                const trimmed = line.trim();
-                const indent = line.search(/\S/);
+                const scanLine = lines[i];
+                const trimmed = scanLine.trim();
+                const indent = scanLine.search(/\S/);
                 
                 if (indent < lineIndent - 2) break; // Out of current field scope
                 
@@ -558,7 +560,7 @@ export function YAMLEditor(props: YAMLEditorProps) {
                   suggestions.push({
                     label: key,
                     kind: monaco.languages.CompletionItemKind.Property,
-                    insertText: key + ': ',
+                    insertText: `${key  }: `,
                     documentation: doc,
                     range: range,
                   });
@@ -596,7 +598,7 @@ export function YAMLEditor(props: YAMLEditorProps) {
                 suggestions.push({
                   label: key,
                   kind: monaco.languages.CompletionItemKind.Property,
-                  insertText: key + ': ',
+                  insertText: `${key  }: `,
                   documentation: doc,
                   range: range,
                 });
@@ -616,11 +618,11 @@ export function YAMLEditor(props: YAMLEditorProps) {
                 { value: 'object', doc: 'Nested object with properties' },
                 { value: 'null', doc: 'Null value (for markdown blocks)' },
               ];
-              types.forEach(({ value, doc }) => {
+              types.forEach(({ value: typeValue, doc }) => {
                 suggestions.push({
-                  label: value,
+                  label: typeValue,
                   kind: monaco.languages.CompletionItemKind.Value,
-                  insertText: value,
+                  insertText: typeValue,
                   documentation: doc,
                   range: range,
                 });
@@ -637,11 +639,11 @@ export function YAMLEditor(props: YAMLEditorProps) {
                 { value: 'select', doc: 'Dropdown select' },
                 { value: 'password', doc: 'Password input (masked)' },
               ];
-              widgets.forEach(({ value, doc }) => {
+              widgets.forEach(({ value: widgetValue, doc }) => {
                 suggestions.push({
-                  label: value,
+                  label: widgetValue,
                   kind: monaco.languages.CompletionItemKind.Value,
-                  insertText: value,
+                  insertText: widgetValue,
                   documentation: doc,
                   range: range,
                 });
@@ -675,7 +677,7 @@ export function YAMLEditor(props: YAMLEditorProps) {
                 suggestions.push({
                   label: prop,
                   kind: monaco.languages.CompletionItemKind.Property,
-                  insertText: prop + ': ',
+                  insertText: `${prop  }: `,
                   range: range,
                 });
               });
@@ -688,7 +690,7 @@ export function YAMLEditor(props: YAMLEditorProps) {
                 suggestions.push({
                   label: prop,
                   kind: monaco.languages.CompletionItemKind.Property,
-                  insertText: prop + ': ',
+                  insertText: `${prop  }: `,
                   range: range,
                 });
               });
@@ -701,7 +703,7 @@ export function YAMLEditor(props: YAMLEditorProps) {
                 suggestions.push({
                   label: prop,
                   kind: monaco.languages.CompletionItemKind.Property,
-                  insertText: prop + ': ',
+                  insertText: `${prop  }: `,
                   range: range,
                 });
               });
@@ -715,6 +717,7 @@ export function YAMLEditor(props: YAMLEditorProps) {
         // Silently fail - editor will work without autocomplete
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [availableActions]
   );
 

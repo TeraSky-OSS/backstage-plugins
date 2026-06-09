@@ -96,7 +96,6 @@ export function AddActionDialog(props: AddActionDialogProps) {
                 </InputAdornment>
               ),
             }}
-            autoFocus
           />
         </Box>
         

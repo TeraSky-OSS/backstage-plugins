@@ -1,4 +1,4 @@
-import React from 'react';
+import { useMemo } from 'react';
 import {
   Box,
   Paper,
@@ -63,7 +63,7 @@ export function MappingPanel(props: MappingPanelProps) {
     onUpdateInputs(newInputs);
   };
 
-  const availableVariables = React.useMemo(() => {
+  const availableVariables = useMemo(() => {
     const vars: Array<{ label: string; value: string; group: string }> = [];
 
     // Add parameters

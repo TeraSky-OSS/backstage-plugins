@@ -125,10 +125,9 @@ describe('useTemplateState', () => {
 
     const node = result.current.state.workflow.nodes.find(n => n.id === 'action1');
     expect(node).toBeDefined();
-    if (node && node.data.type === 'action') {
-      expect(node.data.inputs.url).toBe('./skeleton');
-      expect(node.data.inputs.targetPath).toBe('./output');
-    }
+    expect(node?.data.type).toBe('action');
+    expect((node?.data as any).inputs?.url).toBe('./skeleton');
+    expect((node?.data as any).inputs?.targetPath).toBe('./output');
   });
 
   it('should set entire state', () => {

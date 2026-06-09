@@ -19,7 +19,9 @@ if (typeof window !== 'undefined') {
   };
 
   // Suppress via console to prevent React error overlay
+  // eslint-disable-next-line no-console
   const originalConsoleError = console.error;
+  // eslint-disable-next-line no-console
   console.error = (...args: any[]) => {
     const errorStr = args.join(' ');
     

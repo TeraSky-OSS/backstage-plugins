@@ -83,9 +83,9 @@ export function ActionPalette(props: ActionPaletteProps) {
       categories.get(category)!.push(action);
     });
 
-    return Array.from(categories.entries()).map(([name, actions]) => ({
+    return Array.from(categories.entries()).map(([name, categoryActions]) => ({
       name,
-      actions,
+      actions: categoryActions,
     }));
   }, [actions, searchQuery]);
 

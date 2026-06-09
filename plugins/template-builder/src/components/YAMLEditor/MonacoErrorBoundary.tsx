@@ -9,11 +9,6 @@ interface State {
 }
 
 export class MonacoErrorBoundary extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
   static getDerivedStateFromError(error: any) {
     // Check if this is a Monaco hit test error
     const errorStr = String(error?.message || '');
@@ -29,6 +24,11 @@ export class MonacoErrorBoundary extends Component<Props, State> {
     
     // For other errors, show error state
     return { hasError: true };
+  }
+
+  constructor(props: Props) {
+    super(props);
+    this.state = { hasError: false };
   }
 
   componentDidCatch(error: any, _errorInfo: any) {
