@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { useApi, configApiRef } from '@backstage/core-plugin-api';
 import { catalogApiRef } from '@backstage/plugin-catalog-react';
@@ -124,6 +124,22 @@ export const KubernetesResourcesPage: React.FC = () => {
     );
   }
 
+  const resourcesContent = filteredEntities.length === 0 ? (
+    <Box className={classes.emptyState}>
+      <Typography variant="h6" gutterBottom>
+        No matches found
+      </Typography>
+      <Typography variant="body2" color="textSecondary">
+        No resources match the selected filters. Try adjusting your filter criteria.
+      </Typography>
+    </Box>
+  ) : (
+    <FlatGroupedView
+      entities={filteredEntities}
+      annotationPrefix={annotationPrefix}
+    />
+  );
+
   return (
     <Box p={3}>
       {/* Header */}
@@ -157,21 +173,7 @@ export const KubernetesResourcesPage: React.FC = () => {
             Make sure the kubernetes-ingestor is configured for this cluster.
           </Typography>
         </Box>
-      ) : filteredEntities.length === 0 ? (
-        <Box className={classes.emptyState}>
-          <Typography variant="h6" gutterBottom>
-            No matches found
-          </Typography>
-          <Typography variant="body2" color="textSecondary">
-            No resources match the selected filters. Try adjusting your filter criteria.
-          </Typography>
-        </Box>
-      ) : (
-        <FlatGroupedView
-          entities={filteredEntities}
-          annotationPrefix={annotationPrefix}
-        />
-      )}
+      ) : resourcesContent}
     </Box>
   );
 };

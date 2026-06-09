@@ -5,6 +5,7 @@ import {
   discoveryApiRef,
   fetchApiRef,
 } from '@backstage/core-plugin-api';
+// eslint-disable-next-line @backstage/no-mixed-plugin-imports
 import { spectroCloudAuthApiRef } from '@terasky/backstage-plugin-spectrocloud-auth';
 import { rootRouteRef } from './routes';
 import { spectroCloudApiRef, SpectroCloudApiClient } from './api';

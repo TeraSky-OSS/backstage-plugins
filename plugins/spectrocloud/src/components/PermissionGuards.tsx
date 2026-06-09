@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Entity } from '@backstage/catalog-model';
 import { useApi, configApiRef, ConfigApi } from '@backstage/core-plugin-api';
 import { usePermission } from '@backstage/plugin-permission-react';

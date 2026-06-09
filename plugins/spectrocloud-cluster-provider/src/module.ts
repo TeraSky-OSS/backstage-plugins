@@ -65,7 +65,7 @@ export const kubernetesModuleSpectroCloudClusterSupplier = createBackendModule({
               const instanceName = configuredName || `${instanceConfig.getString('tenant')}@${instanceConfig.getString('url')}`;
               
               try {
-                logger.info(`Creating SpectroCloud cluster supplier for environment: ${instanceName}${configuredName ? ' (name: ' + configuredName + ')' : ''}`);
+                logger.info(`Creating SpectroCloud cluster supplier for environment: ${instanceName}${configuredName ? ` (name: ${  configuredName  })` : ''}`);
                 const spectroSupplier = SpectroCloudClusterSupplier.fromConfig(instanceConfig, logger);
                 spectroSuppliers.push({ supplier: spectroSupplier, name: instanceName });
                 logger.info(`✓ Created SpectroCloud cluster supplier for ${instanceName}`);

@@ -135,7 +135,7 @@ export const ClusterDeploymentWizard = () => {
           return !!state.cloudType;
         case 1: // Project
           return !!state.projectUid;
-        case 2: // Virtual Cluster Setup (name + cluster group + quotas)
+        case 2: { // Virtual Cluster Setup (name + cluster group + quotas)
           const hasClusterName = !!state.clusterName && state.clusterName.length > 0 && 
                                  /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/.test(state.clusterName);
           const hasClusterGroup = !!state.cloudConfig.clusterGroupUid;
@@ -144,6 +144,7 @@ export const ClusterDeploymentWizard = () => {
             (state.cloudConfig.memoryGiB ?? 0) > 0 &&
             (state.cloudConfig.storageGiB ?? 0) > 0;
           return hasClusterName && hasClusterGroup && hasValidQuotas;
+        }
         case 3: // Review & Deploy
           return true;
         default:
@@ -342,7 +343,7 @@ export const ClusterDeploymentWizard = () => {
               onUpdate={(updates: any) => updateState(updates)}
             />
           );
-        } else {
+        } 
           return (
             <InfrastructureConfiguration
               cloudType={state.cloudType!}
@@ -352,7 +353,7 @@ export const ClusterDeploymentWizard = () => {
               onUpdate={(updates: any) => updateState(updates)}
             />
           );
-        }
+        
       case 7:
         return (
           <Summary

@@ -8,6 +8,7 @@ import {
   KubernetesAuthProviders,
   kubernetesAuthProvidersApiRef,
 } from '@backstage/plugin-kubernetes-react';
+// eslint-disable-next-line @backstage/no-mixed-plugin-imports
 import { spectroCloudAuthApiRef } from '@terasky/backstage-plugin-spectrocloud-auth';
 
 /**

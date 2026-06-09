@@ -385,7 +385,7 @@ export const SpectroCloudVirtualClusterCard = () => {
                     variant="determinate" 
                     value={Math.min(cpuUsagePercent, 100)} 
                     className={classes.progressBar}
-                    color={cpuUsagePercent > 100 ? 'secondary' : cpuUsagePercent > 80 ? 'secondary' : 'primary'}
+                    color={cpuUsagePercent > 80 ? 'secondary' : 'primary'}
                   />
                 </Tooltip>
               )}
@@ -436,7 +436,7 @@ export const SpectroCloudVirtualClusterCard = () => {
                     variant="determinate" 
                     value={Math.min(memoryUsagePercent, 100)} 
                     className={classes.progressBar}
-                    color={memoryUsagePercent > 100 ? 'secondary' : memoryUsagePercent > 80 ? 'secondary' : 'primary'}
+                    color={memoryUsagePercent > 80 ? 'secondary' : 'primary'}
                   />
                 </Tooltip>
               )}

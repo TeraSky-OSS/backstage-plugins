@@ -212,6 +212,7 @@ export const extractUniqueKinds = (entities: Entity[], annotationPrefix: string)
 export const extractUniqueNamespaces = (entities: Entity[], annotationPrefix: string): string[] => {
   const namespaces = new Set<string>();
   entities.forEach(entity => {
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     const namespace = getEntityNamespace(entity, annotationPrefix);
     if (namespace) {
       namespaces.add(namespace);
@@ -226,6 +227,7 @@ export const extractUniqueNamespaces = (entities: Entity[], annotationPrefix: st
 export const extractUniqueOwners = (entities: Entity[]): string[] => {
   const owners = new Set<string>();
   entities.forEach(entity => {
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     const owner = getEntityOwner(entity);
     if (owner) {
       owners.add(owner);

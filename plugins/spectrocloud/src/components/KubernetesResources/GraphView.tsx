@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import ReactFlow, {
   Node,
   Edge,
@@ -157,6 +157,8 @@ export const GraphView: React.FC<GraphViewProps> = ({
             bgColor = '#607d8b';
             borderColor = '#455a64';
             icon = '📋';
+            break;
+          default:
             break;
         }
 

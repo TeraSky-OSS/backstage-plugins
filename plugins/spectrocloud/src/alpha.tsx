@@ -12,6 +12,7 @@ import { EntityCardBlueprint, EntityContentBlueprint } from '@backstage/plugin-c
 import { Entity } from '@backstage/catalog-model';
 import { SiKubernetes } from "react-icons/si";
 import { spectroCloudApiRef, SpectroCloudApiClient } from './api';
+// eslint-disable-next-line @backstage/no-mixed-plugin-imports
 import { spectroCloudAuthApiRef } from '@terasky/backstage-plugin-spectrocloud-auth';
 import { clusterDeploymentRouteRef, clusterViewerRouteRef, virtualClusterViewerRouteRef } from './routes';
 import AddCircleIcon from '@material-ui/icons/AddCircle';

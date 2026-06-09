@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useEntity, useRelatedEntities, EntityRefLink } from '@backstage/plugin-catalog-react';
 import { useApi, configApiRef } from '@backstage/core-plugin-api';
 import { Entity } from '@backstage/catalog-model';
@@ -335,14 +335,13 @@ export const SpectroCloudClusterProfileCard = () => {
           <Typography variant="body2" className={classes.label}>
             Available Versions
           </Typography>
-          {loading ? (
-            <Progress />
-          ) : profileVersions.length > 0 ? (
+          {loading && <Progress />}
+          {!loading && profileVersions.length > 0 && (
             <TableContainer component={Paper} className={classes.versionTable}>
               <Table size="small">
                 <TableHead>
                   <TableRow className={classes.tableHeader}>
-                    <TableCell className={classes.expandCell}></TableCell>
+                    <TableCell className={classes.expandCell} />
                     <TableCell>Version</TableCell>
                     <TableCell>Version UID</TableCell>
                     <TableCell align="right">Clusters Using</TableCell>
@@ -431,7 +430,8 @@ export const SpectroCloudClusterProfileCard = () => {
                 </TableBody>
               </Table>
             </TableContainer>
-          ) : (
+          )}
+          {!loading && profileVersions.length === 0 && (
             <Typography variant="body2" color="textSecondary">
               No version information available
             </Typography>

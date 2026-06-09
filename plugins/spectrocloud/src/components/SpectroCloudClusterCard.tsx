@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { useApi, configApiRef } from '@backstage/core-plugin-api';
 import {
@@ -337,6 +337,7 @@ export const SpectroCloudClusterCard = () => {
           setClusterProfiles(profilesWithPacks);
         } catch (profilesErr) {
           // Permission denied or error - continue without pack details
+          // eslint-disable-next-line no-console
           console.warn('Failed to fetch cluster profiles (may be permissions):', profilesErr);
         }
       }
@@ -363,6 +364,7 @@ export const SpectroCloudClusterCard = () => {
           setProfilesInfo(profileMap);
         } catch (profileErr) {
           // Non-fatal - we can still show cluster data without profile version info
+          // eslint-disable-next-line no-console
           console.warn('Failed to fetch profile version info:', profileErr);
         }
       }
@@ -467,6 +469,7 @@ export const SpectroCloudClusterCard = () => {
                 content.manifests.set(manifest.uid, manifestContent.spec.published.content);
               }
             } catch (manifestErr) {
+              // eslint-disable-next-line no-console
               console.warn(`Failed to fetch manifest ${manifest.name}:`, manifestErr);
             }
           }
@@ -474,6 +477,7 @@ export const SpectroCloudClusterCard = () => {
 
         setPackContents(prev => new Map(prev).set(packKey, content));
       } catch (err) {
+        // eslint-disable-next-line no-console
         console.error('Failed to fetch pack content:', err);
       } finally {
         setLoadingPacks(prev => {
@@ -702,6 +706,40 @@ export const SpectroCloudClusterCard = () => {
   const k8sVersion = clusterDetails?.status?.kubeMeta?.kubernetesVersion || 'N/A';
   const profiles: SpectroCloudProfileWithPacks[] = clusterProfiles?.profiles || [];
 
+  const kubeconfigButton = canDownloadKubeconfig ? (
+    <>
+      <Button
+        variant="contained"
+        color="primary"
+        startIcon={downloading ? <CircularProgress size={20} color="inherit" /> : <CloudDownloadIcon />}
+        onClick={handleDownloadKubeconfig}
+        disabled={downloading || !clusterUid}
+        className={classes.downloadButton}
+      >
+        {downloading ? 'Downloading...' : 'Download Kubeconfig'}
+      </Button>
+      {downloadError && (
+        <Typography variant="body2" color="error" style={{ marginTop: 8 }}>
+          {downloadError}
+        </Typography>
+      )}
+    </>
+  ) : (
+    <Tooltip title="You don't have permission to download kubeconfig">
+      <span>
+        <Button
+          variant="contained"
+          color="default"
+          startIcon={<LockIcon />}
+          disabled
+          className={classes.downloadButton}
+        >
+          Download Kubeconfig (Permission Required)
+        </Button>
+      </span>
+    </Tooltip>
+  );
+
   return (
     <InfoCard 
       title="SpectroCloud Cluster"
@@ -788,7 +826,7 @@ export const SpectroCloudClusterCard = () => {
               <Table size="small">
                 <TableHead>
                   <TableRow className={classes.tableHeader}>
-                    <TableCell className={classes.expandCell}></TableCell>
+                    <TableCell className={classes.expandCell} />
                     <TableCell>Profile Name</TableCell>
                     <TableCell>Version</TableCell>
                     <TableCell>Type</TableCell>
@@ -866,7 +904,7 @@ export const SpectroCloudClusterCard = () => {
                                   <Table size="small" className={classes.packTable}>
                                     <TableHead>
                                       <TableRow className={classes.packTableHeader}>
-                                        <TableCell className={classes.expandCell}></TableCell>
+                                        <TableCell className={classes.expandCell} />
                                         <TableCell>Layer</TableCell>
                                         <TableCell>Pack Name</TableCell>
                                         <TableCell>Version</TableCell>
@@ -947,39 +985,7 @@ export const SpectroCloudClusterCard = () => {
         <Grid item xs={12}>
           {kubeconfigPermLoading ? (
             <CircularProgress size={20} />
-          ) : canDownloadKubeconfig ? (
-            <>
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={downloading ? <CircularProgress size={20} color="inherit" /> : <CloudDownloadIcon />}
-                onClick={handleDownloadKubeconfig}
-                disabled={downloading || !clusterUid}
-                className={classes.downloadButton}
-              >
-                {downloading ? 'Downloading...' : 'Download Kubeconfig'}
-              </Button>
-              {downloadError && (
-                <Typography variant="body2" color="error" style={{ marginTop: 8 }}>
-                  {downloadError}
-                </Typography>
-              )}
-            </>
-          ) : (
-            <Tooltip title="You don't have permission to download kubeconfig">
-              <span>
-                <Button
-                  variant="contained"
-                  color="default"
-                  startIcon={<LockIcon />}
-                  disabled
-                  className={classes.downloadButton}
-                >
-                  Download Kubeconfig (Permission Required)
-                </Button>
-              </span>
-            </Tooltip>
-          )}
+          ) : kubeconfigButton}
         </Grid>
       </Grid>
     </InfoCard>

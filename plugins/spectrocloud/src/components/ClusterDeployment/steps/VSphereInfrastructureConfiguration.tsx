@@ -332,6 +332,7 @@ export const VSphereInfrastructureConfiguration = ({
     };
 
     fetchMetadata();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [spectroCloudApi, cloudAccountUid, projectUid]);
 
   // Initialize default values on mount
@@ -367,6 +368,7 @@ export const VSphereInfrastructureConfiguration = ({
     if (Object.keys(updates).length > 0) {
       onUpdate(updates);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run only on mount
 
   // Show validation after user has had time to review the page
@@ -404,6 +406,7 @@ export const VSphereInfrastructureConfiguration = ({
           resourcePools: (resources.computecluster?.resourcePools || []).sort(),
         });
       } catch (err) {
+        // eslint-disable-next-line no-console
         console.error('Failed to fetch control plane resources:', err);
       } finally {
         setCpResourcesLoading(false);
@@ -411,6 +414,7 @@ export const VSphereInfrastructureConfiguration = ({
     };
 
     fetchCpResources();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [spectroCloudApi, cloudAccountUid, projectUid, cloudConfig.placement?.datacenter, controlPlaneConfig.placements?.[0]?.cluster]);
 
   // Fetch worker pool resources dynamically
@@ -437,6 +441,7 @@ export const VSphereInfrastructureConfiguration = ({
           resourcePools: (resources.computecluster?.resourcePools || []).sort(),
         }));
       } catch (err) {
+        // eslint-disable-next-line no-console
         console.error(`Failed to fetch pool ${poolIndex} resources:`, err);
       } finally {
       setPoolResourcesLoading(prev => {
@@ -815,8 +820,8 @@ export const VSphereInfrastructureConfiguration = ({
             Please complete the following required fields:
           </Typography>
           <ul style={{ margin: 0, paddingLeft: 20 }}>
-            {validationErrors.map((error, idx) => (
-              <li key={idx}><Typography variant="body2">{error}</Typography></li>
+            {validationErrors.map((errMsg, idx) => (
+              <li key={idx}><Typography variant="body2">{errMsg}</Typography></li>
             ))}
           </ul>
         </Alert>

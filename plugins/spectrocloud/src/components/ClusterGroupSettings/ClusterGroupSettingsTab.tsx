@@ -172,6 +172,7 @@ export const ClusterGroupSettingsTab = () => {
       vclusterConfig = yaml.load(vclusterConfigYaml) as any;
     }
   } catch (err) {
+    // eslint-disable-next-line no-console
     console.error('Failed to parse vCluster config YAML:', err);
   }
 

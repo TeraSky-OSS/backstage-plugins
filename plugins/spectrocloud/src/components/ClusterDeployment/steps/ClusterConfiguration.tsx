@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState } from 'react';
 import {
   Box,
   Typography,
@@ -48,7 +48,12 @@ export const ClusterConfiguration = ({
   onUpdate,
 }: ClusterConfigurationProps) => {
   const classes = useStyles();
-  const [tags, setTags] = React.useState<string[]>(clusterTags || []);
+  const [tags, setTags] = useState<string[]>(clusterTags || []);
+
+  const updateTags = (tagList: string[]) => {
+    const filtered = tagList.filter(tag => tag.trim() !== '');
+    onUpdate({ clusterTags: filtered });
+  };
 
   const handleAddTag = () => {
     setTags([...tags, '']);
@@ -66,11 +71,6 @@ export const ClusterConfiguration = ({
     updated[index] = value;
     setTags(updated);
     updateTags(updated);
-  };
-
-  const updateTags = (tagList: string[]) => {
-    const filtered = tagList.filter(tag => tag.trim() !== '');
-    onUpdate({ clusterTags: filtered });
   };
 
   return (

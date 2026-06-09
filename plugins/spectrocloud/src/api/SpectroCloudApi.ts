@@ -3,6 +3,7 @@ import {
   DiscoveryApi,
   FetchApi,
 } from '@backstage/core-plugin-api';
+// eslint-disable-next-line @backstage/no-mixed-plugin-imports
 import type { SpectroCloudAuthApi } from '@terasky/backstage-plugin-spectrocloud-auth';
 
 export interface SpectroCloudPack {
@@ -448,12 +449,14 @@ export class SpectroCloudApiClient implements SpectroCloudApi {
       const apiToken = await (this.spectroCloudAuthApi as any).getSpectroCloudApiToken();
       
       if (!apiToken) {
+        // eslint-disable-next-line no-console
         console.warn('[SpectroCloud] No API token available from auth provider');
         return undefined;
       }
       
       return apiToken;
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('[SpectroCloud] Failed to get Spectro Cloud API token:', error);
       return undefined;
     }
@@ -464,6 +467,7 @@ export class SpectroCloudApiClient implements SpectroCloudApi {
    */
   private async handleAuthError(): Promise<void> {
     if (this.spectroCloudAuthApi) {
+      // eslint-disable-next-line no-console
       console.warn('[SpectroCloud] Authentication failed - please sign in again');
       // Clear session and redirect to sign in
       await this.spectroCloudAuthApi.signOut();
@@ -479,6 +483,7 @@ export class SpectroCloudApiClient implements SpectroCloudApi {
     // Check for re-authentication header (set by backend when cache is empty)
     const reAuthHeader = response.headers.get('X-SpectroCloud-ReAuth-Required');
     if (reAuthHeader === 'true') {
+      // eslint-disable-next-line no-console
       console.warn('[SpectroCloud] Token cache empty - triggering re-authentication');
       // Don't await - let the request complete first, then trigger re-auth
       setTimeout(() => this.handleAuthError(), 1000);
@@ -489,6 +494,7 @@ export class SpectroCloudApiClient implements SpectroCloudApi {
       try {
         const errorData = await response.clone().json();
         if (errorData.requiresReAuth) {
+          // eslint-disable-next-line no-console
           console.warn('[SpectroCloud] Session expired - triggering re-authentication');
           await this.handleAuthError();
         }

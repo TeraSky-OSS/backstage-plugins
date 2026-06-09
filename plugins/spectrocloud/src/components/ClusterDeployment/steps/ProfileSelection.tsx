@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Box,
   Typography,
@@ -204,6 +204,27 @@ export const ProfileSelection = ({
     setProfileDetails(undefined);
   };
 
+  const handleVersionChange = async (versionUid: string) => {
+    setSelectedVersionUid(versionUid);
+    
+    if (!selectedProfile) return;
+
+    try {
+      setLoadingDetails(true);
+      const details = await spectroCloudApi.getProfileWithPacks(
+        selectedProfile.metadata.uid,
+        versionUid,
+        projectUid,
+      );
+      setProfileDetails(details);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to load profile details:', err);
+    } finally {
+      setLoadingDetails(false);
+    }
+  };
+
   const handleProfileChange = async (profile: SpectroCloudProfile) => {
     setSelectedProfile(profile);
     
@@ -219,26 +240,6 @@ export const ProfileSelection = ({
       const versionUid = profile.metadata.uid;
       setSelectedVersionUid(versionUid);
       handleVersionChange(versionUid);
-    }
-  };
-
-  const handleVersionChange = async (versionUid: string) => {
-    setSelectedVersionUid(versionUid);
-    
-    if (!selectedProfile) return;
-
-    try {
-      setLoadingDetails(true);
-      const details = await spectroCloudApi.getProfileWithPacks(
-        selectedProfile.metadata.uid,
-        versionUid,
-        projectUid,
-      );
-      setProfileDetails(details);
-    } catch (err) {
-      console.error('Failed to load profile details:', err);
-    } finally {
-      setLoadingDetails(false);
     }
   };
 
@@ -313,6 +314,7 @@ export const ProfileSelection = ({
       };
       onUpdate(updated);
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error('Failed to load profile packs:', err);
     } finally {
       const updatedLoading = { ...loadingProfilePacks };
@@ -359,6 +361,7 @@ export const ProfileSelection = ({
 
         setPackContents(prev => new Map(prev).set(packKey, content));
       } catch (err) {
+        // eslint-disable-next-line no-console
         console.error('Failed to fetch pack content:', err);
       } finally {
         setLoadingPacks(prev => {
@@ -508,100 +511,104 @@ export const ProfileSelection = ({
 
       {selectedProfiles.length > 0 && (
         <Box className={classes.selectedList}>
-          {selectedProfiles.map((profile, index) => (
-            <Accordion 
-              key={profile.uid}
-              expanded={expandedProfiles.has(profile.uid)}
-              onChange={(_, isExpanded) => handleProfileExpand(profile.uid, index, isExpanded)}
-            >
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Box display="flex" alignItems="center" justifyContent="space-between" width="100%">
-                  <Box>
-                    <Typography variant="subtitle1">{profile.name}</Typography>
-                    <Box mt={0.5}>
-                      <Chip label={`v${profile.version}`} size="small" />
-                      {' '}
-                      <Chip label={profile.type} size="small" color="primary" />
+          {selectedProfiles.map((profile, index) => {
+            const packsContent = profile.packs && profile.packs.length > 0 ? (
+              <>
+                <Typography variant="subtitle2" gutterBottom>
+                  <LayersIcon fontSize="small" style={{ verticalAlign: 'middle', marginRight: 4 }} />
+                  Packs in this profile ({profile.packs.length})
+                </Typography>
+                {profile.packs.map((pack: any, idx: number) => {
+                  const packKey = `${profile.uid}-${pack.uid || pack.name || idx}`;
+                  const isPackExpanded = expandedPacks.has(packKey);
+                  
+                  return (
+                    <Accordion 
+                      key={packKey}
+                      expanded={isPackExpanded}
+                      className={classes.packAccordion}
+                      onChange={(_, isExpanded) => {
+                        if (isExpanded) {
+                          togglePackExpansion(packKey, pack);
+                        } else {
+                          setExpandedPacks(prev => {
+                            const newSet = new Set(prev);
+                            newSet.delete(packKey);
+                            return newSet;
+                          });
+                        }
+                      }}
+                    >
+                      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Box display="flex" alignItems="center" width="100%">
+                          <Chip
+                            label={pack.layer || 'addon'}
+                            size="small"
+                            className={`${classes.layerChip} ${getLayerChipClass(pack.layer || '')}`}
+                          />
+                          <Typography variant="body2" style={{ marginLeft: 8 }}>
+                            <strong>{pack.name}</strong> - v{pack.tag || pack.version}
+                          </Typography>
+                          {pack.type && (
+                            <Chip label={pack.type} size="small" variant="outlined" style={{ marginLeft: 'auto' }} />
+                          )}
+                        </Box>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        <Box className={classes.packExpandedContent} width="100%">
+                          {isPackExpanded && renderPackContent(packKey, pack)}
+                        </Box>
+                      </AccordionDetails>
+                    </Accordion>
+                  );
+                })}
+              </>
+            ) : (
+              <Typography color="textSecondary" variant="body2">
+                Expand to load pack details...
+              </Typography>
+            );
+
+            return (
+              <Accordion 
+                key={profile.uid}
+                expanded={expandedProfiles.has(profile.uid)}
+                onChange={(_, isExpanded) => handleProfileExpand(profile.uid, index, isExpanded)}
+              >
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Box display="flex" alignItems="center" justifyContent="space-between" width="100%">
+                    <Box>
+                      <Typography variant="subtitle1">{profile.name}</Typography>
+                      <Box mt={0.5}>
+                        <Chip label={`v${profile.version}`} size="small" />
+                        {' '}
+                        <Chip label={profile.type} size="small" color="primary" />
+                      </Box>
                     </Box>
+                    <IconButton
+                      edge="end"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveProfile(index);
+                      }}
+                      size="small"
+                    >
+                      <DeleteIcon />
+                    </IconButton>
                   </Box>
-                  <IconButton
-                    edge="end"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRemoveProfile(index);
-                    }}
-                    size="small"
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </Box>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Box width="100%">
-                  {loadingProfilePacks[profile.uid] ? (
-                    <Box display="flex" justifyContent="center" padding={2}>
-                      <CircularProgress size={24} />
-                    </Box>
-                  ) : profile.packs && profile.packs.length > 0 ? (
-                    <>
-                      <Typography variant="subtitle2" gutterBottom>
-                        <LayersIcon fontSize="small" style={{ verticalAlign: 'middle', marginRight: 4 }} />
-                        Packs in this profile ({profile.packs.length})
-                      </Typography>
-                      {profile.packs.map((pack: any, idx: number) => {
-                        const packKey = `${profile.uid}-${pack.uid || pack.name || idx}`;
-                        const isPackExpanded = expandedPacks.has(packKey);
-                        
-                        return (
-                          <Accordion 
-                            key={packKey}
-                            expanded={isPackExpanded}
-                            className={classes.packAccordion}
-                            onChange={(_, isExpanded) => {
-                              if (isExpanded) {
-                                togglePackExpansion(packKey, pack);
-                              } else {
-                                setExpandedPacks(prev => {
-                                  const newSet = new Set(prev);
-                                  newSet.delete(packKey);
-                                  return newSet;
-                                });
-                              }
-                            }}
-                          >
-                            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                              <Box display="flex" alignItems="center" width="100%">
-                                <Chip
-                                  label={pack.layer || 'addon'}
-                                  size="small"
-                                  className={`${classes.layerChip} ${getLayerChipClass(pack.layer || '')}`}
-                                />
-                                <Typography variant="body2" style={{ marginLeft: 8 }}>
-                                  <strong>{pack.name}</strong> - v{pack.tag || pack.version}
-                                </Typography>
-                                {pack.type && (
-                                  <Chip label={pack.type} size="small" variant="outlined" style={{ marginLeft: 'auto' }} />
-                                )}
-                              </Box>
-                            </AccordionSummary>
-                            <AccordionDetails>
-                              <Box className={classes.packExpandedContent} width="100%">
-                                {isPackExpanded && renderPackContent(packKey, pack)}
-                              </Box>
-                            </AccordionDetails>
-                          </Accordion>
-                        );
-                      })}
-                    </>
-                  ) : (
-                    <Typography color="textSecondary" variant="body2">
-                      Expand to load pack details...
-                    </Typography>
-                  )}
-                </Box>
-              </AccordionDetails>
-            </Accordion>
-          ))}
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Box width="100%">
+                    {loadingProfilePacks[profile.uid] ? (
+                      <Box display="flex" justifyContent="center" padding={2}>
+                        <CircularProgress size={24} />
+                      </Box>
+                    ) : packsContent}
+                  </Box>
+                </AccordionDetails>
+              </Accordion>
+            );
+          })}
         </Box>
       )}
 

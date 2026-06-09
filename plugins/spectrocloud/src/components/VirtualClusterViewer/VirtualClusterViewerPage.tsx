@@ -305,6 +305,7 @@ export const VirtualClusterViewerPage = () => {
 
   useEffect(() => {
     fetchVirtualClusters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Check for profile updates after virtual clusters are loaded
@@ -368,6 +369,7 @@ export const VirtualClusterViewerPage = () => {
           }
         } catch (err) {
           // Silently ignore errors for individual virtual clusters
+          // eslint-disable-next-line no-console
           console.warn(`Failed to check updates for virtual cluster ${clusterUid}:`, err);
         }
       }
@@ -400,7 +402,7 @@ export const VirtualClusterViewerPage = () => {
 
   // Filter and sort virtual clusters
   const filteredAndSortedVirtualClusters = useMemo(() => {
-    let filtered = virtualClusters.filter(vc => {
+    const filtered = virtualClusters.filter(vc => {
       // Project filter
       if (selectedProject !== 'all') {
         const projectName = vc.metadata.annotations?.[`${annotationPrefix}/project-name`];
@@ -440,18 +442,20 @@ export const VirtualClusterViewerPage = () => {
           aVal = a.metadata.annotations?.[`${annotationPrefix}/state`] || '';
           bVal = b.metadata.annotations?.[`${annotationPrefix}/state`] || '';
           break;
-        case 'hostCluster':
+        case 'hostCluster': {
           const aHostId = a.metadata.annotations?.[`${annotationPrefix}/host-cluster-id`] || '';
           const bHostId = b.metadata.annotations?.[`${annotationPrefix}/host-cluster-id`] || '';
           aVal = hostClusterNames.get(aHostId) || aHostId;
           bVal = hostClusterNames.get(bHostId) || bHostId;
           break;
-        case 'clusterGroup':
+        }
+        case 'clusterGroup': {
           const aCgId = a.metadata.annotations?.[`${annotationPrefix}/cluster-group-id`] || '';
           const bCgId = b.metadata.annotations?.[`${annotationPrefix}/cluster-group-id`] || '';
           aVal = clusterGroupNames.get(aCgId) || aCgId;
           bVal = clusterGroupNames.get(bCgId) || bCgId;
           break;
+        }
         default:
           aVal = '';
           bVal = '';
@@ -493,6 +497,7 @@ export const VirtualClusterViewerPage = () => {
       const blob = new Blob([kubeconfig], { type: 'application/x-yaml' });
       saveAs(blob, `${virtualCluster.metadata.name}-kubeconfig.yaml`);
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error('Failed to download kubeconfig:', err);
     } finally {
       setDownloadingCluster(undefined);
@@ -534,6 +539,296 @@ export const VirtualClusterViewerPage = () => {
       </Page>
     );
   }
+
+  const virtualClusterDisplay = viewMode === 'cards' ? (
+    <Grid container spacing={3}>
+      {filteredAndSortedVirtualClusters.map(virtualCluster => {
+        const clusterUid = virtualCluster.metadata.annotations?.[`${annotationPrefix}/cluster-id`];
+        const projectName = virtualCluster.metadata.annotations?.[`${annotationPrefix}/project-name`];
+        const state = virtualCluster.metadata.annotations?.[`${annotationPrefix}/state`] || 'Unknown';
+        const hostClusterId = virtualCluster.metadata.annotations?.[`${annotationPrefix}/host-cluster-id`];
+        const clusterGroupId = virtualCluster.metadata.annotations?.[`${annotationPrefix}/cluster-group-id`];
+        const hostClusterName = hostClusterId ? (hostClusterNames.get(hostClusterId) || hostClusterId.substring(0, 8)) : 'N/A';
+        const clusterGroupName = clusterGroupId ? (clusterGroupNames.get(clusterGroupId) || clusterGroupId.substring(0, 8)) : 'N/A';
+        
+        // CPU and Memory quotas
+        const cpuLimit = virtualCluster.metadata.annotations?.[`${annotationPrefix}/cpu-limit`];
+        const memoryLimit = virtualCluster.metadata.annotations?.[`${annotationPrefix}/memory-limit`];
+        
+        // Format CPU quota (convert MilliCore to cores)
+        const cpuQuota = cpuLimit ? `${(parseInt(cpuLimit, 10) / 1000).toFixed(2)} cores` : 'N/A';
+        // Format Memory quota (convert KiB to GiB)
+        const memoryQuota = memoryLimit ? `${(parseInt(memoryLimit, 10) / (1024 * 1024)).toFixed(2)} GiB` : 'N/A';
+        
+        const hasUpdates = clusterUid ? virtualClustersWithUpdates.has(clusterUid) : false;
+        const isDownloading = downloadingCluster === clusterUid;
+
+        return (
+          <Grid item xs={12} sm={6} md={4} key={virtualCluster.metadata.uid}>
+            <Card 
+              className={classes.card}
+              onClick={() => handleCardClick(virtualCluster)}
+            >
+              <CardContent className={classes.cardContent}>
+                <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+                  <Typography variant="h6" className={classes.clusterName}>
+                    {virtualCluster.metadata.title || virtualCluster.metadata.name}
+                  </Typography>
+                  {hasUpdates && (
+                    <Tooltip title="Profile updates available">
+                      <NewReleasesIcon color="secondary" />
+                    </Tooltip>
+                  )}
+                </Box>
+                
+                <Box className={classes.infoRow}>
+                  <Typography variant="body2" className={classes.label}>
+                    Project:
+                  </Typography>
+                  {projectName && projectSystemEntities.has(projectName) ? (
+                    <Link 
+                      to={`/catalog/${projectSystemEntities.get(projectName)!.metadata.namespace || 'default'}/system/${projectSystemEntities.get(projectName)!.metadata.name}`}
+                      onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                    >
+                      {projectName}
+                    </Link>
+                  ) : (
+                    <Typography variant="body2">
+                      {projectName || 'N/A'}
+                    </Typography>
+                  )}
+                </Box>
+
+                <Box className={classes.infoRow}>
+                  <Typography variant="body2" className={classes.label}>
+                    Status:
+                  </Typography>
+                  <Box className={classes.statusContainer}>
+                    {getStatusComponent(state)}
+                    <Typography variant="body2">{state}</Typography>
+                  </Box>
+                </Box>
+
+                <Box className={classes.infoRow}>
+                  <Typography variant="body2" className={classes.label}>
+                    CPU Quota:
+                  </Typography>
+                  <Typography variant="body2">{cpuQuota}</Typography>
+                </Box>
+
+                <Box className={classes.infoRow}>
+                  <Typography variant="body2" className={classes.label}>
+                    Memory Quota:
+                  </Typography>
+                  <Typography variant="body2">{memoryQuota}</Typography>
+                </Box>
+
+                <Box className={classes.infoRow}>
+                  <Typography variant="body2" className={classes.label}>
+                    Host Cluster:
+                  </Typography>
+                  {hostClusterId && hostClusterEntities.has(hostClusterId) ? (
+                    <Link 
+                      to={`/catalog/${hostClusterEntities.get(hostClusterId)!.metadata.namespace || 'default'}/resource/${hostClusterEntities.get(hostClusterId)!.metadata.name}`}
+                      onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                    >
+                      {hostClusterName}
+                    </Link>
+                  ) : (
+                    <Typography variant="body2" noWrap>
+                      {hostClusterName}
+                    </Typography>
+                  )}
+                </Box>
+
+                <Box className={classes.infoRow}>
+                  <Typography variant="body2" className={classes.label}>
+                    Cluster Group:
+                  </Typography>
+                  {clusterGroupId && clusterGroupEntities.has(clusterGroupId) ? (
+                    <Link 
+                      to={`/catalog/${clusterGroupEntities.get(clusterGroupId)!.metadata.namespace || 'default'}/resource/${clusterGroupEntities.get(clusterGroupId)!.metadata.name}`}
+                      onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                    >
+                      {clusterGroupName}
+                    </Link>
+                  ) : (
+                    <Typography variant="body2" noWrap>
+                      {clusterGroupName}
+                    </Typography>
+                  )}
+                </Box>
+
+                <Box mt={2}>
+                  <Chip label="Virtual Cluster" size="small" color="primary" />
+                  <Chip label="Nested" size="small" style={{ marginLeft: 4 }} />
+                </Box>
+              </CardContent>
+              <CardActions className={classes.cardActions}>
+                <Link 
+                  to={`/catalog/${virtualCluster.metadata.namespace || 'default'}/resource/${virtualCluster.metadata.name}/kubernetes-resources`}
+                  onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                >
+                  View Details
+                </Link>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="primary"
+                  startIcon={isDownloading ? <CircularProgress size={16} /> : <CloudDownloadIcon />}
+                  onClick={(e) => handleDownloadKubeconfig(virtualCluster, e)}
+                  disabled={isDownloading}
+                >
+                  {isDownloading ? 'Downloading...' : 'Kubeconfig'}
+                </Button>
+              </CardActions>
+            </Card>
+          </Grid>
+        );
+      })}
+    </Grid>
+  ) : (
+    <TableContainer component={Paper} className={classes.tableContainer}>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell 
+              className={classes.tableHeaderCell}
+              onClick={() => handleSort('name')}
+            >
+              <Box display="flex" alignItems="center">
+                Virtual Cluster Name
+                {renderSortIcon('name')}
+              </Box>
+            </TableCell>
+            <TableCell 
+              className={classes.tableHeaderCell}
+              onClick={() => handleSort('project')}
+            >
+              <Box display="flex" alignItems="center">
+                Project
+                {renderSortIcon('project')}
+              </Box>
+            </TableCell>
+            <TableCell 
+              className={classes.tableHeaderCell}
+              onClick={() => handleSort('status')}
+            >
+              <Box display="flex" alignItems="center">
+                Status
+                {renderSortIcon('status')}
+              </Box>
+            </TableCell>
+            <TableCell className={classes.tableHeaderCellNonSortable}>
+              CPU Quota
+            </TableCell>
+            <TableCell className={classes.tableHeaderCellNonSortable}>
+              Memory Quota
+            </TableCell>
+            <TableCell className={classes.tableHeaderCellNonSortable}>
+              Host Cluster
+            </TableCell>
+            <TableCell className={classes.tableHeaderCellNonSortable}>
+              Cluster Group
+            </TableCell>
+            <TableCell className={classes.tableHeaderCellNonSortable}>
+              Actions
+            </TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {filteredAndSortedVirtualClusters.map(virtualCluster => {
+            const clusterUid = virtualCluster.metadata.annotations?.[`${annotationPrefix}/cluster-id`];
+            const projectName = virtualCluster.metadata.annotations?.[`${annotationPrefix}/project-name`];
+            const state = virtualCluster.metadata.annotations?.[`${annotationPrefix}/state`] || 'Unknown';
+            const hostClusterId = virtualCluster.metadata.annotations?.[`${annotationPrefix}/host-cluster-id`];
+            const clusterGroupId = virtualCluster.metadata.annotations?.[`${annotationPrefix}/cluster-group-id`];
+            const hostClusterName = hostClusterId ? (hostClusterNames.get(hostClusterId) || hostClusterId.substring(0, 8)) : 'N/A';
+            const clusterGroupName = clusterGroupId ? (clusterGroupNames.get(clusterGroupId) || clusterGroupId.substring(0, 8)) : 'N/A';
+            
+            // CPU and Memory quotas
+            const cpuLimit = virtualCluster.metadata.annotations?.[`${annotationPrefix}/cpu-limit`];
+            const memoryLimit = virtualCluster.metadata.annotations?.[`${annotationPrefix}/memory-limit`];
+            const cpuQuota = cpuLimit ? `${(parseInt(cpuLimit, 10) / 1000).toFixed(2)} cores` : 'N/A';
+            const memoryQuota = memoryLimit ? `${(parseInt(memoryLimit, 10) / (1024 * 1024)).toFixed(2)} GiB` : 'N/A';
+            
+            const hasUpdates = clusterUid ? virtualClustersWithUpdates.has(clusterUid) : false;
+            const isDownloading = downloadingCluster === clusterUid;
+
+            return (
+              <TableRow key={virtualCluster.metadata.uid} className={classes.tableRow}>
+                <TableCell className={classes.tableCell}>
+                  <Box display="flex" alignItems="center">
+                    <Link to={`/catalog/${virtualCluster.metadata.namespace || 'default'}/resource/${virtualCluster.metadata.name}/kubernetes-resources`}>
+                      {virtualCluster.metadata.title || virtualCluster.metadata.name}
+                    </Link>
+                    {hasUpdates && (
+                      <Tooltip title="Profile updates available">
+                        <NewReleasesIcon color="secondary" fontSize="small" style={{ marginLeft: 8 }} />
+                      </Tooltip>
+                    )}
+                  </Box>
+                </TableCell>
+                <TableCell className={classes.tableCell}>
+                  {projectName && projectSystemEntities.has(projectName) ? (
+                    <Link 
+                      to={`/catalog/${projectSystemEntities.get(projectName)!.metadata.namespace || 'default'}/system/${projectSystemEntities.get(projectName)!.metadata.name}`}
+                    >
+                      {projectName}
+                    </Link>
+                  ) : (
+                    projectName || 'N/A'
+                  )}
+                </TableCell>
+                <TableCell className={classes.tableCell}>
+                  <Box className={classes.statusContainer}>
+                    {getStatusComponent(state)}
+                    <Typography variant="body2">{state}</Typography>
+                  </Box>
+                </TableCell>
+                <TableCell className={classes.tableCell}>{cpuQuota}</TableCell>
+                <TableCell className={classes.tableCell}>{memoryQuota}</TableCell>
+                <TableCell className={classes.tableCell}>
+                  {hostClusterId && hostClusterEntities.has(hostClusterId) ? (
+                    <Link 
+                      to={`/catalog/${hostClusterEntities.get(hostClusterId)!.metadata.namespace || 'default'}/resource/${hostClusterEntities.get(hostClusterId)!.metadata.name}`}
+                    >
+                      {hostClusterName}
+                    </Link>
+                  ) : (
+                    hostClusterName
+                  )}
+                </TableCell>
+                <TableCell className={classes.tableCell}>
+                  {clusterGroupId && clusterGroupEntities.has(clusterGroupId) ? (
+                    <Link 
+                      to={`/catalog/${clusterGroupEntities.get(clusterGroupId)!.metadata.namespace || 'default'}/resource/${clusterGroupEntities.get(clusterGroupId)!.metadata.name}`}
+                    >
+                      {clusterGroupName}
+                    </Link>
+                  ) : (
+                    clusterGroupName
+                  )}
+                </TableCell>
+                <TableCell className={classes.tableCell}>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    color="primary"
+                    startIcon={isDownloading ? <CircularProgress size={16} /> : <CloudDownloadIcon />}
+                    onClick={() => handleDownloadKubeconfig(virtualCluster)}
+                    disabled={isDownloading}
+                  >
+                    {isDownloading ? 'Downloading...' : 'Kubeconfig'}
+                  </Button>
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
 
   return (
     <Page themeId="tool">
@@ -619,7 +914,7 @@ export const VirtualClusterViewerPage = () => {
                     color="primary"
                     size="small"
                     startIcon={<AddCircleIcon />}
-                    onClick={() => window.location.href = clusterDeploymentRoute()}
+                    onClick={() => { window.location.href = clusterDeploymentRoute(); }}
                   >
                     Create Cluster
                   </Button>
@@ -645,295 +940,7 @@ export const VirtualClusterViewerPage = () => {
                   : 'No virtual clusters match the selected filters.'}
               </Typography>
             </Box>
-          ) : viewMode === 'cards' ? (
-            <Grid container spacing={3}>
-              {filteredAndSortedVirtualClusters.map(virtualCluster => {
-                const clusterUid = virtualCluster.metadata.annotations?.[`${annotationPrefix}/cluster-id`];
-                const projectName = virtualCluster.metadata.annotations?.[`${annotationPrefix}/project-name`];
-                const state = virtualCluster.metadata.annotations?.[`${annotationPrefix}/state`] || 'Unknown';
-                const hostClusterId = virtualCluster.metadata.annotations?.[`${annotationPrefix}/host-cluster-id`];
-                const clusterGroupId = virtualCluster.metadata.annotations?.[`${annotationPrefix}/cluster-group-id`];
-                const hostClusterName = hostClusterId ? (hostClusterNames.get(hostClusterId) || hostClusterId.substring(0, 8)) : 'N/A';
-                const clusterGroupName = clusterGroupId ? (clusterGroupNames.get(clusterGroupId) || clusterGroupId.substring(0, 8)) : 'N/A';
-                
-                // CPU and Memory quotas
-                const cpuLimit = virtualCluster.metadata.annotations?.[`${annotationPrefix}/cpu-limit`];
-                const memoryLimit = virtualCluster.metadata.annotations?.[`${annotationPrefix}/memory-limit`];
-                
-                // Format CPU quota (convert MilliCore to cores)
-                const cpuQuota = cpuLimit ? `${(parseInt(cpuLimit) / 1000).toFixed(2)} cores` : 'N/A';
-                // Format Memory quota (convert KiB to GiB)
-                const memoryQuota = memoryLimit ? `${(parseInt(memoryLimit) / (1024 * 1024)).toFixed(2)} GiB` : 'N/A';
-                
-                const hasUpdates = clusterUid ? virtualClustersWithUpdates.has(clusterUid) : false;
-                const isDownloading = downloadingCluster === clusterUid;
-
-                return (
-                  <Grid item xs={12} sm={6} md={4} key={virtualCluster.metadata.uid}>
-                    <Card 
-                      className={classes.card}
-                      onClick={() => handleCardClick(virtualCluster)}
-                    >
-                      <CardContent className={classes.cardContent}>
-                        <Box display="flex" justifyContent="space-between" alignItems="flex-start">
-                          <Typography variant="h6" className={classes.clusterName}>
-                            {virtualCluster.metadata.title || virtualCluster.metadata.name}
-                          </Typography>
-                          {hasUpdates && (
-                            <Tooltip title="Profile updates available">
-                              <NewReleasesIcon color="secondary" />
-                            </Tooltip>
-                          )}
-                        </Box>
-                        
-                        <Box className={classes.infoRow}>
-                          <Typography variant="body2" className={classes.label}>
-                            Project:
-                          </Typography>
-                          {projectName && projectSystemEntities.has(projectName) ? (
-                            <Link 
-                              to={`/catalog/${projectSystemEntities.get(projectName)!.metadata.namespace || 'default'}/system/${projectSystemEntities.get(projectName)!.metadata.name}`}
-                              onClick={(e: React.MouseEvent) => e.stopPropagation()}
-                            >
-                              {projectName}
-                            </Link>
-                          ) : (
-                            <Typography variant="body2">
-                              {projectName || 'N/A'}
-                            </Typography>
-                          )}
-                        </Box>
-
-                        <Box className={classes.infoRow}>
-                          <Typography variant="body2" className={classes.label}>
-                            Status:
-                          </Typography>
-                          <Box className={classes.statusContainer}>
-                            {getStatusComponent(state)}
-                            <Typography variant="body2">{state}</Typography>
-                          </Box>
-                        </Box>
-
-                        <Box className={classes.infoRow}>
-                          <Typography variant="body2" className={classes.label}>
-                            CPU Quota:
-                          </Typography>
-                          <Typography variant="body2">{cpuQuota}</Typography>
-                        </Box>
-
-                        <Box className={classes.infoRow}>
-                          <Typography variant="body2" className={classes.label}>
-                            Memory Quota:
-                          </Typography>
-                          <Typography variant="body2">{memoryQuota}</Typography>
-                        </Box>
-
-                        <Box className={classes.infoRow}>
-                          <Typography variant="body2" className={classes.label}>
-                            Host Cluster:
-                          </Typography>
-                          {hostClusterId && hostClusterEntities.has(hostClusterId) ? (
-                            <Link 
-                              to={`/catalog/${hostClusterEntities.get(hostClusterId)!.metadata.namespace || 'default'}/resource/${hostClusterEntities.get(hostClusterId)!.metadata.name}`}
-                              onClick={(e: React.MouseEvent) => e.stopPropagation()}
-                            >
-                              {hostClusterName}
-                            </Link>
-                          ) : (
-                            <Typography variant="body2" noWrap>
-                              {hostClusterName}
-                            </Typography>
-                          )}
-                        </Box>
-
-                        <Box className={classes.infoRow}>
-                          <Typography variant="body2" className={classes.label}>
-                            Cluster Group:
-                          </Typography>
-                          {clusterGroupId && clusterGroupEntities.has(clusterGroupId) ? (
-                            <Link 
-                              to={`/catalog/${clusterGroupEntities.get(clusterGroupId)!.metadata.namespace || 'default'}/resource/${clusterGroupEntities.get(clusterGroupId)!.metadata.name}`}
-                              onClick={(e: React.MouseEvent) => e.stopPropagation()}
-                            >
-                              {clusterGroupName}
-                            </Link>
-                          ) : (
-                            <Typography variant="body2" noWrap>
-                              {clusterGroupName}
-                            </Typography>
-                          )}
-                        </Box>
-
-                        <Box mt={2}>
-                          <Chip label="Virtual Cluster" size="small" color="primary" />
-                          <Chip label="Nested" size="small" style={{ marginLeft: 4 }} />
-                        </Box>
-                      </CardContent>
-                      <CardActions className={classes.cardActions}>
-                        <Link 
-                          to={`/catalog/${virtualCluster.metadata.namespace || 'default'}/resource/${virtualCluster.metadata.name}/kubernetes-resources`}
-                          onClick={(e: React.MouseEvent) => e.stopPropagation()}
-                        >
-                          View Details
-                        </Link>
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          color="primary"
-                          startIcon={isDownloading ? <CircularProgress size={16} /> : <CloudDownloadIcon />}
-                          onClick={(e) => handleDownloadKubeconfig(virtualCluster, e)}
-                          disabled={isDownloading}
-                        >
-                          {isDownloading ? 'Downloading...' : 'Kubeconfig'}
-                        </Button>
-                      </CardActions>
-                    </Card>
-                  </Grid>
-                );
-              })}
-            </Grid>
-          ) : (
-            <TableContainer component={Paper} className={classes.tableContainer}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell 
-                      className={classes.tableHeaderCell}
-                      onClick={() => handleSort('name')}
-                    >
-                      <Box display="flex" alignItems="center">
-                        Virtual Cluster Name
-                        {renderSortIcon('name')}
-                      </Box>
-                    </TableCell>
-                    <TableCell 
-                      className={classes.tableHeaderCell}
-                      onClick={() => handleSort('project')}
-                    >
-                      <Box display="flex" alignItems="center">
-                        Project
-                        {renderSortIcon('project')}
-                      </Box>
-                    </TableCell>
-                    <TableCell 
-                      className={classes.tableHeaderCell}
-                      onClick={() => handleSort('status')}
-                    >
-                      <Box display="flex" alignItems="center">
-                        Status
-                        {renderSortIcon('status')}
-                      </Box>
-                    </TableCell>
-                    <TableCell className={classes.tableHeaderCellNonSortable}>
-                      CPU Quota
-                    </TableCell>
-                    <TableCell className={classes.tableHeaderCellNonSortable}>
-                      Memory Quota
-                    </TableCell>
-                    <TableCell className={classes.tableHeaderCellNonSortable}>
-                      Host Cluster
-                    </TableCell>
-                    <TableCell className={classes.tableHeaderCellNonSortable}>
-                      Cluster Group
-                    </TableCell>
-                    <TableCell className={classes.tableHeaderCellNonSortable}>
-                      Actions
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {filteredAndSortedVirtualClusters.map(virtualCluster => {
-                    const clusterUid = virtualCluster.metadata.annotations?.[`${annotationPrefix}/cluster-id`];
-                    const projectName = virtualCluster.metadata.annotations?.[`${annotationPrefix}/project-name`];
-                    const state = virtualCluster.metadata.annotations?.[`${annotationPrefix}/state`] || 'Unknown';
-                    const hostClusterId = virtualCluster.metadata.annotations?.[`${annotationPrefix}/host-cluster-id`];
-                    const clusterGroupId = virtualCluster.metadata.annotations?.[`${annotationPrefix}/cluster-group-id`];
-                    const hostClusterName = hostClusterId ? (hostClusterNames.get(hostClusterId) || hostClusterId.substring(0, 8)) : 'N/A';
-                    const clusterGroupName = clusterGroupId ? (clusterGroupNames.get(clusterGroupId) || clusterGroupId.substring(0, 8)) : 'N/A';
-                    
-                    // CPU and Memory quotas
-                    const cpuLimit = virtualCluster.metadata.annotations?.[`${annotationPrefix}/cpu-limit`];
-                    const memoryLimit = virtualCluster.metadata.annotations?.[`${annotationPrefix}/memory-limit`];
-                    const cpuQuota = cpuLimit ? `${(parseInt(cpuLimit) / 1000).toFixed(2)} cores` : 'N/A';
-                    const memoryQuota = memoryLimit ? `${(parseInt(memoryLimit) / (1024 * 1024)).toFixed(2)} GiB` : 'N/A';
-                    
-                    const hasUpdates = clusterUid ? virtualClustersWithUpdates.has(clusterUid) : false;
-                    const isDownloading = downloadingCluster === clusterUid;
-
-                    return (
-                      <TableRow key={virtualCluster.metadata.uid} className={classes.tableRow}>
-                        <TableCell className={classes.tableCell}>
-                          <Box display="flex" alignItems="center">
-                            <Link to={`/catalog/${virtualCluster.metadata.namespace || 'default'}/resource/${virtualCluster.metadata.name}/kubernetes-resources`}>
-                              {virtualCluster.metadata.title || virtualCluster.metadata.name}
-                            </Link>
-                            {hasUpdates && (
-                              <Tooltip title="Profile updates available">
-                                <NewReleasesIcon color="secondary" fontSize="small" style={{ marginLeft: 8 }} />
-                              </Tooltip>
-                            )}
-                          </Box>
-                        </TableCell>
-                        <TableCell className={classes.tableCell}>
-                          {projectName && projectSystemEntities.has(projectName) ? (
-                            <Link 
-                              to={`/catalog/${projectSystemEntities.get(projectName)!.metadata.namespace || 'default'}/system/${projectSystemEntities.get(projectName)!.metadata.name}`}
-                            >
-                              {projectName}
-                            </Link>
-                          ) : (
-                            projectName || 'N/A'
-                          )}
-                        </TableCell>
-                        <TableCell className={classes.tableCell}>
-                          <Box className={classes.statusContainer}>
-                            {getStatusComponent(state)}
-                            <Typography variant="body2">{state}</Typography>
-                          </Box>
-                        </TableCell>
-                        <TableCell className={classes.tableCell}>{cpuQuota}</TableCell>
-                        <TableCell className={classes.tableCell}>{memoryQuota}</TableCell>
-                        <TableCell className={classes.tableCell}>
-                          {hostClusterId && hostClusterEntities.has(hostClusterId) ? (
-                            <Link 
-                              to={`/catalog/${hostClusterEntities.get(hostClusterId)!.metadata.namespace || 'default'}/resource/${hostClusterEntities.get(hostClusterId)!.metadata.name}`}
-                            >
-                              {hostClusterName}
-                            </Link>
-                          ) : (
-                            hostClusterName
-                          )}
-                        </TableCell>
-                        <TableCell className={classes.tableCell}>
-                          {clusterGroupId && clusterGroupEntities.has(clusterGroupId) ? (
-                            <Link 
-                              to={`/catalog/${clusterGroupEntities.get(clusterGroupId)!.metadata.namespace || 'default'}/resource/${clusterGroupEntities.get(clusterGroupId)!.metadata.name}`}
-                            >
-                              {clusterGroupName}
-                            </Link>
-                          ) : (
-                            clusterGroupName
-                          )}
-                        </TableCell>
-                        <TableCell className={classes.tableCell}>
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            color="primary"
-                            startIcon={isDownloading ? <CircularProgress size={16} /> : <CloudDownloadIcon />}
-                            onClick={() => handleDownloadKubeconfig(virtualCluster)}
-                            disabled={isDownloading}
-                          >
-                            {isDownloading ? 'Downloading...' : 'Kubeconfig'}
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
+          ) : virtualClusterDisplay}
         </Box>
       </Content>
     </Page>

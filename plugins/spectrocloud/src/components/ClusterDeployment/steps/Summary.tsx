@@ -58,6 +58,25 @@ interface SummaryProps {
   onDeploy: () => void;
 }
 
+const getResourceType = (cloudType: CloudType): string => {
+  switch (cloudType) {
+    case 'eks':
+      return 'eks';
+    case 'aws':
+      return 'aws';
+    case 'aks':
+      return 'aks';
+    case 'azure':
+      return 'azure';
+    case 'vsphere':
+      return 'vsphere';
+    case 'virtual':
+      return 'virtual_cluster';
+    default:
+      return cloudType;
+  }
+};
+
 // Helper function to generate Terraform configuration
 const generateTerraformConfig = (state: ClusterDeploymentState): string => {
   const resourceType = getResourceType(state.cloudType!);
@@ -136,6 +155,7 @@ const generateTerraformConfig = (state: ClusterDeploymentState): string => {
   // Private Cloud Gateway (PCG) data source (vSphere)
   if (state.cloudType === 'vsphere' && state.tfMetadata?.pcgUid) {
     const pcgName = state.tfMetadata?.pcgName || 'your-pcg-name';
+    // eslint-disable-next-line no-console
     console.log('[TF Generation] Using PCG name:', pcgName);
     lines.push('data "spectrocloud_private_cloud_gateway" "pcg" {');
     lines.push(`  name = "${pcgName}"`);
@@ -446,25 +466,6 @@ const generateTerraformConfig = (state: ClusterDeploymentState): string => {
   return lines.join('\n');
 };
 
-const getResourceType = (cloudType: CloudType): string => {
-  switch (cloudType) {
-    case 'eks':
-      return 'eks';
-    case 'aws':
-      return 'aws';
-    case 'aks':
-      return 'aks';
-    case 'azure':
-      return 'azure';
-    case 'vsphere':
-      return 'vsphere';
-    case 'virtual':
-      return 'virtual_cluster';
-    default:
-      return cloudType;
-  }
-};
-
 export const Summary = ({ state, onDeploy }: SummaryProps) => {
   const classes = useStyles();
   const theme = useTheme();
@@ -499,6 +500,7 @@ export const Summary = ({ state, onDeploy }: SummaryProps) => {
       setTfCopied(true);
       setTimeout(() => setTfCopied(false), 2000);
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error('Failed to copy to clipboard:', err);
     }
   };

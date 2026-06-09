@@ -777,7 +777,7 @@ export function registerMcpActions(
         }
 
         const manifest = await client.getPackManifest(clusterUid, input.manifestUid, projectUid);
-        if (manifest == null) throw new InputError(`Manifest not found: ${input.manifestUid}`);
+        if (manifest === null || manifest === undefined) throw new InputError(`Manifest not found: ${input.manifestUid}`);
         return { output: { clusterUid, manifestUid: input.manifestUid, manifest } };
       } catch (error) {
         if (error instanceof InputError || error instanceof NotAllowedError) throw error;

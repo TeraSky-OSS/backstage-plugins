@@ -154,7 +154,7 @@ export async function createRouter(
     return res.json({
       hasOidcToken: !!oidcToken,
       tokenLength: oidcToken?.length || 0,
-      tokenPrefix: oidcToken ? oidcToken.substring(0, 20) + '...' : 'none',
+      tokenPrefix: oidcToken ? `${oidcToken.substring(0, 20)  }...` : 'none',
       headers: Object.keys(req.headers),
     });
   });

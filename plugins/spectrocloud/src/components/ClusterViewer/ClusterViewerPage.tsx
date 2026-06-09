@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Header, Page, Content, Progress, Link } from '@backstage/core-components';
 import { useApi, configApiRef, useRouteRef } from '@backstage/core-plugin-api';
 import { catalogApiRef } from '@backstage/plugin-catalog-react';
@@ -230,6 +230,7 @@ export const ClusterViewerPage = () => {
 
   useEffect(() => {
     fetchClusters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Check for profile updates after clusters are loaded
@@ -293,6 +294,7 @@ export const ClusterViewerPage = () => {
           }
         } catch (err) {
           // Silently ignore errors for individual clusters
+          // eslint-disable-next-line no-console
           console.warn(`Failed to check updates for cluster ${clusterUid}:`, err);
         }
       }
@@ -436,11 +438,12 @@ export const ClusterViewerPage = () => {
         case 'k8sVersion':
           comparison = infoA.k8sVersion.localeCompare(infoB.k8sVersion);
           break;
-        case 'updates':
+        case 'updates': {
           const hasUpdatesA = clustersWithUpdates.has(infoA.clusterUid) ? 1 : 0;
           const hasUpdatesB = clustersWithUpdates.has(infoB.clusterUid) ? 1 : 0;
           comparison = hasUpdatesA - hasUpdatesB;
           break;
+        }
         default:
           break;
       }
@@ -472,6 +475,7 @@ export const ClusterViewerPage = () => {
       const filename = `${cluster.metadata.name}-kubeconfig.yaml`;
       saveAs(blob, filename);
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error('Failed to download kubeconfig:', err);
     } finally {
       setDownloadingCluster(undefined);
@@ -513,6 +517,292 @@ export const ClusterViewerPage = () => {
     selectedK8sVersion !== 'all' ? 1 : 0,
     showOnlyWithUpdates ? 1 : 0,
   ].reduce((a, b) => a + b, 0);
+
+  const clusterDisplay = viewMode === 'cards' ? (
+    /* Card View */
+    <Grid container spacing={3}>
+      {filteredClusters.map((cluster) => {
+        const info = getClusterInfo(cluster);
+        const isDownloading = downloadingCluster === info.clusterUid;
+        
+        return (
+          <Grid item xs={12} sm={6} md={4} key={cluster.metadata.uid}>
+            <Card 
+              className={classes.card}
+              onClick={() => handleCardClick(cluster)}
+            >
+              <CardContent className={classes.cardContent}>
+                <Typography variant="h6" className={classes.clusterName}>
+                  {cluster.metadata.title || cluster.metadata.name}
+                </Typography>
+
+                {/* Status */}
+                <Box className={classes.infoRow}>
+                  <Typography variant="body2" className={classes.label}>
+                    Status
+                  </Typography>
+                  <Box className={classes.statusContainer}>
+                    {getStatusComponent(info.state)}
+                    <Typography variant="body2">
+                      {info.state}
+                    </Typography>
+                  </Box>
+                </Box>
+
+                {/* Cloud Type */}
+                <Box className={classes.infoRow}>
+                  <Typography variant="body2" className={classes.label}>
+                    Cloud Type
+                  </Typography>
+                  <Chip 
+                    label={info.cloudType.toUpperCase()} 
+                    size="small" 
+                    color="primary"
+                  />
+                </Box>
+
+                {/* Scope */}
+                <Box className={classes.infoRow}>
+                  <Typography variant="body2" className={classes.label}>
+                    Scope
+                  </Typography>
+                  <Chip 
+                    label={info.scope} 
+                    size="small"
+                    color={info.scope === 'tenant' ? 'secondary' : 'default'}
+                  />
+                </Box>
+
+                {/* Project */}
+                {info.scope === 'project' && (
+                  <Box className={classes.infoRow}>
+                    <Typography variant="body2" className={classes.label}>
+                      Project
+                    </Typography>
+                    <Typography variant="body2">
+                      {info.projectName}
+                    </Typography>
+                  </Box>
+                )}
+
+                {/* Kubernetes Version */}
+                <Box className={classes.infoRow}>
+                  <Typography variant="body2" className={classes.label}>
+                    Kubernetes
+                  </Typography>
+                  <Typography variant="body2">
+                    {info.k8sVersion}
+                  </Typography>
+                </Box>
+
+                {/* Updates Available Indicator */}
+                {clustersWithUpdates.has(info.clusterUid) && (
+                  <Box mt={2}>
+                    <Chip 
+                      icon={<NewReleasesIcon />}
+                      label="Updates Available" 
+                      size="small" 
+                      color="secondary"
+                    />
+                  </Box>
+                )}
+              </CardContent>
+
+              <CardActions className={classes.cardActions}>
+                <Link 
+                  to={`/catalog/${cluster.metadata.namespace || 'default'}/resource/${cluster.metadata.name}/kubernetes-resources`}
+                  onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                >
+                  View Details
+                </Link>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="primary"
+                  startIcon={isDownloading ? <CircularProgress size={16} /> : <CloudDownloadIcon />}
+                  onClick={(e) => handleDownloadKubeconfig(cluster, e)}
+                  disabled={isDownloading}
+                >
+                  {isDownloading ? 'Downloading...' : 'Kubeconfig'}
+                </Button>
+              </CardActions>
+            </Card>
+          </Grid>
+        );
+      })}
+    </Grid>
+  ) : (
+    /* List View */
+    <TableContainer component={Paper} className={classes.tableContainer}>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell 
+              className={classes.tableHeaderCell}
+              onClick={() => handleSort('name')}
+              align="center"
+            >
+              <Box display="flex" alignItems="center" justifyContent="center">
+                Cluster Name
+                {sortColumn === 'name' && (
+                  sortDirection === 'asc' ? 
+                    <ArrowUpwardIcon fontSize="small" /> : 
+                    <ArrowDownwardIcon fontSize="small" />
+                )}
+              </Box>
+            </TableCell>
+            <TableCell 
+              className={classes.tableHeaderCell}
+              onClick={() => handleSort('status')}
+              align="center"
+            >
+              <Box display="flex" alignItems="center" justifyContent="center">
+                Status
+                {sortColumn === 'status' && (
+                  sortDirection === 'asc' ? 
+                    <ArrowUpwardIcon fontSize="small" /> : 
+                    <ArrowDownwardIcon fontSize="small" />
+                )}
+              </Box>
+            </TableCell>
+            <TableCell 
+              className={classes.tableHeaderCell}
+              onClick={() => handleSort('cloudType')}
+              align="center"
+            >
+              <Box display="flex" alignItems="center" justifyContent="center">
+                Cloud Type
+                {sortColumn === 'cloudType' && (
+                  sortDirection === 'asc' ? 
+                    <ArrowUpwardIcon fontSize="small" /> : 
+                    <ArrowDownwardIcon fontSize="small" />
+                )}
+              </Box>
+            </TableCell>
+            <TableCell 
+              className={classes.tableHeaderCell}
+              onClick={() => handleSort('scope')}
+              align="center"
+            >
+              <Box display="flex" alignItems="center" justifyContent="center">
+                Scope
+                {sortColumn === 'scope' && (
+                  sortDirection === 'asc' ? 
+                    <ArrowUpwardIcon fontSize="small" /> : 
+                    <ArrowDownwardIcon fontSize="small" />
+                )}
+              </Box>
+            </TableCell>
+            <TableCell 
+              className={classes.tableHeaderCell}
+              onClick={() => handleSort('project')}
+              align="center"
+            >
+              <Box display="flex" alignItems="center" justifyContent="center">
+                Project
+                {sortColumn === 'project' && (
+                  sortDirection === 'asc' ? 
+                    <ArrowUpwardIcon fontSize="small" /> : 
+                    <ArrowDownwardIcon fontSize="small" />
+                )}
+              </Box>
+            </TableCell>
+            <TableCell 
+              className={classes.tableHeaderCell}
+              onClick={() => handleSort('k8sVersion')}
+              align="center"
+            >
+              <Box display="flex" alignItems="center" justifyContent="center">
+                Kubernetes
+                {sortColumn === 'k8sVersion' && (
+                  sortDirection === 'asc' ? 
+                    <ArrowUpwardIcon fontSize="small" /> : 
+                    <ArrowDownwardIcon fontSize="small" />
+                )}
+              </Box>
+            </TableCell>
+            <TableCell 
+              className={classes.tableHeaderCell}
+              onClick={() => handleSort('updates')}
+              align="center"
+            >
+              <Box display="flex" alignItems="center" justifyContent="center">
+                Updates
+                {sortColumn === 'updates' && (
+                  sortDirection === 'asc' ? 
+                    <ArrowUpwardIcon fontSize="small" /> : 
+                    <ArrowDownwardIcon fontSize="small" />
+                )}
+              </Box>
+            </TableCell>
+            <TableCell className={classes.tableHeaderCellNonSortable} align="center">Actions</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {filteredClusters.map((cluster) => {
+            const info = getClusterInfo(cluster);
+            const isDownloading = downloadingCluster === info.clusterUid;
+            
+            return (
+              <TableRow 
+                key={cluster.metadata.uid}
+                className={classes.tableRow}
+                onClick={() => handleCardClick(cluster)}
+              >
+                <TableCell className={classes.tableCell} align="center">
+                  <Typography variant="body2" style={{ fontWeight: 600 }}>
+                    {cluster.metadata.title || cluster.metadata.name}
+                  </Typography>
+                </TableCell>
+                <TableCell className={classes.tableCell} align="center">
+                  <Box display="flex" alignItems="center" justifyContent="center" style={{ gap: 8 }}>
+                    {getStatusComponent(info.state)}
+                    <Typography variant="body2">{info.state}</Typography>
+                  </Box>
+                </TableCell>
+                <TableCell className={classes.tableCell} align="center">
+                  <Chip label={info.cloudType} size="small" color="primary" />
+                </TableCell>
+                <TableCell className={classes.tableCell} align="center">
+                  <Chip 
+                    label={info.scope} 
+                    size="small"
+                    color={info.scope === 'tenant' ? 'secondary' : 'default'}
+                  />
+                </TableCell>
+                <TableCell className={classes.tableCell} align="center">
+                  {info.scope === 'project' ? info.projectName : '-'}
+                </TableCell>
+                <TableCell className={classes.tableCell} align="center">{info.k8sVersion}</TableCell>
+                <TableCell className={classes.tableCell} align="center">
+                  {clustersWithUpdates.has(info.clusterUid) && (
+                    <Chip 
+                      icon={<NewReleasesIcon />}
+                      label="Available" 
+                      size="small" 
+                      color="secondary"
+                    />
+                  )}
+                </TableCell>
+                <TableCell className={classes.tableCell} align="center">
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    color="primary"
+                    startIcon={isDownloading ? <CircularProgress size={16} /> : <CloudDownloadIcon />}
+                    onClick={(e) => handleDownloadKubeconfig(cluster, e)}
+                    disabled={isDownloading}
+                  >
+                    Kubeconfig
+                  </Button>
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
 
   return (
     <Page themeId="tool">
@@ -565,7 +855,7 @@ export const ClusterViewerPage = () => {
                   color="primary"
                   size="small"
                   startIcon={<AddCircleIcon />}
-                  onClick={() => window.location.href = clusterDeploymentRoute()}
+                  onClick={() => { window.location.href = clusterDeploymentRoute(); }}
                 >
                   Create Cluster
                 </Button>
@@ -590,291 +880,7 @@ export const ClusterViewerPage = () => {
                   : 'No clusters match the selected filters. Try adjusting your filter criteria.'}
               </Typography>
             </Box>
-          ) : viewMode === 'cards' ? (
-            /* Card View */
-            <Grid container spacing={3}>
-              {filteredClusters.map((cluster) => {
-                const info = getClusterInfo(cluster);
-                const isDownloading = downloadingCluster === info.clusterUid;
-                
-                return (
-                  <Grid item xs={12} sm={6} md={4} key={cluster.metadata.uid}>
-                    <Card 
-                      className={classes.card}
-                      onClick={() => handleCardClick(cluster)}
-                    >
-                      <CardContent className={classes.cardContent}>
-                        <Typography variant="h6" className={classes.clusterName}>
-                          {cluster.metadata.title || cluster.metadata.name}
-                        </Typography>
-
-                        {/* Status */}
-                        <Box className={classes.infoRow}>
-                          <Typography variant="body2" className={classes.label}>
-                            Status
-                          </Typography>
-                          <Box className={classes.statusContainer}>
-                            {getStatusComponent(info.state)}
-                            <Typography variant="body2">
-                              {info.state}
-                            </Typography>
-                          </Box>
-                        </Box>
-
-                        {/* Cloud Type */}
-                        <Box className={classes.infoRow}>
-                          <Typography variant="body2" className={classes.label}>
-                            Cloud Type
-                          </Typography>
-                          <Chip 
-                            label={info.cloudType.toUpperCase()} 
-                            size="small" 
-                            color="primary"
-                          />
-                        </Box>
-
-                        {/* Scope */}
-                        <Box className={classes.infoRow}>
-                          <Typography variant="body2" className={classes.label}>
-                            Scope
-                          </Typography>
-                          <Chip 
-                            label={info.scope} 
-                            size="small"
-                            color={info.scope === 'tenant' ? 'secondary' : 'default'}
-                          />
-                        </Box>
-
-                        {/* Project */}
-                        {info.scope === 'project' && (
-                          <Box className={classes.infoRow}>
-                            <Typography variant="body2" className={classes.label}>
-                              Project
-                            </Typography>
-                            <Typography variant="body2">
-                              {info.projectName}
-                            </Typography>
-                          </Box>
-                        )}
-
-                        {/* Kubernetes Version */}
-                        <Box className={classes.infoRow}>
-                          <Typography variant="body2" className={classes.label}>
-                            Kubernetes
-                          </Typography>
-                          <Typography variant="body2">
-                            {info.k8sVersion}
-                          </Typography>
-                        </Box>
-
-                        {/* Updates Available Indicator */}
-                        {clustersWithUpdates.has(info.clusterUid) && (
-                          <Box mt={2}>
-                            <Chip 
-                              icon={<NewReleasesIcon />}
-                              label="Updates Available" 
-                              size="small" 
-                              color="secondary"
-                            />
-                          </Box>
-                        )}
-                      </CardContent>
-
-                      <CardActions className={classes.cardActions}>
-                        <Link 
-                          to={`/catalog/${cluster.metadata.namespace || 'default'}/resource/${cluster.metadata.name}/kubernetes-resources`}
-                          onClick={(e: React.MouseEvent) => e.stopPropagation()}
-                        >
-                          View Details
-                        </Link>
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          color="primary"
-                          startIcon={isDownloading ? <CircularProgress size={16} /> : <CloudDownloadIcon />}
-                          onClick={(e) => handleDownloadKubeconfig(cluster, e)}
-                          disabled={isDownloading}
-                        >
-                          {isDownloading ? 'Downloading...' : 'Kubeconfig'}
-                        </Button>
-                      </CardActions>
-                    </Card>
-                  </Grid>
-                );
-              })}
-            </Grid>
-          ) : (
-            /* List View */
-            <TableContainer component={Paper} className={classes.tableContainer}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell 
-                      className={classes.tableHeaderCell}
-                      onClick={() => handleSort('name')}
-                      align="center"
-                    >
-                      <Box display="flex" alignItems="center" justifyContent="center">
-                        Cluster Name
-                        {sortColumn === 'name' && (
-                          sortDirection === 'asc' ? 
-                            <ArrowUpwardIcon fontSize="small" /> : 
-                            <ArrowDownwardIcon fontSize="small" />
-                        )}
-                      </Box>
-                    </TableCell>
-                    <TableCell 
-                      className={classes.tableHeaderCell}
-                      onClick={() => handleSort('status')}
-                      align="center"
-                    >
-                      <Box display="flex" alignItems="center" justifyContent="center">
-                        Status
-                        {sortColumn === 'status' && (
-                          sortDirection === 'asc' ? 
-                            <ArrowUpwardIcon fontSize="small" /> : 
-                            <ArrowDownwardIcon fontSize="small" />
-                        )}
-                      </Box>
-                    </TableCell>
-                    <TableCell 
-                      className={classes.tableHeaderCell}
-                      onClick={() => handleSort('cloudType')}
-                      align="center"
-                    >
-                      <Box display="flex" alignItems="center" justifyContent="center">
-                        Cloud Type
-                        {sortColumn === 'cloudType' && (
-                          sortDirection === 'asc' ? 
-                            <ArrowUpwardIcon fontSize="small" /> : 
-                            <ArrowDownwardIcon fontSize="small" />
-                        )}
-                      </Box>
-                    </TableCell>
-                    <TableCell 
-                      className={classes.tableHeaderCell}
-                      onClick={() => handleSort('scope')}
-                      align="center"
-                    >
-                      <Box display="flex" alignItems="center" justifyContent="center">
-                        Scope
-                        {sortColumn === 'scope' && (
-                          sortDirection === 'asc' ? 
-                            <ArrowUpwardIcon fontSize="small" /> : 
-                            <ArrowDownwardIcon fontSize="small" />
-                        )}
-                      </Box>
-                    </TableCell>
-                    <TableCell 
-                      className={classes.tableHeaderCell}
-                      onClick={() => handleSort('project')}
-                      align="center"
-                    >
-                      <Box display="flex" alignItems="center" justifyContent="center">
-                        Project
-                        {sortColumn === 'project' && (
-                          sortDirection === 'asc' ? 
-                            <ArrowUpwardIcon fontSize="small" /> : 
-                            <ArrowDownwardIcon fontSize="small" />
-                        )}
-                      </Box>
-                    </TableCell>
-                    <TableCell 
-                      className={classes.tableHeaderCell}
-                      onClick={() => handleSort('k8sVersion')}
-                      align="center"
-                    >
-                      <Box display="flex" alignItems="center" justifyContent="center">
-                        Kubernetes
-                        {sortColumn === 'k8sVersion' && (
-                          sortDirection === 'asc' ? 
-                            <ArrowUpwardIcon fontSize="small" /> : 
-                            <ArrowDownwardIcon fontSize="small" />
-                        )}
-                      </Box>
-                    </TableCell>
-                    <TableCell 
-                      className={classes.tableHeaderCell}
-                      onClick={() => handleSort('updates')}
-                      align="center"
-                    >
-                      <Box display="flex" alignItems="center" justifyContent="center">
-                        Updates
-                        {sortColumn === 'updates' && (
-                          sortDirection === 'asc' ? 
-                            <ArrowUpwardIcon fontSize="small" /> : 
-                            <ArrowDownwardIcon fontSize="small" />
-                        )}
-                      </Box>
-                    </TableCell>
-                    <TableCell className={classes.tableHeaderCellNonSortable} align="center">Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {filteredClusters.map((cluster) => {
-                    const info = getClusterInfo(cluster);
-                    const isDownloading = downloadingCluster === info.clusterUid;
-                    
-                    return (
-                      <TableRow 
-                        key={cluster.metadata.uid}
-                        className={classes.tableRow}
-                        onClick={() => handleCardClick(cluster)}
-                      >
-                        <TableCell className={classes.tableCell} align="center">
-                          <Typography variant="body2" style={{ fontWeight: 600 }}>
-                            {cluster.metadata.title || cluster.metadata.name}
-                          </Typography>
-                        </TableCell>
-                        <TableCell className={classes.tableCell} align="center">
-                          <Box display="flex" alignItems="center" justifyContent="center" style={{ gap: 8 }}>
-                            {getStatusComponent(info.state)}
-                            <Typography variant="body2">{info.state}</Typography>
-                          </Box>
-                        </TableCell>
-                        <TableCell className={classes.tableCell} align="center">
-                          <Chip label={info.cloudType} size="small" color="primary" />
-                        </TableCell>
-                        <TableCell className={classes.tableCell} align="center">
-                          <Chip 
-                            label={info.scope} 
-                            size="small"
-                            color={info.scope === 'tenant' ? 'secondary' : 'default'}
-                          />
-                        </TableCell>
-                        <TableCell className={classes.tableCell} align="center">
-                          {info.scope === 'project' ? info.projectName : '-'}
-                        </TableCell>
-                        <TableCell className={classes.tableCell} align="center">{info.k8sVersion}</TableCell>
-                        <TableCell className={classes.tableCell} align="center">
-                          {clustersWithUpdates.has(info.clusterUid) && (
-                            <Chip 
-                              icon={<NewReleasesIcon />}
-                              label="Available" 
-                              size="small" 
-                              color="secondary"
-                            />
-                          )}
-                        </TableCell>
-                        <TableCell className={classes.tableCell} align="center">
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            color="primary"
-                            startIcon={isDownloading ? <CircularProgress size={16} /> : <CloudDownloadIcon />}
-                            onClick={(e) => handleDownloadKubeconfig(cluster, e)}
-                            disabled={isDownloading}
-                          >
-                            Kubeconfig
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
+          ) : clusterDisplay}
 
           {/* Filter Dialog */}
           <Dialog 

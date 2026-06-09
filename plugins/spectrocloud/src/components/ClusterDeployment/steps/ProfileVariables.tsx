@@ -198,6 +198,7 @@ export const ProfileVariables = ({
       setLoading(false);
       setProfileVariablesGroups([]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [spectroCloudApi, profiles, projectUid]);
 
   const handleVariableChange = (name: string, value: string | number | boolean) => {
