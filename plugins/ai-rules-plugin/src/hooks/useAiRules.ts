@@ -43,8 +43,9 @@ export const useAiRules = () => {
   }, [configApi]);
 
   // Extract stable entity properties
+  const sourceLocation = entity.metadata?.annotations?.['backstage.io/source-location'];
   const entityData = useMemo(() => {
-    const sourceAnnotation = entity.metadata?.annotations?.['backstage.io/source-location'] || '';
+    const sourceAnnotation = sourceLocation || '';
     const hasGitUrl = sourceAnnotation.startsWith('url:');
     
     let gitUrl = hasGitUrl ? sourceAnnotation.substring(4) : undefined;
@@ -70,7 +71,7 @@ export const useAiRules = () => {
       hasGitUrl,
       gitUrl,
     };
-  }, [entity.kind, entity.metadata.namespace, entity.metadata.name, entity.metadata?.annotations?.['backstage.io/source-location']]);
+  }, [entity.kind, entity.metadata.namespace, entity.metadata.name, sourceLocation]);
 
   // Initialize selected and applied rule types when defaultRuleTypes is available
   useEffect(() => {
@@ -115,6 +116,7 @@ export const useAiRules = () => {
       setRules(data.rules);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      // eslint-disable-next-line no-console
       console.error('Error fetching AI rules:', errorMessage);
       setError(errorMessage);
       setRules([]);

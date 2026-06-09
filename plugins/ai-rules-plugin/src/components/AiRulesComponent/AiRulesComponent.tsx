@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useAiRules } from '../../hooks/useAiRules';
 import { InfoCard, Progress, EmptyState, MarkdownContent, CodeSnippet } from '@backstage/core-components';
 import {
@@ -170,8 +170,6 @@ const useStyles = makeStyles((theme) => ({
 
 // ─── Helper functions ─────────────────────────────────────────────────────────
 
-const parseCursorContent = (content: string) => manualParseFrontmatter(content);
-
 const manualParseFrontmatter = (content: string) => {
   if (!content.trim().startsWith('---')) {
     return { frontmatter: undefined, content };
@@ -203,6 +201,8 @@ const manualParseFrontmatter = (content: string) => {
     return { frontmatter: undefined, content };
   }
 };
+
+const parseCursorContent = (content: string) => manualParseFrontmatter(content);
 
 const constructFileUrl = (gitUrl: string, filePath: string): string => {
   const cleanGitUrl = gitUrl.replace(/\/+$/, '');
@@ -595,6 +595,80 @@ export const AIRulesComponent: React.FC<AIRulesComponentProps> = ({ title = 'AI 
     );
   }
 
+  const rulesOrPromptContent = totalRules > 0 ? (
+    <>
+      {/* Search bar */}
+      <TextField
+        className={styles.searchBar}
+        variant="outlined"
+        size="small"
+        label="Search rules"
+        placeholder="Search by name, title, or content…"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+      />
+
+      {/* Stats + export */}
+      <div className={styles.statsContainer}>
+        <Card className={styles.statCard}>
+          <CardContent>
+            <Typography variant="h4">{searchQuery ? filteredTotal : totalRules}</Typography>
+            <Typography color="textSecondary">{searchQuery ? 'Matching' : 'Total Rules'}</Typography>
+          </CardContent>
+        </Card>
+        {RULE_TYPE_DISPLAY_ORDER.map(type => {
+          const typeRules = (searchQuery ? filteredRulesByType : rulesByType)[type] || [];
+          if (typeRules.length === 0) return null;
+          return (
+            <Card key={type} className={styles.statCard}>
+              <CardContent>
+                <Typography variant="h4">{typeRules.length}</Typography>
+                <Typography color="textSecondary">{formatRuleTypeName(type)}</Typography>
+              </CardContent>
+            </Card>
+          );
+        })}
+        <Tooltip title="Download all rules as Markdown">
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<GetAppIcon />}
+            className={styles.exportButton}
+            onClick={() => exportRulesToMarkdown(rules)}
+          >
+            Export
+          </Button>
+        </Tooltip>
+      </div>
+
+      {/* Rules grouped by type */}
+      {RULE_TYPE_DISPLAY_ORDER.map(type => {
+        const typeRules = (searchQuery ? filteredRulesByType : rulesByType)[type] || [];
+        if (typeRules.length === 0) return null;
+        return (
+          <div key={type}>
+            <Typography variant="h5" gutterBottom style={{ marginTop: 16 }}>
+              {formatRuleTypeName(type)} Rules ({typeRules.length})
+            </Typography>
+            {typeRules.map(rule => (
+              <RuleComponent key={rule.id} rule={rule} />
+            ))}
+          </div>
+        );
+      })}
+
+      {searchQuery && filteredTotal === 0 && (
+        <EmptyState missing="content" title="No matching rules" description={`No rules match "${searchQuery}". Clear the search to show all rules.`} />
+      )}
+    </>
+  ) : (
+    <div style={{ marginTop: 16 }}>
+      <Typography variant="body1" color="textSecondary">
+        Select rule types above and click "Apply Filter" to search for AI coding rules in this repository.
+      </Typography>
+    </div>
+  );
+
   return (
     <InfoCard title={title} className={styles.root}>
       {/* Filter section */}
@@ -633,79 +707,7 @@ export const AIRulesComponent: React.FC<AIRulesComponentProps> = ({ title = 'AI 
           description="No AI rules were found in this repository for the selected rule types."
           action={<Button variant="outlined" onClick={resetFilters}>Reset Filters</Button>}
         />
-      ) : totalRules > 0 ? (
-        <>
-          {/* Search bar */}
-          <TextField
-            className={styles.searchBar}
-            variant="outlined"
-            size="small"
-            label="Search rules"
-            placeholder="Search by name, title, or content…"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-
-          {/* Stats + export */}
-          <div className={styles.statsContainer}>
-            <Card className={styles.statCard}>
-              <CardContent>
-                <Typography variant="h4">{searchQuery ? filteredTotal : totalRules}</Typography>
-                <Typography color="textSecondary">{searchQuery ? 'Matching' : 'Total Rules'}</Typography>
-              </CardContent>
-            </Card>
-            {RULE_TYPE_DISPLAY_ORDER.map(type => {
-              const typeRules = (searchQuery ? filteredRulesByType : rulesByType)[type] || [];
-              if (typeRules.length === 0) return null;
-              return (
-                <Card key={type} className={styles.statCard}>
-                  <CardContent>
-                    <Typography variant="h4">{typeRules.length}</Typography>
-                    <Typography color="textSecondary">{formatRuleTypeName(type)}</Typography>
-                  </CardContent>
-                </Card>
-              );
-            })}
-            <Tooltip title="Download all rules as Markdown">
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<GetAppIcon />}
-                className={styles.exportButton}
-                onClick={() => exportRulesToMarkdown(rules)}
-              >
-                Export
-              </Button>
-            </Tooltip>
-          </div>
-
-          {/* Rules grouped by type */}
-          {RULE_TYPE_DISPLAY_ORDER.map(type => {
-            const typeRules = (searchQuery ? filteredRulesByType : rulesByType)[type] || [];
-            if (typeRules.length === 0) return null;
-            return (
-              <div key={type}>
-                <Typography variant="h5" gutterBottom style={{ marginTop: 16 }}>
-                  {formatRuleTypeName(type)} Rules ({typeRules.length})
-                </Typography>
-                {typeRules.map(rule => (
-                  <RuleComponent key={rule.id} rule={rule} />
-                ))}
-              </div>
-            );
-          })}
-
-          {searchQuery && filteredTotal === 0 && (
-            <EmptyState missing="content" title="No matching rules" description={`No rules match "${searchQuery}". Clear the search to show all rules.`} />
-          )}
-        </>
-      ) : (
-        <div style={{ marginTop: 16 }}>
-          <Typography variant="body1" color="textSecondary">
-            Select rule types above and click "Apply Filter" to search for AI coding rules in this repository.
-          </Typography>
-        </div>
-      )}
+      ) : rulesOrPromptContent}
     </InfoCard>
   );
 };

@@ -291,9 +291,8 @@ Content of section two`;
       expect(result.rules).toHaveLength(1);
       expect(result.rules[0].title).toBe('Main Title');
       // Sections are parsed from ## headings
-      if (result.rules[0].sections) {
-        expect(result.rules[0].sections.length).toBeGreaterThan(0);
-      }
+      expect(result.rules[0].sections).toBeDefined();
+      expect(result.rules[0].sections!.length).toBeGreaterThan(0);
     });
 
     it('should handle cline rules without sections', async () => {

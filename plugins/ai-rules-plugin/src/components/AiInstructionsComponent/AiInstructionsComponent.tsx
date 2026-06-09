@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { Tabs, Tab, Box } from '@material-ui/core';
 import { AIRulesComponent } from '../AiRulesComponent';

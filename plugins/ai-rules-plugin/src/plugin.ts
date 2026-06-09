@@ -1,6 +1,6 @@
 import { createPlugin, createComponentExtension } from '@backstage/core-plugin-api';
 import { rootRouteRef } from './routes';
-import React from 'react';
+
 
 export const aiRulesPlugin = createPlugin({
   id: 'ai-rules',

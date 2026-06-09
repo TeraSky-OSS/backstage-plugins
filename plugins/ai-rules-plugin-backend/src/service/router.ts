@@ -28,7 +28,7 @@ export async function createRouter(
   const agentConfigsService = new AgentConfigsService({ logger, urlReader });
   const skillsService = new SkillsService({ logger, urlReader });
 
-  const router = Router();
+  const router = new Router();
   router.use(express.json());
 
   router.get('/health', (_, response) => {

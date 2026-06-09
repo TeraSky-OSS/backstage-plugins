@@ -296,12 +296,13 @@ export const AgentSkillsComponent = ({ title = 'Agent Skills' }: AgentSkillsComp
         {sourceOrder.map(source => {
           const sourceSkills = skillsBySource[source];
           if (!sourceSkills || sourceSkills.length === 0) return null;
+          const sourceLabel = source === 'claude' ? 'Claude' : 'Cursor';
           return (
             <Card key={source} className={styles.statCard}>
               <CardContent>
                 <Typography variant="h4">{sourceSkills.length}</Typography>
                 <Typography color="textSecondary">
-                  {source === 'cross-client' ? 'Cross-Client' : source === 'claude' ? 'Claude' : 'Cursor'}
+                  {source === 'cross-client' ? 'Cross-Client' : sourceLabel}
                 </Typography>
               </CardContent>
             </Card>

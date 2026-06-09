@@ -1,5 +1,6 @@
 import { LoggerService, DiscoveryService, UrlReaderService } from '@backstage/backend-plugin-api';
 import { Config } from '@backstage/config';
+
 const matter = require('gray-matter');
 
 export interface AIRule {
@@ -106,6 +107,8 @@ export class AiRulesService {
             allRules.push(...aiderRules);
             break;
           }
+          default:
+            break;
         }
       } catch (error) {
         this.logger.warn(`Failed to fetch ${ruleType} rules: ${error}`);
@@ -302,20 +305,22 @@ export class AiRulesService {
       let match;
       let lastIndex = 0;
 
-      while ((match = sectionRegex.exec(content)) !== null) {
+      match = sectionRegex.exec(content);
+      while (match !== null) {
         if (lastIndex > 0) {
           const sectionContent = content.slice(lastIndex, match.index).trim();
-          const prevMatch = content.slice(0, lastIndex).match(/^## (.+)$/g);
+          const prevMatch = content.slice(0, lastIndex).match(/^## (.+)$/gm);
           if (prevMatch) {
             const prevTitle = prevMatch[prevMatch.length - 1].replace(/^## /, '');
             sections.push({ title: prevTitle, content: sectionContent });
           }
         }
         lastIndex = match.index + match[0].length;
+        match = sectionRegex.exec(content);
       }
       if (lastIndex > 0) {
         const lastSectionContent = content.slice(lastIndex).trim();
-        const lastMatch = content.slice(0, lastIndex).match(/^## (.+)$/g);
+        const lastMatch = content.slice(0, lastIndex).match(/^## (.+)$/gm);
         if (lastMatch) {
           const lastTitle = lastMatch[lastMatch.length - 1].replace(/^## /, '');
           sections.push({ title: lastTitle, content: lastSectionContent });
@@ -749,7 +754,7 @@ export class AiRulesService {
     maxDelayMs: number = 10000,
     operationName: string = 'operation',
   ): Promise<T> {
-    let lastError: Error;
+    let lastError: Error = new Error('Unexpected retry loop exit');
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
@@ -769,7 +774,7 @@ export class AiRulesService {
       }
     }
 
-    throw lastError!;
+    throw lastError;
   }
 
   private shouldRetryError(error: Error): boolean {
