@@ -75,6 +75,7 @@ const KroOverviewCard = () => {
         setInstance(instanceResource);
         setInstanceRow(instanceRowData);
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to fetch RGD:', error);
       }
     };

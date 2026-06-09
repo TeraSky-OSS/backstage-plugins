@@ -59,7 +59,7 @@ async function getEntityAndKroInfo(catalog: CatalogService, name: string, kind: 
     instanceId,
     instanceName: entity.metadata.name,
     crdName,
-    namespace: entity.metadata.namespace || annotations['namespace'] || 'default',
+    namespace: entity.metadata.namespace || annotations.namespace || 'default',
   };
 
   return { entity, kroInfo };

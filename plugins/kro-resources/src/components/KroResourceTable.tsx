@@ -362,7 +362,9 @@ const KroResourceTable = () => {
       return;
     }
     // Recalculate auto-expanded ancestors for current filter
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     const allResourcesFlattened = getAllResourcesFlattened();
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     const filteredResources = allResourcesFlattened.filter(resource => resourceMatchesFilters(resource));
     const autoExpanded = new Set<string>();
     const resourceMap = new Map<string, ResourceTableRow>();
@@ -390,6 +392,7 @@ const KroResourceTable = () => {
       }
     });
     setAutoExpandedRows(autoExpanded);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
   // --- Use merged expanded rows for rendering if filter is active ---
@@ -404,7 +407,7 @@ const KroResourceTable = () => {
 
   // Fetch nested resources for a given instance (supports both top-level and nested instances)
   const fetchNestedResources = async (parentId: string, level: number, clusterName: string, namespace: string, parentResource?: any) => {
-    let rgdName, rgdId, instanceId, instanceName, crdName;
+    let rgdName; let rgdId; let instanceId; let instanceName; let crdName;
 
     // If parentResource is provided, it's a nested instance - extract from its labels/metadata
     // Check for KRO labels that indicate this is a KRO instance
@@ -431,6 +434,7 @@ const KroResourceTable = () => {
     }
 
     if (!instanceId || !instanceName) {
+      // eslint-disable-next-line no-console
       console.warn('Missing required instance metadata', { instanceId, instanceName, parentResource });
       return [];
     }
@@ -470,6 +474,7 @@ const KroResourceTable = () => {
           parentId,
         }));
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Failed to fetch nested resources:', error);
       return [];
     }
@@ -562,6 +567,7 @@ const KroResourceTable = () => {
           setInitialExpansionDone(true);
         }
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Error fetching resources:', error);
         setAllResources([]);
         setSupportingResources([]);
@@ -571,6 +577,7 @@ const KroResourceTable = () => {
       }
     };
     fetchAllResources();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [kroApi, entity, canListResources, canListInstances, canListRGDs]);
 
   // Supporting resources are now fetched as part of getResources
@@ -587,6 +594,7 @@ const KroResourceTable = () => {
       });
       setEvents(resourceEvents);
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Failed to fetch events:', error);
       setEvents([]);
     } finally {
@@ -595,22 +603,37 @@ const KroResourceTable = () => {
   };
 
   const handleOpenDrawer = (resource: KroResource, tab: number) => {
-    const resourceType = resource.kind === 'ResourceGraphDefinition' ? 'RGD' :
-      resource.metadata?.labels?.['kro.run/resource-graph-definition-id'] ? 
-        (resource.metadata?.uid === entity.metadata.annotations?.['terasky.backstage.io/kro-instance-uid'] ? 'Instance' : 'Resource') : 'Resource';
+    let resourceType: string;
+    if (resource.kind === 'ResourceGraphDefinition') {
+      resourceType = 'RGD';
+    } else if (resource.metadata?.labels?.['kro.run/resource-graph-definition-id']) {
+      resourceType = resource.metadata?.uid === entity.metadata.annotations?.['terasky.backstage.io/kro-instance-uid'] ? 'Instance' : 'Resource';
+    } else {
+      resourceType = 'Resource';
+    }
 
     // Check if we can show the requested tab
     if (tab === 1) { // Events tab
-      const canShowEvents = resourceType === 'RGD' ? canShowEventsRGDs :
-        resourceType === 'Instance' ? canShowEventsInstances :
-        canShowEventsResources;
+      let canShowEvents: boolean;
+      if (resourceType === 'RGD') {
+        canShowEvents = canShowEventsRGDs;
+      } else if (resourceType === 'Instance') {
+        canShowEvents = canShowEventsInstances;
+      } else {
+        canShowEvents = canShowEventsResources;
+      }
       if (!canShowEvents) {
         return;
       }
     } else { // YAML tab
-      const canViewYaml = resourceType === 'RGD' ? canViewYamlRGDs :
-        resourceType === 'Instance' ? canViewYamlInstances :
-        canViewYamlResources;
+      let canViewYaml: boolean;
+      if (resourceType === 'RGD') {
+        canViewYaml = canViewYamlRGDs;
+      } else if (resourceType === 'Instance') {
+        canViewYaml = canViewYamlInstances;
+      } else {
+        canViewYaml = canViewYamlResources;
+      }
       if (!canViewYaml) {
         return;
       }
@@ -643,6 +666,7 @@ const KroResourceTable = () => {
         const yamlStr = yaml.dump(removeManagedFields(selectedResource));
         navigator.clipboard.writeText(yamlStr);
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to copy YAML:', error);
       }
     }
@@ -662,6 +686,7 @@ const KroResourceTable = () => {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to download YAML:', error);
       }
     }
@@ -698,9 +723,9 @@ const KroResourceTable = () => {
   const renderStatusBadge = (conditions: any[], conditionType: string) => {
     const { status, condition } = getConditionStatus(conditions, conditionType);
     const isSuccess = status === 'True';
-    const badgeClass = conditionType === 'Synced'
-      ? (isSuccess ? classes.syncedSuccess : classes.syncedError)
-      : (isSuccess ? classes.readySuccess : classes.readyError);
+    const syncedClass = isSuccess ? classes.syncedSuccess : classes.syncedError;
+    const readyClass = isSuccess ? classes.readySuccess : classes.readyError;
+    const badgeClass = conditionType === 'Synced' ? syncedClass : readyClass;
     return (
       <Tooltip classes={{ tooltip: classes.tooltip }} title={
         <Box className={classes.tooltipContent}>
@@ -719,7 +744,7 @@ const KroResourceTable = () => {
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'Unknown';
     const date = new Date(dateString);
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+    return `${date.toLocaleDateString()  } ${  date.toLocaleTimeString()}`;
   };
 
   const getRelativeTime = (dateString?: string) => {
@@ -874,6 +899,7 @@ const KroResourceTable = () => {
         allValues.status.add(condition.status);
       });
       
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
       const artifact = getArtifact(resource);
       if (typeof artifact === 'string') {
         allValues.artifact.add(artifact);
@@ -1058,6 +1084,7 @@ const KroResourceTable = () => {
         );
       const artifactMatch = supportingFilters.artifact.length === 0 || 
         supportingFilters.artifact.some(filter => {
+          // eslint-disable-next-line @typescript-eslint/no-use-before-define
           const artifact = getArtifact(resource);
           if (typeof artifact === 'string') {
             return artifact.toLowerCase().includes(filter.toLowerCase());
@@ -1072,6 +1099,44 @@ const KroResourceTable = () => {
       
       return typeMatch && nameMatch && statusMatch && artifactMatch;
     });
+  };
+
+  const renderRowStatusBadges = (row: ResourceTableRow) => {
+    if (row.type === 'Resource') {
+      return row.status.conditions.length > 0 ? (
+        row.status.conditions.map((condition: any, idx: number) => (
+          <Tooltip key={`${condition.type}-${idx}`} classes={{ tooltip: classes.tooltip }} title={
+            <Box className={classes.tooltipContent}>
+              <Typography variant="subtitle2" gutterBottom><strong>Condition: {condition.type}</strong></Typography>
+              <Typography variant="body2">Status: {condition.status}</Typography>
+              {condition.reason && <Typography variant="body2">Reason: {condition.reason}</Typography>}
+              {condition.lastTransitionTime && <Typography variant="body2">Last Transition: {new Date(condition.lastTransitionTime).toLocaleString()}</Typography>}
+              {condition.message && <Typography variant="body2" style={{ wordWrap: 'break-word' }}>Message: {condition.message}</Typography>}
+            </Box>
+          } arrow>
+            <span className={`${classes.statusBadge} ${condition.status === 'True' ? classes.readySuccess : classes.readyError}`}>
+              {condition.type}
+            </span>
+          </Tooltip>
+        ))
+      ) : (
+        <span className={`${classes.statusBadge} ${classes.readySuccess}`}>No Conditions</span>
+      );
+    }
+    if (row.type === 'RGD') {
+      return (
+        <>
+          {renderStatusBadge(row.status.conditions, 'Ready')}
+          {renderStatusBadge(row.status.conditions, 'Active')}
+        </>
+      );
+    }
+    if (row.type === 'Instance') {
+      return row.status.conditions.find((c: any) => c.type === 'Ready')
+        ? renderStatusBadge(row.status.conditions, 'Ready')
+        : renderStatusBadge(row.status.conditions, 'InstanceSynced');
+    }
+    return null;
   };
 
   const renderResourceRows = (resources: ResourceTableRow[], _?: string): JSX.Element[] => {
@@ -1092,8 +1157,8 @@ const KroResourceTable = () => {
           </TableCell>
           <TableCell className={classes.tableCell}>
             <Box className={classes.resourceName}>
-              {Array.from({ length: row.level }).map((_, index) => (
-                <div key={index} className={classes.indent} />
+              {Array.from({ length: row.level }).map((_item, indentIndex) => (
+                <div key={indentIndex} className={classes.indent} />
               ))}
               <Box className={classes.resourceNameContent}>
                 {canExpand && (
@@ -1133,39 +1198,7 @@ const KroResourceTable = () => {
           <TableCell className={classes.tableCell}>{row.kind}</TableCell>
           <TableCell className={classes.tableCell}>
             <Box display="flex">
-              {row.type === 'Resource' ? (
-                // For regular resources, show all conditions
-                row.status.conditions.length > 0 ? (
-                  row.status.conditions.map((condition: any, idx: number) => (
-                    <Tooltip key={`${condition.type}-${idx}`} classes={{ tooltip: classes.tooltip }} title={
-                      <Box className={classes.tooltipContent}>
-                        <Typography variant="subtitle2" gutterBottom><strong>Condition: {condition.type}</strong></Typography>
-                        <Typography variant="body2">Status: {condition.status}</Typography>
-                        {condition.reason && <Typography variant="body2">Reason: {condition.reason}</Typography>}
-                        {condition.lastTransitionTime && <Typography variant="body2">Last Transition: {new Date(condition.lastTransitionTime).toLocaleString()}</Typography>}
-                        {condition.message && <Typography variant="body2" style={{ wordWrap: 'break-word' }}>Message: {condition.message}</Typography>}
-                      </Box>
-                    } arrow>
-                      <span className={`${classes.statusBadge} ${condition.status === 'True' ? classes.readySuccess : classes.readyError}`}>
-                        {condition.type}
-                      </span>
-                    </Tooltip>
-                  ))
-                ) : (
-                  <span className={`${classes.statusBadge} ${classes.readySuccess}`}>No Conditions</span>
-                )
-              ) : row.type === 'RGD' ? (
-                // For RGDs, show Ready and Active
-                <>
-                  {renderStatusBadge(row.status.conditions, 'Ready')}
-                  {renderStatusBadge(row.status.conditions, 'Active')}
-                </>
-              ) : row.type === 'Instance' ? (
-                // For Instances, check for Ready (KRO 0.8+) or InstanceSynced (older versions)
-                row.status.conditions.find((c: any) => c.type === 'Ready') 
-                  ? renderStatusBadge(row.status.conditions, 'Ready')
-                  : renderStatusBadge(row.status.conditions, 'InstanceSynced')
-              ) : null}
+              {renderRowStatusBadges(row)}
             </Box>
           </TableCell>
           <TableCell className={classes.tableCell}>
@@ -1363,11 +1396,12 @@ const KroResourceTable = () => {
       <Card>
         <CardContent>
           <Typography variant="h6" gutterBottom>Resources ({getTotalResourceCount()})</Typography>
-          {loading ? (
+          {loading && (
             <Box display="flex" justifyContent="center" alignItems="center" height="200px">
               <CircularProgress />
             </Box>
-          ) : allResources.length > 0 ? (
+          )}
+          {!loading && (allResources.length > 0 ? (
             <TableContainer component={Paper} className={classes.tableContainer}>
               <Table className={classes.table} size="small">
                 <TableHead>
@@ -1466,7 +1500,7 @@ const KroResourceTable = () => {
             </TableContainer>
           ) : (
             <Typography>No resources found</Typography>
-          )}
+          ))}
         </CardContent>
       </Card>
 
@@ -1560,37 +1594,38 @@ const KroResourceTable = () => {
               </SyntaxHighlighter>
             </>
           )}
-          {selectedTab === 1 && (
-            loadingEvents ? (
-              <Box display="flex" justifyContent="center" p={3}>
-                <CircularProgress />
-              </Box>
-            ) : events.length > 0 ? (
-              <TableContainer>
-                <Table size="small" className={classes.eventTable}>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Type</TableCell>
-                      <TableCell>Reason</TableCell>
-                      <TableCell>Age</TableCell>
-                      <TableCell>Message</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {events.map((event, index) => (
-                      <TableRow key={index} className={classes.eventRow}>
-                        <TableCell>{getEventTypeChip(event.type)}</TableCell>
-                        <TableCell>{event.reason}</TableCell>
-                        <TableCell>{getRelativeTime(event.lastTimestamp || event.firstTimestamp)}</TableCell>
-                        <TableCell>{event.message}</TableCell>
+          {selectedTab === 1 && loadingEvents && (
+            <Box display="flex" justifyContent="center" p={3}>
+              <CircularProgress />
+            </Box>
+          )}
+          {selectedTab === 1 && !loadingEvents && (
+            events.length > 0 ? (
+                <TableContainer>
+                  <Table size="small" className={classes.eventTable}>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Type</TableCell>
+                        <TableCell>Reason</TableCell>
+                        <TableCell>Age</TableCell>
+                        <TableCell>Message</TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            ) : (
-              <Typography align="center" color="textSecondary">No events found for this resource</Typography>
-            )
+                    </TableHead>
+                    <TableBody>
+                      {events.map((event, index) => (
+                        <TableRow key={index} className={classes.eventRow}>
+                          <TableCell>{getEventTypeChip(event.type)}</TableCell>
+                          <TableCell>{event.reason}</TableCell>
+                          <TableCell>{getRelativeTime(event.lastTimestamp || event.firstTimestamp)}</TableCell>
+                          <TableCell>{event.message}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              ) : (
+                <Typography align="center" color="textSecondary">No events found for this resource</Typography>
+              )
           )}
         </Box>
       </Drawer>

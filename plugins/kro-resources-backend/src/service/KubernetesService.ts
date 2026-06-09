@@ -48,9 +48,9 @@ export class KubernetesService {
     if (apiVersion.includes('/')) {
       const [group] = apiVersion.split('/');
       return group;
-    } else {
+    } 
       return apiVersion === 'v1' ? 'core' : apiVersion;
-    }
+    
   }
 
   /**
@@ -496,9 +496,9 @@ export class KubernetesService {
       }
       
       const kindLower = schemaKind.toLowerCase();
-      let plural = kindLower + 's';
-      if (kindLower.endsWith('s')) plural = kindLower + 'es';
-      if (kindLower.endsWith('y')) plural = kindLower.slice(0, -1) + 'ies';
+      let plural = `${kindLower  }s`;
+      if (kindLower.endsWith('s')) plural = `${kindLower  }es`;
+      if (kindLower.endsWith('y')) plural = `${kindLower.slice(0, -1)  }ies`;
       
       const crdName = `${plural}.${schemaGroup}`;
       this.logger.info(`Derived CRD name: ${crdName} from kind=${schemaKind}, group=${schemaGroup}`);

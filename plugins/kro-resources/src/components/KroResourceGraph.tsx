@@ -136,7 +136,7 @@ const CustomNode = ({ data }: { data: any }) => {
 
     const truncateText = (text: string, maxLength: number = 20) => {
         if (text.length <= maxLength) return text;
-        return text.substring(0, maxLength - 3) + '...';
+        return `${text.substring(0, maxLength - 3)  }...`;
     };
 
     const getBadgeStyles = (categoryBadge: string) => {
@@ -229,6 +229,36 @@ const CustomNode = ({ data }: { data: any }) => {
     const borderStyle = isExternal
       ? `2px dashed ${isDarkMode ? '#ff6f00' : '#e65100'}`
       : `1px solid ${isDarkMode ? theme.palette.grey[700] : theme.palette.grey[400]}`;
+
+    const renderConditionBadges = () => {
+      if (data.categoryBadge === 'Instance') {
+        return (
+          <div style={{ ...getStatusColors(data.isSynced), padding: '2px 8px', borderRadius: '3px', fontSize: '10px', fontWeight: 'bold' }}>
+            {data.conditions?.find((c: any) => c.type === 'Ready') ? 'Ready' : 'InstanceSynced'}
+          </div>
+        );
+      }
+      if (data.categoryBadge === 'External') {
+        return (
+          <div style={{ ...getStatusColors(true), padding: '2px 8px', borderRadius: '3px', fontSize: '10px', fontWeight: 'bold' }}>
+            External Ref
+          </div>
+        );
+      }
+      // For Resource, CRD, RGD and default: show all conditions
+      if (data.conditions?.length > 0) {
+        return data.conditions.map((condition: any, idx: number) => (
+          <div key={idx} style={{ ...getStatusColors(condition.status === 'True'), padding: '2px 8px', borderRadius: '3px', fontSize: '10px', fontWeight: 'bold', marginRight: idx < data.conditions.length - 1 ? '4px' : '0' }}>
+            {condition.type}
+          </div>
+        ));
+      }
+      return (
+        <div style={{ ...getStatusColors(true), padding: '2px 8px', borderRadius: '3px', fontSize: '10px', fontWeight: 'bold' }}>
+          No Conditions
+        </div>
+      );
+    };
 
     return (
         <div
@@ -346,133 +376,7 @@ const CustomNode = ({ data }: { data: any }) => {
           maxWidth: '100%',
           overflow: 'hidden'
         }}>
-          {data.categoryBadge === 'Resource' ? (
-            // For resources, show all conditions
-            data.conditions?.length > 0 ? (
-              data.conditions.map((condition: any, idx: number) => (
-                <div key={idx} style={{
-                  ...getStatusColors(condition.status === 'True'),
-                            padding: '2px 8px',
-                            borderRadius: '3px',
-                            fontSize: '10px',
-                  fontWeight: 'bold',
-                  marginRight: idx < data.conditions.length - 1 ? '4px' : '0'
-                        }}>
-                  {condition.type}
-                        </div>
-              ))
-            ) : (
-              <div style={{
-                ...getStatusColors(true),
-                padding: '2px 8px',
-                borderRadius: '3px',
-                fontSize: '10px',
-                fontWeight: 'bold'
-              }}>
-                No Conditions
-              </div>
-            )
-          ) : data.categoryBadge === 'Instance' ? (
-            // For instances, show Ready (KRO 0.8+) or InstanceSynced (older versions)
-                            <div style={{
-                                ...getStatusColors(data.isSynced),
-                                padding: '2px 8px',
-                                borderRadius: '3px',
-                                fontSize: '10px',
-                                fontWeight: 'bold'
-                            }}>
-              {data.conditions?.find((c: any) => c.type === 'Ready') ? 'Ready' : 'InstanceSynced'}
-                            </div>
-          ) : data.categoryBadge === 'External' ? (
-            // For external references, show a simple indicator
-            <div style={{
-              ...getStatusColors(true),
-              padding: '2px 8px',
-              borderRadius: '3px',
-              fontSize: '10px',
-              fontWeight: 'bold'
-            }}>
-              External Ref
-            </div>
-          ) : data.categoryBadge === 'CRD' ? (
-            // For CRDs, show all conditions
-            data.conditions?.length > 0 ? (
-              data.conditions.map((condition: any, idx: number) => (
-                <div key={idx} style={{
-                  ...getStatusColors(condition.status === 'True'),
-                  padding: '2px 8px',
-                  borderRadius: '3px',
-                  fontSize: '10px',
-                  fontWeight: 'bold',
-                  marginRight: idx < data.conditions.length - 1 ? '4px' : '0'
-                }}>
-                  {condition.type}
-                </div>
-              ))
-            ) : (
-                            <div style={{
-                ...getStatusColors(true),
-                                padding: '2px 8px',
-                                borderRadius: '3px',
-                                fontSize: '10px',
-                                fontWeight: 'bold'
-                            }}>
-                No Conditions
-                            </div>
-            )
-          ) : data.categoryBadge === 'RGD' ? (
-            // For RGDs, show all conditions
-            data.conditions?.length > 0 ? (
-              data.conditions.map((condition: any, idx: number) => (
-                <div key={idx} style={{
-                  ...getStatusColors(condition.status === 'True'),
-                  padding: '2px 8px',
-                  borderRadius: '3px',
-                  fontSize: '10px',
-                  fontWeight: 'bold',
-                  marginRight: idx < data.conditions.length - 1 ? '4px' : '0'
-                }}>
-                  {condition.type}
-                </div>
-              ))
-            ) : (
-              <div style={{
-                ...getStatusColors(true),
-                padding: '2px 8px',
-                borderRadius: '3px',
-                fontSize: '10px',
-                fontWeight: 'bold'
-              }}>
-                No Conditions
-              </div>
-            )
-          ) : (
-            // For other resources, show all conditions
-            data.conditions?.length > 0 ? (
-              data.conditions.map((condition: any, idx: number) => (
-                <div key={idx} style={{
-                  ...getStatusColors(condition.status === 'True'),
-                  padding: '2px 8px',
-                  borderRadius: '3px',
-                  fontSize: '10px',
-                  fontWeight: 'bold',
-                  marginRight: idx < data.conditions.length - 1 ? '4px' : '0'
-                }}>
-                  {condition.type}
-                </div>
-              ))
-            ) : (
-              <div style={{
-                ...getStatusColors(true),
-                padding: '2px 8px',
-                borderRadius: '3px',
-                fontSize: '10px',
-                fontWeight: 'bold'
-              }}>
-                No Conditions
-              </div>
-            )
-                    )}
+          {renderConditionBadges()}
                 </div>
             </div>
 
@@ -491,6 +395,8 @@ const CustomNode = ({ data }: { data: any }) => {
                         }}
                     />
                     <div
+                        role="button"
+                        tabIndex={0}
                         style={{
                             position: 'absolute',
                             right: -28,
@@ -515,6 +421,12 @@ const CustomNode = ({ data }: { data: any }) => {
                         onClick={(e) => {
                             e.stopPropagation();
                             data.onToggle(data.nodeId);
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.stopPropagation();
+                                data.onToggle(data.nodeId);
+                            }
                         }}
                     >
                         {data.isCollapsed ? '+' : '-'}
@@ -636,7 +548,7 @@ const KroResourceGraph = () => {
       r.metadata?.uid === entity.metadata.annotations?.['terasky.backstage.io/kro-instance-uid']
     );
 
-    const edges: any[] = [];
+    const localEdges: any[] = [];
 
     if (rgdNode && crdNode && instanceNode) {
       // Add edge from RGD to CRD
@@ -647,7 +559,7 @@ const KroResourceGraph = () => {
       nodeHasChildren.set(crdId, true);
 
       // Add edge from RGD to CRD
-      edges.push({
+      localEdges.push({
         id: `${rgdId}-${crdId}`,
         source: rgdId,
         target: crdId,
@@ -662,7 +574,7 @@ const KroResourceGraph = () => {
       });
 
       // Add edge from CRD to Instance
-      edges.push({
+      localEdges.push({
         id: `${crdId}-${instanceId}`,
         source: crdId,
         target: instanceId,
@@ -689,7 +601,7 @@ const KroResourceGraph = () => {
           const targetReady = nodeReadyStatus.get(resourceId) ?? true;
           const isErrorEdge = !targetReady;
 
-          edges.push({
+          localEdges.push({
             id: `${sourceId}-${resourceId}`,
             source: sourceId,
             target: resourceId,
@@ -706,7 +618,7 @@ const KroResourceGraph = () => {
       });
     }
 
-    const allEdgesWithDuplicates = edges;
+    const allEdgesWithDuplicates = localEdges;
 
         const edgeMap = new Map<string, any>();
         allEdgesWithDuplicates.forEach(edge => {
@@ -739,7 +651,7 @@ const KroResourceGraph = () => {
       return 'Resource';
     };
 
-        const nodes = resourceList.map(resource => {
+        const localNodes = resourceList.map(resource => {
             const status = (resource as any).status;
             const conditions = status?.conditions || [];
       const isSynced = conditions.some((condition: any) => 
@@ -801,7 +713,7 @@ const KroResourceGraph = () => {
             descendants.forEach(id => hiddenNodes.add(id));
         });
 
-        const visibleNodes = nodes.filter(node => !hiddenNodes.has(node.id));
+        const visibleNodes = localNodes.filter(node => !hiddenNodes.has(node.id));
         const visibleNodeIds = new Set(visibleNodes.map(n => n.id));
         collapsedNodes.forEach(id => visibleNodeIds.add(id));
 
@@ -876,6 +788,7 @@ const KroResourceGraph = () => {
         if (resources.length > 0) {
             generateGraphElements(resources);
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [collapsedNodes, resources, hoveredNode]);
 
     useEffect(() => {
@@ -1043,6 +956,7 @@ const KroResourceGraph = () => {
         setResources([rgd, crd, topLevelInstance, ...managedResources]);
         generateGraphElements([rgd, crd, topLevelInstance, ...managedResources]);
             } catch (error) {
+                // eslint-disable-next-line no-console
                 console.error('Failed to fetch resources:', error);
                 setResources([]);
                 setNodes([]);
@@ -1053,6 +967,7 @@ const KroResourceGraph = () => {
         };
 
         fetchResources();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [kroApi, entity, canShowResourceGraph]);
 
     const handleGetEvents = async (resource: KubernetesObject) => {
@@ -1064,8 +979,10 @@ const KroResourceGraph = () => {
         // namespaced so we cannot look them up without one. Skip silently.
         if (!namespace || !name || !clusterName) {
             if (!namespace && name) {
+                // eslint-disable-next-line no-console
                 console.info(`Skipping event fetch for cluster-scoped resource ${name} — no namespace`);
             } else {
+                // eslint-disable-next-line no-console
                 console.warn('Missing required data for fetching events:', { namespace, name, clusterName });
             }
             return;
@@ -1081,6 +998,7 @@ const KroResourceGraph = () => {
             });
             setEvents(resourceEvents);
         } catch (error) {
+            // eslint-disable-next-line no-console
             console.error('Failed to fetch events:', error);
             setEvents([]);
         } finally {
@@ -1268,39 +1186,40 @@ const KroResourceGraph = () => {
                         </>
                     )}
 
-                    {selectedTab === 1 && (
-                        loadingEvents ? (
-                            <Box display="flex" justifyContent="center" p={3}>
-                                <CircularProgress />
-                            </Box>
-                        ) : events.length > 0 ? (
-                            <TableContainer>
-                                <Table size="small" className={classes.eventTable}>
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell>Type</TableCell>
-                                            <TableCell>Reason</TableCell>
-                                            <TableCell>Age</TableCell>
-                                            <TableCell>Message</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {events.map((event, index) => (
-                                            <TableRow key={index} className={classes.eventRow}>
-                                                <TableCell>{getEventTypeChip(event.type)}</TableCell>
-                                                <TableCell>{event.reason}</TableCell>
-                                                <TableCell>{getRelativeTime(event.lastTimestamp || event.firstTimestamp)}</TableCell>
-                                                <TableCell>{event.message}</TableCell>
+                    {selectedTab === 1 && loadingEvents && (
+                        <Box display="flex" justifyContent="center" p={3}>
+                            <CircularProgress />
+                        </Box>
+                    )}
+                    {selectedTab === 1 && !loadingEvents && (
+                        events.length > 0 ? (
+                                <TableContainer>
+                                    <Table size="small" className={classes.eventTable}>
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell>Type</TableCell>
+                                                <TableCell>Reason</TableCell>
+                                                <TableCell>Age</TableCell>
+                                                <TableCell>Message</TableCell>
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                        ) : (
-                            <Typography align="center" color="textSecondary">
-                                No events found for this resource
-                            </Typography>
-                        )
+                                        </TableHead>
+                                        <TableBody>
+                                            {events.map((event, index) => (
+                                                <TableRow key={index} className={classes.eventRow}>
+                                                    <TableCell>{getEventTypeChip(event.type)}</TableCell>
+                                                    <TableCell>{event.reason}</TableCell>
+                                                    <TableCell>{getRelativeTime(event.lastTimestamp || event.firstTimestamp)}</TableCell>
+                                                    <TableCell>{event.message}</TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
+                            ) : (
+                                <Typography align="center" color="textSecondary">
+                                    No events found for this resource
+                                </Typography>
+                            )
                     )}
                 </Box>
             </Drawer>

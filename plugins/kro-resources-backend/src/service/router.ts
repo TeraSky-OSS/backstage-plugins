@@ -72,9 +72,9 @@ export async function createRouter(
           finalRgdId = matchingRgd.metadata?.uid || rgdId as string;
           // Pluralize the kind (simple approach)
           const kindLower = kind.toLowerCase();
-          let plural = kindLower + 's';
-          if (kindLower.endsWith('s')) plural = kindLower + 'es';
-          if (kindLower.endsWith('y')) plural = kindLower.slice(0, -1) + 'ies';
+          let plural = `${kindLower  }s`;
+          if (kindLower.endsWith('s')) plural = `${kindLower  }es`;
+          if (kindLower.endsWith('y')) plural = `${kindLower.slice(0, -1)  }ies`;
           finalCrdName = group ? `${plural}.${group}` : crdName as string;
           logger.info(`Resolved nested RGD for kind=${kind}, group=${group}: name=${finalRgdName}, id=${finalRgdId}, crd=${finalCrdName}`);
         } else {

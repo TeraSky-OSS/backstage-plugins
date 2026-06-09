@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { render, waitFor } from '@testing-library/react';
 import KroResourceGraph from './KroResourceGraph';
 import { TestApiProvider } from '@backstage/test-utils';
