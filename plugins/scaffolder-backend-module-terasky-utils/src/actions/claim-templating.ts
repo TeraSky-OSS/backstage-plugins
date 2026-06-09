@@ -45,7 +45,7 @@ function resolvePathTemplate(template: string, params: Record<string, any>): str
 
 // Helper function to generate SCM-specific URLs
 function generateSourceFileUrl(gitRepo: string, gitBranch: string, filePath: string, scmType: string): string {
-  const gitUrl = new URL("https://" + gitRepo);
+  const gitUrl = new URL(`https://${  gitRepo}`);
   const owner = gitUrl.searchParams.get('owner');
   const repo = gitUrl.searchParams.get('repo');
   
@@ -112,8 +112,8 @@ export function createCrossplaneClaimAction({config}: {config: any}) {
       // Remove excluded parameters (always exclude showAdvancedSettings regardless of excludeParams list)
       const filteredParameters = { ...input.parameters };
       // Helper to delete nested keys using dot notation
-      function deleteNested(obj: any, path: string) {
-        const parts = path.split('.');
+      function deleteNested(obj: any, keyPath: string) {
+        const parts = keyPath.split('.');
         let current = obj;
         for (let i = 0; i < parts.length - 1; i++) {
           if (!current[parts[i]]) return;
@@ -161,11 +161,12 @@ export function createCrossplaneClaimAction({config}: {config: any}) {
         gitBranch: (input.parameters as any).targetBranch || config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.git.targetBranch'),
         gitRepo: (input.parameters as any).repoUrl || config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.git.repoUrl'),
         gitLayout: (input.parameters as any).manifestLayout,
-        basePath: (input.parameters as any).manifestLayout === 'custom' 
-          ? (input.parameters as any).basePath 
-          : (input.parameters as any).manifestLayout === 'namespace-scoped'
-            ? `${(input.parameters as any)[input.namespaceParam]}`
-            : `${input.clusters[0]}/${(input.parameters as any)[input.namespaceParam]}/${input.kind}`
+        basePath: (() => {
+          const layout = (input.parameters as any).manifestLayout;
+          if (layout === 'custom') return (input.parameters as any).basePath;
+          if (layout === 'namespace-scoped') return `${(input.parameters as any)[input.namespaceParam]}`;
+          return `${input.clusters[0]}/${(input.parameters as any)[input.namespaceParam]}/${input.kind}`;
+        })()
       }
 
       // If xrdPathTemplate is provided (from terasky.backstage.io/target-path XRD annotation),

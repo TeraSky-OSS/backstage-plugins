@@ -49,7 +49,7 @@ async function getTemplate(
   nameOrRef: string,
   credentials?: any
 ): Promise<TemplateEntityV1beta3> {
-  let filter: Record<string, string> = { kind: 'Template' };
+  const filter: Record<string, string> = { kind: 'Template' };
 
   // Try to parse as entity ref first
   try {

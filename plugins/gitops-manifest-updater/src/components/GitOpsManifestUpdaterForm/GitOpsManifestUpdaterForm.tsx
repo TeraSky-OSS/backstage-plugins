@@ -263,6 +263,7 @@ const ArrayEditor = ({
                       const itemPath = `${basePath}.${idx}.${key}`;
                       const itemValue = item?.[key];
                       return (
+                        // eslint-disable-next-line @typescript-eslint/no-use-before-define
                         <RenderField
                           key={`${itemKey}-${key}`}
                           prop={prop}
@@ -275,6 +276,7 @@ const ArrayEditor = ({
                     })}
                   </div>
                 ) : (
+                  // eslint-disable-next-line @typescript-eslint/no-use-before-define
                   <RenderField
                     prop={items}
                     value={item}
@@ -761,7 +763,7 @@ export const GitOpsManifestUpdaterForm = ({
             fetchUrl = `https://${host}/api/v3/repos/${owner}/${repo}/contents/${path}?ref=${branch}`;
           }
           
-          headers['Accept'] = 'application/vnd.github.v3.raw';
+          headers.Accept = 'application/vnd.github.v3.raw';
           
           try {
             const token = await githubAuth.getAccessToken(['repo']);
@@ -852,8 +854,8 @@ export const GitOpsManifestUpdaterForm = ({
         let yamlContent;
         try {
           yamlContent = parseYaml(fileContent.trim());
-        } catch (error: any) {
-          throw new Error(`Failed to parse YAML content: ${error.message}`);
+        } catch (parseError: any) {
+          throw new Error(`Failed to parse YAML content: ${parseError.message}`);
         }
 
         if (!yamlContent || typeof yamlContent !== 'object') {
@@ -940,69 +942,8 @@ export const GitOpsManifestUpdaterForm = ({
     };
 
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formContext?.formData?.entity, manualSourceUrl, fetchApi, catalogApi, scmIntegrations, githubAuth, gitlabAuth, bitbucketAuth, getEntityFromRef]);
-
-  const handleFieldChange = (path: string, value: any) => {
-    if (!formData) return;
-
-    const pathParts = path.split('.');
-    
-    // Helper function to set nested value with proper immutability
-    const setNestedValue = (obj: any, parts: string[], val: any): any => {
-      if (parts.length === 1) {
-        // Base case: set or delete the value
-        if (Array.isArray(obj)) {
-          const newArray = [...obj];
-          if (val === undefined) {
-            // Remove item from array
-            newArray.splice(Number(parts[0]), 1);
-          } else {
-            newArray[Number(parts[0])] = val;
-          }
-          return newArray;
-        } else {
-          const newObj = { ...obj };
-          if (val === undefined) {
-            // Remove property from object
-            delete newObj[parts[0]];
-          } else {
-            newObj[parts[0]] = val;
-          }
-          return newObj;
-        }
-      }
-      
-      // Recursive case: clone current level and recurse
-      const [currentPart, ...remainingParts] = parts;
-      const currentValue = obj?.[currentPart];
-      
-      if (Array.isArray(obj)) {
-        const newArray = [...obj];
-        const updatedValue = setNestedValue(currentValue || {}, remainingParts, val);
-        if (updatedValue === undefined || (typeof updatedValue === 'object' && Object.keys(updatedValue).length === 0)) {
-          // If the nested update results in undefined or empty object, don't set it
-          newArray[Number(currentPart)] = undefined;
-        } else {
-          newArray[Number(currentPart)] = updatedValue;
-        }
-        return newArray;
-      } else {
-        const updatedValue = setNestedValue(currentValue || {}, remainingParts, val);
-        const newObj = { ...obj };
-        if (updatedValue === undefined || (typeof updatedValue === 'object' && Object.keys(updatedValue).length === 0 && !Array.isArray(updatedValue))) {
-          // If the nested update results in undefined or empty object, remove the key
-          delete newObj[currentPart];
-        } else {
-          newObj[currentPart] = updatedValue;
-        }
-        return newObj;
-      }
-    };
-    
-    const newFormData = setNestedValue(formData, pathParts, value);
-    setFormData(newFormData);
-    updateOutput(newFormData);
-  };
 
   // Update the output to include both spec and metadata
   const updateOutput = useCallback((specData: JsonObject) => {
@@ -1024,6 +965,68 @@ export const GitOpsManifestUpdaterForm = ({
     onChange(output);
   }, [showMetadataSettings, metadataLabels, metadataAnnotations, onChange]);
 
+  const handleFieldChange = (path: string, value: any) => {
+    if (!formData) return;
+
+    const pathParts = path.split('.');
+    
+    // Helper function to set nested value with proper immutability
+    const setNestedValue = (obj: any, parts: string[], val: any): any => {
+      if (parts.length === 1) {
+        // Base case: set or delete the value
+        if (Array.isArray(obj)) {
+          const newArray = [...obj];
+          if (val === undefined) {
+            // Remove item from array
+            newArray.splice(Number(parts[0]), 1);
+          } else {
+            newArray[Number(parts[0])] = val;
+          }
+          return newArray;
+        } 
+          const newObj = { ...obj };
+          if (val === undefined) {
+            // Remove property from object
+            delete newObj[parts[0]];
+          } else {
+            newObj[parts[0]] = val;
+          }
+          return newObj;
+        
+      }
+      
+      // Recursive case: clone current level and recurse
+      const [currentPart, ...remainingParts] = parts;
+      const currentValue = obj?.[currentPart];
+      
+      if (Array.isArray(obj)) {
+        const newArray = [...obj];
+        const updatedValue = setNestedValue(currentValue || {}, remainingParts, val);
+        if (updatedValue === undefined || (typeof updatedValue === 'object' && Object.keys(updatedValue).length === 0)) {
+          // If the nested update results in undefined or empty object, don't set it
+          newArray[Number(currentPart)] = undefined;
+        } else {
+          newArray[Number(currentPart)] = updatedValue;
+        }
+        return newArray;
+      } 
+        const updatedValue = setNestedValue(currentValue || {}, remainingParts, val);
+        const newObj = { ...obj };
+        if (updatedValue === undefined || (typeof updatedValue === 'object' && Object.keys(updatedValue).length === 0 && !Array.isArray(updatedValue))) {
+          // If the nested update results in undefined or empty object, remove the key
+          delete newObj[currentPart];
+        } else {
+          newObj[currentPart] = updatedValue;
+        }
+        return newObj;
+      
+    };
+    
+    const newFormData = setNestedValue(formData, pathParts, value);
+    setFormData(newFormData);
+    updateOutput(newFormData);
+  };
+
   // Update output when metadata changes
   useEffect(() => {
     if (formData) {
@@ -1034,7 +1037,7 @@ export const GitOpsManifestUpdaterForm = ({
   // Determine if crossplane toggle should be shown
   let hasCrossplane = false;
   let crossplaneFieldsPresent = false;
-  if (schema && schema['crossplane']) {
+  if (schema && schema.crossplane) {
     hasCrossplane = true;
   } else if (schema) {
     crossplaneFieldsPresent = crossplaneFields.some(f => Object.keys(schema).includes(f));
@@ -1071,7 +1074,7 @@ export const GitOpsManifestUpdaterForm = ({
             crossplaneFieldsPresent={crossplaneFieldsPresent}
             renderToggleCheckbox={hasCrossplane || crossplaneFieldsPresent}
             onToggleCheckbox={setShowCrossplaneSettings}
-            isTopLevel={true}
+            isTopLevel
           />
         </FormControl>
       )}

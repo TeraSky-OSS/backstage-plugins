@@ -4,6 +4,7 @@ import {
 } from '@backstage/frontend-plugin-api';
 import { rootRouteRef } from './routes';
 import ExtensionIcon from '@material-ui/icons/Extension';
+
 const frontendExtensionsExplorerPage = PageBlueprint.make({
   params: {
     title: 'Extensions Explorer',

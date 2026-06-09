@@ -6,6 +6,7 @@ import {
 import { EntityContentBlueprint } from '@backstage/plugin-catalog-react/alpha';
 import { ScaffolderFieldExtensions } from '@backstage/plugin-scaffolder-react';
 import { EntityPickerFieldExtension, RepoUrlPickerFieldExtension } from '@backstage/plugin-scaffolder';
+// eslint-disable-next-line @backstage/no-mixed-plugin-imports
 import { GitOpsManifestUpdaterExtension } from '@terasky/backstage-plugin-gitops-manifest-updater';
 import { stringifyEntityRef } from '@backstage/catalog-model';
 
@@ -18,7 +19,7 @@ export const entityScaffolderContentExtension: ExtensionDefinition =
     title: 'EntityScaffolder',
     filter: entity => entity.spec?.type === 'kubernetes-namespace',
     loader: () => import('./components/EntityScaffolderContent').then(m => 
-      <m.EntityScaffolderContent 
+      (<m.EntityScaffolderContent 
         templateGroupFilters={[
           {
             title: 'Management Templates',
@@ -38,7 +39,7 @@ export const entityScaffolderContentExtension: ExtensionDefinition =
               <EntityPickerFieldExtension />
             </ScaffolderFieldExtensions>
         }
-      />
+      />)
     ),
   },
   disabled: false,
@@ -53,7 +54,7 @@ export const crossplaneEntityScaffolderContentExtension: ExtensionDefinition =
     title: 'Scaffolder Content',
     filter: entity => entity.spec?.type?.toString().startsWith('crossplane') || false,
     loader: () => import('./components/EntityScaffolderContent').then(m => 
-      <m.EntityScaffolderContent 
+      (<m.EntityScaffolderContent 
         templateGroupFilters={[
           {
             title: 'Crossplane Day2 Templates',
@@ -74,7 +75,7 @@ export const crossplaneEntityScaffolderContentExtension: ExtensionDefinition =
             <GitOpsManifestUpdaterExtension />
           </ScaffolderFieldExtensions>
         }
-      />
+      />)
       
     ),
   },

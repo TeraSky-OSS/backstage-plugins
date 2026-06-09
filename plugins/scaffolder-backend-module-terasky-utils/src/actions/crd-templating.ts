@@ -6,7 +6,7 @@ import path from 'path';
 
 // Helper function to generate SCM-specific URLs
 function generateSourceFileUrl(gitRepo: string, gitBranch: string, filePath: string, scmType: string): string {
-  const gitUrl = new URL("https://" + gitRepo);
+  const gitUrl = new URL(`https://${  gitRepo}`);
   const owner = gitUrl.searchParams.get('owner');
   const repo = gitUrl.searchParams.get('repo');
   
@@ -92,11 +92,12 @@ export function createCrdTemplateAction({config}: {config: any}) {
         gitBranch: (input.parameters as any).targetBranch || config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.git.targetBranch'),
         gitRepo: (input.parameters as any).repoUrl || config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.git.repoUrl'),
         gitLayout: (input.parameters as any).manifestLayout,
-        basePath: (input.parameters as any).manifestLayout === 'custom' 
-          ? (input.parameters as any).basePath 
-          : (input.parameters as any).manifestLayout === 'namespace-scoped'
-            ? `${(input.parameters as any)[input.namespaceParam || 'namespace']}`
-            : `${input.clusters[0]}/cluster-scoped/${input.kind}`
+        basePath: (() => {
+          const layout = (input.parameters as any).manifestLayout;
+          if (layout === 'custom') return (input.parameters as any).basePath;
+          if (layout === 'namespace-scoped') return `${(input.parameters as any)[input.namespaceParam || 'namespace']}`;
+          return `${input.clusters[0]}/cluster-scoped/${input.kind}`;
+        })()
       }
 
       // Handle cluster-specific paths or default path
