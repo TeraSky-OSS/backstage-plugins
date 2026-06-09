@@ -2886,6 +2886,263 @@ describe('XRDTemplateEntityProvider', () => {
     });
   });
 
+  // ── target-path / create-kustomization-file annotations ────────────────────────────────
+
+  describe('extractSteps – target-path annotation', () => {
+    const stepsConfig = new ConfigReader({
+      kubernetesIngestor: {
+        annotationPrefix: 'terasky.backstage.io',
+        crossplane: {
+          xrds: {
+            publishPhase: {
+              target: 'github',
+              allowRepoSelection: false,
+              git: {
+                repoUrl: 'github.com?owner=test&repo=manifests',
+                targetBranch: 'main',
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const taskRunner = { run: jest.fn() };
+
+    const makeProvider = () =>
+      new XRDTemplateEntityProvider(
+        taskRunner as any,
+        mockLogger,
+        stepsConfig,
+        mockResourceFetcher as any,
+      );
+
+    const makeVersion = () => ({
+      name: 'v1alpha1',
+      schema: {
+        openAPIV3Schema: {
+          type: 'object',
+          properties: { spec: { type: 'object', properties: {} } },
+        },
+      },
+    });
+
+    const makeXrd = (annotations: Record<string, string> = {}) => ({
+      metadata: {
+        name: 'myresources.example.com',
+        annotations,
+      },
+      spec: {
+        scope: 'Cluster',
+        names: { kind: 'MyResource' },
+        group: 'example.com',
+        versions: [makeVersion()],
+      },
+      clusters: ['test-cluster'],
+      clusterName: 'test-cluster',
+    });
+
+    it('sets clusters to static [temp] in generateManifest step when target-path annotation is set', () => {
+      const provider = makeProvider();
+      const xrd = makeXrd({ 'terasky.backstage.io/target-path': 'clusters/{dc}/{xrName}' });
+      const steps: any[] = (provider as any).extractSteps(makeVersion(), xrd);
+
+      const generateStep = steps.find((s: any) => s.id === 'generateManifest');
+      expect(generateStep).toBeDefined();
+      // must be static array, not a Jinja2 expression referencing parameters.clusters
+      expect(generateStep.input.clusters).toEqual(['temp']);
+    });
+
+    it('adds xrdPathTemplate to generateManifest step when target-path annotation is set', () => {
+      const provider = makeProvider();
+      const xrd = makeXrd({ 'terasky.backstage.io/target-path': 'presets/{dc}/{xrName}' });
+      const steps: any[] = (provider as any).extractSteps(makeVersion(), xrd);
+
+      const generateStep = steps.find((s: any) => s.id === 'generateManifest');
+      expect(generateStep).toBeDefined();
+      expect(generateStep.input.xrdPathTemplate).toBe('presets/{dc}/{xrName}');
+    });
+
+    it('adds targetPath with Jinja2 expressions to publish step', () => {
+      const provider = makeProvider();
+      const xrd = makeXrd({ 'terasky.backstage.io/target-path': 'presets/{dc}/{xrName}' });
+      const steps: any[] = (provider as any).extractSteps(makeVersion(), xrd);
+
+      const publishStep = steps.find((s: any) => s.input?.branchName || s.input?.targetBranchName);
+      expect(publishStep).toBeDefined();
+      expect(publishStep.input.targetPath).toBe(
+        'presets/${{ parameters.dc | lower }}/${{ parameters.xrName | lower }}',
+      );
+    });
+
+    it('correctly converts multi-segment path with multiple variables', () => {
+      const provider = makeProvider();
+      const xrd = makeXrd({ 'terasky.backstage.io/target-path': 'clusters/{dc}/{game}-{env}/manifests' });
+      const steps: any[] = (provider as any).extractSteps(makeVersion(), xrd);
+
+      const publishStep = steps.find((s: any) => s.input?.branchName || s.input?.targetBranchName);
+      expect(publishStep.input.targetPath).toBe(
+        'clusters/${{ parameters.dc | lower }}/${{ parameters.game | lower }}-${{ parameters.env | lower }}/manifests',
+      );
+    });
+
+    it('adds generateKustomization: true when create-kustomization-file annotation is true', () => {
+      const provider = makeProvider();
+      const xrd = makeXrd({
+        'terasky.backstage.io/target-path': 'presets/{dc}/{xrName}',
+        'terasky.backstage.io/create-kustomization-file': 'true',
+      });
+      const steps: any[] = (provider as any).extractSteps(makeVersion(), xrd);
+
+      const generateStep = steps.find((s: any) => s.id === 'generateManifest');
+      expect(generateStep.input.generateKustomization).toBe(true);
+    });
+
+    it('does NOT add generateKustomization when create-kustomization-file is false', () => {
+      const provider = makeProvider();
+      const xrd = makeXrd({
+        'terasky.backstage.io/target-path': 'presets/{dc}/{xrName}',
+        'terasky.backstage.io/create-kustomization-file': 'false',
+      });
+      const steps: any[] = (provider as any).extractSteps(makeVersion(), xrd);
+
+      const generateStep = steps.find((s: any) => s.id === 'generateManifest');
+      expect(generateStep.input.generateKustomization).toBeUndefined();
+    });
+
+    it('adds generateKustomization even when target-path annotation is absent', () => {
+      const provider = makeProvider();
+      const xrd = makeXrd({ 'terasky.backstage.io/create-kustomization-file': 'true' });
+      const steps: any[] = (provider as any).extractSteps(makeVersion(), xrd);
+
+      const generateStep = steps.find((s: any) => s.id === 'generateManifest');
+      expect(generateStep.input.xrdPathTemplate).toBeUndefined();
+      expect(generateStep.input.generateKustomization).toBe(true);
+    });
+
+    it('does NOT add xrdPathTemplate or targetPath when no annotations are set', () => {
+      const provider = makeProvider();
+      const xrd = makeXrd();
+      const steps: any[] = (provider as any).extractSteps(makeVersion(), xrd);
+
+      const generateStep = steps.find((s: any) => s.id === 'generateManifest');
+      expect(generateStep.input.xrdPathTemplate).toBeUndefined();
+
+      const publishStep = steps.find((s: any) => s.input?.branchName || s.input?.targetBranchName);
+      expect(publishStep?.input?.targetPath).toBeUndefined();
+    });
+
+    it('preserves single quotes in path template by escaping them in YAML', () => {
+      const provider = makeProvider();
+      // Unusual but valid: path that happens to use apostrophes
+      const xrd = makeXrd({ 'terasky.backstage.io/target-path': "apps/{dc}/it's-fine" });
+      // Should not throw when YAML is generated
+      expect(() => (provider as any).extractSteps(makeVersion(), xrd)).not.toThrow();
+      const steps: any[] = (provider as any).extractSteps(makeVersion(), xrd);
+      const generateStep = steps.find((s: any) => s.id === 'generateManifest');
+      expect(generateStep.input.xrdPathTemplate).toBe("apps/{dc}/it's-fine");
+    });
+  });
+
+  // ── target-path: hide manifestLayout / clusters ──────────────────────────────
+
+  describe('extractParameters – target-path hides manifestLayout and clusters', () => {
+    const baseConfig = {
+      kubernetesIngestor: {
+        annotationPrefix: 'terasky.backstage.io',
+        crossplane: {
+          xrds: {
+            publishPhase: {
+              target: 'github',
+              allowRepoSelection: false,
+              git: {
+                repoUrl: 'github.com?owner=test&repo=manifests',
+                targetBranch: 'main',
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const makeProvider = (cfg = baseConfig) =>
+      new XRDTemplateEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        new ConfigReader(cfg),
+        { getResource: jest.fn().mockResolvedValue(null) } as any,
+      );
+
+    const makeXrd = (annotations: Record<string, string> = {}) => ({
+      metadata: { name: 'myresources.example.com', annotations },
+      spec: {
+        scope: 'Cluster',
+        names: { kind: 'MyResource' },
+        group: 'example.com',
+        versions: [
+          {
+            name: 'v1alpha1',
+            schema: {
+              openAPIV3Schema: {
+                type: 'object',
+                properties: { spec: { type: 'object', properties: {} } },
+              },
+            },
+          },
+        ],
+      },
+      clusters: ['test-cluster'],
+    });
+
+    const getCreationSettings = (params: any[]) => params.find((p: any) => p.title === 'Creation Settings');
+
+    const getPushToGitTrueBranch = (creationSettings: any) =>
+      creationSettings.dependencies.pushToGit.oneOf.find((o: any) =>
+        o.properties?.pushToGit?.enum?.includes(true),
+      );
+
+    it('hides manifestLayout when target-path annotation is present', () => {
+      const provider = makeProvider();
+      const xrd = makeXrd({ 'terasky.backstage.io/target-path': 'clusters/{dc}/{xrName}' });
+      const params = (provider as any).extractParameters(xrd.spec.versions[0], ['test-cluster'], xrd);
+
+      const creation = getCreationSettings(params);
+      const trueBranch = getPushToGitTrueBranch(creation);
+
+      expect(trueBranch.properties.manifestLayout).toBeUndefined();
+    });
+
+    it('hides clusters selector when target-path annotation is present', () => {
+      const provider = makeProvider();
+      const xrd = makeXrd({ 'terasky.backstage.io/target-path': 'clusters/{dc}/{xrName}' });
+      const params = (provider as any).extractParameters(xrd.spec.versions[0], ['test-cluster'], xrd);
+
+      const creation = getCreationSettings(params);
+      const trueBranch = getPushToGitTrueBranch(creation);
+
+      const clusterScopedBranch = trueBranch.dependencies?.manifestLayout?.oneOf?.find(
+        (o: any) => o.properties?.manifestLayout?.enum?.includes('cluster-scoped'),
+      );
+      expect(clusterScopedBranch?.properties?.clusters).toBeUndefined();
+      expect(clusterScopedBranch?.required).toBeUndefined();
+    });
+
+    it('shows clusters selector when target-path annotation is absent', () => {
+      const provider = makeProvider();
+      const xrd = makeXrd();
+      const params = (provider as any).extractParameters(xrd.spec.versions[0], ['test-cluster'], xrd);
+
+      const creation = getCreationSettings(params);
+      const trueBranch = getPushToGitTrueBranch(creation);
+
+      const clusterScopedBranch = trueBranch.dependencies?.manifestLayout?.oneOf?.find(
+        (o: any) => o.properties?.manifestLayout?.enum?.includes('cluster-scoped'),
+      );
+      expect(clusterScopedBranch?.properties?.clusters).toBeDefined();
+      expect(clusterScopedBranch?.required).toContain('clusters');
+    });
+  });
+
   // ── x-ui-order ──────────────────────────────────────────────────────────────
 
   describe('extractParameters – x-ui-order field ordering', () => {

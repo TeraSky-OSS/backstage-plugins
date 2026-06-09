@@ -3,6 +3,45 @@ import { resolveSafeChildPath } from '@backstage/backend-plugin-api';
 import yaml from 'js-yaml';
 import fs from 'fs-extra';
 import path from 'path';
+import https from 'https';
+
+// Resolves {param} placeholders in a path template using actual parameter values.
+// Validates literal segments before substitution and all segments after, rejecting
+// empty, '.' or '..' to prevent directory traversal.
+// e.g. resolvePathTemplate('clusters/{dc}/{xrName}', { dc: 'EU', xrName: 'my-db' }) → 'clusters/eu/my-db'
+function resolvePathTemplate(template: string, params: Record<string, any>): string {
+  const isPlaceholder = (s: string) => /^\{\w+\}$/.test(s);
+  const isBadSegment = (s: string) => !s || s === '.' || s === '..';
+
+  // Validate literal (non-placeholder) segments before substitution
+  for (const seg of template.split(/[/\\]/)) {
+    if (!isPlaceholder(seg) && isBadSegment(seg)) {
+      throw new Error(`resolvePathTemplate: invalid literal segment '${seg}' in template '${template}'`);
+    }
+  }
+
+  // Substitute placeholders, sanitizing each value
+  const resolved = template.replace(/\{(\w+)\}/g, (_: string, p: string) => {
+    const raw = params[p];
+    const segment = (typeof raw === 'string' ? raw : String(raw ?? ''))
+      .toLowerCase()
+      .trim()
+      .replace(/[/\\]+/g, '-');
+    if (isBadSegment(segment)) {
+      throw new Error(`resolvePathTemplate: invalid value for placeholder '{${p}}': '${raw}'`);
+    }
+    return segment;
+  });
+
+  // Re-check all segments of the resolved path
+  for (const seg of resolved.split('/')) {
+    if (isBadSegment(seg)) {
+      throw new Error(`resolvePathTemplate: resolved path contains invalid segment '${seg}'`);
+    }
+  }
+
+  return resolved;
+}
 
 // Helper function to generate SCM-specific URLs
 function generateSourceFileUrl(gitRepo: string, gitBranch: string, filePath: string, scmType: string): string {
@@ -49,6 +88,8 @@ export function createCrossplaneClaimAction({config}: {config: any}) {
         removeEmptyParams: z => z.boolean().describe('If set to false, empty parameters will be rendered in the manifest. by default they are removed').default(true),
         ownerParam: z => z.string().describe('Template parameter to map to the owner of the claim'),
         specFieldOrder: z => z.array(z.string()).describe('Ordered list of spec field names (derived from x-ui-order) to control key order in the generated manifest').optional(),
+        xrdPathTemplate: z => z.string().optional().describe('Path template from terasky.backstage.io/target-path XRD annotation, e.g. presets/{dc}/{xrName}. Overrides manifestLayout/basePath.'),
+        generateKustomization: z => z.boolean().optional().describe('When true, generates or updates kustomization.yaml in the target path (from terasky.backstage.io/create-kustomization-file XRD annotation)'),
       },
       output: {
         manifest: z => z.string().describe('The templated Kubernetes resource manifest'),
@@ -127,6 +168,16 @@ export function createCrossplaneClaimAction({config}: {config: any}) {
             : `${input.clusters[0]}/${(input.parameters as any)[input.namespaceParam]}/${input.kind}`
       }
 
+      // If xrdPathTemplate is provided (from terasky.backstage.io/target-path XRD annotation),
+      // write the file to the workspace root (empty basePath) so that targetPath in the
+      // publish step controls the final location in the repo without path doubling.
+      // e.g. annotation "clusters/{dc}/{xrName}" → targetPath="clusters/eu/my-app" in PR,
+      //      file on disk → workspacePath/my-app.yaml (not workspacePath/clusters/eu/my-app/my-app.yaml)
+      if (input.xrdPathTemplate) {
+        sourceInfo.gitLayout = 'custom';
+        sourceInfo.basePath = '';
+      }
+
       // Write the manifest to the file system for each cluster
       const filePaths: string[] = [];
       let manifestYaml = '';
@@ -159,11 +210,18 @@ export function createCrossplaneClaimAction({config}: {config: any}) {
         }
         const destFilepath = resolveSafeChildPath(ctx.workspacePath, filePath);
 
-        // Generate the correct sourceFileUrl for this cluster
+        // Generate the correct sourceFileUrl for this cluster.
+        // When xrdPathTemplate is set, filePath is just the filename (workspace root),
+        // but in the repo the file lives under the resolved template path (targetPath in publish step).
         let sourceFileUrl = '';
         if ((input.parameters as any).pushToGit && sourceInfo.gitRepo) {
           const scmType = config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.target') || 'github';
-          sourceFileUrl = generateSourceFileUrl(sourceInfo.gitRepo, sourceInfo.gitBranch, filePath, scmType);
+          let repoFilePath = filePath;
+          if (input.xrdPathTemplate) {
+            const resolvedDir = resolvePathTemplate(input.xrdPathTemplate, input.parameters as Record<string, any>);
+            repoFilePath = `${resolvedDir}/${path.basename(filePath)}`;
+          }
+          sourceFileUrl = generateSourceFileUrl(sourceInfo.gitRepo, sourceInfo.gitBranch, repoFilePath, scmType);
         }
 
         // Reorder spec fields according to specFieldOrder (derived from x-ui-order in XRD)
@@ -211,6 +269,101 @@ export function createCrossplaneClaimAction({config}: {config: any}) {
         ctx.logger.info(`Manifest written to ${destFilepath}`);
         filePaths.push(destFilepath);
       });
+
+      // Generate or update kustomization.yaml when terasky.backstage.io/create-kustomization-file: true on XRD.
+      // Process each unique output directory independently so cluster-scoped layouts (multiple dirs) are handled.
+      if (input.generateKustomization && filePaths.length > 0) {
+        const repoUrlStr = sourceInfo.gitRepo ?? '';
+        const targetBranch = sourceInfo.gitBranch ?? 'main';
+        const repoHost = repoUrlStr.split('?')[0] || 'github.com';
+        const queryString = repoUrlStr.includes('?') ? repoUrlStr.split('?')[1] : '';
+        const urlParams = new URLSearchParams(queryString);
+        const owner = urlParams.get('owner');
+        const repo = urlParams.get('repo');
+
+        let ghToken = '';
+        const ghConfigs = config.getOptionalConfigArray('integrations.github') ?? [];
+        for (const ghCfg of ghConfigs) {
+          const cfgHost = ghCfg.getOptionalString('host') ?? 'github.com';
+          if (cfgHost === repoHost) {
+            ghToken = ghCfg.getOptionalString('token') ?? '';
+            break;
+          }
+        }
+
+        // github.com uses api.github.com; GHE uses <host>/api/v3
+        const apiBase = repoHost === 'github.com'
+          ? 'https://api.github.com'
+          : `https://${repoHost}/api/v3`;
+
+        // Group output files by their directory so each dir gets its own kustomization.yaml
+        const dirToFiles = new Map<string, string[]>();
+        for (const fp of filePaths) {
+          const dir = path.dirname(fp);
+          if (!dirToFiles.has(dir)) dirToFiles.set(dir, []);
+          dirToFiles.get(dir)!.push(path.basename(fp));
+        }
+
+        for (const [kustomizationDir, fileNames] of dirToFiles) {
+          const kustomizationPath = path.join(kustomizationDir, 'kustomization.yaml');
+          // Derive the repo-relative path for this directory to fetch the existing file
+          const resolvedRepoDir = input.xrdPathTemplate
+            ? resolvePathTemplate(input.xrdPathTemplate, input.parameters as Record<string, any>)
+            : path.relative(ctx.workspacePath, kustomizationDir);
+
+          let existingResources: string[] = [];
+          try {
+            if (owner && repo) {
+              const kustomizationGitPath = encodeURI(resolvedRepoDir ? `${resolvedRepoDir}/kustomization.yaml` : 'kustomization.yaml');
+              const fetchUrl = `${apiBase}/repos/${owner}/${repo}/contents/${kustomizationGitPath}?ref=${targetBranch}`;
+
+              const rawContent = await new Promise<string | null>((resolve) => {
+                let resolved = false;
+                const done = (v: string | null) => { if (!resolved) { resolved = true; resolve(v); } };
+                const req = https.get(
+                  fetchUrl,
+                  {
+                    headers: {
+                      Accept: 'application/vnd.github.raw+json',
+                      'User-Agent': 'backstage-scaffolder',
+                      ...(ghToken ? { Authorization: `Bearer ${ghToken}` } : {}),
+                    },
+                  },
+                  res => {
+                    if (res.statusCode !== 200) { done(null); res.resume(); return; }
+                    let data = '';
+                    res.on('data', (chunk: string) => { data += chunk; });
+                    res.on('end', () => done(data));
+                  },
+                );
+                req.setTimeout(10_000, () => { req.destroy(new Error('Request timed out')); });
+                req.on('error', () => done(null));
+              });
+
+              if (rawContent) {
+                const parsed = yaml.load(rawContent) as any;
+                if (Array.isArray(parsed?.resources)) {
+                  existingResources = parsed.resources;
+                  ctx.logger.info(`Fetched existing kustomization.yaml from ${resolvedRepoDir} with ${existingResources.length} resource(s)`);
+                }
+              }
+            }
+          } catch (e) {
+            ctx.logger.warn(`Could not fetch existing kustomization.yaml for ${resolvedRepoDir}: ${e}`);
+          }
+
+          for (const fileName of fileNames) {
+            if (!existingResources.includes(fileName)) existingResources.push(fileName);
+          }
+
+          const kustomizationContent = yaml.dump(
+            { apiVersion: 'kustomize.config.k8s.io/v1beta1', kind: 'Kustomization', resources: existingResources },
+            { lineWidth: -1, noRefs: true, sortKeys: false },
+          );
+          fs.outputFileSync(kustomizationPath, `---\n${kustomizationContent}`);
+          ctx.logger.info(`kustomization.yaml written to ${kustomizationPath}`);
+        }
+      }
 
       // Output the manifest and file paths (last manifestYaml is output)
       ctx.output('manifest', manifestYaml);
