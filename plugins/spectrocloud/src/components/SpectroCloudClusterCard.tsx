@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Fragment } from 'react';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { useApi, configApiRef } from '@backstage/core-plugin-api';
 import {
@@ -844,7 +844,7 @@ export const SpectroCloudClusterCard = () => {
                     );
                     
                     return (
-                      <React.Fragment key={profileKey}>
+                      <Fragment key={profileKey}>
                         <TableRow 
                           className={getProfileRowClass(profile.spec?.type)}
                           onClick={() => hasPacks && toggleProfileExpansion(profileKey)}
@@ -917,7 +917,7 @@ export const SpectroCloudClusterCard = () => {
                                         const isPackExpanded = expandedPacks.has(packKey);
                                         
                                         return (
-                                          <React.Fragment key={packKey}>
+                                          <Fragment key={packKey}>
                                             <TableRow 
                                               className={classes.packRow}
                                               onClick={() => canViewPackValues && togglePackExpansion(packKey, pack)}
@@ -958,7 +958,7 @@ export const SpectroCloudClusterCard = () => {
                                                 </Collapse>
                                               </TableCell>
                                             </TableRow>
-                                          </React.Fragment>
+                                          </Fragment>
                                         );
                                       })}
                                     </TableBody>
@@ -968,7 +968,7 @@ export const SpectroCloudClusterCard = () => {
                             </TableCell>
                           </TableRow>
                         )}
-                      </React.Fragment>
+                      </Fragment>
                     );
                   })}
                 </TableBody>

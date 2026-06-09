@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import {
   ReactFlow,
   Background,
@@ -118,7 +118,7 @@ export function WorkflowCanvas(props: WorkflowCanvasProps) {
   const [edges, setEdges, onEdgesChangeInternal] = useEdgesState(initialEdges as any);
 
   // Sync with parent state, inject delete handler, layout direction, and apply layout
-  React.useEffect(() => {
+  useEffect(() => {
     const handlePositions = HANDLE_POSITIONS[layoutDirection];
     
     const nodesWithDelete = initialNodes.map(node => {
@@ -159,7 +159,7 @@ export function WorkflowCanvas(props: WorkflowCanvasProps) {
   }, [initialNodes, setNodes, onNodeDelete, layoutDirection]);
 
   // Auto-detect edges from input expressions
-  React.useEffect(() => {
+  useEffect(() => {
     const autoEdges = detectEdgesFromInputs(initialNodes);
     setEdges(autoEdges as any);
     onEdgesChange(autoEdges as any);

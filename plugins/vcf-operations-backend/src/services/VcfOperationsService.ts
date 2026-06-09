@@ -197,7 +197,7 @@ export class VcfOperationsService {
       ...options.headers,
     };
 
-    let debugBody: unknown;
+    let debugBody: any;
     if (options.body) {
       debugBody = typeof options.body === 'string' ? JSON.parse(options.body) : options.body;
     }

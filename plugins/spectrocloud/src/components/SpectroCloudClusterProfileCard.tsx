@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, Fragment } from 'react';
 import { useEntity, useRelatedEntities, EntityRefLink } from '@backstage/plugin-catalog-react';
 import { useApi, configApiRef } from '@backstage/core-plugin-api';
 import { Entity } from '@backstage/catalog-model';
@@ -355,7 +355,7 @@ export const SpectroCloudClusterProfileCard = () => {
                     const clusters = getClustersForVersion(version.uid);
                     
                     return (
-                      <React.Fragment key={version.uid}>
+                      <Fragment key={version.uid}>
                         <TableRow 
                           className={`${isCurrentVersion ? classes.currentVersionRow : classes.clickableRow}`}
                           onClick={() => toggleRowExpansion(version.uid)}
@@ -424,7 +424,7 @@ export const SpectroCloudClusterProfileCard = () => {
                             </Collapse>
                           </TableCell>
                         </TableRow>
-                      </React.Fragment>
+                      </Fragment>
                     );
                   })}
                 </TableBody>

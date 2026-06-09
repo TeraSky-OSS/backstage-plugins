@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, Fragment, type MouseEvent } from 'react';
 import {
   Table,
   TableBody,
@@ -160,7 +160,7 @@ export const FlatGroupedView: React.FC<FlatGroupedViewProps> = ({
               const categoryCount = Array.from(kinds.values()).reduce((sum, arr) => sum + arr.length, 0);
 
               return (
-                <React.Fragment key={category}>
+                <Fragment key={category}>
                   {/* Category Header Row */}
                   <TableRow className={classes.groupHeader}>
                     <TableCell className={classes.tableCell} style={{ width: 48 }}>
@@ -189,7 +189,7 @@ export const FlatGroupedView: React.FC<FlatGroupedViewProps> = ({
                     const isKindExpanded = expandedKinds.has(kindKey);
 
                     return (
-                      <React.Fragment key={kindKey}>
+                      <Fragment key={kindKey}>
                         {/* Kind Header Row */}
                         <TableRow className={classes.kindGroupHeader}>
                           <TableCell className={classes.tableCell} style={{ width: 48 }} />
@@ -222,26 +222,26 @@ export const FlatGroupedView: React.FC<FlatGroupedViewProps> = ({
                               <TableCell className={classes.tableCell} style={{ paddingLeft: 64 }}>
                                 <Link
                                   to={`/catalog/${entity.metadata.namespace || 'default'}/${entity.kind.toLowerCase()}/${entity.metadata.name}`}
-                                  onClick={(e: React.MouseEvent) => e.stopPropagation()}
-                                >
-                                  <Typography variant="body2">
-                                    {entity.metadata.title || entity.metadata.name}
-                                  </Typography>
-                                </Link>
-                              </TableCell>
-                              <TableCell className={classes.tableCell} align="center">
-                                <Typography variant="body2">{namespace}</Typography>
-                              </TableCell>
-                              <TableCell className={classes.tableCell} align="center">
-                                <Chip label={entity.kind} size="small" />
-                              </TableCell>
-                              <TableCell className={classes.tableCell} align="center">
-                                <Typography variant="body2">{owner}</Typography>
-                              </TableCell>
-                              <TableCell className={classes.tableCell} align="center">
-                                <Link
-                                  to={`/catalog/${entity.metadata.namespace || 'default'}/${entity.kind.toLowerCase()}/${entity.metadata.name}`}
-                                  onClick={(e: React.MouseEvent) => e.stopPropagation()}
+onClick={(e: MouseEvent) => e.stopPropagation()}
+                >
+                  <Typography variant="body2">
+                    {entity.metadata.title || entity.metadata.name}
+                  </Typography>
+                </Link>
+              </TableCell>
+              <TableCell className={classes.tableCell} align="center">
+                <Typography variant="body2">{namespace}</Typography>
+              </TableCell>
+              <TableCell className={classes.tableCell} align="center">
+                <Chip label={entity.kind} size="small" />
+              </TableCell>
+              <TableCell className={classes.tableCell} align="center">
+                <Typography variant="body2">{owner}</Typography>
+              </TableCell>
+              <TableCell className={classes.tableCell} align="center">
+                <Link
+                  to={`/catalog/${entity.metadata.namespace || 'default'}/${entity.kind.toLowerCase()}/${entity.metadata.name}`}
+                  onClick={(e: MouseEvent) => e.stopPropagation()}
                                 >
                                   <Button
                                     size="small"
@@ -256,10 +256,10 @@ export const FlatGroupedView: React.FC<FlatGroupedViewProps> = ({
                             </TableRow>
                           );
                         })}
-                      </React.Fragment>
+                      </Fragment>
                     );
                   })}
-                </React.Fragment>
+                </Fragment>
               );
             })}
           </TableBody>

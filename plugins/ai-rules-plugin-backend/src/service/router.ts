@@ -2,8 +2,8 @@ import { MiddlewareFactory } from '@backstage/backend-defaults/rootHttpRouter';
 import { LoggerService, DiscoveryService, UrlReaderService } from '@backstage/backend-plugin-api';
 import { Config } from '@backstage/config';
 import { InputError, NotFoundError } from '@backstage/errors';
-import express from 'express';
-import Router from 'express-promise-router';
+import express, { Request, Response } from 'express';
+import promiseRouter from 'express-promise-router';
 import { AiRulesService } from './AiRulesService';
 import { MCPService } from './MCPService';
 import { IgnoreFilesService } from './IgnoreFilesService';
@@ -28,15 +28,15 @@ export async function createRouter(
   const agentConfigsService = new AgentConfigsService({ logger, urlReader });
   const skillsService = new SkillsService({ logger, urlReader });
 
-  const router = new Router();
+  const router = promiseRouter();
   router.use(express.json());
 
-  router.get('/health', (_, response) => {
+  router.get('/health', (_: Request, response: Response) => {
     logger.info('PONG!');
     response.json({ status: 'ok' });
   });
 
-  router.get('/mcp-servers', async (request, response) => {
+  router.get('/mcp-servers', async (request: Request, response: Response) => {
     const { gitUrl } = request.query;
     if (!gitUrl || typeof gitUrl !== 'string') {
       throw new InputError('gitUrl query parameter is required');
@@ -51,7 +51,7 @@ export async function createRouter(
     }
   });
 
-  router.get('/rules', async (request, response) => {
+  router.get('/rules', async (request: Request, response: Response) => {
     const { gitUrl, ruleTypes } = request.query;
     if (!gitUrl || typeof gitUrl !== 'string') {
       throw new InputError('gitUrl query parameter is required');
@@ -69,7 +69,7 @@ export async function createRouter(
     }
   });
 
-  router.get('/ignore-files', async (request, response) => {
+  router.get('/ignore-files', async (request: Request, response: Response) => {
     const { gitUrl } = request.query;
     if (!gitUrl || typeof gitUrl !== 'string') {
       throw new InputError('gitUrl query parameter is required');
@@ -84,7 +84,7 @@ export async function createRouter(
     }
   });
 
-  router.get('/agent-configs', async (request, response) => {
+  router.get('/agent-configs', async (request: Request, response: Response) => {
     const { gitUrl } = request.query;
     if (!gitUrl || typeof gitUrl !== 'string') {
       throw new InputError('gitUrl query parameter is required');
@@ -99,7 +99,7 @@ export async function createRouter(
     }
   });
 
-  router.get('/skills', async (request, response) => {
+  router.get('/skills', async (request: Request, response: Response) => {
     const { gitUrl } = request.query;
     if (!gitUrl || typeof gitUrl !== 'string') {
       throw new InputError('gitUrl query parameter is required');

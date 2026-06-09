@@ -1,3 +1,4 @@
+import { createElement } from 'react';
 import { createPlugin, createComponentExtension } from '@backstage/core-plugin-api';
 import { rootRouteRef } from './routes';
 
@@ -14,7 +15,7 @@ export const AIRulesComponent = aiRulesPlugin.provide(
     name: 'AIRulesComponent',
     component: {
       lazy: () => import('./components/AiRulesComponent/AiRulesComponent').then(m => m.AIRulesComponent)
-        .then(Component => (props: any) => React.createElement(Component, props)),
+        .then(Component => (props: any) => createElement(Component, props)),
     },
   }),
 );
@@ -24,7 +25,7 @@ export const MCPServersComponent = aiRulesPlugin.provide(
     name: 'MCPServersComponent',
     component: {
       lazy: () => import('./components/MCPServersComponent/MCPServersComponent').then(m => m.MCPServersComponent)
-        .then(Component => (props: any) => React.createElement(Component, props)),
+        .then(Component => (props: any) => createElement(Component, props)),
     },
   }),
 );
@@ -34,7 +35,7 @@ export const AiInstructionsComponent = aiRulesPlugin.provide(
     name: 'AiInstructionsComponent',
     component: {
       lazy: () => import('./components/AiInstructionsComponent/AiInstructionsComponent').then(m => m.AiInstructionsComponent)
-        .then(Component => (props: any) => React.createElement(Component, props)),
+        .then(Component => (props: any) => createElement(Component, props)),
     },
   }),
 );
@@ -44,7 +45,7 @@ export const IgnoreFilesComponent = aiRulesPlugin.provide(
     name: 'IgnoreFilesComponent',
     component: {
       lazy: () => import('./components/IgnoreFilesComponent/IgnoreFilesComponent').then(m => m.IgnoreFilesComponent)
-        .then(Component => (props: any) => React.createElement(Component, props)),
+        .then(Component => (props: any) => createElement(Component, props)),
     },
   }),
 );
@@ -54,7 +55,7 @@ export const AgentConfigsComponent = aiRulesPlugin.provide(
     name: 'AgentConfigsComponent',
     component: {
       lazy: () => import('./components/AgentConfigsComponent/AgentConfigsComponent').then(m => m.AgentConfigsComponent)
-        .then(Component => (props: any) => React.createElement(Component, props)),
+        .then(Component => (props: any) => createElement(Component, props)),
     },
   }),
 );
@@ -64,7 +65,7 @@ export const AgentSkillsComponent = aiRulesPlugin.provide(
     name: 'AgentSkillsComponent',
     component: {
       lazy: () => import('./components/AgentSkillsComponent/AgentSkillsComponent').then(m => m.AgentSkillsComponent)
-        .then(Component => (props: any) => React.createElement(Component, props)),
+        .then(Component => (props: any) => createElement(Component, props)),
     },
   }),
 );

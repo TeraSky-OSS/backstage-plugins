@@ -1,4 +1,4 @@
-
+import { Fragment } from 'react';
 import {
   InfoCard,
   Progress,
@@ -257,10 +257,10 @@ export const MCPServersComponent = ({ title = "MCP Servers" }: MCPServersCompone
                             <div className={styles.envContainer}>
                               <div className={styles.envGrid}>
                                 {Object.entries(server.config.env).map(([key, value]) => (
-                                  <React.Fragment key={key}>
+                                  <Fragment key={key}>
                                     <Typography className={styles.envKey}>{key}</Typography>
                                     <Typography className={styles.envValue}>{value}</Typography>
-                                  </React.Fragment>
+                                  </Fragment>
                                 ))}
                               </div>
                             </div>
