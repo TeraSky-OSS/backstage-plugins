@@ -10,7 +10,7 @@ import type { ExtensionDefinition } from '@backstage/frontend-plugin-api';
 import { ThemeBlueprint } from '@backstage/plugin-app-react';
 import LightIcon from '@material-ui/icons/WbSunny';
 import Brightness2Icon from '@material-ui/icons/Brightness2';
-import React from 'react';
+import { createElement } from 'react';
 
 const teraskyLightTheme = createUnifiedTheme({
     ...createBaseThemeOptions({
@@ -354,9 +354,9 @@ export const teraskyThemeDark: ExtensionDefinition = ThemeBlueprint.make({
       id: 'terasky-dark',
       title: 'TeraSky Dark',
       variant: 'dark',
-      icon: React.createElement(Brightness2Icon),
+      icon: createElement(Brightness2Icon),
       Provider: ({ children }) => {
-        return UnifiedThemeProvider({ theme: teraskyDarkTheme, children });
+        return createElement(UnifiedThemeProvider, { theme: teraskyDarkTheme, children });
       },
     } 
   },
@@ -369,9 +369,9 @@ export const teraskyThemeLight: ExtensionDefinition = ThemeBlueprint.make({
       id: 'terasky-light',
       title: 'TeraSky Light',
       variant: 'light',
-      icon: React.createElement(LightIcon),
+      icon: createElement(LightIcon),
       Provider: ({ children }) => {
-        return UnifiedThemeProvider({ theme: teraskyLightTheme, children });
+        return createElement(UnifiedThemeProvider, { theme: teraskyLightTheme, children });
       },
     },
   },

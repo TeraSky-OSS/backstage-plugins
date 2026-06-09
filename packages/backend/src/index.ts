@@ -38,7 +38,7 @@ backend.add(
     if (config.getOptionalBoolean('vcfAutomation.enabled') ?? true) {
       yield import('@terasky/backstage-plugin-vcf-automation-backend');
       yield import('@terasky/backstage-plugin-vcf-automation-ingestor');
-      //yield import('@terasky/backstage-plugin-vcfa-vks-cluster-provider');
+      // yield import('@terasky/backstage-plugin-vcfa-vks-cluster-provider');
     }
     if (config.getOptionalBoolean('vcfOperations.enabled') ?? true) {
       yield import('@terasky/backstage-plugin-vcf-operations-backend');
@@ -107,5 +107,5 @@ backend.add(import('@backstage/plugin-mcp-actions-backend'));
 backend.add(import('@terasky/backstage-plugin-scaffolder-backend-module-spring-initializer'));
 backend.add(import('@terasky/backstage-plugin-spectrocloud-auth-backend'));
 backend.add(import('@terasky/backstage-plugin-vcfsso-auth-backend'));
-//backend.add(import('@terasky/backstage-plugin-module-federation-cdn-backend'));
+// backend.add(import('@terasky/backstage-plugin-module-federation-cdn-backend'));
 backend.start();
