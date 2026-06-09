@@ -1,4 +1,5 @@
 import { createPermission } from '@backstage/plugin-permission-common';
+
 export * from './types';
 
 // Annotation utilities

@@ -342,7 +342,9 @@ const CrossplaneV2ResourceTable = () => {
       return;
     }
     // Recalculate auto-expanded ancestors for current filter
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     const allResourcesFlattened = getAllResourcesFlattened();
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     const filteredResources = allResourcesFlattened.filter(resource => resourceMatchesFilters(resource));
     const autoExpanded = new Set<string>();
     const resourceMap = new Map<string, ResourceTableRow>();
@@ -362,6 +364,7 @@ const CrossplaneV2ResourceTable = () => {
       }
     });
     setAutoExpandedRows(autoExpanded);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
   // --- Use merged expanded rows for rendering if filter is active ---
@@ -379,10 +382,10 @@ const CrossplaneV2ResourceTable = () => {
     if (apiVersion.includes('/')) {
       const [group, _version] = apiVersion.split('/');
       return group;
-    } else {
+    } 
       // For core Kubernetes resources (v1), return 'core' instead of 'v1'
       return apiVersion === 'v1' ? 'core' : apiVersion;
-    }
+    
   };
 
   // Fetch nested managed resources for a given XR
@@ -401,7 +404,7 @@ const CrossplaneV2ResourceTable = () => {
       const kindPlural = pluralize(ref.kind.toLowerCase());
                 // For managed resources, always try namespace first, then cluster-scoped
                 // Even under cluster-scoped XRs, managed resources might be namespaced
-                let mrNamespace = ref.namespace || xrNamespace;
+                const mrNamespace = ref.namespace || xrNamespace;
       try {
         const resourceResponse = await crossplaneApi.getResources({
           clusterName: clusterOfComposite,
@@ -424,7 +427,7 @@ const CrossplaneV2ResourceTable = () => {
         }
 
         // Handle status differently based on resource type
-        let status = {
+        const status = {
           synced: false,
           ready: false,
           conditions: nestedResource.status?.conditions || []
@@ -458,6 +461,7 @@ const CrossplaneV2ResourceTable = () => {
           isLastChild: index === resourceRefs.length - 1
         };
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Error fetching nested resource:', error);
         return null;
       }
@@ -560,7 +564,7 @@ const CrossplaneV2ResourceTable = () => {
               const resourceType = determineResourceType(resource);
               
               // Handle status differently based on resource type
-              let status = {
+              const status = {
                 synced: false,
                 ready: false,
                 conditions: resource.status?.conditions || []
@@ -625,12 +629,14 @@ const CrossplaneV2ResourceTable = () => {
             setNestedResources(nestedResourcesMap);
 
           } catch (error) {
+            // eslint-disable-next-line no-console
             console.error('Error fetching resource graph:', error);
           }
         }
         
         setAllResources(resources);
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Error fetching resources:', error);
       } finally {
         setLoading(false);
@@ -671,11 +677,12 @@ const CrossplaneV2ResourceTable = () => {
         return;
       }
       try {
-        const supportingResources: ExtendedKubernetesObject[] = [];
+        const newSupportingResources: ExtendedKubernetesObject[] = [];
         // Fetch XRD
         const xrdPlural = getAnnotation(annotations, annotationPrefix, 'composite-plural');
         const xrdGroup = getAnnotation(annotations, annotationPrefix, 'composite-group');
         const xrdName = `${xrdPlural}.${xrdGroup}`;
+        // eslint-disable-next-line no-console
         console.log('XRD Info:', { xrdPlural, xrdGroup, xrdName });
         if (xrdName && xrdPlural && xrdGroup) {
           try {
@@ -686,16 +693,19 @@ const CrossplaneV2ResourceTable = () => {
               plural: 'compositeresourcedefinitions',
               name: xrdName,
             });
+            // eslint-disable-next-line no-console
             console.log('XRD Response:', xrdResponse);
             const xrdResource = xrdResponse.resources[0].resource;
-            supportingResources.push(xrdResource);
+            newSupportingResources.push(xrdResource);
           } catch (error) {
+            // eslint-disable-next-line no-console
             console.error('Error fetching XRD:', error);
           }
         }
 
         // Fetch Composition
         const compositionName = getAnnotation(annotations, annotationPrefix, 'composition-name');
+        // eslint-disable-next-line no-console
         console.log('Composition Name:', compositionName);
         if (compositionName) {
           try {
@@ -706,16 +716,19 @@ const CrossplaneV2ResourceTable = () => {
               plural: 'compositions',
               name: compositionName,
             });
+            // eslint-disable-next-line no-console
             console.log('Composition Response:', compositionResponse);
             const compositionResource = compositionResponse.resources[0].resource;
-            supportingResources.push(compositionResource);
+            newSupportingResources.push(compositionResource);
           } catch (error) {
+            // eslint-disable-next-line no-console
             console.error('Error fetching composition:', error);
           }
         }
 
         // Fetch Composition Functions
         const compositionFunctions = getAnnotation(annotations, annotationPrefix, 'composition-functions')?.split(',') || [];
+        // eslint-disable-next-line no-console
         console.log('Composition Functions:', compositionFunctions);
         for (const functionName of compositionFunctions) {
           if (functionName) {
@@ -727,12 +740,14 @@ const CrossplaneV2ResourceTable = () => {
                 plural: 'functions',
                 name: functionName.trim(), // Add trim() to handle any whitespace
               });
+              // eslint-disable-next-line no-console
               console.log(`Function Response for ${functionName}:`, functionResponse);
               const functionResource = functionResponse.resources[0].resource;
-              supportingResources.push(functionResource);
+              newSupportingResources.push(functionResource);
             } catch (error) {
+              // eslint-disable-next-line no-console
               console.error(`Error fetching function ${functionName}:`, error);
-              supportingResources.push({
+              newSupportingResources.push({
                 kind: 'Function',
                 metadata: { name: functionName },
                 status: { conditions: [{ type: 'Error', status: 'Error fetching function' }] },
@@ -746,7 +761,7 @@ const CrossplaneV2ResourceTable = () => {
         const compositeVersion = getAnnotation(annotations, annotationPrefix, 'composite-version');
         const compositeName = getAnnotation(annotations, annotationPrefix, 'composite-name');
         const scope = getAnnotation(annotations, annotationPrefix, 'crossplane-scope');
-        const namespace = entity.metadata.namespace || annotations['namespace'] || 'default';
+        const namespace = entity.metadata.namespace || annotations.namespace || 'default';
         if (compositePlural && compositeGroup && compositeVersion && compositeName) {
           // For supporting resources, we don't need to pass namespace since they're always cluster-scoped
           const compositeResponse = await crossplaneApi.getResources({
@@ -761,11 +776,11 @@ const CrossplaneV2ResourceTable = () => {
           const xrNamespace = (scope === 'Namespaced') ? (compositeResource.metadata?.namespace || namespace) : undefined;
           const uniqueManagedResources = Array.from(new Set(resourceRefs.map((ref: { kind: any; apiVersion: any; }) => `${ref.kind}-${ref.apiVersion}`)))
             .map(key => {
-              const ref = resourceRefs.find((ref: { kind: any; apiVersion: any; }) => `${ref.kind}-${ref.apiVersion}` === key);
-              if (ref && !ref.namespace && scope === 'Namespaced') {
-                return { ...ref, namespace: xrNamespace };
+              const foundRef = resourceRefs.find((refItem: { kind: any; apiVersion: any; }) => `${refItem.kind}-${refItem.apiVersion}` === key);
+              if (foundRef && !foundRef.namespace && scope === 'Namespaced') {
+                return { ...foundRef, namespace: xrNamespace };
               }
-              return ref;
+              return foundRef;
             });
           const providerResourcesSet = new Set();
           const providerResources = await Promise.all(uniqueManagedResources.map(async (ref: any) => {
@@ -779,11 +794,13 @@ const CrossplaneV2ResourceTable = () => {
 
               // Skip core API group resources
               if (!apiGroup || apiGroup === 'v1') {
+                // eslint-disable-next-line no-console
                 console.log(`Skipping provider lookup for core resource ${ref.kind}`);
                 return [];
               }
 
               const kindPlural = pluralize(ref.kind.toLowerCase());
+              // eslint-disable-next-line no-console
               console.log(`Looking up CRD for ${kindPlural}.${apiGroup}`);
 
               // Try to fetch the CRD
@@ -797,26 +814,31 @@ const CrossplaneV2ResourceTable = () => {
                   name: `${kindPlural}.${apiGroup}`,
                 });
                 crd = crdResponse.resources[0].resource;
+                // eslint-disable-next-line no-console
                 console.log('Found CRD:', crd);
               } catch (error) {
+                // eslint-disable-next-line no-console
                 console.log(`No CRD found for ${kindPlural}.${apiGroup}, skipping provider lookup`);
                 return [];
               }
 
               const ownerReferences = crd.metadata?.ownerReferences || [];
               const providerRefs = ownerReferences.filter((ownerRef: { kind: string; }) => ownerRef.kind === 'ProviderRevision');
+              // eslint-disable-next-line no-console
               console.log('Provider Refs:', providerRefs);
 
               const providerPromises = providerRefs.map(async (providerRef: any) => {
                 try {
                   const providerKey = `${providerRef.apiVersion}-${providerRef.name}`;
                   if (providerResourcesSet.has(providerKey)) {
+                    // eslint-disable-next-line no-console
                     console.log(`Provider ${providerRef.name} already processed, skipping`);
                     return null;
                   }
                   providerResourcesSet.add(providerKey);
 
                   // Get provider revision
+                  // eslint-disable-next-line no-console
                   console.log(`Fetching provider revision ${providerRef.name}`);
                   // Get provider revision to verify it exists
                   await crossplaneApi.getResources({
@@ -829,6 +851,7 @@ const CrossplaneV2ResourceTable = () => {
 
                   // Get provider
                   const providerName = providerRef.name.split('-').slice(0, -1).join('-');
+                  // eslint-disable-next-line no-console
                   console.log(`Fetching provider ${providerName}`);
                   const providerResponse = await crossplaneApi.getResources({
                     clusterName: clusterOfComposite,
@@ -840,6 +863,7 @@ const CrossplaneV2ResourceTable = () => {
                   const providerResource = providerResponse.resources[0].resource;
                   return providerResource;
                 } catch (error) {
+                  // eslint-disable-next-line no-console
                   console.error(`Error processing provider ${providerRef.name}:`, error);
                   return null;
                 }
@@ -848,24 +872,29 @@ const CrossplaneV2ResourceTable = () => {
               const providers = await Promise.all(providerPromises);
               return providers.filter(Boolean);
             } catch (error) {
+              // eslint-disable-next-line no-console
               console.error(`Error processing managed resource ${ref.kind}:`, error);
               return [];
             }
           }));
 
           const filteredProviders = providerResources.flat().filter((r): r is ExtendedKubernetesObject => r !== null);
+          // eslint-disable-next-line no-console
           console.log('Filtered Providers:', filteredProviders);
-          supportingResources.push(...filteredProviders);
+          newSupportingResources.push(...filteredProviders);
         }
-        console.log('Final Supporting Resources:', supportingResources);
-        setSupportingResources(supportingResources);
+        // eslint-disable-next-line no-console
+        console.log('Final Supporting Resources:', newSupportingResources);
+        setSupportingResources(newSupportingResources);
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error("Error fetching supporting resources:", error);
       } finally {
         setLoadingSupportingResources(false);
       }
     };
     fetchSupportingResources();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [crossplaneApi, entity, canListAdditional]);
 
   // Utility functions
@@ -890,6 +919,7 @@ const CrossplaneV2ResourceTable = () => {
       });
       setEvents(eventsResponse.events);
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Error fetching events:', error);
       setEvents([]);
     } finally {
@@ -925,6 +955,7 @@ const CrossplaneV2ResourceTable = () => {
         const yamlStr = yaml.dump(removeManagedFields(selectedResource));
         navigator.clipboard.writeText(yamlStr);
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to copy YAML:', error);
       }
     }
@@ -944,6 +975,7 @@ const CrossplaneV2ResourceTable = () => {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to download YAML:', error);
       }
     }
@@ -970,9 +1002,9 @@ const CrossplaneV2ResourceTable = () => {
   const renderStatusBadge = (conditions: any[], conditionType: string) => {
     const { status, condition } = getConditionStatus(conditions, conditionType);
     const isSuccess = status === 'True';
-    const badgeClass = conditionType === 'Synced'
-      ? (isSuccess ? classes.syncedSuccess : classes.syncedError)
-      : (isSuccess ? classes.readySuccess : classes.readyError);
+    const syncedClass = isSuccess ? classes.syncedSuccess : classes.syncedError;
+    const readyClass = isSuccess ? classes.readySuccess : classes.readyError;
+    const badgeClass = conditionType === 'Synced' ? syncedClass : readyClass;
     return (
       <Tooltip classes={{ tooltip: classes.tooltip }} title={
         <Box className={classes.tooltipContent}>
@@ -991,7 +1023,7 @@ const CrossplaneV2ResourceTable = () => {
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'Unknown';
     const date = new Date(dateString);
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+    return `${date.toLocaleDateString()  } ${  date.toLocaleTimeString()}`;
   };
 
   const getRelativeTime = (dateString?: string) => {
@@ -1131,6 +1163,7 @@ const CrossplaneV2ResourceTable = () => {
         allValues.status.add(condition.status);
       });
       
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
       const artifact = getArtifact(resource);
       if (typeof artifact === 'string') {
         allValues.artifact.add(artifact);
@@ -1308,6 +1341,7 @@ const CrossplaneV2ResourceTable = () => {
         );
       const artifactMatch = supportingFilters.artifact.length === 0 || 
         supportingFilters.artifact.some(filter => {
+          // eslint-disable-next-line @typescript-eslint/no-use-before-define
           const artifact = getArtifact(resource);
           if (typeof artifact === 'string') {
             return artifact.toLowerCase().includes(filter.toLowerCase());
@@ -1339,8 +1373,8 @@ const CrossplaneV2ResourceTable = () => {
           </TableCell>
           <TableCell className={classes.tableCell}>
             <Box className={classes.resourceName}>
-              {Array.from({ length: row.level }).map((_, index) => (
-                <div key={index} className={classes.indent} />
+              {Array.from({ length: row.level }).map((_item, levelIndex) => (
+                <div key={levelIndex} className={classes.indent} />
               ))}
               <Box className={classes.resourceNameContent}>
                 {hasNestedResourcesToShow && (
@@ -1364,28 +1398,27 @@ const CrossplaneV2ResourceTable = () => {
           <TableCell className={classes.tableCell}>{row.kind}</TableCell>
           <TableCell className={classes.tableCell}>
             <Box display="flex">
-              {row.type === 'K8s' ? (
-                // For K8s resources, show all conditions
-                row.status.conditions.length > 0 ? (
-                  row.status.conditions.map((condition: any, idx: number) => (
-                    <Tooltip key={idx} classes={{ tooltip: classes.tooltip }} title={
-                      <Box className={classes.tooltipContent}>
-                        <Typography variant="subtitle2" gutterBottom><strong>Condition: {condition.type}</strong></Typography>
-                        <Typography variant="body2">Status: {condition.status}</Typography>
-                        {condition.reason && <Typography variant="body2">Reason: {condition.reason}</Typography>}
-                        {condition.lastTransitionTime && <Typography variant="body2">Last Transition: {new Date(condition.lastTransitionTime).toLocaleString()}</Typography>}
-                        {condition.message && <Typography variant="body2" style={{ wordWrap: 'break-word' }}>Message: {condition.message}</Typography>}
-                      </Box>
-                    } arrow>
-                      <span className={`${classes.statusBadge} ${condition.status === 'True' ? classes.readySuccess : classes.readyError}`}>
-                        {condition.type}
-                      </span>
-                    </Tooltip>
-                  ))
-                ) : (
-                  <span className={`${classes.statusBadge} ${classes.readySuccess}`}>No Conditions</span>
-                )
-              ) : (
+              {row.type === 'K8s' && row.status.conditions.length > 0 && (
+                row.status.conditions.map((condition: any, idx: number) => (
+                  <Tooltip key={idx} classes={{ tooltip: classes.tooltip }} title={
+                    <Box className={classes.tooltipContent}>
+                      <Typography variant="subtitle2" gutterBottom><strong>Condition: {condition.type}</strong></Typography>
+                      <Typography variant="body2">Status: {condition.status}</Typography>
+                      {condition.reason && <Typography variant="body2">Reason: {condition.reason}</Typography>}
+                      {condition.lastTransitionTime && <Typography variant="body2">Last Transition: {new Date(condition.lastTransitionTime).toLocaleString()}</Typography>}
+                      {condition.message && <Typography variant="body2" style={{ wordWrap: 'break-word' }}>Message: {condition.message}</Typography>}
+                    </Box>
+                  } arrow>
+                    <span className={`${classes.statusBadge} ${condition.status === 'True' ? classes.readySuccess : classes.readyError}`}>
+                      {condition.type}
+                    </span>
+                  </Tooltip>
+                ))
+              )}
+              {row.type === 'K8s' && row.status.conditions.length === 0 && (
+                <span className={`${classes.statusBadge} ${classes.readySuccess}`}>No Conditions</span>
+              )}
+              {row.type !== 'K8s' && (
                 // For XR and MR resources, show Synced and Ready
                 <>
                   {renderStatusBadge(row.status.conditions, 'Synced')}
@@ -1589,11 +1622,12 @@ const CrossplaneV2ResourceTable = () => {
       <Card>
         <CardContent>
           <Typography variant="h6" gutterBottom>Resources ({getTotalResourceCount()})</Typography>
-          {loading ? (
+          {loading && (
             <Box display="flex" justifyContent="center" alignItems="center" height="200px">
               <CircularProgress />
             </Box>
-          ) : allResources.length > 0 ? (
+          )}
+          {!loading && allResources.length > 0 && (
             <TableContainer component={Paper} className={classes.tableContainer}>
               <Table className={classes.table} size="small">
                 <TableHead>
@@ -1690,7 +1724,8 @@ const CrossplaneV2ResourceTable = () => {
                 </TableBody>
               </Table>
             </TableContainer>
-          ) : (
+          )}
+          {!loading && allResources.length === 0 && (
             <Typography>No resources found</Typography>
           )}
         </CardContent>
@@ -1826,36 +1861,40 @@ const CrossplaneV2ResourceTable = () => {
             </>
           )}
           {selectedTab === 1 && (
-            loadingEvents ? (
-              <Box display="flex" justifyContent="center" p={3}>
-                <CircularProgress />
-              </Box>
-            ) : events.length > 0 ? (
-              <TableContainer>
-                <Table size="small" className={classes.eventTable}>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Type</TableCell>
-                      <TableCell>Reason</TableCell>
-                      <TableCell>Age</TableCell>
-                      <TableCell>Message</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {events.map((event, index) => (
-                      <TableRow key={index} className={classes.eventRow}>
-                        <TableCell>{getEventTypeChip(event.type)}</TableCell>
-                        <TableCell>{event.reason}</TableCell>
-                        <TableCell>{getRelativeTime(event.lastTimestamp || event.firstTimestamp)}</TableCell>
-                        <TableCell>{event.message}</TableCell>
+            <>
+              {loadingEvents && (
+                <Box display="flex" justifyContent="center" p={3}>
+                  <CircularProgress />
+                </Box>
+              )}
+              {!loadingEvents && events.length > 0 && (
+                <TableContainer>
+                  <Table size="small" className={classes.eventTable}>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Type</TableCell>
+                        <TableCell>Reason</TableCell>
+                        <TableCell>Age</TableCell>
+                        <TableCell>Message</TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            ) : (
-              <Typography align="center" color="textSecondary">No events found for this resource</Typography>
-            )
+                    </TableHead>
+                    <TableBody>
+                      {events.map((event, index) => (
+                        <TableRow key={index} className={classes.eventRow}>
+                          <TableCell>{getEventTypeChip(event.type)}</TableCell>
+                          <TableCell>{event.reason}</TableCell>
+                          <TableCell>{getRelativeTime(event.lastTimestamp || event.firstTimestamp)}</TableCell>
+                          <TableCell>{event.message}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              )}
+              {!loadingEvents && events.length === 0 && (
+                <Typography align="center" color="textSecondary">No events found for this resource</Typography>
+              )}
+            </>
           )}
         </Box>
       </Drawer>

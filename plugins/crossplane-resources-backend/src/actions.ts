@@ -83,24 +83,24 @@ async function getEntityAndCrossplaneInfo(
 
   if (isV2) {
     // Extract V2 (composite) annotations
-    const name = getAnnotation(annotations, annotationPrefix, 'composite-name');
+    const compositeName = getAnnotation(annotations, annotationPrefix, 'composite-name');
     const group = getAnnotation(annotations, annotationPrefix, 'composite-group');
-    const version = getAnnotation(annotations, annotationPrefix, 'composite-version');
+    const compositeVersion = getAnnotation(annotations, annotationPrefix, 'composite-version');
     const plural = getAnnotation(annotations, annotationPrefix, 'composite-plural');
-    const kind = getAnnotation(annotations, annotationPrefix, 'composite-kind');
+    const compositeKind = getAnnotation(annotations, annotationPrefix, 'composite-kind');
     const scope = getAnnotation(annotations, annotationPrefix, 'crossplane-scope') as
       | 'Namespaced'
       | 'Cluster'
       | undefined;
-    const entityNamespace = entity.metadata.namespace || annotations['namespace'] || 'default';
+    const entityNamespace = entity.metadata.namespace || annotations.namespace || 'default';
 
     // Validate required annotations
     const missing: string[] = [];
-    if (!name) missing.push(`${annotationPrefix}/composite-name`);
+    if (!compositeName) missing.push(`${annotationPrefix}/composite-name`);
     if (!group) missing.push(`${annotationPrefix}/composite-group`);
-    if (!version) missing.push(`${annotationPrefix}/composite-version`);
+    if (!compositeVersion) missing.push(`${annotationPrefix}/composite-version`);
     if (!plural) missing.push(`${annotationPrefix}/composite-plural`);
-    if (!kind) missing.push(`${annotationPrefix}/composite-kind`);
+    if (!compositeKind) missing.push(`${annotationPrefix}/composite-kind`);
     if (!scope) missing.push(`${annotationPrefix}/crossplane-scope`);
 
     if (missing.length > 0) {
@@ -109,17 +109,17 @@ async function getEntityAndCrossplaneInfo(
 
     const crossplaneInfo: V2CrossplaneInfo = {
       clusterName,
-      name: name!,
+      name: compositeName!,
       group: group!,
-      version: version!,
+      version: compositeVersion!,
       plural: plural!,
-      kind: kind!,
+      kind: compositeKind!,
       scope: scope!,
       namespace: entityNamespace,
     };
 
     return { entity, crossplaneInfo };
-  } else {
+  } 
     // Extract V1 (claim) annotations
     const claimName = getAnnotation(annotations, annotationPrefix, 'claim-name');
     if (!claimName) {
@@ -131,11 +131,11 @@ async function getEntityAndCrossplaneInfo(
     const crossplaneInfo = {
       clusterName,
       claimName,
-      namespace: entity.metadata.namespace || annotations['namespace'] || 'default',
+      namespace: entity.metadata.namespace || annotations.namespace || 'default',
     };
 
     return { entity, crossplaneInfo };
-  }
+  
 }
 
 export function registerMcpActions(

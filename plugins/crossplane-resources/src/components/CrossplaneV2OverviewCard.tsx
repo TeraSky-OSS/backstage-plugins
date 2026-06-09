@@ -72,6 +72,7 @@ const CrossplaneV2OverviewCard = () => {
             }
         };
         fetchResources();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [crossplaneApi, entity, canShowOverview]);
 
     if (!canShowOverview) {

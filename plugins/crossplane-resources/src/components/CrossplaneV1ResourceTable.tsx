@@ -435,10 +435,10 @@ const CrossplaneV1ResourcesTable = () => {
         if (apiVersion.includes('/')) {
             const [group, _version] = apiVersion.split('/');
             return group;
-        } else {
+        } 
             // For core Kubernetes resources (v1), return 'core' instead of 'v1'
             return apiVersion === 'v1' ? 'core' : apiVersion;
-        }
+        
     };
 
     const fetchNestedResources = async (parentResource: ExtendedKubernetesObject, parentId: string, level: number) => {
@@ -472,7 +472,7 @@ const CrossplaneV1ResourcesTable = () => {
                 }
 
                 // Handle status differently based on resource type
-                let status = {
+                const status = {
                     synced: false,
                     ready: false,
                     conditions: nestedResource.status?.conditions || []
@@ -501,6 +501,7 @@ const CrossplaneV1ResourcesTable = () => {
                     isLastChild: index === resourceRefs.length - 1
                 };
             } catch (error) {
+                // eslint-disable-next-line no-console
                 console.error('Error fetching nested resource:', error);
                 return null;
             }
@@ -570,6 +571,7 @@ const CrossplaneV1ResourcesTable = () => {
             });
             setEvents(eventsResponse.events);
         } catch (error) {
+            // eslint-disable-next-line no-console
             console.error('Error fetching events:', error);
             setEvents([]);
         } finally {
@@ -607,6 +609,7 @@ const CrossplaneV1ResourcesTable = () => {
                 navigator.clipboard.writeText(yamlStr);
                 // You could add a snackbar notification here
             } catch (error) {
+                // eslint-disable-next-line no-console
                 console.error('Failed to copy YAML:', error);
             }
         }
@@ -626,6 +629,7 @@ const CrossplaneV1ResourcesTable = () => {
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
             } catch (error) {
+                // eslint-disable-next-line no-console
                 console.error('Failed to download YAML:', error);
             }
         }
@@ -646,7 +650,7 @@ const CrossplaneV1ResourcesTable = () => {
         }
 
         try {
-            const supportingResources: ExtendedKubernetesObject[] = [];
+            const newSupportingResources: ExtendedKubernetesObject[] = [];
 
             // Fetch XRD
             const xrdPlural = getAnnotation(annotations, annotationPrefix, 'composite-plural');
@@ -662,7 +666,7 @@ const CrossplaneV1ResourcesTable = () => {
                     name: xrdName,
                 });
                 const xrdResource = xrdResponse.resources[0].resource;
-                supportingResources.push(xrdResource);
+                newSupportingResources.push(xrdResource);
             }
 
             // Fetch Composition
@@ -676,7 +680,7 @@ const CrossplaneV1ResourcesTable = () => {
                     name: compositionName,
                 });
                 const compositionResource = compositionResponse.resources[0].resource;
-                supportingResources.push(compositionResource);
+                newSupportingResources.push(compositionResource);
             }
 
             // Fetch Composition Functions
@@ -692,10 +696,11 @@ const CrossplaneV1ResourcesTable = () => {
                             name: functionName,
                         });
                         const functionResource = functionResponse.resources[0].resource;
-                        supportingResources.push(functionResource);
+                        newSupportingResources.push(functionResource);
                     } catch (error) {
+                        // eslint-disable-next-line no-console
                         console.error(`Error fetching function ${functionName}:`, error);
-                        supportingResources.push({
+                        newSupportingResources.push({
                             kind: 'Function',
                             metadata: {
                                 name: functionName,
@@ -739,10 +744,10 @@ const CrossplaneV1ResourcesTable = () => {
                                 plural: 'providerconfigs',
                                 name: configRef.name,
                             });
-                            const config = configResponse.resources[0].resource;
+                            const configResource = configResponse.resources[0].resource;
 
-                            if (config.metadata?.ownerReferences) {
-                                const providerRef = config.metadata.ownerReferences.find((ref: any) => ref.kind === 'Provider');
+                            if (configResource.metadata?.ownerReferences) {
+                                const providerRef = configResource.metadata.ownerReferences.find((ref: any) => ref.kind === 'Provider');
                                 if (providerRef) {
                                     try {
                                         const providerResponse = await crossplaneApi.getResources({
@@ -753,13 +758,15 @@ const CrossplaneV1ResourcesTable = () => {
                                             name: providerRef.name,
                                         });
                                         const provider = providerResponse.resources[0].resource;
-                                        supportingResources.push(provider);
+                                        newSupportingResources.push(provider);
                                     } catch (error) {
+                                        // eslint-disable-next-line no-console
                                         console.error(`Error fetching provider ${providerRef.name}:`, error);
                                     }
                                 }
                             }
                         } catch (error) {
+                            // eslint-disable-next-line no-console
                             console.error(`Error fetching provider config ${configRef.name}:`, error);
                         }
                     }
@@ -792,18 +799,20 @@ const CrossplaneV1ResourcesTable = () => {
                         });
                         crd = crdResponse.resources[0].resource;
                     } catch (error) {
+                        // eslint-disable-next-line no-console
                         console.error(`Error fetching CRD for ${kindPlural}.${apiGroup}:`, error);
                         return [];
                     }
                     
                     if (!crd) {
+                        // eslint-disable-next-line no-console
                         console.warn(`No CRD found for ${kindPlural}.${apiGroup}`);
                         return [];
                     }
 
                     const ownerReferences = crd.metadata?.ownerReferences || [];
                     const providerRefs = ownerReferences.filter((ownerRef: { kind: string; }) => ownerRef.kind === 'ProviderRevision');
-                    const providerResources = await Promise.all(providerRefs.map(async (providerRef: { apiVersion: string; name: string; kind: string }) => {
+                    const providerRefsResources = await Promise.all(providerRefs.map(async (providerRef: { apiVersion: string; name: string; kind: string }) => {
                         const providerKey = `${providerRef.apiVersion}-${providerRef.name}`;
                         if (providerResourcesSet.has(providerKey)) {
                             return null;
@@ -823,6 +832,7 @@ const CrossplaneV1ResourcesTable = () => {
                         const providerResource = providerResponse.resources[0].resource;
                         return providerResource;
                         } catch (error) {
+                            // eslint-disable-next-line no-console
                             console.error(`Error fetching provider ${providerRef.name}:`, error);
                             return {
                                 kind: 'Provider',
@@ -835,13 +845,14 @@ const CrossplaneV1ResourcesTable = () => {
                             };
                         }
                     }));
-                    return providerResources.filter(r => r !== null);
+                    return providerRefsResources.filter(r => r !== null);
                 }));
-                supportingResources.push(...providerResources.flat().filter(r => r !== null));
+                newSupportingResources.push(...providerResources.flat().filter(r => r !== null));
             }
 
-            setSupportingResources(supportingResources);
+            setSupportingResources(newSupportingResources);
         } catch (error) {
+            // eslint-disable-next-line no-console
             console.error("Error fetching supporting resources:", error);
         } finally {
             setLoadingSupportingResources(false);
@@ -922,7 +933,7 @@ const CrossplaneV1ResourcesTable = () => {
                             const resourceType = determineResourceType(resource);
                             
                             // Handle status differently based on resource type
-                            let status = {
+                            const status = {
                                 synced: false,
                                 ready: false,
                                 conditions: resource.status?.conditions || []
@@ -987,12 +998,14 @@ const CrossplaneV1ResourcesTable = () => {
                         setNestedResources(nestedResourcesMap);
 
                     } catch (error) {
+                        // eslint-disable-next-line no-console
                         console.error('Error fetching resource graph:', error);
                     }
                 }
 
                 setAllResources(resources);
             } catch (error) {
+                // eslint-disable-next-line no-console
                 console.error('Error fetching resources:', error);
             } finally {
                 setLoading(false);
@@ -1000,6 +1013,7 @@ const CrossplaneV1ResourcesTable = () => {
         };
 
         fetchAllResources();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [crossplaneApi, entity, canListClaims, canListComposite, canListManaged, enablePermissions]);
 
     // Expand all resources after they are loaded (only on first load)
@@ -1021,6 +1035,7 @@ const CrossplaneV1ResourcesTable = () => {
 
     useEffect(() => {
         fetchSupportingResources();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [crossplaneApi, entity, canListAdditional]);
 
       // --- Add state for auto-expanded rows ---
@@ -1034,7 +1049,9 @@ const CrossplaneV1ResourcesTable = () => {
       return;
     }
         // Recalculate auto-expanded ancestors for current filter
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
         const allResourcesFlattened = getAllResourcesFlattened();
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
         const filteredResources = allResourcesFlattened.filter(resource => resourceMatchesFilters(resource));
         const autoExpanded = new Set<string>();
         const resourceMap = new Map<string, ResourceTableRow>();
@@ -1054,6 +1071,7 @@ const CrossplaneV1ResourcesTable = () => {
             }
         });
         setAutoExpandedRows(autoExpanded);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filters]);
 
     // --- Update handleRowExpand to only update user-expanded rows ---
@@ -1081,9 +1099,9 @@ const CrossplaneV1ResourcesTable = () => {
         const { status, condition } = getConditionStatus(conditions, conditionType);
         const isSuccess = status === 'True';
 
-        const badgeClass = conditionType === 'Synced'
-            ? (isSuccess ? classes.syncedSuccess : classes.syncedError)
-            : (isSuccess ? classes.readySuccess : classes.readyError);
+        const syncedClass = isSuccess ? classes.syncedSuccess : classes.syncedError;
+        const readyClass = isSuccess ? classes.readySuccess : classes.readyError;
+        const badgeClass = conditionType === 'Synced' ? syncedClass : readyClass;
 
         return (
             <Tooltip
@@ -1123,7 +1141,7 @@ const CrossplaneV1ResourcesTable = () => {
     const formatDate = (dateString?: string) => {
         if (!dateString) return 'Unknown';
         const date = new Date(dateString);
-        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+        return `${date.toLocaleDateString()  } ${  date.toLocaleTimeString()}`;
     };
 
     const getRelativeTime = (dateString?: string) => {
@@ -1282,12 +1300,13 @@ const CrossplaneV1ResourcesTable = () => {
                 allValues.status.add(condition.status);
             });
             
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
             const artifact = getArtifact(resource);
             if (typeof artifact === 'string') {
                 allValues.artifact.add(artifact);
             } else if (artifact && typeof artifact === 'object' && artifact.props && artifact.props.href) {
                 // Extract URL from Link element
-                //allValues.artifact.add(artifact.props.href);
+                // allValues.artifact.add(artifact.props.href);
                 // Also add the display text if it's different from the URL
                 if (artifact.props.children && artifact.props.children !== artifact.props.href) {
                     allValues.artifact.add(artifact.props.children);
@@ -1455,6 +1474,7 @@ const CrossplaneV1ResourcesTable = () => {
                 );
             const artifactMatch = supportingFilters.artifact.length === 0 || 
                 supportingFilters.artifact.some(filter => {
+                    // eslint-disable-next-line @typescript-eslint/no-use-before-define
                     const artifact = getArtifact(resource);
                     if (typeof artifact === 'string') {
                         return artifact.toLowerCase().includes(filter.toLowerCase());
@@ -1492,8 +1512,8 @@ const CrossplaneV1ResourcesTable = () => {
                     </TableCell>
                     <TableCell className={classes.tableCell}>
                         <Box className={classes.resourceName}>
-                            {Array.from({ length: row.level }).map((_, index) => (
-                                <div key={index} className={classes.indent} />
+                            {Array.from({ length: row.level }).map((_item, levelIndex) => (
+                                <div key={levelIndex} className={classes.indent} />
                             ))}
                             <Box className={classes.resourceNameContent}>
                                                 {hasNestedResourcesToShow && (
@@ -1520,47 +1540,46 @@ const CrossplaneV1ResourcesTable = () => {
                     </TableCell>
                     <TableCell className={classes.tableCell}>
                         <Box display="flex">
-                            {row.type === 'K8s' ? (
-                                // For K8s resources, show all conditions
-                                row.status.conditions.length > 0 ? (
-                                    row.status.conditions.map((condition: any, idx: number) => (
-                                        <Tooltip
-                                            key={idx}
-                                            classes={{
-                                                tooltip: classes.tooltip,
-                                            }}
-                                            title={
-                                                <Box className={classes.tooltipContent}>
-                                                    <Typography variant="subtitle2" gutterBottom>
-                                                        <strong>Condition: {condition.type}</strong>
+                            {row.type === 'K8s' && row.status.conditions.length > 0 && (
+                                row.status.conditions.map((condition: any, idx: number) => (
+                                    <Tooltip
+                                        key={idx}
+                                        classes={{
+                                            tooltip: classes.tooltip,
+                                        }}
+                                        title={
+                                            <Box className={classes.tooltipContent}>
+                                                <Typography variant="subtitle2" gutterBottom>
+                                                    <strong>Condition: {condition.type}</strong>
+                                                </Typography>
+                                                <Typography variant="body2">Status: {condition.status}</Typography>
+                                                {condition.reason && (
+                                                    <Typography variant="body2">Reason: {condition.reason}</Typography>
+                                                )}
+                                                {condition.lastTransitionTime && (
+                                                    <Typography variant="body2">
+                                                        Last Transition: {new Date(condition.lastTransitionTime).toLocaleString()}
                                                     </Typography>
-                                                    <Typography variant="body2">Status: {condition.status}</Typography>
-                                                    {condition.reason && (
-                                                        <Typography variant="body2">Reason: {condition.reason}</Typography>
-                                                    )}
-                                                    {condition.lastTransitionTime && (
-                                                        <Typography variant="body2">
-                                                            Last Transition: {new Date(condition.lastTransitionTime).toLocaleString()}
-                                                        </Typography>
-                                                    )}
-                                                    {condition.message && (
-                                                        <Typography variant="body2" style={{ wordWrap: 'break-word' }}>
-                                                            Message: {condition.message}
-                                                        </Typography>
-                                                    )}
-                                                </Box>
-                                            }
-                                            arrow
-                                        >
-                                            <span className={`${classes.statusBadge} ${condition.status === 'True' ? classes.readySuccess : classes.readyError}`}>
-                                                {condition.type}
-                                            </span>
-                                        </Tooltip>
-                                    ))
-                                ) : (
-                                    <span className={`${classes.statusBadge} ${classes.readySuccess}`}>No Conditions</span>
-                                )
-                            ) : (
+                                                )}
+                                                {condition.message && (
+                                                    <Typography variant="body2" style={{ wordWrap: 'break-word' }}>
+                                                        Message: {condition.message}
+                                                    </Typography>
+                                                )}
+                                            </Box>
+                                        }
+                                        arrow
+                                    >
+                                        <span className={`${classes.statusBadge} ${condition.status === 'True' ? classes.readySuccess : classes.readyError}`}>
+                                            {condition.type}
+                                        </span>
+                                    </Tooltip>
+                                ))
+                            )}
+                            {row.type === 'K8s' && row.status.conditions.length === 0 && (
+                                <span className={`${classes.statusBadge} ${classes.readySuccess}`}>No Conditions</span>
+                            )}
+                            {row.type !== 'K8s' && (
                                 // For XR and MR resources, show Synced and Ready
                                 <>
                                     {renderStatusBadge(row.status.conditions, 'Synced')}
@@ -1807,11 +1826,12 @@ const CrossplaneV1ResourcesTable = () => {
                         Resources ({getTotalResourceCount()})
                     </Typography>
 
-                    {loading ? (
+                    {loading && (
                         <Box display="flex" justifyContent="center" alignItems="center" height="200px">
                             <CircularProgress />
                         </Box>
-                    ) : allResources.length > 0 ? (
+                    )}
+                    {!loading && allResources.length > 0 && (
                         <TableContainer component={Paper} className={classes.tableContainer}>
                             <Table className={classes.table} size="small">
                                 <TableHead>
@@ -1896,7 +1916,8 @@ const CrossplaneV1ResourcesTable = () => {
                                 </TableBody>
                             </Table>
                         </TableContainer>
-                    ) : (
+                    )}
+                    {!loading && allResources.length === 0 && (
                         <Typography>No resources found</Typography>
                     )}
                 </CardContent>
@@ -2027,38 +2048,42 @@ const CrossplaneV1ResourcesTable = () => {
                     )}
 
                     {selectedTab === 1 && (
-                        loadingEvents ? (
-                            <Box display="flex" justifyContent="center" p={3}>
-                                <CircularProgress />
-                            </Box>
-                        ) : events.length > 0 ? (
-                            <TableContainer>
-                                <Table size="small" className={classes.eventTable}>
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell>Type</TableCell>
-                                            <TableCell>Reason</TableCell>
-                                            <TableCell>Age</TableCell>
-                                            <TableCell>Message</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {events.map((event, index) => (
-                                            <TableRow key={index} className={classes.eventRow}>
-                                                <TableCell>{getEventTypeChip(event.type)}</TableCell>
-                                                <TableCell>{event.reason}</TableCell>
-                                                <TableCell>{getRelativeTime(event.lastTimestamp || event.firstTimestamp)}</TableCell>
-                                                <TableCell>{event.message}</TableCell>
+                        <>
+                            {loadingEvents && (
+                                <Box display="flex" justifyContent="center" p={3}>
+                                    <CircularProgress />
+                                </Box>
+                            )}
+                            {!loadingEvents && events.length > 0 && (
+                                <TableContainer>
+                                    <Table size="small" className={classes.eventTable}>
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell>Type</TableCell>
+                                                <TableCell>Reason</TableCell>
+                                                <TableCell>Age</TableCell>
+                                                <TableCell>Message</TableCell>
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                        ) : (
-                            <Typography align="center" color="textSecondary">
-                                No events found for this resource
-                            </Typography>
-                        )
+                                        </TableHead>
+                                        <TableBody>
+                                            {events.map((event, index) => (
+                                                <TableRow key={index} className={classes.eventRow}>
+                                                    <TableCell>{getEventTypeChip(event.type)}</TableCell>
+                                                    <TableCell>{event.reason}</TableCell>
+                                                    <TableCell>{getRelativeTime(event.lastTimestamp || event.firstTimestamp)}</TableCell>
+                                                    <TableCell>{event.message}</TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
+                            )}
+                            {!loadingEvents && events.length === 0 && (
+                                <Typography align="center" color="textSecondary">
+                                    No events found for this resource
+                                </Typography>
+                            )}
+                        </>
                     )}
                 </Box>
             </Drawer>

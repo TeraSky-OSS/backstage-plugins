@@ -51,9 +51,9 @@ export class KubernetesService {
     if (apiVersion.includes('/')) {
       const [group] = apiVersion.split('/');
       return group;
-    } else {
+    } 
       return apiVersion === 'v1' ? 'core' : apiVersion;
-    }
+    
   }
 
   async getResources(request: GetResourcesRequest): Promise<CrossplaneResourceListResponse> {
@@ -128,14 +128,14 @@ export class KubernetesService {
         // Check both status.compositeResourceRef (newer Crossplane) and spec.resourceRef (older Crossplane)
         const compositeRef = resource.status?.compositeResourceRef || resource.spec?.resourceRef;
         if (compositeRef) {
-          const { name, apiVersion, kind } = compositeRef;
-          const [group, version] = apiVersion.split('/');
-          const pluralKind = pluralize(kind.toLowerCase());
+          const { name: compositeRefName, apiVersion: compositeRefApiVersion, kind: compositeRefKind } = compositeRef;
+          const [compositeRefGroup, compositeRefVersion] = compositeRefApiVersion.split('/');
+          const compositeRefPluralKind = pluralize(compositeRefKind.toLowerCase());
 
           try {
             const composite = await this.proxyKubernetesRequest(
               clusterName,
-              `/apis/${group}/${version}/${pluralKind}/${name}`,
+              `/apis/${compositeRefGroup}/${compositeRefVersion}/${compositeRefPluralKind}/${compositeRefName}`,
             );
             this.logger.info('Composite resource fetched:', composite);
             resources.push({
@@ -159,20 +159,20 @@ export class KubernetesService {
             const resourceRefs = composite.status?.resourceRefs || composite.spec?.resourceRefs;
             if (resourceRefs) {
               for (const ref of resourceRefs) {
-                const { name, apiVersion, kind, namespace: refNamespace } = ref;
-                this.logger.info('Processing managed resource ref:', { name, apiVersion, kind, namespace: refNamespace });
+                const { name: mrName, apiVersion: mrApiVersion, kind: mrKind, namespace: refNamespace } = ref;
+                this.logger.info('Processing managed resource ref:', { name: mrName, apiVersion: mrApiVersion, kind: mrKind, namespace: refNamespace });
                 
-                let group: string;
-                let version: string;
-                if (apiVersion.includes('/')) {
-                  [group, version] = apiVersion.split('/');
+                let mrGroup: string;
+                let mrVersion: string;
+                if (mrApiVersion.includes('/')) {
+                  [mrGroup, mrVersion] = mrApiVersion.split('/');
                 } else {
-                  group = '';
-                  version = apiVersion;
+                  mrGroup = '';
+                  mrVersion = mrApiVersion;
                 }
-                this.logger.info('Parsed API version:', { group, version });
+                this.logger.info('Parsed API version:', { group: mrGroup, version: mrVersion });
 
-                const pluralKind = pluralize(kind.toLowerCase());
+                const mrPluralKind = pluralize(mrKind.toLowerCase());
                 const targetNamespace = refNamespace || namespace;
 
                 try {
@@ -180,32 +180,32 @@ export class KubernetesService {
                   let managed;
                   try {
                     // Handle core API group resources (like Service, Pod, etc.)
-                    if (!group && version === 'v1') {
-                      this.logger.info(`Trying core API group namespaced resource: /api/v1/namespaces/${targetNamespace}/${pluralKind}/${name}`);
+                    if (!mrGroup && mrVersion === 'v1') {
+                      this.logger.info(`Trying core API group namespaced resource: /api/v1/namespaces/${targetNamespace}/${mrPluralKind}/${mrName}`);
                       managed = await this.proxyKubernetesRequest(
                         clusterName,
-                        `/api/v1/namespaces/${targetNamespace}/${pluralKind}/${name}`,
+                        `/api/v1/namespaces/${targetNamespace}/${mrPluralKind}/${mrName}`,
                       );
                     } else {
-                      this.logger.info(`Trying namespaced managed resource: /apis/${group}/${version}/namespaces/${targetNamespace}/${pluralKind}/${name}`);
+                      this.logger.info(`Trying namespaced managed resource: /apis/${mrGroup}/${mrVersion}/namespaces/${targetNamespace}/${mrPluralKind}/${mrName}`);
                       managed = await this.proxyKubernetesRequest(
                         clusterName,
-                        `/apis/${group}/${version}/namespaces/${targetNamespace}/${pluralKind}/${name}`,
+                        `/apis/${mrGroup}/${mrVersion}/namespaces/${targetNamespace}/${mrPluralKind}/${mrName}`,
                       );
                     }
                   } catch (error) {
                     // If not found in namespace, try cluster-scoped
-                    if (!group && version === 'v1') {
-                      this.logger.info(`Trying core API group cluster-scoped resource: /api/v1/${pluralKind}/${name}`);
+                    if (!mrGroup && mrVersion === 'v1') {
+                      this.logger.info(`Trying core API group cluster-scoped resource: /api/v1/${mrPluralKind}/${mrName}`);
                       managed = await this.proxyKubernetesRequest(
                         clusterName,
-                        `/api/v1/${pluralKind}/${name}`,
+                        `/api/v1/${mrPluralKind}/${mrName}`,
                       );
                     } else {
-                      this.logger.info(`Trying cluster-scoped managed resource: /apis/${group}/${version}/${pluralKind}/${name}`);
+                      this.logger.info(`Trying cluster-scoped managed resource: /apis/${mrGroup}/${mrVersion}/${mrPluralKind}/${mrName}`);
                       managed = await this.proxyKubernetesRequest(
                         clusterName,
-                        `/apis/${group}/${version}/${pluralKind}/${name}`,
+                        `/apis/${mrGroup}/${mrVersion}/${mrPluralKind}/${mrName}`,
                       );
                     }
                   }
@@ -227,7 +227,7 @@ export class KubernetesService {
                     parentId: composite.metadata?.uid || `${composite.kind}-${composite.metadata?.name}`
                   });
                 } catch (error) {
-                  this.logger.error(`Failed to fetch managed resource ${name}: ${error}`);
+                  this.logger.error(`Failed to fetch managed resource ${mrName}: ${error}`);
                 }
               }
             }
@@ -287,15 +287,15 @@ export class KubernetesService {
       const compositeRef = claim.status?.compositeResourceRef || claim.spec?.resourceRef;
       this.logger.info('Found composite ref:', compositeRef);
       if (compositeRef) {
-        const { name, apiVersion, kind } = compositeRef;
-        const [group, version] = apiVersion.split('/');
-        const pluralKind = pluralize(kind.toLowerCase());
+        const { name: compName, apiVersion: compApiVersion, kind: compKind } = compositeRef;
+        const [compGroup, compVersion] = compApiVersion.split('/');
+        const compPluralKind = pluralize(compKind.toLowerCase());
 
         // Composite resources are cluster-scoped, so we don't include namespace in the path
-        this.logger.info(`Fetching composite resource: /apis/${group}/${version}/${pluralKind}/${name}`);
+        this.logger.info(`Fetching composite resource: /apis/${compGroup}/${compVersion}/${compPluralKind}/${compName}`);
         const composite = await this.proxyKubernetesRequest(
           clusterName,
-          `/apis/${group}/${version}/${pluralKind}/${name}`,
+          `/apis/${compGroup}/${compVersion}/${compPluralKind}/${compName}`,
         );
         this.logger.info('Composite resource fetched:', composite);
         resources.push(composite);
@@ -305,52 +305,52 @@ export class KubernetesService {
         this.logger.info('Found resource refs:', resourceRefs);
         if (resourceRefs) {
           for (const ref of resourceRefs) {
-            const { name, apiVersion, kind } = ref;
-            this.logger.info('Processing managed resource ref:', { name, apiVersion, kind });
+            const { name: mrName, apiVersion: mrApiVersion, kind: mrKind } = ref;
+            this.logger.info('Processing managed resource ref:', { name: mrName, apiVersion: mrApiVersion, kind: mrKind });
             
-            let group: string;
-            let version: string;
-            if (apiVersion.includes('/')) {
-              [group, version] = apiVersion.split('/');
+            let mrGroup: string;
+            let mrVersion: string;
+            if (mrApiVersion.includes('/')) {
+              [mrGroup, mrVersion] = mrApiVersion.split('/');
             } else {
-              group = '';
-              version = apiVersion;
+              mrGroup = '';
+              mrVersion = mrApiVersion;
             }
-            this.logger.info('Parsed API version:', { group, version });
+            this.logger.info('Parsed API version:', { group: mrGroup, version: mrVersion });
 
-            const pluralKind = pluralize(kind.toLowerCase());
+            const mrPluralKind = pluralize(mrKind.toLowerCase());
 
             try {
               // Try namespaced first, if it fails try cluster-scoped
               let managed;
               try {
               // Handle core API group resources (like Service, Pod, etc.)
-              if (!group && version === 'v1') {
-                this.logger.info(`Trying core API group namespaced resource: /api/v1/namespaces/${namespace}/${pluralKind}/${name}`);
+              if (!mrGroup && mrVersion === 'v1') {
+                this.logger.info(`Trying core API group namespaced resource: /api/v1/namespaces/${namespace}/${mrPluralKind}/${mrName}`);
                 managed = await this.proxyKubernetesRequest(
                   clusterName,
-                  `/api/v1/namespaces/${namespace}/${pluralKind}/${name}`,
+                  `/api/v1/namespaces/${namespace}/${mrPluralKind}/${mrName}`,
                 );
               } else {
-                this.logger.info(`Trying namespaced managed resource: /apis/${group}/${version}/namespaces/${namespace}/${pluralKind}/${name}`);
+                this.logger.info(`Trying namespaced managed resource: /apis/${mrGroup}/${mrVersion}/namespaces/${namespace}/${mrPluralKind}/${mrName}`);
                 managed = await this.proxyKubernetesRequest(
                   clusterName,
-                  `/apis/${group}/${version}/namespaces/${namespace}/${pluralKind}/${name}`,
+                  `/apis/${mrGroup}/${mrVersion}/namespaces/${namespace}/${mrPluralKind}/${mrName}`,
                 );
               }
               } catch (error) {
                 // If not found in namespace, try cluster-scoped
-                if (!group && version === 'v1') {
-                  this.logger.info(`Trying core API group cluster-scoped resource: /api/v1/${pluralKind}/${name}`);
+                if (!mrGroup && mrVersion === 'v1') {
+                  this.logger.info(`Trying core API group cluster-scoped resource: /api/v1/${mrPluralKind}/${mrName}`);
                   managed = await this.proxyKubernetesRequest(
                     clusterName,
-                    `/api/v1/${pluralKind}/${name}`,
+                    `/api/v1/${mrPluralKind}/${mrName}`,
                   );
                 } else {
-                  this.logger.info(`Trying cluster-scoped managed resource: /apis/${group}/${version}/${pluralKind}/${name}`);
+                  this.logger.info(`Trying cluster-scoped managed resource: /apis/${mrGroup}/${mrVersion}/${mrPluralKind}/${mrName}`);
                   managed = await this.proxyKubernetesRequest(
                     clusterName,
-                    `/apis/${group}/${version}/${pluralKind}/${name}`,
+                    `/apis/${mrGroup}/${mrVersion}/${mrPluralKind}/${mrName}`,
                   );
                 }
               }
@@ -391,7 +391,7 @@ export class KubernetesService {
                 resources.push(syntheticResource);
               }
             } catch (error) {
-              this.logger.error(`Failed to fetch managed resource ${name}: ${error}`);
+              this.logger.error(`Failed to fetch managed resource ${mrName}: ${error}`);
             }
           }
         }
@@ -434,20 +434,20 @@ export class KubernetesService {
       this.logger.info('Found resource refs:', resourceRefs);
       if (resourceRefs) {
         for (const ref of resourceRefs) {
-          const { name, apiVersion, kind, namespace: refNamespace } = ref;
-          this.logger.info('Processing managed resource ref:', { name, apiVersion, kind, namespace: refNamespace });
+          const { name: mrName, apiVersion: mrApiVersion, kind: mrKind, namespace: refNamespace } = ref;
+          this.logger.info('Processing managed resource ref:', { name: mrName, apiVersion: mrApiVersion, kind: mrKind, namespace: refNamespace });
             
-          let group: string;
-          let version: string;
-          if (apiVersion.includes('/')) {
-            [group, version] = apiVersion.split('/');
+          let mrGroup: string;
+          let mrVersion: string;
+          if (mrApiVersion.includes('/')) {
+            [mrGroup, mrVersion] = mrApiVersion.split('/');
           } else {
-            group = '';
-            version = apiVersion;
+            mrGroup = '';
+            mrVersion = mrApiVersion;
           }
-          this.logger.info('Parsed API version:', { group, version });
+          this.logger.info('Parsed API version:', { group: mrGroup, version: mrVersion });
 
-          const pluralKind = pluralize(kind.toLowerCase());
+          const mrPluralKind = pluralize(mrKind.toLowerCase());
 
           try {
             // Try namespaced first, if it fails try cluster-scoped
@@ -455,32 +455,32 @@ export class KubernetesService {
             try {
               // Handle core API group resources (like Service, Pod, etc.)
               const mrNamespace = refNamespace || namespace;
-              if (!group && version === 'v1') {
-                this.logger.info(`Trying core API group namespaced resource: /api/v1/namespaces/${mrNamespace}/${pluralKind}/${name}`);
+              if (!mrGroup && mrVersion === 'v1') {
+                this.logger.info(`Trying core API group namespaced resource: /api/v1/namespaces/${mrNamespace}/${mrPluralKind}/${mrName}`);
                 managed = await this.proxyKubernetesRequest(
                   clusterName,
-                  `/api/v1/namespaces/${mrNamespace}/${pluralKind}/${name}`,
+                  `/api/v1/namespaces/${mrNamespace}/${mrPluralKind}/${mrName}`,
                 );
               } else {
-                this.logger.info(`Trying namespaced managed resource: /apis/${group}/${version}/namespaces/${mrNamespace}/${pluralKind}/${name}`);
+                this.logger.info(`Trying namespaced managed resource: /apis/${mrGroup}/${mrVersion}/namespaces/${mrNamespace}/${mrPluralKind}/${mrName}`);
                 managed = await this.proxyKubernetesRequest(
                   clusterName,
-                  `/apis/${group}/${version}/namespaces/${mrNamespace}/${pluralKind}/${name}`,
+                  `/apis/${mrGroup}/${mrVersion}/namespaces/${mrNamespace}/${mrPluralKind}/${mrName}`,
                 );
               }
             } catch (error) {
               // If not found in namespace, try cluster-scoped
-              if (!group && version === 'v1') {
-                this.logger.info(`Trying core API group cluster-scoped resource: /api/v1/${pluralKind}/${name}`);
+              if (!mrGroup && mrVersion === 'v1') {
+                this.logger.info(`Trying core API group cluster-scoped resource: /api/v1/${mrPluralKind}/${mrName}`);
                 managed = await this.proxyKubernetesRequest(
                   clusterName,
-                  `/api/v1/${pluralKind}/${name}`,
+                  `/api/v1/${mrPluralKind}/${mrName}`,
                 );
               } else {
-                this.logger.info(`Trying cluster-scoped managed resource: /apis/${group}/${version}/${pluralKind}/${name}`);
+                this.logger.info(`Trying cluster-scoped managed resource: /apis/${mrGroup}/${mrVersion}/${mrPluralKind}/${mrName}`);
                 managed = await this.proxyKubernetesRequest(
                   clusterName,
-                  `/apis/${group}/${version}/${pluralKind}/${name}`,
+                  `/apis/${mrGroup}/${mrVersion}/${mrPluralKind}/${mrName}`,
                 );
               }
             }
@@ -526,20 +526,20 @@ export class KubernetesService {
             this.logger.info('Found nested resource refs:', nestedRefs);
             if (nestedRefs) {
               for (const nestedRef of nestedRefs) {
-                const { name, apiVersion, kind, namespace: nestedNamespace } = nestedRef;
-                this.logger.info('Processing nested managed resource ref:', { name, apiVersion, kind, namespace: nestedNamespace });
+                const { name: nestedMrName, apiVersion: nestedMrApiVersion, kind: nestedMrKind, namespace: nestedNamespace } = nestedRef;
+                this.logger.info('Processing nested managed resource ref:', { name: nestedMrName, apiVersion: nestedMrApiVersion, kind: nestedMrKind, namespace: nestedNamespace });
             
-                let group: string;
-                let version: string;
-                if (apiVersion.includes('/')) {
-                  [group, version] = apiVersion.split('/');
+                let nestedMrGroup: string;
+                let nestedMrVersion: string;
+                if (nestedMrApiVersion.includes('/')) {
+                  [nestedMrGroup, nestedMrVersion] = nestedMrApiVersion.split('/');
                 } else {
-                  group = '';
-                  version = apiVersion;
+                  nestedMrGroup = '';
+                  nestedMrVersion = nestedMrApiVersion;
                 }
-                this.logger.info('Parsed API version:', { group, version });
+                this.logger.info('Parsed API version:', { group: nestedMrGroup, version: nestedMrVersion });
 
-                const pluralKind = pluralize(kind.toLowerCase());
+                const nestedMrPluralKind = pluralize(nestedMrKind.toLowerCase());
 
                 try {
                   // Try namespaced first, if it fails try cluster-scoped
@@ -547,32 +547,32 @@ export class KubernetesService {
                   try {
                     // Handle core API group resources (like Service, Pod, etc.)
                     const mrNamespace = nestedNamespace || namespace;
-                    if (!group || group === 'v1' || version === 'v1') {
-                      this.logger.info(`Trying core API group namespaced resource: /api/v1/namespaces/${mrNamespace}/${pluralKind}/${name}`);
+                    if (!nestedMrGroup || nestedMrGroup === 'v1' || nestedMrVersion === 'v1') {
+                      this.logger.info(`Trying core API group namespaced resource: /api/v1/namespaces/${mrNamespace}/${nestedMrPluralKind}/${nestedMrName}`);
                       nestedManaged = await this.proxyKubernetesRequest(
                         clusterName,
-                        `/api/v1/namespaces/${mrNamespace}/${pluralKind}/${name}`,
+                        `/api/v1/namespaces/${mrNamespace}/${nestedMrPluralKind}/${nestedMrName}`,
                       );
                     } else {
-                      this.logger.info(`Trying namespaced nested managed resource: /apis/${group}/${version}/namespaces/${mrNamespace}/${pluralKind}/${name}`);
+                      this.logger.info(`Trying namespaced nested managed resource: /apis/${nestedMrGroup}/${nestedMrVersion}/namespaces/${mrNamespace}/${nestedMrPluralKind}/${nestedMrName}`);
                       nestedManaged = await this.proxyKubernetesRequest(
                         clusterName,
-                        `/apis/${group}/${version}/namespaces/${mrNamespace}/${pluralKind}/${name}`,
+                        `/apis/${nestedMrGroup}/${nestedMrVersion}/namespaces/${mrNamespace}/${nestedMrPluralKind}/${nestedMrName}`,
                       );
                     }
                   } catch (error) {
                     // If not found in namespace, try cluster-scoped
-                    if (!group || group === 'v1' || version === 'v1') {
-                      this.logger.info(`Trying core API group cluster-scoped resource: /api/v1/${pluralKind}/${name}`);
+                    if (!nestedMrGroup || nestedMrGroup === 'v1' || nestedMrVersion === 'v1') {
+                      this.logger.info(`Trying core API group cluster-scoped resource: /api/v1/${nestedMrPluralKind}/${nestedMrName}`);
                       nestedManaged = await this.proxyKubernetesRequest(
                         clusterName,
-                        `/api/v1/${pluralKind}/${name}`,
+                        `/api/v1/${nestedMrPluralKind}/${nestedMrName}`,
                       );
                     } else {
-                      this.logger.info(`Trying cluster-scoped nested managed resource: /apis/${group}/${version}/${pluralKind}/${name}`);
+                      this.logger.info(`Trying cluster-scoped nested managed resource: /apis/${nestedMrGroup}/${nestedMrVersion}/${nestedMrPluralKind}/${nestedMrName}`);
                       nestedManaged = await this.proxyKubernetesRequest(
                         clusterName,
-                        `/apis/${group}/${version}/${pluralKind}/${name}`,
+                        `/apis/${nestedMrGroup}/${nestedMrVersion}/${nestedMrPluralKind}/${nestedMrName}`,
                       );
                     }
                   }
@@ -611,12 +611,12 @@ export class KubernetesService {
                     resources.push(syntheticResource);
                   }
                 } catch (error) {
-                  this.logger.error(`Failed to fetch nested managed resource ${name}: ${error}`);
+                  this.logger.error(`Failed to fetch nested managed resource ${nestedMrName}: ${error}`);
                 }
               }
             }
           } catch (error) {
-            this.logger.error(`Failed to fetch managed resource ${name}: ${error}`);
+            this.logger.error(`Failed to fetch managed resource ${mrName}: ${error}`);
           }
         }
       }

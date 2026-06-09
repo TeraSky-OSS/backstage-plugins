@@ -184,7 +184,7 @@ const CustomNode = ({ data }: { data: any }) => {
     // Truncate text with ellipsis if too long
     const truncateText = (text: string, maxLength: number = 20) => {
         if (text.length <= maxLength) return text;
-        return text.substring(0, maxLength - 3) + '...';
+        return `${text.substring(0, maxLength - 3)  }...`;
     };
 
     // Define badge colors based on category and theme
@@ -416,6 +416,8 @@ const CustomNode = ({ data }: { data: any }) => {
                     />
                     {/* Collapse/Expand button */}
                     <div
+                        role="button"
+                        tabIndex={0}
                         style={{
                             position: 'absolute',
                             right: -28,
@@ -440,6 +442,12 @@ const CustomNode = ({ data }: { data: any }) => {
                         onClick={(e) => {
                             e.stopPropagation();
                             data.onToggle(data.nodeId);
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.stopPropagation();
+                                data.onToggle(data.nodeId);
+                            }
                         }}
                     >
                         {data.isCollapsed ? '+' : '-'}
@@ -606,7 +614,7 @@ const CrossplaneV2ResourceGraph = () => {
         };
 
         // Create nodes
-        const nodes = resourceList.map(resource => {
+        const graphNodes = resourceList.map(resource => {
             const status = (resource as any).status;
             const conditions = status?.conditions || [];
             const isSynced = conditions.some((condition: any) => condition.type === 'Synced' && condition.status === 'True');
@@ -672,7 +680,7 @@ const CrossplaneV2ResourceGraph = () => {
         });
 
         // Filter visible nodes
-        const visibleNodes = nodes.filter(node => !hiddenNodes.has(node.id));
+        const visibleNodes = graphNodes.filter(node => !hiddenNodes.has(node.id));
 
         // Get all visible node IDs for quick lookup
         const visibleNodeIds = new Set(visibleNodes.map(n => n.id));
@@ -761,6 +769,7 @@ const CrossplaneV2ResourceGraph = () => {
         if (resources.length > 0) {
             generateGraphElements(resources);
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [collapsedNodes, resources, hoveredNode]);
 
     useEffect(() => {
@@ -802,6 +811,7 @@ const CrossplaneV2ResourceGraph = () => {
                 setResources(response.resources);
                 generateGraphElements(response.resources);
             } catch (error) {
+                // eslint-disable-next-line no-console
                 console.error('Failed to fetch resources:', error);
                 setResources([]);
                 setNodes([]);
@@ -812,6 +822,7 @@ const CrossplaneV2ResourceGraph = () => {
         };
 
         fetchResources();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [crossplaneApi, entity, canShowResourceGraph]);
 
     const handleGetEvents = async (resource: KubernetesObject) => {
@@ -820,6 +831,7 @@ const CrossplaneV2ResourceGraph = () => {
         const clusterOfClaim = entity.metadata.annotations?.['backstage.io/managed-by-location'].split(": ")[1];
 
         if (!namespace || !name || !clusterOfClaim) {
+            // eslint-disable-next-line no-console
             console.warn('Missing required data for fetching events:', { namespace, name, clusterOfClaim });
             return;
         }
@@ -834,6 +846,7 @@ const CrossplaneV2ResourceGraph = () => {
             });
             setEvents(response.events);
         } catch (error) {
+            // eslint-disable-next-line no-console
             console.error('Failed to fetch events:', error);
             setEvents([]);
         } finally {
@@ -999,38 +1012,42 @@ const CrossplaneV2ResourceGraph = () => {
                     )}
 
                     {selectedTab === 1 && (
-                        loadingEvents ? (
-                            <Box display="flex" justifyContent="center" p={3}>
-                                <CircularProgress />
-                            </Box>
-                        ) : events.length > 0 ? (
-                            <TableContainer>
-                                <Table size="small" className={classes.eventTable}>
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell>Type</TableCell>
-                                            <TableCell>Reason</TableCell>
-                                            <TableCell>Age</TableCell>
-                                            <TableCell>Message</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {events.map((event, index) => (
-                                            <TableRow key={index} className={classes.eventRow}>
-                                                <TableCell>{getEventTypeChip(event.type)}</TableCell>
-                                                <TableCell>{event.reason}</TableCell>
-                                                <TableCell>{getRelativeTime(event.lastTimestamp || event.firstTimestamp)}</TableCell>
-                                                <TableCell>{event.message}</TableCell>
+                        <>
+                            {loadingEvents && (
+                                <Box display="flex" justifyContent="center" p={3}>
+                                    <CircularProgress />
+                                </Box>
+                            )}
+                            {!loadingEvents && events.length > 0 && (
+                                <TableContainer>
+                                    <Table size="small" className={classes.eventTable}>
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell>Type</TableCell>
+                                                <TableCell>Reason</TableCell>
+                                                <TableCell>Age</TableCell>
+                                                <TableCell>Message</TableCell>
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                        ) : (
-                            <Typography align="center" color="textSecondary">
-                                No events found for this resource
-                            </Typography>
-                        )
+                                        </TableHead>
+                                        <TableBody>
+                                            {events.map((event, index) => (
+                                                <TableRow key={index} className={classes.eventRow}>
+                                                    <TableCell>{getEventTypeChip(event.type)}</TableCell>
+                                                    <TableCell>{event.reason}</TableCell>
+                                                    <TableCell>{getRelativeTime(event.lastTimestamp || event.firstTimestamp)}</TableCell>
+                                                    <TableCell>{event.message}</TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
+                            )}
+                            {!loadingEvents && events.length === 0 && (
+                                <Typography align="center" color="textSecondary">
+                                    No events found for this resource
+                                </Typography>
+                            )}
+                        </>
                     )}
                 </Box>
             </Drawer>

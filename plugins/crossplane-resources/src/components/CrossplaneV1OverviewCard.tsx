@@ -100,6 +100,7 @@ const CrossplaneOverviewCard = () => {
         };
 
         fetchResources();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [crossplaneApi, entity, canShowOverview]);
 
     if (!canShowOverview) {
@@ -148,7 +149,7 @@ const CrossplaneOverviewCard = () => {
                             <Grid item xs={12} sm={6}>
                                 <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray', width: '350px' }}>Synced</Typography>
                                 <Tooltip
-                                    //placement="left-start"
+                                    // placement="left-start"
                                     classes={{ tooltip: classes.customWidth }}
                                     title={renderConditionTooltip(claim.status?.conditions?.find((condition: any) => condition.type === 'Synced') || {})}
                                 >
@@ -164,7 +165,7 @@ const CrossplaneOverviewCard = () => {
                             <Grid item xs={12} sm={6}>
                                 <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray' }}>Ready</Typography>
                                 <Tooltip
-                                    //placement="left-start"
+                                    // placement="left-start"
                                     classes={{ tooltip: classes.customWidth }}
                                     title={renderConditionTooltip(claim.status?.conditions?.find((condition: any) => condition.type === 'Ready') || {})}
                                 >
