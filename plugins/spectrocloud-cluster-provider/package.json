@@ -43,10 +43,12 @@
     "node-fetch": "^2.7.0"
   },
   "devDependencies": {
+    "@backstage/backend-test-utils": "^1.11.3",
     "@backstage/cli": "^0.36.2",
     "@types/js-yaml": "^4.0.5",
     "@types/luxon": "^3.3.0",
-    "@types/node-fetch": "^2.6.11"
+    "@types/node-fetch": "^2.6.11",
+    "msw": "^2.12.4"
   },
   "files": [
     "dist",

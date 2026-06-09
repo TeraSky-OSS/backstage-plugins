@@ -42,6 +42,8 @@
     "dist"
   ],
   "dependencies": {
+    "@backstage/catalog-model": "^1.9.0",
+    "@backstage/plugin-kubernetes": "^0.12.19",
     "@backstage/plugin-permission-common": "^0.9.9"
   }
 }
