@@ -21,13 +21,13 @@ kubernetesIngestor:
   # namespaceModel: 'cluster' # cluster, namespace, default
   # nameModel: 'name-cluster' # name-cluster, name-namespace, name
   # titleModel: 'name' # name, name-cluster, name-namespace
-  # systemModel: 'cluster-namespace' # cluster, namespace, cluster-namespace, default
+  # systemModel: 'cluster-namespace' # cluster, namespace, cluster-namespace, default, none
   # referencesNamespaceModel: 'default' # default, same
   mappings:
     namespaceModel: 'cluster' # cluster, namespace, default
     nameModel: 'name-cluster' # name-cluster, name-namespace, name-kind, name, uid
     titleModel: 'name' # name, name-cluster, name-namespace
-    systemModel: 'namespace' # cluster, namespace, cluster-namespace, default
+    systemModel: 'namespace' # cluster, namespace, cluster-namespace, default, none
     referencesNamespaceModel: 'default' # default, same
   # Default owner for ingested entities when no owner annotation is set
   defaultOwner: 'kubernetes-auto-ingested'
@@ -838,6 +838,7 @@ Defines system mapping:
 - `namespace`: Use namespace name  
 - `cluster-namespace`: Combine both  
 - `default`: Use default system  
+- `none`: Do not assign a system unless the resource explicitly provides one via the `terasky.backstage.io/system` annotation. When a resource does not set that annotation, it is ingested without a `spec.system` and no `System` entity is auto-created for it.  
 
 ## Ownership
 

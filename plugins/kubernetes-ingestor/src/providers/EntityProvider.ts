@@ -2910,6 +2910,8 @@ export class KubernetesEntityProvider implements EntityProvider {
       } else {
         systemNameValue = `${normalizedClusterName}`;
       }
+    } else if (systemNameModel === 'none') {
+      systemNameValue = '';
     } else {
       systemNameValue = 'default';
     }
@@ -2998,7 +3000,9 @@ export class KubernetesEntityProvider implements EntityProvider {
       this.getDefaultOwner(),
     );
 
-    const systemEntity: Entity = {
+    // With systemModel "none" we never auto-create a System entity; the
+    // component is only linked to an explicitly provided system, if any.
+    const systemEntity: Entity | undefined = systemNameModel === 'none' ? undefined : {
       apiVersion: 'backstage.io/v1alpha1',
       kind: 'System',
       metadata: {
@@ -3032,7 +3036,8 @@ export class KubernetesEntityProvider implements EntityProvider {
       systemReferencesNamespaceValue,
       this.getDefaultOwner(),
     );
-    const componentSystem = annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`;
+    const componentSystem = annotations[`${prefix}/system`]
+      || (systemNameModel === 'none' ? undefined : `${systemReferencesNamespaceValue}/${systemNameValue}`);
 
     // Try to fetch API definition from annotations
     let apiEntity: Entity | undefined;
@@ -3099,7 +3104,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         type: annotations[`${prefix}/component-type`] || resource.workloadType || 'service',
         lifecycle: annotations[`${prefix}/lifecycle`] || 'production',
         owner: componentOwner,
-        system: annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`,
+        ...(componentSystem ? { system: componentSystem } : {}),
         dependsOn: splitAnnotationValues(annotations[`${prefix}/dependsOn`]),
         ...(entityKind === 'Component' ? {
           providesApis: providesApis,
@@ -3112,7 +3117,7 @@ export class KubernetesEntityProvider implements EntityProvider {
     };
 
     const entities: Entity[] = [];
-    if (this.validateEntityName(systemEntity)) {
+    if (systemEntity && this.validateEntityName(systemEntity)) {
       entities.push(systemEntity);
     }
     if (this.validateEntityName(componentEntity)) {
@@ -3198,6 +3203,8 @@ export class KubernetesEntityProvider implements EntityProvider {
       } else {
         systemNameValue = `${normalizedClusterName}`;
       }
+    } else if (systemNameModel === 'none') {
+      systemNameValue = '';
     } else {
       systemNameValue = 'default';
     }
@@ -3246,7 +3253,8 @@ export class KubernetesEntityProvider implements EntityProvider {
       systemReferencesNamespaceValue,
       this.getDefaultOwner(),
     );
-    const componentSystem = annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`;
+    const componentSystem = annotations[`${prefix}/system`]
+      || (systemNameModel === 'none' ? undefined : `${systemReferencesNamespaceValue}/${systemNameValue}`);
 
     // Try to fetch API definition from annotations
     let apiEntity: Entity | undefined;
@@ -3306,7 +3314,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         type: annotations[`${prefix}/component-type`] || claim.workloadType || 'crossplane-claim',
         lifecycle: annotations[`${prefix}/lifecycle`] || 'production',
         owner: componentOwner,
-        system: annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`,
+        ...(componentSystem ? { system: componentSystem } : {}),
         dependsOn: splitAnnotationValues(annotations[`${prefix}/dependsOn`]),
         ...(entityKind === 'Component' ? {
           providesApis: providesApis,
@@ -3397,6 +3405,8 @@ export class KubernetesEntityProvider implements EntityProvider {
       } else {
         systemNameValue = `${normalizedClusterName}`;
       }
+    } else if (systemNameModel === 'none') {
+      systemNameValue = '';
     } else {
       systemNameValue = 'default';
     }
@@ -3445,7 +3455,8 @@ export class KubernetesEntityProvider implements EntityProvider {
       systemReferencesNamespaceValue,
       this.getDefaultOwner(),
     );
-    const componentSystem = annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`;
+    const componentSystem = annotations[`${prefix}/system`]
+      || (systemNameModel === 'none' ? undefined : `${systemReferencesNamespaceValue}/${systemNameValue}`);
 
     // Try to fetch API definition from annotations
     let apiEntity: Entity | undefined;
@@ -3504,7 +3515,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         type: annotations[`${prefix}/component-type`] || instance.workloadType || 'kro-instance',
         lifecycle: annotations[`${prefix}/lifecycle`] || 'production',
         owner: componentOwner,
-        system: annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`,
+        ...(componentSystem ? { system: componentSystem } : {}),
         dependsOn: splitAnnotationValues(annotations[`${prefix}/dependsOn`]),
         ...(entityKind === 'Component' ? {
           providesApis: providesApis,
@@ -3596,6 +3607,8 @@ export class KubernetesEntityProvider implements EntityProvider {
       } else {
         systemNameValue = `${normalizedClusterName}`;
       }
+    } else if (systemNameModel === 'none') {
+      systemNameValue = '';
     } else {
       systemNameValue = 'default';
     }
@@ -3644,7 +3657,8 @@ export class KubernetesEntityProvider implements EntityProvider {
       systemReferencesNamespaceValue,
       this.getDefaultOwner(),
     );
-    const componentSystem = annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`;
+    const componentSystem = annotations[`${prefix}/system`]
+      || (systemNameModel === 'none' ? undefined : `${systemReferencesNamespaceValue}/${systemNameValue}`);
 
     // Try to fetch API definition from annotations
     let apiEntity: Entity | undefined;
@@ -3701,7 +3715,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         type: annotations[`${prefix}/component-type`] || xr.workloadType || 'crossplane-xr',
         lifecycle: annotations[`${prefix}/lifecycle`] || 'production',
         owner: componentOwner,
-        system: annotations[`${prefix}/system`] || `${systemReferencesNamespaceValue}/${systemNameValue}`,
+        ...(componentSystem ? { system: componentSystem } : {}),
         dependsOn: splitAnnotationValues(annotations[`${prefix}/dependsOn`]),
         ...(entityKind === 'Component' ? {
           providesApis: providesApis,
@@ -3912,7 +3926,7 @@ export class KubernetesEntityProvider implements EntityProvider {
     clusterName: string,
     definition: string,
     owner: string,
-    system: string,
+    system: string | undefined,
     useTextReference: boolean = false,
   ): Entity | undefined {
     try {
@@ -3942,7 +3956,7 @@ export class KubernetesEntityProvider implements EntityProvider {
           type: 'openapi',
           lifecycle: 'production',
           owner: owner,
-          system: system,
+          ...(system ? { system } : {}),
           definition: definitionValue,
         },
       };
@@ -3977,7 +3991,7 @@ export class KubernetesEntityProvider implements EntityProvider {
     clusterName: string,
     defaultNamespace: string,
     owner: string,
-    system: string,
+    system: string | undefined,
   ): Promise<{ entity: Entity; ref: string } | null> {
     try {
       const result = await this.apiDefinitionFetcher.fetchApiFromAnnotations(
