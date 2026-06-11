@@ -4,8 +4,6 @@ import {
   ApiBlueprint,
   discoveryApiRef,
   fetchApiRef,
-  type ExtensionDefinition,
-  type FrontendPlugin,
 } from '@backstage/frontend-plugin-api';
 import { catalogApiRef } from '@backstage/plugin-catalog-react';
 import { EntityCardBlueprint } from '@backstage/plugin-catalog-react/alpha';
@@ -14,7 +12,7 @@ import { rootRouteRef, editTemplateRouteRef } from './routes';
 import { templateBuilderApiRef, DefaultTemplateBuilderApi } from './api';
 import './index.css'; // Global styles for Monaco widgets - MUST load first!
 
-export const templateBuilderApi: ExtensionDefinition = ApiBlueprint.make({
+export const templateBuilderApi = ApiBlueprint.make({
   params: defineParams =>
     defineParams({
       api: templateBuilderApiRef,
@@ -28,7 +26,7 @@ export const templateBuilderApi: ExtensionDefinition = ApiBlueprint.make({
     }),
 });
 
-export const templateBuilderPage: ExtensionDefinition = PageBlueprint.make({
+export const templateBuilderPage = PageBlueprint.make({
   name: 'template-builder-page',
   params: {
     path: '/template-builder',
@@ -40,8 +38,7 @@ export const templateBuilderPage: ExtensionDefinition = PageBlueprint.make({
   },
 });
 
-export const templateBuilderEditPage: ExtensionDefinition =
-  PageBlueprint.make({
+export const templateBuilderEditPage = PageBlueprint.make({
   name: 'template-builder-edit-page',
   params: {
     title: 'Template Builder',
@@ -55,18 +52,18 @@ export const templateBuilderEditPage: ExtensionDefinition =
   },
 });
 
-
-export const templateEditorEntityCard: ExtensionDefinition =
-  EntityCardBlueprint.make({
+export const templateEditorEntityCard = EntityCardBlueprint.make({
   name: 'template-editor',
   params: {
     filter: 'kind:template',
     loader: () =>
-      import('./components/TemplateEditorCard').then(m => <m.TemplateEditorCard />),
+      import('./components/TemplateEditorCard').then(m => (
+        <m.TemplateEditorCard />
+      )),
   },
 });
 
-export const templateBuilderPlugin: FrontendPlugin = createFrontendPlugin({
+export const templateBuilderPlugin = createFrontendPlugin({
   pluginId: 'template-builder',
   extensions: [
     templateBuilderApi,
