@@ -3,8 +3,6 @@ import {
   createFrontendPlugin,
   discoveryApiRef,
   fetchApiRef,
-  type ExtensionDefinition,
-  type FrontendPlugin,
 } from '@backstage/frontend-plugin-api';
 import {
   EntityCardBlueprint,
@@ -30,49 +28,44 @@ const isCrossplaneAvailable = (entity: Entity) => {
 };
 
 /** @alpha */
-export const kyvernoOverviewCard: ExtensionDefinition =
-  EntityCardBlueprint.make({
-    name: 'kyverno.overview',
-    params: {
-      filter: isNonCrossplaneButKyvernoAvailable,
-      loader: () =>
-        import('./components/KyvernoOverviewCard').then(m => <m.default />),
-    },
-    disabled: false,
-  });
+export const kyvernoOverviewCard = EntityCardBlueprint.make({
+  name: 'kyverno.overview',
+  params: {
+    filter: isNonCrossplaneButKyvernoAvailable,
+    loader: () =>
+      import('./components/KyvernoOverviewCard').then(m => <m.default />),
+  },
+  disabled: false,
+});
 
 /** @alpha */
-export const kyvernoCrossplaneOverviewCard: ExtensionDefinition =
-  EntityCardBlueprint.make({
-    name: 'kyverno.crossplane-overview',
-    params: {
-      filter: isCrossplaneAvailable,
-      loader: () =>
-        import('./components/KyvernoCrossplaneOverviewCard').then(m => (
-          <m.default />
-        )),
-    },
-    disabled: false,
-  });
+export const kyvernoCrossplaneOverviewCard = EntityCardBlueprint.make({
+  name: 'kyverno.crossplane-overview',
+  params: {
+    filter: isCrossplaneAvailable,
+    loader: () =>
+      import('./components/KyvernoCrossplaneOverviewCard').then(m => (
+        <m.default />
+      )),
+  },
+  disabled: false,
+});
 
 /** @alpha */
-export const kyvernoPolicyReportsContent: ExtensionDefinition =
-  EntityContentBlueprint.make({
-    name: 'kyverno.reports',
-    params: {
-      path: '/kyverno-policy-reports',
-      title: 'Kyverno Policy Reports',
-      filter: isNonCrossplaneButKyvernoAvailable,
-      loader: () =>
-        import('./components/KyvernoPolicyReportsTable').then(m => (
-          <m.default />
-        )),
-    },
-    disabled: false,
-  });
+export const kyvernoPolicyReportsContent = EntityContentBlueprint.make({
+  name: 'kyverno.reports',
+  params: {
+    path: '/kyverno-policy-reports',
+    title: 'Kyverno Policy Reports',
+    filter: isNonCrossplaneButKyvernoAvailable,
+    loader: () =>
+      import('./components/KyvernoPolicyReportsTable').then(m => <m.default />),
+  },
+  disabled: false,
+});
 
 /** @alpha */
-export const kyvernoCrossplanePolicyReportsContent: ExtensionDefinition =
+export const kyvernoCrossplanePolicyReportsContent =
   EntityContentBlueprint.make({
     name: 'kyverno.crossplane-reports',
     params: {
@@ -88,7 +81,7 @@ export const kyvernoCrossplanePolicyReportsContent: ExtensionDefinition =
   });
 
 /** @alpha */
-export const kyvernoApi: ExtensionDefinition = ApiBlueprint.make({
+export const kyvernoApi = ApiBlueprint.make({
   name: 'kyvernoApi',
   params: defineParams =>
     defineParams({
@@ -103,7 +96,7 @@ export const kyvernoApi: ExtensionDefinition = ApiBlueprint.make({
 });
 
 /** @alpha */
-export const kyvernoPolicyReportsPlugin: FrontendPlugin = createFrontendPlugin({
+export const kyvernoPolicyReportsPlugin = createFrontendPlugin({
   pluginId: 'kyverno-policy-reports',
   extensions: [
     kyvernoOverviewCard,

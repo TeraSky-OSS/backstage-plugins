@@ -5,8 +5,6 @@ import {
   PageBlueprint,
   discoveryApiRef,
   fetchApiRef,
-  type ExtensionDefinition,
-  type FrontendPlugin,
 } from '@backstage/frontend-plugin-api';
 import {
   EntityCardBlueprint,
@@ -53,7 +51,7 @@ const isSpectroCloudVirtualCluster = (entity: Entity): boolean => {
 };
 
 /** @alpha */
-export const spectroCloudApi: ExtensionDefinition = ApiBlueprint.make({
+export const spectroCloudApi = ApiBlueprint.make({
   params: defineParams =>
     defineParams({
       api: spectroCloudApiRef,
@@ -72,144 +70,135 @@ export const spectroCloudApi: ExtensionDefinition = ApiBlueprint.make({
 });
 
 /** @alpha */
-export const spectroCloudClusterCard: ExtensionDefinition =
-  EntityCardBlueprint.make({
-    name: 'spectrocloud.cluster-overview',
-    params: {
-      filter: isSpectroCloudCluster,
-      loader: () =>
-        import('./components/SpectroCloudClusterCard').then(m => (
-          <m.SpectroCloudClusterCard />
-        )),
-    },
-    disabled: false,
-  });
+export const spectroCloudClusterCard = EntityCardBlueprint.make({
+  name: 'spectrocloud.cluster-overview',
+  params: {
+    filter: isSpectroCloudCluster,
+    loader: () =>
+      import('./components/SpectroCloudClusterCard').then(m => (
+        <m.SpectroCloudClusterCard />
+      )),
+  },
+  disabled: false,
+});
 
 /** @alpha */
-export const spectroCloudClusterProfileCard: ExtensionDefinition =
-  EntityCardBlueprint.make({
-    name: 'spectrocloud.cluster-profile-overview',
-    params: {
-      filter: isSpectroCloudClusterProfile,
-      loader: () =>
-        import('./components/SpectroCloudClusterProfileCard').then(m => (
-          <m.SpectroCloudClusterProfileCard />
-        )),
-    },
-    disabled: false,
-  });
+export const spectroCloudClusterProfileCard = EntityCardBlueprint.make({
+  name: 'spectrocloud.cluster-profile-overview',
+  params: {
+    filter: isSpectroCloudClusterProfile,
+    loader: () =>
+      import('./components/SpectroCloudClusterProfileCard').then(m => (
+        <m.SpectroCloudClusterProfileCard />
+      )),
+  },
+  disabled: false,
+});
 
 /** @alpha */
-export const spectroCloudClusterGroupCard: ExtensionDefinition =
-  EntityCardBlueprint.make({
-    name: 'spectrocloud.cluster-group-overview',
-    params: {
-      filter: isSpectroCloudClusterGroup,
-      loader: () =>
-        import('./components/SpectroCloudClusterGroupCard').then(m => (
-          <m.SpectroCloudClusterGroupCard />
-        )),
-    },
-    disabled: false,
-  });
+export const spectroCloudClusterGroupCard = EntityCardBlueprint.make({
+  name: 'spectrocloud.cluster-group-overview',
+  params: {
+    filter: isSpectroCloudClusterGroup,
+    loader: () =>
+      import('./components/SpectroCloudClusterGroupCard').then(m => (
+        <m.SpectroCloudClusterGroupCard />
+      )),
+  },
+  disabled: false,
+});
 
 /** @alpha */
-export const spectroCloudVirtualClusterCard: ExtensionDefinition =
-  EntityCardBlueprint.make({
-    name: 'spectrocloud.virtual-cluster-overview',
-    params: {
-      filter: isSpectroCloudVirtualCluster,
-      loader: () =>
-        import('./components/SpectroCloudVirtualClusterCard').then(m => (
-          <m.SpectroCloudVirtualClusterCard />
-        )),
-    },
-    disabled: false,
-  });
+export const spectroCloudVirtualClusterCard = EntityCardBlueprint.make({
+  name: 'spectrocloud.virtual-cluster-overview',
+  params: {
+    filter: isSpectroCloudVirtualCluster,
+    loader: () =>
+      import('./components/SpectroCloudVirtualClusterCard').then(m => (
+        <m.SpectroCloudVirtualClusterCard />
+      )),
+  },
+  disabled: false,
+});
 
 /** @alpha */
-export const spectroCloudKubernetesResourcesTab: ExtensionDefinition =
-  EntityContentBlueprint.make({
-    name: 'spectrocloud.kubernetes-resources',
-    params: {
-      filter: isSpectroCloudCluster,
-      path: '/kubernetes-resources',
-      title: 'Kubernetes Resources',
-      loader: () =>
-        import('./components/KubernetesResources').then(m => (
-          <m.KubernetesResourcesPage />
-        )),
-    },
-    disabled: false,
-  });
+export const spectroCloudKubernetesResourcesTab = EntityContentBlueprint.make({
+  name: 'spectrocloud.kubernetes-resources',
+  params: {
+    filter: isSpectroCloudCluster,
+    path: '/kubernetes-resources',
+    title: 'Kubernetes Resources',
+    loader: () =>
+      import('./components/KubernetesResources').then(m => (
+        <m.KubernetesResourcesPage />
+      )),
+  },
+  disabled: false,
+});
 
 /** @alpha */
-export const spectroCloudClusterGroupSettingsTab: ExtensionDefinition =
-  EntityContentBlueprint.make({
-    name: 'spectrocloud.cluster-group-settings',
-    params: {
-      filter: isSpectroCloudClusterGroup,
-      path: '/cluster-group-settings',
-      title: 'Settings',
-      loader: () =>
-        import('./components/ClusterGroupSettings').then(m => (
-          <m.ClusterGroupSettingsTab />
-        )),
-    },
-    disabled: false,
-  });
+export const spectroCloudClusterGroupSettingsTab = EntityContentBlueprint.make({
+  name: 'spectrocloud.cluster-group-settings',
+  params: {
+    filter: isSpectroCloudClusterGroup,
+    path: '/cluster-group-settings',
+    title: 'Settings',
+    loader: () =>
+      import('./components/ClusterGroupSettings').then(m => (
+        <m.ClusterGroupSettingsTab />
+      )),
+  },
+  disabled: false,
+});
 
 /** @alpha */
-export const spectroCloudClusterDeploymentPage: ExtensionDefinition =
-  PageBlueprint.make({
-    name: 'spectrocloud.cluster-deployment',
-    params: {
-      title: 'Deploy Cluster',
-      icon: <AddCircleIcon />,
-      path: '/spectrocloud/deploy',
-      routeRef: clusterDeploymentRouteRef,
-      loader: () =>
-        import('./components/ClusterDeployment').then(m => (
-          <m.ClusterDeploymentPage />
-        )),
-    },
-    disabled: false,
-  });
+export const spectroCloudClusterDeploymentPage = PageBlueprint.make({
+  name: 'spectrocloud.cluster-deployment',
+  params: {
+    title: 'Deploy Cluster',
+    icon: <AddCircleIcon />,
+    path: '/spectrocloud/deploy',
+    routeRef: clusterDeploymentRouteRef,
+    loader: () =>
+      import('./components/ClusterDeployment').then(m => (
+        <m.ClusterDeploymentPage />
+      )),
+  },
+  disabled: false,
+});
 
 /** @alpha */
-export const spectroCloudClusterViewerPage: ExtensionDefinition =
-  PageBlueprint.make({
-    name: 'spectrocloud.cluster-viewer',
-    params: {
-      title: 'View Clusters',
-      icon: <SiKubernetes />,
-      path: '/spectrocloud/clusters',
-      routeRef: clusterViewerRouteRef,
-      loader: () =>
-        import('./components/ClusterViewer').then(m => <m.ClusterViewerPage />),
-    },
-    disabled: false,
-  });
+export const spectroCloudClusterViewerPage = PageBlueprint.make({
+  name: 'spectrocloud.cluster-viewer',
+  params: {
+    title: 'View Clusters',
+    icon: <SiKubernetes />,
+    path: '/spectrocloud/clusters',
+    routeRef: clusterViewerRouteRef,
+    loader: () =>
+      import('./components/ClusterViewer').then(m => <m.ClusterViewerPage />),
+  },
+  disabled: false,
+});
 
 /** @alpha */
-export const spectroCloudVirtualClusterViewerPage: ExtensionDefinition =
-  PageBlueprint.make({
-    name: 'spectrocloud.virtual-cluster-viewer',
-    params: {
-      title: 'View Virtual Clusters',
-      icon: <SiKubernetes />,
-      path: '/spectrocloud/virtualclusters',
-      routeRef: virtualClusterViewerRouteRef,
-      loader: () =>
-        import('./components/VirtualClusterViewer').then(m => (
-          <m.VirtualClusterViewerPage />
-        )),
-    },
-    disabled: false,
-  });
+export const spectroCloudVirtualClusterViewerPage = PageBlueprint.make({
+  name: 'spectrocloud.virtual-cluster-viewer',
+  params: {
+    title: 'View Virtual Clusters',
+    icon: <SiKubernetes />,
+    path: '/spectrocloud/virtualclusters',
+    routeRef: virtualClusterViewerRouteRef,
+    loader: () =>
+      import('./components/VirtualClusterViewer').then(m => (
+        <m.VirtualClusterViewerPage />
+      )),
+  },
+  disabled: false,
+});
 
 /** @alpha */
-export const spectroCloudPlugin: FrontendPlugin = createFrontendPlugin({
+export const spectroCloudPlugin = createFrontendPlugin({
   pluginId: 'spectrocloud',
   extensions: [
     spectroCloudApi,

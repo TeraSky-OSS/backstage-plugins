@@ -6,7 +6,6 @@ import {
   shapes,
   UnifiedThemeProvider,
 } from '@backstage/theme';
-import type { ExtensionDefinition } from '@backstage/frontend-plugin-api';
 import { ThemeBlueprint } from '@backstage/plugin-app-react';
 import LightIcon from '@material-ui/icons/WbSunny';
 import Brightness2Icon from '@material-ui/icons/Brightness2';
@@ -346,7 +345,7 @@ const teraskyDarkTheme = createUnifiedTheme({
   },
 });
 
-export const teraskyThemeDark: ExtensionDefinition = ThemeBlueprint.make({
+export const teraskyThemeDark = ThemeBlueprint.make({
   name: 'terasky-dark-theme',
   params: {
     theme: {
@@ -364,7 +363,7 @@ export const teraskyThemeDark: ExtensionDefinition = ThemeBlueprint.make({
   },
 });
 
-export const teraskyThemeLight: ExtensionDefinition = ThemeBlueprint.make({
+export const teraskyThemeLight = ThemeBlueprint.make({
   name: 'terasky-light-theme',
   params: {
     theme: {

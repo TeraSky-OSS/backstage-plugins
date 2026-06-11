@@ -1,8 +1,4 @@
-import {
-  createFrontendPlugin,
-  type ExtensionDefinition,
-  type FrontendPlugin,
-} from '@backstage/frontend-plugin-api';
+import { createFrontendPlugin } from '@backstage/frontend-plugin-api';
 import {
   EntityCardBlueprint,
   EntityContentBlueprint,
@@ -16,7 +12,7 @@ const isScaleopsAvailable = (entity: Entity) => {
 };
 
 /** @alpha */
-export const scaleopsCard: ExtensionDefinition = EntityCardBlueprint.make({
+export const scaleopsCard = EntityCardBlueprint.make({
   name: 'scaleops.overview',
   params: {
     filter: isScaleopsAvailable,
@@ -27,24 +23,22 @@ export const scaleopsCard: ExtensionDefinition = EntityCardBlueprint.make({
 });
 
 /** @alpha */
-export const scaleopsContent: ExtensionDefinition = EntityContentBlueprint.make(
-  {
-    name: 'scaleops.dashboard',
-    params: {
-      path: '/scaleops',
-      title: 'ScaleOps Dashboard',
-      filter: isScaleopsAvailable,
-      loader: () =>
-        import('./components/ScaleOpsDashboard').then(m => (
-          <m.ScaleOpsDashboard />
-        )),
-    },
-    disabled: false,
+export const scaleopsContent = EntityContentBlueprint.make({
+  name: 'scaleops.dashboard',
+  params: {
+    path: '/scaleops',
+    title: 'ScaleOps Dashboard',
+    filter: isScaleopsAvailable,
+    loader: () =>
+      import('./components/ScaleOpsDashboard').then(m => (
+        <m.ScaleOpsDashboard />
+      )),
   },
-);
+  disabled: false,
+});
 
 /** @alpha */
-export const scaleopsPlugin: FrontendPlugin = createFrontendPlugin({
+export const scaleopsPlugin = createFrontendPlugin({
   pluginId: 'scaleops',
   extensions: [scaleopsCard, scaleopsContent],
 });
