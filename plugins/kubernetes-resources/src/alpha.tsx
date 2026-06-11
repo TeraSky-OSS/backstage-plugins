@@ -9,34 +9,35 @@ import { isKubernetesResourcesAvailable } from './components/isKubernetesResourc
 /** @alpha */
 export const kubernetesResourcesGraphCard: ExtensionDefinition =
   EntityContentBlueprint.make({
-  name: 'kubernetes-resources.graph',
-  params: {
-    path: '/kubernetes-resources-graph',
-    title: 'Resource Graph',
-    group: 'Kubernetes',
-    filter: isKubernetesResourcesAvailable,
-    loader: () => import('./components/KubernetesResourceGraph').then(m => <m.default />),
-  },
-  disabled: false,
-});
+    name: 'kubernetes-resources.graph',
+    params: {
+      path: '/kubernetes-resources-graph',
+      title: 'Resource Graph',
+      group: 'Kubernetes',
+      filter: isKubernetesResourcesAvailable,
+      loader: () =>
+        import('./components/KubernetesResourceGraph').then(m => <m.default />),
+    },
+    disabled: false,
+  });
 
 /** @alpha */
 export const kubernetesResourcesContent: ExtensionDefinition =
   EntityContentBlueprint.make({
-  name: 'kubernetes-resources.content',
-  params: {
-    path: '/kubernetes-resources',
-    title: 'Resource Table',
-    group: 'Kubernetes',
-    filter: isKubernetesResourcesAvailable,
-    loader: () => import('./components/KubernetesResourcesPage').then(m => <m.default />),
-  },
-  disabled: false,
-});
+    name: 'kubernetes-resources.content',
+    params: {
+      path: '/kubernetes-resources',
+      title: 'Resource Table',
+      group: 'Kubernetes',
+      filter: isKubernetesResourcesAvailable,
+      loader: () =>
+        import('./components/KubernetesResourcesPage').then(m => <m.default />),
+    },
+    disabled: false,
+  });
 
 /** @alpha */
-export const kubernetesResourcesPlugin: FrontendPlugin =
-  createFrontendPlugin({
+export const kubernetesResourcesPlugin: FrontendPlugin = createFrontendPlugin({
   pluginId: 'kubernetes-resources',
   extensions: [kubernetesResourcesGraphCard, kubernetesResourcesContent],
 });

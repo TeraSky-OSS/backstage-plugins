@@ -40,8 +40,7 @@ export const templateBuilderPage: ExtensionDefinition = PageBlueprint.make({
   },
 });
 
-export const templateBuilderEditPage: ExtensionDefinition =
-  PageBlueprint.make({
+export const templateBuilderEditPage: ExtensionDefinition = PageBlueprint.make({
   name: 'template-builder-edit-page',
   params: {
     title: 'Template Builder',
@@ -55,16 +54,17 @@ export const templateBuilderEditPage: ExtensionDefinition =
   },
 });
 
-
 export const templateEditorEntityCard: ExtensionDefinition =
   EntityCardBlueprint.make({
-  name: 'template-editor',
-  params: {
-    filter: 'kind:template',
-    loader: () =>
-      import('./components/TemplateEditorCard').then(m => <m.TemplateEditorCard />),
-  },
-});
+    name: 'template-editor',
+    params: {
+      filter: 'kind:template',
+      loader: () =>
+        import('./components/TemplateEditorCard').then(m => (
+          <m.TemplateEditorCard />
+        )),
+    },
+  });
 
 export const templateBuilderPlugin: FrontendPlugin = createFrontendPlugin({
   pluginId: 'template-builder',

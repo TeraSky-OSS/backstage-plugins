@@ -13,11 +13,12 @@ import { catalogApiRef } from '@backstage/plugin-catalog-react';
 
 export const terraformModuleExtension: ExtensionDefinition =
   FormFieldBlueprint.make({
-  name: 'TerraformModule',
-  params: {
-    field: () => import('./components/FormField').then(m => m.terraformFormField),
-  },
-});
+    name: 'TerraformModule',
+    params: {
+      field: () =>
+        import('./components/FormField').then(m => m.terraformFormField),
+    },
+  });
 
 /** @alpha */
 export const terraformModuleApi: ExtensionDefinition = ApiBlueprint.make({
@@ -32,11 +33,10 @@ export const terraformModuleApi: ExtensionDefinition = ApiBlueprint.make({
       factory: ({ configApi, catalogApi, identityApi }) =>
         new TerraformScaffolderClient({ configApi, catalogApi, identityApi }),
     }),
-})
+});
 
 /** @alpha */
-export const terraformScaffolderPlugin: FrontendPlugin =
-  createFrontendPlugin({
+export const terraformScaffolderPlugin: FrontendPlugin = createFrontendPlugin({
   pluginId: 'terraform-scaffolder',
   extensions: [terraformModuleApi, terraformModuleExtension],
 });
