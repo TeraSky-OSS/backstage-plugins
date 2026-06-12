@@ -4471,9 +4471,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/plugin-catalog-backend-module-msgraph@npm:^0.10.1":
-  version: 0.10.1
-  resolution: "@backstage/plugin-catalog-backend-module-msgraph@npm:0.10.1"
+"@backstage/plugin-catalog-backend-module-msgraph@npm:^0.10.2":
+  version: 0.10.2
+  resolution: "@backstage/plugin-catalog-backend-module-msgraph@npm:0.10.2"
   dependencies:
     "@azure/identity": "npm:^4.0.0"
     "@backstage/backend-plugin-api": "npm:^1.9.1"
@@ -4485,7 +4485,7 @@ __metadata:
     lodash: "npm:^4.17.21"
     p-limit: "npm:^3.0.2"
     qs: "npm:^6.9.4"
-  checksum: 10c0/3c9e4dc593e2164755ff3b67ff5bf284db82411ac20cfb1529be27af20893bb4d504854b6c14c8d5b20d0202ce14ff6a6e645725796e471f17065c98d69b65ab
+  checksum: 10c0/82f7d4f2ebf807fe83324b5cabb4a3a8ad7ac8aaf233dd9efb6d67b15d3a8aaa1852def072ec2e9ce25f8c1dc27bc248f4c4f08f9da47fb43ce2d5b2c951b3df
   languageName: node
   linkType: hard
 
@@ -16759,7 +16759,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terasky/backstage-plugin-scaleops-backend@workspace:^, @terasky/backstage-plugin-scaleops-backend@workspace:plugins/scaleops-backend":
+"@terasky/backstage-plugin-scaleops-backend@npm:^1.6.1, @terasky/backstage-plugin-scaleops-backend@workspace:plugins/scaleops-backend":
   version: 0.0.0-use.local
   resolution: "@terasky/backstage-plugin-scaleops-backend@workspace:plugins/scaleops-backend"
   dependencies:
@@ -20473,7 +20473,7 @@ __metadata:
     "@backstage/plugin-catalog-backend": "npm:^3.7.1"
     "@backstage/plugin-catalog-backend-module-ldap": "npm:^0.12.5"
     "@backstage/plugin-catalog-backend-module-logs": "npm:^0.1.22"
-    "@backstage/plugin-catalog-backend-module-msgraph": "npm:^0.10.1"
+    "@backstage/plugin-catalog-backend-module-msgraph": "npm:^0.10.2"
     "@backstage/plugin-catalog-backend-module-scaffolder-entity-model": "npm:^0.2.20"
     "@backstage/plugin-kubernetes-backend": "npm:^0.21.4"
     "@backstage/plugin-mcp-actions-backend": "npm:^0.1.13"
@@ -20507,7 +20507,7 @@ __metadata:
     "@terasky/backstage-plugin-scaffolder-backend-module-spring-initializer": "npm:^0.6.0"
     "@terasky/backstage-plugin-scaffolder-backend-module-terasky-utils": "npm:^2.8.0"
     "@terasky/backstage-plugin-scaffolder-mcp-backend": "npm:^0.10.1"
-    "@terasky/backstage-plugin-scaleops-backend": "workspace:^"
+    "@terasky/backstage-plugin-scaleops-backend": "npm:^1.6.1"
     "@terasky/backstage-plugin-spectrocloud-auth-backend": "npm:^0.7.0"
     "@terasky/backstage-plugin-spectrocloud-backend": "npm:^0.8.1"
     "@terasky/backstage-plugin-spectrocloud-cluster-provider": "npm:^0.11.0"
