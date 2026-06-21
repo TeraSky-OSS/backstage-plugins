@@ -1294,6 +1294,13 @@ export class XRDTemplateEntityProvider implements EntityProvider {
                     description: 'Target Branch for the PR',
                     default: 'main',
                   },
+                  branchPrefix: {
+                    type: 'string',
+                    description: 'Prefix for the PR branch name (e.g. "feature/"). Include the trailing slash.',
+                    default: XRDTemplateEntityProvider.normalizeBranchPrefix(
+                      this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.git.branchPrefix') ?? '',
+                    ),
+                  },
                   ...(!hasTargetPath && {
                     manifestLayout: {
                       type: 'string',
@@ -1426,7 +1433,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
         `    nameParam: xrName\n${ 
         isNamespaced ? '    namespaceParam: xrNamespace\n' : '    namespaceParam: ""\n' 
         }    ownerParam: owner\n` +
-        `    excludeParams: ['crossplane.compositionSelectionStrategy','owner','pushToGit','basePath','manifestLayout','_editData','targetBranch','repoUrl','clusters','xrName','showAdvancedSettings'${  isNamespaced ? ', \'xrNamespace\'' : ''  }]\n` +
+        `    excludeParams: ['crossplane.compositionSelectionStrategy','owner','pushToGit','basePath','manifestLayout','_editData','targetBranch','repoUrl','clusters','xrName','showAdvancedSettings','branchPrefix'${  isNamespaced ? ', \'xrNamespace\'' : ''  }]\n` +
         `    apiVersion: {API_VERSION}\n` +
         `    kind: {KIND}\n${ 
         clustersLine 
@@ -1444,7 +1451,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
         `    nameParam: xrName\n` +
         `    namespaceParam: xrNamespace\n` +
         `    ownerParam: owner\n` +
-        `    excludeParams: ['owner', 'compositionSelectionStrategy','pushToGit','basePath','manifestLayout','_editData', 'targetBranch', 'repoUrl', 'clusters', 'xrName', 'xrNamespace', 'showAdvancedSettings']\n` +
+        `    excludeParams: ['owner', 'compositionSelectionStrategy','pushToGit','basePath','manifestLayout','_editData', 'targetBranch', 'repoUrl', 'clusters', 'xrName', 'xrNamespace', 'showAdvancedSettings', 'branchPrefix']\n` +
         `    apiVersion: {API_VERSION}\n` +
         `    kind: {KIND}\n${ 
         clustersLine 
@@ -1472,6 +1479,9 @@ export class XRDTemplateEntityProvider implements EntityProvider {
     }
     const allowRepoSelection = this.config.getOptionalBoolean('kubernetesIngestor.crossplane.xrds.publishPhase.allowRepoSelection') ?? false;
     const requestUserCredentials = this.config.getOptionalBoolean('kubernetesIngestor.crossplane.xrds.publishPhase.requestUserCredentialsForRepoUrl') ?? false;
+    const branchPrefix = XRDTemplateEntityProvider.normalizeBranchPrefix(
+      this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.git.branchPrefix') ?? '',
+    );
     const userOAuthTokenInput = requestUserCredentials
       ? '    token: ${{ secrets.USER_OAUTH_TOKEN }}\n'
       : '';
@@ -1482,7 +1492,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
       `  if: \${{ parameters.pushToGit }}\n` +
       `  input:\n` +
       `    repoUrl: \${{ parameters.repoUrl }}\n` +
-      `    branchName: create-\${{ parameters.xrName }}-resource\n` +
+      `    branchName: \${{ parameters.branchPrefix }}create-\${{ parameters.xrName }}-resource\n` +
       `    title: Create {KIND} Resource \${{ parameters.xrName }}\n` +
       `    description: Create {KIND} Resource \${{ parameters.xrName }}\n` +
       `    targetBranchName: \${{ parameters.targetBranch }}\n${ 
@@ -1502,7 +1512,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
           `  if: \${{ parameters.pushToGit }}\n` +
           `  input:\n` +
           `    repoUrl: ${this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.git.repoUrl')}\n` +
-          `    branchName: create-\${{ parameters.xrName }}-resource\n` +
+          `    branchName: ${branchPrefix}create-\${{ parameters.xrName }}-resource\n` +
           `    title: Create {KIND} Resource \${{ parameters.xrName }}\n` +
           `    description: Create {KIND} Resource \${{ parameters.xrName }}\n` +
           `    targetBranchName: ${this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.git.targetBranch')}\n${ 
@@ -1544,6 +1554,10 @@ export class XRDTemplateEntityProvider implements EntityProvider {
 
     // Combine default steps with any additional steps
     return [...defaultSteps, ...additionalSteps];
+  }
+
+  private static normalizeBranchPrefix(raw: string): string {
+    return raw && !raw.endsWith('/') ? `${raw}/` : raw;
   }
 
   // Returns true when the template is non-empty and contains no traversal segments ('.' or '..').
@@ -2145,6 +2159,13 @@ export class XRDTemplateEntityProvider implements EntityProvider {
                     description: "Target Branch for the PR",
                     default: "main"
                   },
+                  branchPrefix: {
+                    type: "string",
+                    description: 'Prefix for the PR branch name (e.g. "feature/"). Include the trailing slash.',
+                    default: XRDTemplateEntityProvider.normalizeBranchPrefix(
+                      this.config.getOptionalString('kubernetesIngestor.genericCRDTemplates.publishPhase.git.branchPrefix') ?? '',
+                    ),
+                  },
                   manifestLayout: {
                     type: "string",
                     description: "Layout of the manifest",
@@ -2293,7 +2314,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
       `    parameters: \${{ parameters }}\n` +
       `    nameParam: name\n${ 
       crd.spec.scope === 'Namespaced' ? '    namespaceParam: namespace\n' : '    namespaceParam: ""\n' 
-      }    excludeParams: ['compositionSelectionStrategy','pushToGit','basePath','manifestLayout','_editData', 'targetBranch', 'repoUrl', 'clusters', 'name', 'namespace', 'owner']\n` +
+      }    excludeParams: ['compositionSelectionStrategy','pushToGit','basePath','manifestLayout','_editData', 'targetBranch', 'repoUrl', 'clusters', 'name', 'namespace', 'owner', 'branchPrefix']\n` +
       `    apiVersion: ${crd.spec.group}/${version.name}\n` +
       `    kind: ${crd.spec.names.kind}\n` +
       `    clusters: \${{ parameters.clusters if parameters.manifestLayout === 'cluster-scoped' and parameters.pushToGit else ['temp'] }}\n` +
@@ -2318,6 +2339,9 @@ export class XRDTemplateEntityProvider implements EntityProvider {
     }
     const allowRepoSelection = this.config.getOptionalBoolean('kubernetesIngestor.genericCRDTemplates.publishPhase.allowRepoSelection') ?? false;
     const requestUserCredentials = this.config.getOptionalBoolean('kubernetesIngestor.genericCRDTemplates.publishPhase.requestUserCredentialsForRepoUrl') ?? false;
+    const branchPrefix = XRDTemplateEntityProvider.normalizeBranchPrefix(
+      this.config.getOptionalString('kubernetesIngestor.genericCRDTemplates.publishPhase.git.branchPrefix') ?? '',
+    );
     const userOAuthTokenInput = requestUserCredentials
       ? '    token: ${{ secrets.USER_OAUTH_TOKEN }}\n'
       : '';
@@ -2333,7 +2357,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
           `  if: \${{ parameters.pushToGit }}\n` +
           `  input:\n` +
           `    repoUrl: \${{ parameters.repoUrl }}\n` +
-          `    branchName: create-\${{ parameters.name }}-resource\n` +
+          `    branchName: \${{ parameters.branchPrefix }}create-\${{ parameters.name }}-resource\n` +
           `    title: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}\n` +
           `    description: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}\n` +
           `    targetBranchName: \${{ parameters.targetBranch }}\n${ 
@@ -2346,7 +2370,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
           `  if: \${{ parameters.pushToGit }}\n` +
           `  input:\n` +
           `    repoUrl: ${this.config.getOptionalString('kubernetesIngestor.genericCRDTemplates.publishPhase.git.repoUrl')}\n` +
-          `    branchName: create-\${{ parameters.name }}-resource\n` +
+          `    branchName: ${branchPrefix}create-\${{ parameters.name }}-resource\n` +
           `    title: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}\n` +
           `    description: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}\n` +
           `    targetBranchName: ${this.config.getOptionalString('kubernetesIngestor.genericCRDTemplates.publishPhase.git.targetBranch')}\n${ 

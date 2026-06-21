@@ -334,6 +334,12 @@ export interface Config {
              * @visibility frontend
              */
             targetBranch?: string;
+            /**
+             * Optional prefix for the pull request branch name (e.g. "feature/" or "cluster/")
+             * @default ''
+             * @visibility frontend
+             */
+            branchPrefix?: string;
           };
         };
         /**
@@ -449,6 +455,12 @@ export interface Config {
              * @visibility frontend
              */
             targetBranch?: string;
+            /**
+             * Optional prefix for the pull request branch name (e.g. "feature/" or "cluster/")
+             * @default ''
+             * @visibility frontend
+             */
+            branchPrefix?: string;
           };
         };
         /**
@@ -539,6 +551,12 @@ export interface Config {
            * @visibility frontend
            */
           targetBranch?: string;
+          /**
+           * Optional prefix for the pull request branch name (e.g. "feature/" or "cluster/")
+           * @default ''
+           * @visibility frontend
+           */
+          branchPrefix?: string;
         };
       };
     };
