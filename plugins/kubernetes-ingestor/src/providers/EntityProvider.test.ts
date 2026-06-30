@@ -3044,6 +3044,217 @@ describe('XRDTemplateEntityProvider', () => {
     });
   });
 
+  // ── branchPrefix ──────────────────────────────────────────────────────────────
+
+  describe('extractSteps – branchPrefix in publishPhase.git', () => {
+    const makeVersion = () => ({
+      name: 'v1alpha1',
+      schema: {
+        openAPIV3Schema: {
+          type: 'object',
+          properties: { spec: { type: 'object', properties: {} } },
+        },
+      },
+    });
+
+    const makeXrd = (annotations: Record<string, string> = {}) => ({
+      metadata: { name: 'myresources.example.com', annotations },
+      spec: {
+        scope: 'Cluster',
+        names: { kind: 'MyResource' },
+        group: 'example.com',
+        versions: [makeVersion()],
+      },
+      clusters: ['test-cluster'],
+      clusterName: 'test-cluster',
+    });
+
+    it('prepends branchPrefix to branchName when allowRepoSelection is false', () => {
+      const config = new ConfigReader({
+        kubernetesIngestor: {
+          annotationPrefix: 'terasky.backstage.io',
+          crossplane: {
+            xrds: {
+              publishPhase: {
+                target: 'github',
+                allowRepoSelection: false,
+                git: {
+                  repoUrl: 'github.com?owner=test&repo=manifests',
+                  targetBranch: 'main',
+                  branchPrefix: 'feature/',
+                },
+              },
+            },
+          },
+        },
+      });
+      const provider = new XRDTemplateEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        config,
+        mockResourceFetcher as any,
+      );
+      const steps: any[] = (provider as any).extractSteps(makeVersion(), makeXrd());
+      const publishStep = steps.find((s: any) => s.input?.branchName);
+      expect(publishStep).toBeDefined();
+      expect(publishStep.input.branchName).toBe('feature/create-${{ parameters.xrName }}-resource');
+    });
+
+    it('uses Jinja2 parameters.branchPrefix in branchName when allowRepoSelection is true', () => {
+      const config = new ConfigReader({
+        kubernetesIngestor: {
+          annotationPrefix: 'terasky.backstage.io',
+          crossplane: {
+            xrds: {
+              publishPhase: {
+                target: 'github',
+                allowRepoSelection: true,
+                git: {
+                  repoUrl: 'github.com?owner=test&repo=manifests',
+                  targetBranch: 'main',
+                  branchPrefix: 'cluster/',
+                },
+              },
+            },
+          },
+        },
+      });
+      const provider = new XRDTemplateEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        config,
+        mockResourceFetcher as any,
+      );
+      const steps: any[] = (provider as any).extractSteps(makeVersion(), makeXrd());
+      const publishStep = steps.find((s: any) => s.input?.branchName);
+      expect(publishStep).toBeDefined();
+      expect(publishStep.input.branchName).toBe('${{ parameters.branchPrefix }}create-${{ parameters.xrName }}-resource');
+    });
+
+    it('includes branchPrefix field with default in extractParameters when allowRepoSelection is true', () => {
+      const config = new ConfigReader({
+        kubernetesIngestor: {
+          annotationPrefix: 'terasky.backstage.io',
+          crossplane: {
+            xrds: {
+              publishPhase: {
+                target: 'github',
+                allowRepoSelection: true,
+                git: {
+                  repoUrl: 'github.com?owner=test&repo=manifests',
+                  targetBranch: 'main',
+                  branchPrefix: 'feature',
+                },
+              },
+            },
+          },
+        },
+      });
+      const provider = new XRDTemplateEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        config,
+        mockResourceFetcher as any,
+      );
+      const params: any = (provider as any).extractParameters(makeVersion(), makeXrd());
+      const creationStep = params.find((p: any) => p.properties?.branchPrefix);
+      expect(creationStep).toBeDefined();
+      expect(creationStep.properties.branchPrefix.default).toBe('feature/');
+    });
+
+    it('auto-appends trailing slash when branchPrefix has none', () => {
+      const config = new ConfigReader({
+        kubernetesIngestor: {
+          annotationPrefix: 'terasky.backstage.io',
+          crossplane: {
+            xrds: {
+              publishPhase: {
+                target: 'github',
+                allowRepoSelection: false,
+                git: {
+                  repoUrl: 'github.com?owner=test&repo=manifests',
+                  targetBranch: 'main',
+                  branchPrefix: 'feature',
+                },
+              },
+            },
+          },
+        },
+      });
+      const provider = new XRDTemplateEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        config,
+        mockResourceFetcher as any,
+      );
+      const steps: any[] = (provider as any).extractSteps(makeVersion(), makeXrd());
+      const publishStep = steps.find((s: any) => s.input?.branchName);
+      expect(publishStep).toBeDefined();
+      expect(publishStep.input.branchName).toBe('feature/create-${{ parameters.xrName }}-resource');
+    });
+
+    it('does not double-add slash when branchPrefix already ends with /', () => {
+      const config = new ConfigReader({
+        kubernetesIngestor: {
+          annotationPrefix: 'terasky.backstage.io',
+          crossplane: {
+            xrds: {
+              publishPhase: {
+                target: 'github',
+                allowRepoSelection: false,
+                git: {
+                  repoUrl: 'github.com?owner=test&repo=manifests',
+                  targetBranch: 'main',
+                  branchPrefix: 'feature/',
+                },
+              },
+            },
+          },
+        },
+      });
+      const provider = new XRDTemplateEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        config,
+        mockResourceFetcher as any,
+      );
+      const steps: any[] = (provider as any).extractSteps(makeVersion(), makeXrd());
+      const publishStep = steps.find((s: any) => s.input?.branchName);
+      expect(publishStep).toBeDefined();
+      expect(publishStep.input.branchName).toBe('feature/create-${{ parameters.xrName }}-resource');
+    });
+
+    it('uses default branchName without prefix when branchPrefix is not set', () => {
+      const config = new ConfigReader({
+        kubernetesIngestor: {
+          annotationPrefix: 'terasky.backstage.io',
+          crossplane: {
+            xrds: {
+              publishPhase: {
+                target: 'github',
+                allowRepoSelection: false,
+                git: {
+                  repoUrl: 'github.com?owner=test&repo=manifests',
+                  targetBranch: 'main',
+                },
+              },
+            },
+          },
+        },
+      });
+      const provider = new XRDTemplateEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        config,
+        mockResourceFetcher as any,
+      );
+      const steps: any[] = (provider as any).extractSteps(makeVersion(), makeXrd());
+      const publishStep = steps.find((s: any) => s.input?.branchName);
+      expect(publishStep).toBeDefined();
+      expect(publishStep.input.branchName).toBe('create-${{ parameters.xrName }}-resource');
+    });
+  });
+
   // ── target-path: hide manifestLayout / clusters ──────────────────────────────
 
   describe('extractParameters – target-path hides manifestLayout and clusters', () => {

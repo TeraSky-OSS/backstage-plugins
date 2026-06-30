@@ -99,6 +99,8 @@ kubernetesIngestor:
           # Follows the backstage standard format which is github.com?owner=<REPO OWNER>&repo=<REPO NAME>
           repoUrl:
           targetBranch: main
+          # Optional prefix prepended to the PR branch name (e.g. "feature/" → feature/create-my-resource)
+          branchPrefix: ""
         # Whether the user should be able to select the repo they want to push the manifest to or not
         allowRepoSelection: true
         # Whether to request user OAuth credentials when selecting a repository URL (defaults to false)
@@ -127,6 +129,8 @@ kubernetesIngestor:
         # Follows the backstage static format which is github.com?owner=<REPO OWNER>&repo=<REPO NAME>
         repoUrl:
         targetBranch: main
+        # Optional prefix prepended to the PR branch name (e.g. "feature/" → feature/create-my-resource)
+        branchPrefix: ""
       # Whether the user should be able to select the repo they want to push the manifest to or not
       allowRepoSelection: true
       # Whether to request user OAuth credentials when selecting a repository URL (defaults to false)
@@ -155,6 +159,8 @@ kubernetesIngestor:
           # Follows the backstage standard format which is github.com?owner=<REPO OWNER>&repo=<REPO NAME>
           repoUrl:
           targetBranch: main
+          # Optional prefix prepended to the PR branch name (e.g. "feature/" → feature/create-my-resource)
+          branchPrefix: ""
         # Whether the user should be able to select the repo they want to push the manifest to or not
         allowRepoSelection: true
         # Whether to request user OAuth credentials when selecting a repository URL (defaults to false)
@@ -964,6 +970,8 @@ xrds:
     git:
       repoUrl: github.com?owner=org&repo=templates
       targetBranch: main
+      # Optional: prefix for the PR branch name. E.g. "feature/" → feature/create-my-resource
+      branchPrefix: ""
   
   # Processing settings
   convertDefaultValuesToPlaceholders: true
@@ -997,6 +1005,8 @@ kro:
       git:
         repoUrl: github.com?owner=org&repo=templates
         targetBranch: main
+        # Optional: prefix for the PR branch name. E.g. "cluster/" → cluster/create-my-resource
+        branchPrefix: ""
     
     # Processing settings
     enabled: true

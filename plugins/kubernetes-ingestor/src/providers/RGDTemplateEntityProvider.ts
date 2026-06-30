@@ -600,6 +600,13 @@ export class RGDTemplateEntityProvider implements EntityProvider {
                     description: 'Target Branch for the PR',
                     default: 'main',
                   },
+                  branchPrefix: {
+                    type: 'string',
+                    description: 'Prefix for the PR branch name (e.g. "feature/"). Include the trailing slash.',
+                    default: RGDTemplateEntityProvider.normalizeBranchPrefix(
+                      this.config.getOptionalString('kubernetesIngestor.kro.rgds.publishPhase.git.branchPrefix') ?? '',
+                    ),
+                  },
                   manifestLayout: {
                     type: 'string',
                     description: 'Layout of the manifest',
@@ -750,7 +757,7 @@ export class RGDTemplateEntityProvider implements EntityProvider {
       '    parameters: ${{ parameters }}\n' +
       '    nameParam: kroInstanceName\n' +
       '    namespaceParam: kroInstanceNamespace\n' +
-      '    excludeParams: [\'pushToGit\',\'basePath\',\'manifestLayout\',\'_editData\', \'targetBranch\', \'repoUrl\', \'clusters\', \'kroInstanceName\', \'kroInstanceNamespace\', \'owner\']\n' +
+      '    excludeParams: [\'pushToGit\',\'basePath\',\'manifestLayout\',\'_editData\', \'targetBranch\', \'repoUrl\', \'clusters\', \'kroInstanceName\', \'kroInstanceNamespace\', \'owner\', \'branchPrefix\']\n' +
       `    apiVersion: ${crd.spec.group}/${crd.spec.versions[0].name}\n` +
       `    kind: ${crd.spec.names.kind}\n` +
       '    clusters: ${{ parameters.clusters if parameters.manifestLayout === \'cluster-scoped\' and parameters.pushToGit else [\'temp\'] }}\n' +
@@ -770,7 +777,7 @@ export class RGDTemplateEntityProvider implements EntityProvider {
       '  input:\n' +
       '    files:\n' +
       '      - from: ${{ steps.generateManifest.output.filePaths[0] }}\n' +
-      '        to: "./${{ parameters.basePath }}/${{ parameters.name }}.yaml"\n';
+      '        to: "./${{ parameters.basePath }}/${{ parameters.kroInstanceName }}.yaml"\n';
 
     const publishPhaseTarget = this.config.getOptionalString('kubernetesIngestor.kro.rgds.publishPhase.target')?.toLowerCase();
     let action = '';
@@ -791,6 +798,9 @@ export class RGDTemplateEntityProvider implements EntityProvider {
     }
     const allowRepoSelection = this.config.getOptionalBoolean('kubernetesIngestor.kro.rgds.publishPhase.allowRepoSelection') ?? false;
     const requestUserCredentials = this.config.getOptionalBoolean('kubernetesIngestor.kro.rgds.publishPhase.requestUserCredentialsForRepoUrl') ?? false;
+    const branchPrefix = RGDTemplateEntityProvider.normalizeBranchPrefix(
+      this.config.getOptionalString('kubernetesIngestor.kro.rgds.publishPhase.git.branchPrefix') ?? '',
+    );
     const userOAuthTokenInput = requestUserCredentials
       ? '    token: ${{ secrets.USER_OAUTH_TOKEN }}\n'
       : '';
@@ -806,9 +816,9 @@ export class RGDTemplateEntityProvider implements EntityProvider {
           `  if: \${{ parameters.pushToGit }}\n` +
           `  input:\n` +
           `    repoUrl: \${{ parameters.repoUrl }}\n` +
-          `    branchName: create-\${{ parameters.name }}-resource\n` +
-          `    title: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}\n` +
-          `    description: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}\n` +
+          `    branchName: \${{ parameters.branchPrefix }}create-\${{ parameters.kroInstanceName }}-resource\n` +
+          `    title: Create ${crd.spec.names.kind} Resource \${{ parameters.kroInstanceName }}\n` +
+          `    description: Create ${crd.spec.names.kind} Resource \${{ parameters.kroInstanceName }}\n` +
           `    targetBranchName: \${{ parameters.targetBranch }}\n${ 
           userOAuthTokenInput}`;
       } else {
@@ -819,15 +829,19 @@ export class RGDTemplateEntityProvider implements EntityProvider {
           `  if: \${{ parameters.pushToGit }}\n` +
           `  input:\n` +
           `    repoUrl: ${this.config.getOptionalString('kubernetesIngestor.kro.rgds.publishPhase.git.repoUrl')}\n` +
-          `    branchName: create-\${{ parameters.name }}-resource\n` +
-          `    title: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}\n` +
-          `    description: Create ${crd.spec.names.kind} Resource \${{ parameters.name }}\n` +
+          `    branchName: ${branchPrefix}create-\${{ parameters.kroInstanceName }}-resource\n` +
+          `    title: Create ${crd.spec.names.kind} Resource \${{ parameters.kroInstanceName }}\n` +
+          `    description: Create ${crd.spec.names.kind} Resource \${{ parameters.kroInstanceName }}\n` +
           `    targetBranchName: ${this.config.getOptionalString('kubernetesIngestor.kro.rgds.publishPhase.git.targetBranch')}\n${ 
           userOAuthTokenInput}`;
       }
     }
 
     return yaml.load(defaultStepsYaml) as any[];
+  }
+
+  private static normalizeBranchPrefix(raw: string): string {
+    return raw && !raw.endsWith('/') ? `${raw}/` : raw;
   }
 
   private getPullRequestUrl(): string {
