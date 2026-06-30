@@ -3347,7 +3347,7 @@ describe('XRDTemplateEntityProvider', () => {
         config,
         mockResourceFetcher as any,
       );
-      const params: any = (provider as any).extractParameters(makeVersion(), makeXrd());
+      const params: any = (provider as any).extractParameters(makeVersion(), [], makeXrd());
       const creationStep = params.find((p: any) => p.properties?.branchPrefix);
       expect(creationStep).toBeDefined();
       expect(creationStep.properties.branchPrefix.default).toBe('feature/');

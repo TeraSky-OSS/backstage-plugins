@@ -577,6 +577,13 @@ export class RGDTemplateEntityProvider implements EntityProvider {
             type: 'boolean',
             default: true,
           },
+          branchPrefix: {
+            type: 'string',
+            description: 'Prefix for the PR branch name (e.g. "feature/"). Include the trailing slash.',
+            default: RGDTemplateEntityProvider.normalizeBranchPrefix(
+              this.config.getOptionalString('kubernetesIngestor.kro.rgds.publishPhase.git.branchPrefix') ?? '',
+            ),
+          },
         },
         dependencies: {
           pushToGit: {
@@ -599,13 +606,6 @@ export class RGDTemplateEntityProvider implements EntityProvider {
                     type: 'string',
                     description: 'Target Branch for the PR',
                     default: 'main',
-                  },
-                  branchPrefix: {
-                    type: 'string',
-                    description: 'Prefix for the PR branch name (e.g. "feature/"). Include the trailing slash.',
-                    default: RGDTemplateEntityProvider.normalizeBranchPrefix(
-                      this.config.getOptionalString('kubernetesIngestor.kro.rgds.publishPhase.git.branchPrefix') ?? '',
-                    ),
                   },
                   manifestLayout: {
                     type: 'string',

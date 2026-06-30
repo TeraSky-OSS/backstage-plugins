@@ -1271,6 +1271,13 @@ export class XRDTemplateEntityProvider implements EntityProvider {
             type: 'boolean',
             default: true,
           },
+          branchPrefix: {
+            type: 'string',
+            description: 'Prefix for the PR branch name (e.g. "feature/"). Include the trailing slash.',
+            default: XRDTemplateEntityProvider.normalizeBranchPrefix(
+              this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.git.branchPrefix') ?? '',
+            ),
+          },
         },
         dependencies: {
           pushToGit: {
@@ -1293,13 +1300,6 @@ export class XRDTemplateEntityProvider implements EntityProvider {
                     type: 'string',
                     description: 'Target Branch for the PR',
                     default: 'main',
-                  },
-                  branchPrefix: {
-                    type: 'string',
-                    description: 'Prefix for the PR branch name (e.g. "feature/"). Include the trailing slash.',
-                    default: XRDTemplateEntityProvider.normalizeBranchPrefix(
-                      this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.git.branchPrefix') ?? '',
-                    ),
                   },
                   ...(!hasTargetPath && {
                     manifestLayout: {
