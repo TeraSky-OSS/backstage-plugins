@@ -138,7 +138,10 @@ export interface Config {
       titleModel?: string;
       /**
        * Model for determining system assignments
-       * Options: namespace, cluster, cluster-namespace
+       * Options: namespace, cluster, cluster-namespace, default, none
+       * Use "none" to only assign a system when the component explicitly
+       * provides one via the `<prefix>/system` annotation. In that case no
+       * System entity is auto-created.
        * @default namespace
        * @visibility frontend
        */

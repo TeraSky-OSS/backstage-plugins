@@ -1528,6 +1528,197 @@ describe('KubernetesEntityProvider', () => {
       });
     });
 
+    describe('Given systemModel "none"', () => {
+      const mockResource = (annotations: any = {}) => ({
+        apiVersion: 'apps/v1',
+        kind: 'Deployment',
+        metadata: { name: 'test-deployment', namespace: 'team-platform', annotations },
+        spec: {},
+        clusterName: 'test-cluster',
+      });
+
+      it('When no system annotation, Then no system is assigned and no System entity is created', async () => {
+        const provider = createProviderWithConfig({ mappings: { systemModel: 'none' } });
+
+        const entities = await (provider as any).translateKubernetesObjectsToEntities(mockResource());
+
+        expect(entities.find((e: any) => e.kind === 'System')).toBeUndefined();
+        const component = entities.find((e: any) => e.kind === 'Component');
+        expect(component.spec.system).toBeUndefined();
+      });
+
+      it('When system annotation is set, Then it is assigned but no System entity is created', async () => {
+        const provider = createProviderWithConfig({ mappings: { systemModel: 'none' } });
+
+        const entities = await (provider as any).translateKubernetesObjectsToEntities(
+          mockResource({ 'terasky.backstage.io/system': 'my-system' }),
+        );
+
+        expect(entities.find((e: any) => e.kind === 'System')).toBeUndefined();
+        const component = entities.find((e: any) => e.kind === 'Component');
+        expect(component.spec.system).toBe('my-system');
+      });
+
+      describe('Crossplane claims', () => {
+        const createMockClaim = (annotations: any = {}) => ({
+          apiVersion: 'database.example.com/v1alpha1',
+          kind: 'PostgreSQLInstance',
+          metadata: { name: 'my-db', namespace: 'test-namespace', annotations },
+          spec: {
+            resourceRef: {
+              apiVersion: 'database.example.com/v1alpha1',
+              kind: 'XPostgreSQLInstance',
+              name: 'my-db-abc123',
+            },
+          },
+          clusterName: 'test-cluster',
+        });
+
+        const crdMapping = {
+          'database.example.com|PostgreSQLInstance': 'postgresqlinstances',
+          'database.example.com|XPostgreSQLInstance': 'xpostgresqlinstances',
+        };
+
+        it('When no system annotation, Then spec.system is undefined and no System entity is created', async () => {
+          const provider = createProviderWithConfig({ mappings: { systemModel: 'none' } });
+
+          const entities = await (provider as any).translateCrossplaneClaimToEntity(
+            createMockClaim(),
+            'test-cluster',
+            crdMapping,
+          );
+
+          expect(entities.find((e: any) => e.kind === 'System')).toBeUndefined();
+          const component = entities.find((e: any) => e.kind === 'Component');
+          expect(component.spec.system).toBeUndefined();
+        });
+
+        it('When system annotation is set, Then it is assigned and no System entity is created', async () => {
+          const provider = createProviderWithConfig({ mappings: { systemModel: 'none' } });
+
+          const entities = await (provider as any).translateCrossplaneClaimToEntity(
+            createMockClaim({ 'terasky.backstage.io/system': 'my-system' }),
+            'test-cluster',
+            crdMapping,
+          );
+
+          expect(entities.find((e: any) => e.kind === 'System')).toBeUndefined();
+          const component = entities.find((e: any) => e.kind === 'Component');
+          expect(component.spec.system).toBe('my-system');
+        });
+      });
+
+      describe('Crossplane composites (XRs)', () => {
+        const createMockXR = (annotations: any = {}) => ({
+          apiVersion: 'database.example.com/v1alpha1',
+          kind: 'XPostgreSQLInstance',
+          metadata: { name: 'my-db-abc123', namespace: 'test-namespace', annotations },
+          spec: { crossplane: { compositionRef: { name: 'my-composition' } } },
+          clusterName: 'test-cluster',
+        });
+
+        const compositeKindLookup = {
+          'XPostgreSQLInstance|database.example.com|v1alpha1': {
+            scope: 'Namespaced',
+            spec: { names: { plural: 'xpostgresqlinstances' } },
+          },
+        };
+
+        it('When no system annotation, Then spec.system is undefined and no System entity is created', async () => {
+          const provider = createProviderWithConfig({ mappings: { systemModel: 'none' } });
+
+          const entities = await (provider as any).translateCrossplaneCompositeToEntity(
+            createMockXR(),
+            'test-cluster',
+            compositeKindLookup,
+          );
+
+          expect(entities.find((e: any) => e.kind === 'System')).toBeUndefined();
+          const component = entities.find((e: any) => e.kind === 'Component');
+          expect(component.spec.system).toBeUndefined();
+        });
+
+        it('When system annotation is set, Then it is assigned and no System entity is created', async () => {
+          const provider = createProviderWithConfig({ mappings: { systemModel: 'none' } });
+
+          const entities = await (provider as any).translateCrossplaneCompositeToEntity(
+            createMockXR({ 'terasky.backstage.io/system': 'my-system' }),
+            'test-cluster',
+            compositeKindLookup,
+          );
+
+          expect(entities.find((e: any) => e.kind === 'System')).toBeUndefined();
+          const component = entities.find((e: any) => e.kind === 'Component');
+          expect(component.spec.system).toBe('my-system');
+        });
+      });
+
+      describe('KRO instances', () => {
+        const createMockKROInstance = (annotations: any = {}) => ({
+          apiVersion: 'kro.example.com/v1alpha1',
+          kind: 'ApplicationInstance',
+          metadata: {
+            name: 'my-app',
+            namespace: 'test-namespace',
+            annotations,
+            labels: { 'kro.run/resource-graph-definition-id': 'app-instance-rgd' },
+          },
+          spec: {},
+          clusterName: 'test-cluster',
+        });
+
+        const kroRgdLookup = {
+          'ApplicationInstance|kro.example.com|v1alpha1': {
+            rgd: {
+              metadata: { name: 'applicationinstances' },
+              spec: {
+                schema: {
+                  kind: 'ApplicationInstance',
+                  plural: 'applicationinstances',
+                  group: 'kro.example.com',
+                  version: 'v1alpha1',
+                },
+                resources: [],
+              },
+            },
+            spec: {
+              names: { kind: 'ApplicationInstance', plural: 'applicationinstances' },
+              group: 'kro.example.com',
+              version: 'v1alpha1',
+            },
+          },
+        };
+
+        it('When no system annotation, Then spec.system is undefined and no System entity is created', async () => {
+          const provider = createProviderWithConfig({ mappings: { systemModel: 'none' }, kro: { enabled: true } });
+
+          const entities = await (provider as any).translateKROInstanceToEntity(
+            createMockKROInstance(),
+            'test-cluster',
+            kroRgdLookup,
+          );
+
+          expect(entities.find((e: any) => e.kind === 'System')).toBeUndefined();
+          const component = entities.find((e: any) => e.kind === 'Component');
+          expect(component.spec.system).toBeUndefined();
+        });
+
+        it('When system annotation is set, Then it is assigned and no System entity is created', async () => {
+          const provider = createProviderWithConfig({ mappings: { systemModel: 'none' }, kro: { enabled: true } });
+
+          const entities = await (provider as any).translateKROInstanceToEntity(
+            createMockKROInstance({ 'terasky.backstage.io/system': 'my-system' }),
+            'test-cluster',
+            kroRgdLookup,
+          );
+
+          expect(entities.find((e: any) => e.kind === 'System')).toBeUndefined();
+          const component = entities.find((e: any) => e.kind === 'Component');
+          expect(component.spec.system).toBe('my-system');
+        });
+      });
+    });
+
     describe('Given namespace annotations cache', () => {
       const createMockWorkload = (annotations: any = {}, namespace: string = 'test-namespace', name: string = 'test-deployment') => ({
         apiVersion: 'apps/v1',
