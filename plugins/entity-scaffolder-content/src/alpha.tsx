@@ -1,12 +1,5 @@
 import { createFrontendPlugin } from '@backstage/frontend-plugin-api';
 import { EntityContentBlueprint } from '@backstage/plugin-catalog-react/alpha';
-import { ScaffolderFieldExtensions } from '@backstage/plugin-scaffolder-react';
-import {
-  EntityPickerFieldExtension,
-  RepoUrlPickerFieldExtension,
-} from '@backstage/plugin-scaffolder';
-// eslint-disable-next-line @backstage/no-mixed-plugin-imports
-import { GitOpsManifestUpdaterExtension } from '@terasky/backstage-plugin-gitops-manifest-updater';
 import { stringifyEntityRef } from '@backstage/catalog-model';
 
 /** @alpha */
@@ -35,12 +28,6 @@ export const entityScaffolderContentExtension = EntityContentBlueprint.make({
               ]?.split(': ')[1] ?? '',
             ],
           })}
-          ScaffolderFieldExtensions={
-            <ScaffolderFieldExtensions>
-              <RepoUrlPickerFieldExtension />
-              <EntityPickerFieldExtension />
-            </ScaffolderFieldExtensions>
-          }
         />
       )),
   },
@@ -72,13 +59,6 @@ export const crossplaneEntityScaffolderContentExtension =
             buildInitialState={entity => ({
               entity: stringifyEntityRef(entity),
             })}
-            ScaffolderFieldExtensions={
-              <ScaffolderFieldExtensions>
-                <RepoUrlPickerFieldExtension />
-                <EntityPickerFieldExtension />
-                <GitOpsManifestUpdaterExtension />
-              </ScaffolderFieldExtensions>
-            }
           />
         )),
     },

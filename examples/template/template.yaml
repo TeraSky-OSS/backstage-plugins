@@ -5,6 +5,8 @@ metadata:
   name: spring-boot-application
   title: Spring Boot Application
   description: Create a new Spring Boot application using Spring Initializer
+  labels:
+    forEntity: system
   tags:
     - java
     - spring
@@ -70,6 +72,8 @@ spec:
 apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
+  labels:
+    forEntity: system
   name: terraform-module-template
   title: Terraform Module Template
   description: A template that uses a Terraform module from the configured module references
@@ -210,6 +214,8 @@ apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
   name: example-nodejs-template
+  labels:
+    forEntity: system
   title: Example Node.js Template
   description: An example template for the scaffolder that creates a simple Node.js service
 spec:
@@ -259,7 +265,6 @@ spec:
       name: Publish
       action: publish:github
       input:
-        allowedHosts: ['github.com']
         description: This is ${{ parameters.name }}
         repoUrl: ${{ parameters.repoUrl }}
 
