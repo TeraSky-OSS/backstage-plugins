@@ -8,6 +8,8 @@ import {
 import { EventParams, eventsServiceRef } from '@backstage/plugin-events-node';
 import { KubernetesEntityProvider, RGDTemplateEntityProvider, XRDTemplateEntityProvider } from './providers';
 import { DefaultKubernetesResourceFetcher } from './services';
+import { kubernetesIngestorExtensionPoint } from './extensions';
+import { KubernetesResourceFilter } from './types';
 
 interface DeltaEventPayload {
   action: 'upsert' | 'delete';
@@ -57,6 +59,13 @@ export const catalogModuleKubernetesIngestor = createBackendModule({
   pluginId: 'catalog',
   moduleId: 'kubernetes-ingestor',
   register(reg) {
+    const resourceFilters: KubernetesResourceFilter[] = [];
+    reg.registerExtensionPoint(kubernetesIngestorExtensionPoint, {
+      addResourceFilter(...filters: KubernetesResourceFilter[]) {
+        resourceFilters.push(...filters);
+      },
+    });
+
     reg.registerInit({
       deps: {
         catalog: catalogProcessingExtensionPoint,
@@ -115,6 +124,7 @@ export const catalogModuleKubernetesIngestor = createBackendModule({
           resourceFetcher,
           urlReader,
           cache,
+          resourceFilters,
         );
 
         const xrdTemplateEntityProvider = new XRDTemplateEntityProvider(

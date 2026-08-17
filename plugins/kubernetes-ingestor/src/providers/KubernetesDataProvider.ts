@@ -1,6 +1,11 @@
 import { Config } from '@backstage/config';
 import { LoggerService } from '@backstage/backend-plugin-api';
 import { DefaultKubernetesResourceFetcher } from '../services';
+import {
+  KubernetesResourceFilter,
+  KubernetesResourceFilterContext,
+  KubernetesResourceFilterInput,
+} from '../types';
 import { XRDDataProvider } from './XRDDataProvider';
 
 export interface WorkloadType {
@@ -11,19 +16,76 @@ export interface WorkloadType {
   ingestAsResources?: boolean;
 }
 
+export function createBuiltInResourceEligibilityChecker(
+  config: Config,
+): (resource: KubernetesResourceFilterInput | null | undefined) => boolean {
+  const prefix =
+    config.getOptionalString('kubernetesIngestor.annotationPrefix') ||
+    'terasky.backstage.io';
+  const onlyIngestAnnotatedResources =
+    config.getOptionalBoolean(
+      'kubernetesIngestor.components.onlyIngestAnnotatedResources',
+    ) ?? false;
+  const excludedNamespaces = new Set(
+    config.getOptionalStringArray(
+      'kubernetesIngestor.components.excludedNamespaces',
+    ) || [],
+  );
+
+  return resource => {
+    if (!resource?.metadata) return false;
+    if (resource.metadata.annotations?.[`${prefix}/exclude-from-catalog`]) {
+      return false;
+    }
+    if (onlyIngestAnnotatedResources) {
+      if (!resource.metadata.annotations?.[`${prefix}/add-to-catalog`]) {
+        return false;
+      }
+    } else if (
+      resource.metadata.namespace !== undefined &&
+      excludedNamespaces.has(resource.metadata.namespace)
+    ) {
+      return false;
+    }
+    return true;
+  };
+}
+
+export function getDisabledResourceType(
+  resource: KubernetesResourceFilterInput,
+  isCrossplaneEnabled: boolean,
+  isKROEnabled: boolean,
+): 'Crossplane' | 'KRO' | undefined {
+  if (
+    !isCrossplaneEnabled &&
+    (resource.spec?.resourceRef || resource.spec?.crossplane)
+  ) {
+    return 'Crossplane';
+  }
+  if (
+    !isKROEnabled &&
+    resource.metadata?.labels?.['kro.run/resource-graph-definition-id']
+  ) {
+    return 'KRO';
+  }
+  return undefined;
+}
+
+export function passesResourceFilters(
+  resource: KubernetesResourceFilterInput,
+  context: KubernetesResourceFilterContext,
+  resourceFilters: readonly KubernetesResourceFilter[],
+): boolean {
+  return resourceFilters.every(filter => filter(resource, context));
+}
+
 export class KubernetesDataProvider {
   constructor(
     private readonly resourceFetcher: DefaultKubernetesResourceFetcher,
     private readonly config: Config,
     private readonly logger: LoggerService,
+    private readonly resourceFilters: KubernetesResourceFilter[] = [],
   ) {}
-
-  private getAnnotationPrefix(): string {
-    return (
-      this.config.getOptionalString('kubernetesIngestor.annotationPrefix') ||
-      'terasky.backstage.io'
-    );
-  }
 
   /**
    * Builds the stable base workload-types list that is shared across all cluster iterations.
@@ -95,8 +157,8 @@ export class KubernetesDataProvider {
   async fetchForCluster(clusterName: string, baseWorkloadTypes: WorkloadType[]): Promise<any[]> {
     const isCrossplaneEnabled = this.config.getOptionalBoolean('kubernetesIngestor.crossplane.enabled') ?? true;
     const isKROEnabled = this.config.getOptionalBoolean('kubernetesIngestor.kro.enabled') ?? false;
-    const onlyIngestAnnotatedResources = this.config.getOptionalBoolean('kubernetesIngestor.components.onlyIngestAnnotatedResources') ?? false;
-    const excludedNamespaces = new Set(this.config.getOptionalStringArray('kubernetesIngestor.components.excludedNamespaces') || []);
+    const passesBuiltInEligibility =
+      createBuiltInResourceEligibilityChecker(this.config);
     const ingestAllCrossplaneClaims = this.config.getOptionalBoolean('kubernetesIngestor.crossplane.claims.ingestAllClaims') ?? false;
     const ingestAllRGDInstances = this.config.getOptionalBoolean('kubernetesIngestor.kro.instances.ingestAllInstances') ?? false;
     const hasGenericCRDConfig = !!(
@@ -182,32 +244,34 @@ export class KubernetesDataProvider {
       }),
     );
 
-    const prefix = this.getAnnotationPrefix();
     const allFetchedObjects = fetchedObjects
       .filter((result): result is PromiseFulfilledResult<any[]> => result.status === 'fulfilled')
       .map(result => result.value)
       .flat();
 
-    const validObjects = allFetchedObjects.filter((resource: any) => {
-      if (!resource || !resource.metadata) return false;
-      if (resource.metadata.annotations?.[`${prefix}/exclude-from-catalog`]) return false;
-      if (onlyIngestAnnotatedResources) return !!resource.metadata.annotations?.[`${prefix}/add-to-catalog`];
-      return !excludedNamespaces.has(resource.metadata.namespace);
-    });
+    const validObjects = allFetchedObjects.filter((resource: any) =>
+      passesBuiltInEligibility(resource),
+    );
 
     const filteredObjects = validObjects.map(async (resource: any) => {
-      if (!isCrossplaneEnabled) {
-        if (resource.spec?.resourceRef || resource.spec?.crossplane) {
-          this.logger.debug(`Skipping Crossplane resource: ${resource.kind} ${resource.metadata?.name}`);
-          return {};
-        }
+      const disabledResourceType = getDisabledResourceType(
+        resource,
+        isCrossplaneEnabled,
+        isKROEnabled,
+      );
+      if (disabledResourceType) {
+        this.logger.debug(`Skipping ${disabledResourceType} resource: ${resource.kind} ${resource.metadata?.name}`);
+        return {};
       }
 
-      if (!isKROEnabled) {
-        if (resource.metadata?.labels?.['kro.run/resource-graph-definition-id']) {
-          this.logger.debug(`Skipping KRO resource: ${resource.kind} ${resource.metadata?.name}`);
-          return {};
-        }
+      if (
+        !passesResourceFilters(
+          resource,
+          { clusterName },
+          this.resourceFilters,
+        )
+      ) {
+        return {};
       }
 
       if (isCrossplaneEnabled && resource.spec?.crossplane?.compositionRef?.name) {

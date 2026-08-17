@@ -60,3 +60,37 @@ export interface ApiDefinitionResult {
    */
   useTextReference?: boolean;
 }
+
+/**
+ * A Kubernetes resource as fetched from the API server, narrowed to the parts a
+ * filter is likely to look at.
+ */
+export interface KubernetesResourceFilterInput {
+  apiVersion?: string;
+  kind?: string;
+  metadata?: {
+    name?: string;
+    namespace?: string;
+    labels?: Record<string, string>;
+    annotations?: Record<string, string>;
+    [key: string]: any;
+  };
+  [key: string]: any;
+}
+
+/** Where the resource was fetched from. */
+export interface KubernetesResourceFilterContext {
+  clusterName: string;
+}
+
+/**
+ * Decides whether a fetched resource is ingested. Returning false excludes it.
+ *
+ * Filters run after the plugin's own checks (the exclude-from-catalog annotation,
+ * onlyIngestAnnotatedResources, excludedNamespaces), so a filter cannot bring back a
+ * resource those have already rejected.
+ */
+export type KubernetesResourceFilter = (
+  resource: KubernetesResourceFilterInput,
+  context: KubernetesResourceFilterContext,
+) => boolean;

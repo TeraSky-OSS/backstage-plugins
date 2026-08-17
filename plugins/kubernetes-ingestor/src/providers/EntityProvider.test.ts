@@ -2386,6 +2386,126 @@ describe('KubernetesEntityProvider', () => {
       expect(deltaCalls[0][0].removed).toEqual([]);
     });
 
+    it('should remove entities when a delta upsert becomes ineligible', async () => {
+      let isEligible = true;
+      const resourceFilter = jest.fn().mockImplementation(() => isEligible);
+      const provider = new KubernetesEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+        undefined,
+        undefined,
+        [resourceFilter],
+      );
+
+      const mockConnection = {
+        applyMutation: jest.fn().mockResolvedValue(undefined),
+      };
+
+      await provider.connect(mockConnection as any);
+      (provider as any).fullSyncCompleted = true;
+
+      mockResourceFetcher.proxyKubernetesRequest.mockResolvedValue({
+        apiVersion: 'apps/v1',
+        kind: 'Deployment',
+        metadata: {
+          name: 'filtered-deployment',
+          namespace: 'default',
+        },
+        spec: {},
+      });
+
+      await provider.deltaUpdate({
+        action: 'upsert',
+        apiVersion: 'apps/v1',
+        kind: 'Deployment',
+        name: 'filtered-deployment',
+        namespace: 'default',
+        clusterName: 'test-cluster',
+      });
+
+      isEligible = false;
+
+      await provider.deltaUpdate({
+        action: 'upsert',
+        apiVersion: 'apps/v1',
+        kind: 'Deployment',
+        name: 'filtered-deployment',
+        namespace: 'default',
+        clusterName: 'test-cluster',
+      });
+
+      expect(resourceFilter).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          metadata: expect.objectContaining({ name: 'filtered-deployment' }),
+        }),
+        { clusterName: 'test-cluster' },
+      );
+      const deltaCalls = mockConnection.applyMutation.mock.calls.filter(
+        (call: any[]) => call[0].type === 'delta',
+      );
+      expect(deltaCalls).toHaveLength(2);
+      expect(deltaCalls[0][0].added.length).toBeGreaterThan(0);
+      expect(deltaCalls[0][0].removed).toEqual([]);
+      expect(deltaCalls[1][0].added).toEqual([]);
+      expect(deltaCalls[1][0].removed.length).toBeGreaterThan(0);
+      expect(
+        deltaCalls[1][0].removed.some(
+          (entry: any) => entry.entity.kind === 'System',
+        ),
+      ).toBe(false);
+    });
+
+    it('should not run filters for a disabled Crossplane delta upsert', async () => {
+      const resourceFilter = jest.fn().mockReturnValue(true);
+      const config = new ConfigReader({
+        kubernetesIngestor: {
+          components: { enabled: true },
+          crossplane: { enabled: false },
+          kro: { enabled: false },
+          annotationPrefix: 'terasky.backstage.io',
+        },
+      });
+      const provider = new KubernetesEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        config,
+        mockResourceFetcher as any,
+        undefined,
+        undefined,
+        [resourceFilter],
+      );
+
+      const mockConnection = {
+        applyMutation: jest.fn().mockResolvedValue(undefined),
+      };
+
+      await provider.connect(mockConnection as any);
+      (provider as any).fullSyncCompleted = true;
+      mockResourceFetcher.proxyKubernetesRequest.mockResolvedValueOnce({
+        apiVersion: 'example.org/v1',
+        kind: 'Example',
+        metadata: { name: 'crossplane-resource', namespace: 'default' },
+        spec: { crossplane: {} },
+      });
+
+      await provider.deltaUpdate({
+        action: 'upsert',
+        apiVersion: 'example.org/v1',
+        kind: 'Example',
+        name: 'crossplane-resource',
+        namespace: 'default',
+        clusterName: 'test-cluster',
+      });
+
+      expect(resourceFilter).not.toHaveBeenCalled();
+      const deltaCalls = mockConnection.applyMutation.mock.calls.filter(
+        (call: any[]) => call[0].type === 'delta',
+      );
+      expect(deltaCalls).toHaveLength(0);
+    });
+
     it('should perform delta delete for a regular K8s resource', async () => {
       const provider = new KubernetesEntityProvider(
         { run: jest.fn() } as any,
@@ -2415,6 +2535,43 @@ describe('KubernetesEntityProvider', () => {
       );
       expect(deltaCalls).toHaveLength(1);
       expect(deltaCalls[0][0].type).toBe('delta');
+      expect(deltaCalls[0][0].added).toEqual([]);
+      expect(deltaCalls[0][0].removed.length).toBeGreaterThan(0);
+    });
+
+    it('should not apply resource filters to delta deletes', async () => {
+      const resourceFilter = jest.fn().mockReturnValue(false);
+      const provider = new KubernetesEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+        undefined,
+        undefined,
+        [resourceFilter],
+      );
+
+      const mockConnection = {
+        applyMutation: jest.fn().mockResolvedValue(undefined),
+      };
+
+      await provider.connect(mockConnection as any);
+      (provider as any).fullSyncCompleted = true;
+
+      await provider.deltaUpdate({
+        action: 'delete',
+        apiVersion: 'apps/v1',
+        kind: 'Deployment',
+        name: 'filtered-deployment',
+        namespace: 'default',
+        clusterName: 'test-cluster',
+      });
+
+      expect(resourceFilter).not.toHaveBeenCalled();
+      const deltaCalls = mockConnection.applyMutation.mock.calls.filter(
+        (call: any[]) => call[0].type === 'delta',
+      );
+      expect(deltaCalls).toHaveLength(1);
       expect(deltaCalls[0][0].added).toEqual([]);
       expect(deltaCalls[0][0].removed.length).toBeGreaterThan(0);
     });
