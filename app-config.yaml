@@ -1,6 +1,63 @@
 app:
   title: Scaffolded Backstage App
   baseUrl: http://localhost:3000
+  extensions:
+    - api:home/visits: true
+    - app-root-element:home/visit-listener: true
+    - home-page-widget:home/toolkit:
+        config:
+          tools:
+            - url: https://backstage.io/docs
+              label: Docs
+              icon: docs
+            - url: https://github.com/backstage/backstage
+              label: GitHub
+              icon: github
+            - url: https://github.com/TeraSky-OSS/backstage-plugins
+              label: TeraSky Plugins Repo
+              icon: github
+            - url: https://terasky-oss.github.io/backstage-plugins
+              label: TeraSky Plugin Docs
+              icon: docs
+    - home-page-widget:home/world-clock:
+        config:
+          clockConfigs:
+            - label: NYC
+              timeZone: America/New_York
+            - label: UTC
+              timeZone: UTC
+            - label: TLV
+              timeZone: Asia/Jerusalem
+    - page:home:
+        config:
+          path: /
+          defaultConfig:
+            - component: HomePageSearchBar
+              column: 0
+              row: 0
+              width: 12
+              height: 2
+              deletable: false
+            - component: GettingStarted
+              column: 0
+              row: 1
+              width: 4
+              height: 11
+            - component: HomePageStarredEntities
+              column: 4
+              row: 2
+              width: 4
+              height: 4
+            - component: HomePageToolkit
+              column: 4
+              row: 6
+              width: 4
+              height: 3
+            - component: HomePageWorldClock
+              column: 8
+              row: 6
+              width: 4
+              height: 3
 
 organization:
   name: My Company
