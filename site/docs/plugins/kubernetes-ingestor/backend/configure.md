@@ -184,6 +184,67 @@ kubernetesIngestor:
     gracePeriodRuns: 3
 ```
 
+## Custom Resource Filters
+
+`excludedNamespaces` and `onlyIngestAnnotatedResources` cover the two common cases, but
+neither reaches a workload that exists in every namespace and is deployed from a chart
+you do not own — an observability agent, a log shipper, a sidecar database. Annotating
+those objects means editing charts belonging to someone else, and namespace exclusion
+would take the namespace's real services with it.
+
+For that, register a filter. It is code, so it can decide on any part of the resource.
+
+```ts
+// packages/backend/src/index.ts
+backend.add(import('./modules/ingestorFilters'));
+```
+
+```ts
+// packages/backend/src/modules/ingestorFilters.ts
+import { createBackendModule } from '@backstage/backend-plugin-api';
+import { kubernetesIngestorExtensionPoint } from '@terasky/backstage-plugin-kubernetes-ingestor';
+
+const INFRA = new Set([
+  'loki-read',
+  'loki-write',
+  'prometheus',
+  'thanos-query',
+  'thanos-store',
+]);
+
+export default createBackendModule({
+  pluginId: 'catalog',
+  moduleId: 'kubernetes-ingestor-filters',
+  register(reg) {
+    reg.registerInit({
+      deps: { ingestor: kubernetesIngestorExtensionPoint },
+      async init({ ingestor }) {
+        ingestor.addResourceFilter(resource => !INFRA.has(resource.metadata?.name ?? ''));
+      },
+    });
+  },
+});
+```
+
+A filter receives the resource and the cluster it came from, and returns `false` to
+exclude it:
+
+```ts
+type KubernetesResourceFilter = (
+  resource: KubernetesResourceFilterInput,
+  context: { clusterName: string },
+) => boolean;
+```
+
+Several filters can be registered, from one module or from several; every one of them
+must return `true` for a resource to be ingested. Filters run after the plugin's own
+checks, so a filter cannot bring back something `excludedNamespaces` or
+`exclude-from-catalog` has already rejected.
+
+Anything the filter excludes never becomes an entity. When an event-driven upsert makes
+an existing resource fail a filter, its non-shared entities are removed immediately.
+The next scheduled sync also removes entities that no longer pass the filters.
+
 ## Cluster Authentication Requirements
 
 The Kubernetes Ingestor plugin runs on the backend and communicates directly with Kubernetes clusters. This means it requires authentication methods that work for server-to-server communication.

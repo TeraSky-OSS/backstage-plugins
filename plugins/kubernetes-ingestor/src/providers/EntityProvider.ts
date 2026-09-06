@@ -6,7 +6,14 @@ import { Entity, parseEntityRef } from '@backstage/catalog-model';
 import { Config } from '@backstage/config';
 import { CacheService, LoggerService, SchedulerServiceTaskRunner, UrlReaderService } from '@backstage/backend-plugin-api';
 import { DefaultKubernetesResourceFetcher, ApiDefinitionFetcher } from '../services';
-import { KubernetesDataProvider, WorkloadType } from './KubernetesDataProvider';
+import { KubernetesResourceFilter } from '../types';
+import {
+  createBuiltInResourceEligibilityChecker,
+  getDisabledResourceType,
+  KubernetesDataProvider,
+  passesResourceFilters,
+  WorkloadType,
+} from './KubernetesDataProvider';
 import { Logger } from 'winston';
 import { CRDDataProvider } from './CRDDataProvider';
 import { XRDDataProvider } from './XRDDataProvider';
@@ -2507,6 +2514,7 @@ export class KubernetesEntityProvider implements EntityProvider {
     private readonly resourceFetcher: DefaultKubernetesResourceFetcher,
     urlReader?: UrlReaderService,
     private readonly cache?: CacheService,
+    private readonly resourceFilters: KubernetesResourceFilter[] = [],
   ) {
     this.orphanGraceRuns = config.getOptionalNumber(
       'kubernetesIngestor.orphanProtection.gracePeriodRuns',
@@ -2771,6 +2779,7 @@ export class KubernetesEntityProvider implements EntityProvider {
         this.resourceFetcher,
         this.config,
         this.logger,
+        this.resourceFilters,
       );
 
       let compositeKindLookup: { [key: string]: any } = {};
@@ -3051,6 +3060,48 @@ export class KubernetesEntityProvider implements EntityProvider {
         return;
       }
       resource.clusterName = clusterName;
+
+      const passesBuiltInEligibility =
+        createBuiltInResourceEligibilityChecker(this.config);
+      if (!passesBuiltInEligibility(resource)) {
+        this.logger.debug(
+          `Skipping delta upsert for ${kind}/${name}: resource is not eligible for ingestion`,
+        );
+        return;
+      }
+
+      const disabledResourceType = getDisabledResourceType(
+        resource,
+        isCrossplaneEnabled,
+        isKROEnabled,
+      );
+      if (disabledResourceType) {
+        this.logger.debug(
+          `Skipping delta upsert for ${kind}/${name}: ${disabledResourceType} ingestion is disabled`,
+        );
+        return;
+      }
+
+      if (
+        !passesResourceFilters(
+          resource,
+          { clusterName },
+          this.resourceFilters,
+        )
+      ) {
+        const { entities } = await this.classifyAndTranslateResource(
+          resource, isCrossplaneEnabled, isKROEnabled,
+          this.cachedCompositeKindLookup, this.cachedRgdLookup, this.cachedCrdMapping,
+        );
+        const removable = entities.filter(entity => entity.kind !== 'System');
+        if (removable.length > 0) {
+          await this.applyDeltaMutation([], removable);
+        }
+        this.logger.info(
+          `Delta upsert removed ${removable.length} entities for ineligible ${kind}/${name} from cluster ${clusterName}`,
+        );
+        return;
+      }
     } else {
       // For deletes without explicit entityNames, construct a synthetic resource
       // enriched with enough metadata for classifyAndTranslateResource to route

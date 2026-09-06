@@ -1455,5 +1455,100 @@ describe('KubernetesDataProvider', () => {
       expect(result['networking.io|Policy']).toBe('networkpolicies');
     });
   });
-});
 
+  describe('resource filters', () => {
+    const workloadTypes = [
+      { group: 'apps', apiVersion: 'v1', plural: 'deployments', singular: 'deployment' },
+    ];
+
+    const resource = (name: string) => ({
+      apiVersion: 'apps/v1',
+      kind: 'Deployment',
+      metadata: { name, namespace: 'team-a' },
+      spec: {},
+    });
+
+    const fetchWith = async (filters: any[]) => {
+      mockResourceFetcher.fetchResources.mockResolvedValue([
+        resource('keep-me'),
+        resource('drop-me'),
+      ]);
+      const provider = new KubernetesDataProvider(
+        mockResourceFetcher as any,
+        mockConfig as any,
+        mockLogger as any,
+        filters,
+      );
+      const objects = await provider.fetchForCluster('prod', workloadTypes as any);
+      return objects.map((o: any) => o.metadata?.name).filter(Boolean);
+    };
+
+    it('ingests everything when no filter is registered', async () => {
+      await expect(fetchWith([])).resolves.toEqual(
+        expect.arrayContaining(['keep-me', 'drop-me']),
+      );
+    });
+
+    it('excludes a resource a filter rejects', async () => {
+      const names = await fetchWith([
+        (r: any) => r.metadata?.name !== 'drop-me',
+      ]);
+      expect(names).toContain('keep-me');
+      expect(names).not.toContain('drop-me');
+    });
+
+    it('requires every filter to pass', async () => {
+      const names = await fetchWith([() => true, () => false]);
+      expect(names).toEqual([]);
+    });
+
+    it('passes the cluster name to the filter', async () => {
+      const seen: string[] = [];
+      await fetchWith([
+        (_r: any, ctx: any) => {
+          seen.push(ctx.clusterName);
+          return true;
+        },
+      ]);
+      expect(seen).toContain('prod');
+    });
+
+    it.each([
+      [
+        'Crossplane',
+        {
+          apiVersion: 'example.org/v1',
+          kind: 'Example',
+          metadata: { name: 'crossplane-resource', namespace: 'team-a' },
+          spec: { crossplane: {} },
+        },
+      ],
+      [
+        'KRO',
+        {
+          apiVersion: 'example.org/v1',
+          kind: 'Example',
+          metadata: {
+            name: 'kro-resource',
+            namespace: 'team-a',
+            labels: { 'kro.run/resource-graph-definition-id': 'example' },
+          },
+          spec: {},
+        },
+      ],
+    ])('does not run filters for disabled %s resources', async (_type, object) => {
+      const resourceFilter = jest.fn().mockReturnValue(true);
+      mockResourceFetcher.fetchResources.mockResolvedValue([object]);
+      const provider = new KubernetesDataProvider(
+        mockResourceFetcher as any,
+        mockConfig as any,
+        mockLogger as any,
+        [resourceFilter],
+      );
+
+      await provider.fetchForCluster('prod', workloadTypes as any);
+
+      expect(resourceFilter).not.toHaveBeenCalled();
+    });
+  });
+});
