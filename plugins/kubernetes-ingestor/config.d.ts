@@ -301,7 +301,9 @@ export interface Config {
          */
         publishPhase?: {
           /**
-           * Target system for publishing (github, gitlab, catalog)
+           * Target system for publishing (github, gitlab, bitbucket, azure, yaml).
+           * Azure requires @backstage-community/plugin-scaffolder-backend-module-azure-devops
+           * and @terasky/backstage-plugin-scaffolder-backend-module-terasky-utils.
            * @visibility frontend
            */
           target?: string;

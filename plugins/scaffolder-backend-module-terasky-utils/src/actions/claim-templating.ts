@@ -89,6 +89,7 @@ export function createCrossplaneClaimAction({config}: {config: any}) {
         ownerParam: z => z.string().describe('Template parameter to map to the owner of the claim'),
         specFieldOrder: z => z.array(z.string()).describe('Ordered list of spec field names (derived from x-ui-order) to control key order in the generated manifest').optional(),
         xrdPathTemplate: z => z.string().optional().describe('Path template from terasky.backstage.io/target-path XRD annotation, e.g. presets/{dc}/{xrName}. Overrides manifestLayout/basePath.'),
+        xrdPathInWorkspace: z => z.boolean().optional().describe('When true, resolve xrdPathTemplate into the workspace path instead of writing to the workspace root. Required for publish actions that commit a cloned working copy and have no targetPath input, such as azure:repository:push.'),
         generateKustomization: z => z.boolean().optional().describe('When true, generates or updates kustomization.yaml in the target path (from terasky.backstage.io/create-kustomization-file XRD annotation)'),
       },
       output: {
@@ -174,9 +175,13 @@ export function createCrossplaneClaimAction({config}: {config: any}) {
       // publish step controls the final location in the repo without path doubling.
       // e.g. annotation "clusters/{dc}/{xrName}" → targetPath="clusters/eu/my-app" in PR,
       //      file on disk → workspacePath/my-app.yaml (not workspacePath/clusters/eu/my-app/my-app.yaml)
+      // Publish actions that commit a cloned working copy have no targetPath, so under
+      // xrdPathInWorkspace the resolved path is applied on disk instead.
       if (input.xrdPathTemplate) {
         sourceInfo.gitLayout = 'custom';
-        sourceInfo.basePath = '';
+        sourceInfo.basePath = input.xrdPathInWorkspace
+          ? resolvePathTemplate(input.xrdPathTemplate, input.parameters as Record<string, any>)
+          : '';
       }
 
       // Write the manifest to the file system for each cluster
@@ -313,8 +318,27 @@ export function createCrossplaneClaimAction({config}: {config: any}) {
             : path.relative(ctx.workspacePath, kustomizationDir);
 
           let existingResources: string[] = [];
+
+          // A publish flow that clones the repository into the workspace first (Azure DevOps)
+          // already has the current kustomization.yaml on disk. Merge into that, otherwise the
+          // remote lookup below — which only speaks the GitHub contents API — silently drops
+          // every resource already listed in the file.
           try {
-            if (owner && repo) {
+            if (fs.existsSync(kustomizationPath)) {
+              const parsed = yaml.load(fs.readFileSync(kustomizationPath, 'utf8') as string) as any;
+              if (Array.isArray(parsed?.resources)) {
+                existingResources = parsed.resources;
+                ctx.logger.info(
+                  `Merging into kustomization.yaml already in the workspace at ${kustomizationDir} with ${existingResources.length} resource(s)`,
+                );
+              }
+            }
+          } catch (e) {
+            ctx.logger.warn(`Could not read kustomization.yaml at ${kustomizationPath}: ${e}`);
+          }
+
+          try {
+            if (existingResources.length === 0 && owner && repo) {
               const kustomizationGitPath = encodeURI(resolvedRepoDir ? `${resolvedRepoDir}/kustomization.yaml` : 'kustomization.yaml');
               const fetchUrl = `${apiBase}/repos/${owner}/${repo}/contents/${kustomizationGitPath}?ref=${targetBranch}`;
 

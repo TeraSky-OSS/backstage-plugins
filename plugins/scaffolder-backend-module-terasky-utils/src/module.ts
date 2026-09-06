@@ -3,6 +3,7 @@ import { scaffolderActionsExtensionPoint  } from '@backstage/plugin-scaffolder-n
 import { createCrossplaneClaimAction } from "./actions/claim-templating";
 import { createCatalogInfoCleanerAction } from "./actions/catalog-info-cleaner";
 import { createCrdTemplateAction } from "./actions/crd-templating";
+import { createAzureDevOpsRepositoryDetailsAction } from "./actions/azure-devops-repository";
 /**
  * A backend module that registers the action into the scaffolder
  */
@@ -19,6 +20,7 @@ export const scaffolderModule = createBackendModule({
         scaffolderActions.addActions(createCrossplaneClaimAction({config: config}));
         scaffolderActions.addActions(createCatalogInfoCleanerAction());
         scaffolderActions.addActions(createCrdTemplateAction({config: config}));
+        scaffolderActions.addActions(createAzureDevOpsRepositoryDetailsAction());
       }
     });
   },

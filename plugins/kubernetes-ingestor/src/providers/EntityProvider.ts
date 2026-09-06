@@ -1229,6 +1229,10 @@ export class XRDTemplateEntityProvider implements EntityProvider {
         case 'bitbucketcloud':
           allowedHosts = ['bitbucket.org'];
           break;
+        case 'azure':
+        case 'azuredevops':
+          allowedHosts = ['dev.azure.com'];
+          break;
         default:
           allowedHosts = [];
       }
@@ -1434,13 +1438,19 @@ export class XRDTemplateEntityProvider implements EntityProvider {
       ? rawXrdPathTemplate
       : undefined;
 
+    const publishPhaseTarget = this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.target')?.toLowerCase();
+    const isAzureTarget = publishPhaseTarget === 'azure' || publishPhaseTarget === 'azuredevops';
+
     // When target-path annotation is set the clusters selector is hidden from the form →
     // use a static value so the action receives a valid non-empty array.
     const clustersLine = safeXrdPathTemplate
       ? "    clusters: ['temp']\n"
       : "    clusters: ${{ parameters.clusters if parameters.manifestLayout === 'cluster-scoped' and parameters.pushToGit else ['temp'] }}\n";
+    // azure:repository:push commits a cloned working copy and takes no targetPath, so the
+    // resolved path has to be applied when the manifest is written rather than on publish.
     const xrdPathLines =
       (safeXrdPathTemplate ? `    xrdPathTemplate: '${safeXrdPathTemplate.replace(/'/g, "''")}'\n` : '') +
+      (safeXrdPathTemplate && isAzureTarget ? '    xrdPathInWorkspace: true\n' : '') +
       (generateKustomization ? '    generateKustomization: true\n' : '');
 
     let baseStepsYaml = '';
@@ -1483,9 +1493,12 @@ export class XRDTemplateEntityProvider implements EntityProvider {
         }${xrdPathLines}`;
     }
 
-    const publishPhaseTarget = this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.target')?.toLowerCase();
     let action = '';
     switch (publishPhaseTarget) {
+      case 'azure':
+      case 'azuredevops':
+        action = 'azure:repository:push';
+        break;
       case 'gitlab':
         action = 'publish:gitlab:merge-request';
         break;
@@ -1508,6 +1521,52 @@ export class XRDTemplateEntityProvider implements EntityProvider {
     const userOAuthTokenInput = requestUserCredentials
       ? '    token: ${{ secrets.USER_OAUTH_TOKEN }}\n'
       : '';
+    const azureRepoUrl = allowRepoSelection
+      ? '${{ parameters.repoUrl }}'
+      : this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.git.repoUrl');
+    const azureBranchName = allowRepoSelection
+      ? '${{ parameters.branchPrefix }}create-${{ parameters.xrName }}-resource'
+      : `${branchPrefix}create-\${{ parameters.xrName }}-resource`;
+    const azureTargetBranch = allowRepoSelection
+      ? '${{ parameters.targetBranch }}'
+      : this.config.getOptionalString('kubernetesIngestor.crossplane.xrds.publishPhase.git.targetBranch');
+    // azure:repository:push stages and commits an existing working copy, so the repository
+    // has to be cloned into the workspace before the manifest is generated into it.
+    const azureCloneStepsYaml =
+      `- id: azure-repository-details\n` +
+      `  name: Parse Azure DevOps repository\n` +
+      `  action: terasky:azure-devops:repository-details\n` +
+      `  if: \${{ parameters.pushToGit }}\n` +
+      `  input:\n` +
+      `    repoUrl: ${azureRepoUrl}\n` +
+      `- id: clone-repository\n` +
+      `  name: Clone target repository\n` +
+      `  action: azure:repository:clone\n` +
+      `  if: \${{ parameters.pushToGit }}\n` +
+      `  input:\n` +
+      `    remoteUrl: \${{ steps['azure-repository-details'].output.remoteUrl }}\n` +
+      `    branch: ${azureTargetBranch}\n${userOAuthTokenInput}`;
+    const azurePublishStepsYaml =
+      `- id: push-branch\n` +
+      `  name: Push manifest branch\n` +
+      `  action: azure:repository:push\n` +
+      `  if: \${{ parameters.pushToGit }}\n` +
+      `  input:\n` +
+      `    remoteUrl: \${{ steps['azure-repository-details'].output.remoteUrl }}\n` +
+      `    branch: ${azureBranchName}\n` +
+      `    gitCommitMessage: Create {KIND} Resource \${{ parameters.xrName }}\n${userOAuthTokenInput}` +
+      `- id: create-pull-request\n` +
+      `  name: Create pull request\n` +
+      `  action: azure:pr:create\n` +
+      `  if: \${{ parameters.pushToGit }}\n` +
+      `  input:\n` +
+      `    organization: \${{ steps['azure-repository-details'].output.organization }}\n` +
+      `    project: \${{ steps['azure-repository-details'].output.project }}\n` +
+      `    repoName: \${{ steps['azure-repository-details'].output.repository }}\n` +
+      `    sourceBranch: ${azureBranchName}\n` +
+      `    targetBranch: ${azureTargetBranch}\n` +
+      `    title: Create {KIND} Resource \${{ parameters.xrName }}\n` +
+      `    description: Create {KIND} Resource \${{ parameters.xrName }}\n${userOAuthTokenInput}`;
     const repoSelectionStepsYaml =
       `- id: create-pull-request\n` +
       `  name: create-pull-request\n` +
@@ -1524,7 +1583,9 @@ export class XRDTemplateEntityProvider implements EntityProvider {
     let defaultStepsYaml = baseStepsYaml;
 
     if (publishPhaseTarget !== 'yaml') {
-      if (allowRepoSelection) {
+      if (isAzureTarget) {
+        defaultStepsYaml = azureCloneStepsYaml + baseStepsYaml + azurePublishStepsYaml;
+      } else if (allowRepoSelection) {
         defaultStepsYaml += repoSelectionStepsYaml;
       }
       else {
@@ -1559,10 +1620,15 @@ export class XRDTemplateEntityProvider implements EntityProvider {
 
     // Inject targetPath into publish step when target-path annotation is set on XRD.
     // {param} variables are converted to Jinja2 expressions resolved by the scaffolder engine.
-    if (safeXrdPathTemplate) {
+    // Azure DevOps is excluded: its push action has no targetPath, so the path is applied
+    // when the manifest is written (xrdPathInWorkspace above).
+    if (safeXrdPathTemplate && !isAzureTarget) {
       const resolvedTargetPath = XRDTemplateEntityProvider.resolvePathTemplateToJinja2(safeXrdPathTemplate);
       for (const step of defaultSteps) {
-        if (step?.input && ('targetBranchName' in step.input || 'branchName' in step.input)) {
+        if (
+          step?.input &&
+          ('targetBranchName' in step.input || 'branchName' in step.input)
+        ) {
           step.input.targetPath = resolvedTargetPath;
           break;
         }
@@ -1605,6 +1671,9 @@ export class XRDTemplateEntityProvider implements EntityProvider {
       case 'bitbucket':
       case 'bitbucketcloud':
         return '${{ steps["create-pull-request"].output.pullRequestUrl }}';
+      case 'azure':
+      case 'azuredevops':
+        return '${{ steps["azure-repository-details"].output.remoteUrl }}/pullrequest/${{ steps["create-pull-request"].output.pullRequestId }}';
       case 'github':
       default:
         return '${{ steps["create-pull-request"].output.remoteUrl }}';
