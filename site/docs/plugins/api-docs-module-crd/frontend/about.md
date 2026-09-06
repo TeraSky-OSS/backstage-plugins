@@ -12,6 +12,7 @@ The API Docs Module for CRDs is a frontend module that extends the Backstage API
 - Expandable/collapsible property tree
 - Type and description display for each property
 - Required field indicators
+- Default value and allowed enum values display for each property
 - Nested object and array support
 - Anchor links for sharing specific properties
 

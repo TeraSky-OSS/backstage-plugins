@@ -110,6 +110,24 @@ const useStyles = makeStyles(theme => ({
     backgroundColor: theme.palette.primary.main,
     color: theme.palette.primary.contrastText,
   },
+  defaultChip: {
+    fontFamily: 'monospace',
+    backgroundColor: theme.palette.type === 'dark'
+      ? theme.palette.grey[700]
+      : theme.palette.grey[100],
+    color: theme.palette.text.secondary,
+    fontWeight: 500,
+  },
+  enumContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: theme.spacing(0.5),
+    marginBottom: theme.spacing(1),
+  },
+  enumChip: {
+    fontFamily: 'monospace',
+  },
   linkButton: {
     marginLeft: 'auto',
     minWidth: 'auto',
@@ -162,6 +180,10 @@ interface CRDSchema {
   items?: CRDSchema;
   Required?: string[];
   required?: string[];
+  Default?: unknown;
+  default?: unknown;
+  Enum?: unknown[];
+  enum?: unknown[];
 }
 
 interface CRDVersion {
@@ -183,6 +205,12 @@ function getDescription(schema: CRDSchema): string {
   return schema.Description?.trim() || schema.description?.trim() || '_No Description Provided._';
 }
 
+/**
+ * Collapses the two schema key casings this widget accepts into one canonical
+ * shape. The simplified format uses capitalised keys (Type, Properties, …) and
+ * the Kubernetes openAPIV3Schema format uses lowercase ones; every consumer
+ * reads the capitalised fields returned here.
+ */
 function normalizeSchema(schema: CRDSchema): CRDSchema {
   return {
     Type: schema.Type || schema.type,
@@ -190,7 +218,25 @@ function normalizeSchema(schema: CRDSchema): CRDSchema {
     Properties: schema.Properties || schema.properties,
     Items: schema.Items || (schema.items ? { Schema: schema.items } : undefined),
     Required: schema.Required || schema.required,
+    // Select by key presence, not ??, so a falsy default (false, 0, "") and an
+    // explicitly configured `Default: null` are both preserved rather than
+    // being treated as absent and dropped.
+    Default: Object.prototype.hasOwnProperty.call(schema, 'Default')
+      ? schema.Default
+      : schema.default,
+    Enum: schema.Enum ?? schema.enum,
   };
+}
+
+/**
+ * Renders a schema default for display. Strings are shown verbatim (an empty
+ * string as `""`, so it is not mistaken for "no default"); everything else is
+ * JSON-encoded. Returns undefined when no default is set.
+ */
+function formatDefault(value: unknown): string | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value === 'string') return value === '' ? '""' : value;
+  return JSON.stringify(value);
 }
 
 function parseCRDData(data: any): ParsedCRDData | null {
@@ -371,6 +417,11 @@ interface SchemaPartProps {
   collapseAll: boolean;
 }
 
+/**
+ * Renders a single schema property as an expandable accordion: its name, type,
+ * required flag, default and enum allowed values, description, and, recursively,
+ * any nested object or array-item properties.
+ */
 const SchemaPart: React.FC<SchemaPartProps> = ({
   propertyKey,
   property,
@@ -381,29 +432,46 @@ const SchemaPart: React.FC<SchemaPartProps> = ({
 }) => {
   const classes = useStyles();
 
-  const [props, propKeys, required, type, schema] = useMemo(() => {
-    const normalized = normalizeSchema(property);
-    let currentSchema = normalized;
-    let currentProps = normalized.Properties || {};
-    let currentType = normalized.Type || 'string';
+  const [props, propKeys, required, type, schema, defaultValue, enumValues] =
+    useMemo(() => {
+      const normalized = normalizeSchema(property);
+      let currentSchema = normalized;
+      let currentProps = normalized.Properties || {};
+      let currentType = normalized.Type || 'string';
 
-    if (currentType === 'array' && normalized.Items?.Schema) {
-      const itemsSchema = normalizeSchema(normalized.Items.Schema);
-      if (itemsSchema.Type !== 'object') {
-        currentType = `[]${itemsSchema.Type}`;
-      } else {
-        currentSchema = itemsSchema;
-        currentProps = itemsSchema.Properties || {};
-        currentType = '[]object';
+      if (currentType === 'array' && normalized.Items?.Schema) {
+        const itemsSchema = normalizeSchema(normalized.Items.Schema);
+        if (itemsSchema.Type !== 'object') {
+          currentType = `[]${itemsSchema.Type}`;
+        } else {
+          currentSchema = itemsSchema;
+          currentProps = itemsSchema.Properties || {};
+          currentType = '[]object';
+        }
       }
-    }
 
-    const currentPropKeys = Object.keys(currentProps);
-    const normalizedParent = parent ? normalizeSchema(parent) : undefined;
-    const isRequired = normalizedParent?.Required?.includes(propertyKey) || false;
+      const currentPropKeys = Object.keys(currentProps);
+      const normalizedParent = parent ? normalizeSchema(parent) : undefined;
+      const isRequired =
+        normalizedParent?.Required?.includes(propertyKey) || false;
 
-    return [currentProps, currentPropKeys, isRequired, currentType, currentSchema];
-  }, [parent, property, propertyKey]);
+      // Default and enum belong to the property itself, so read them from the
+      // property's own schema rather than the array item schema resolved above.
+      const propDefault = formatDefault(normalized.Default);
+      const propEnum = normalized.Enum?.map(v =>
+        typeof v === 'string' ? v : JSON.stringify(v),
+      );
+
+      return [
+        currentProps,
+        currentPropKeys,
+        isRequired,
+        currentType,
+        currentSchema,
+        propDefault,
+        propEnum,
+      ] as const;
+    }, [parent, property, propertyKey]);
 
   const slug = useMemo(
     () => slugify((parentSlug ? `${parentSlug}-` : '') + propertyKey),
@@ -473,6 +541,13 @@ const SchemaPart: React.FC<SchemaPartProps> = ({
               className={classes.requiredChip}
             />
           )}
+          {defaultValue !== undefined && (
+            <Chip
+              label={`default: ${defaultValue}`}
+              size="small"
+              className={classes.defaultChip}
+            />
+          )}
           <Button
             size="small"
             className={classes.linkButton}
@@ -489,6 +564,21 @@ const SchemaPart: React.FC<SchemaPartProps> = ({
         <Box id={slug} className={classes.description}>
           <ReactMarkdown>{getDescription(property)}</ReactMarkdown>
         </Box>
+        {enumValues && enumValues.length > 0 && (
+          <Box className={classes.enumContainer}>
+            <Typography variant="caption" color="textSecondary">
+              Allowed values:
+            </Typography>
+            {enumValues.map(value => (
+              <Chip
+                key={value}
+                label={value}
+                size="small"
+                className={classes.enumChip}
+              />
+            ))}
+          </Box>
+        )}
         {propKeys.length > 0 && (
           <Box>
             {propKeys.map(propKey => (

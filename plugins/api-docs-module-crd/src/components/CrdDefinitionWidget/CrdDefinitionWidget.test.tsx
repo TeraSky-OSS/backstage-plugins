@@ -473,4 +473,107 @@ Schema:
       expect(yamlContent).toContain('simpleArray: []');
     });
   });
+
+  it('should render default values and allowed enum values (Kubernetes format)', async () => {
+    const user = userEvent.setup();
+    const defaultsAndEnumCrd = `
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: myresources.example.com
+spec:
+  group: example.com
+  names:
+    kind: MyResource
+  scope: Namespaced
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              paused:
+                type: boolean
+                default: false
+              strategy:
+                type: string
+                default: RollingUpdate
+                enum:
+                  - RollingUpdate
+                  - Recreate
+`;
+
+    await renderInTestApp(
+      <CrdDefinitionWidget definition={defaultsAndEnumCrd} />,
+    );
+    await user.click(screen.getByText('+ expand all'));
+
+    await waitFor(() => {
+      // A falsy default must survive (regression guard for the `??` merge).
+      expect(screen.getByText('default: false')).toBeInTheDocument();
+      expect(screen.getByText('default: RollingUpdate')).toBeInTheDocument();
+      expect(screen.getByText('Allowed values:')).toBeInTheDocument();
+      // "Recreate" only appears as an enum value, never as a default.
+      expect(screen.getByText('Recreate')).toBeInTheDocument();
+    });
+  });
+
+  it('should render default values from the simplified schema format', async () => {
+    const user = userEvent.setup();
+    const simplifiedDefaultsCrd = `
+Kind: MyResource
+Group: example.com
+Version: v1
+Schema:
+  Type: object
+  Properties:
+    spec:
+      Type: object
+      Properties:
+        replicas:
+          Type: integer
+          Default: 3
+`;
+
+    await renderInTestApp(
+      <CrdDefinitionWidget definition={simplifiedDefaultsCrd} />,
+    );
+    await user.click(screen.getByText('+ expand all'));
+
+    await waitFor(() => {
+      expect(screen.getByText('default: 3')).toBeInTheDocument();
+    });
+  });
+
+  it('should preserve an explicitly configured null default', async () => {
+    const user = userEvent.setup();
+    const nullDefaultCrd = `
+Kind: MyResource
+Group: example.com
+Version: v1
+Schema:
+  Type: object
+  Properties:
+    spec:
+      Type: object
+      Properties:
+        nullableField:
+          Type: string
+          Default: null
+`;
+
+    await renderInTestApp(
+      <CrdDefinitionWidget definition={nullDefaultCrd} />,
+    );
+    await user.click(screen.getByText('+ expand all'));
+
+    await waitFor(() => {
+      expect(screen.getByText('default: null')).toBeInTheDocument();
+    });
+  });
 });

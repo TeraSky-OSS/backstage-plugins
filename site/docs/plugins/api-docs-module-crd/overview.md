@@ -8,7 +8,7 @@ The API Docs Module for Custom Resource Definitions (CRDs) extends the Backstage
 - **Multi-Version Support**: Switch between different CRD versions and view version-specific schemas
 - **Example YAML Generation**: Automatically generate valid Custom Resource YAML templates from CRD schemas
 - **Kubernetes Format Support**: Parses both simplified and standard Kubernetes CRD formats
-- **Property Exploration**: View detailed information about each CRD property including type, description, and required status
+- **Property Exploration**: View detailed information about each CRD property including type, description, required status, default value, and allowed enum values
 - **Dark Mode Support**: Fully styled for both light and dark themes
 - **Direct Link Sharing**: Copy links to specific CRD properties for easy reference
 

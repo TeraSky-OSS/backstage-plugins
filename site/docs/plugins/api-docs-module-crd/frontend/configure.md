@@ -352,6 +352,8 @@ spec:
 - Use enums for fixed value sets
 - Add validation rules (min, max, pattern)
 
+Required status, default values and enum allowed values are all surfaced in the rendered schema, so the guidance above directly improves the generated documentation.
+
 ## Example: Complete CRD Entity
 
 ```yaml
