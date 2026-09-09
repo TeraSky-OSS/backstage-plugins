@@ -1,0 +1,24 @@
+.divider {
+  border: none;
+  border-top: 1px solid var(--bui-border-1);
+  margin: var(--bui-space-2) 0;
+}
+
+.exampleBlock {
+  font-size: 10px;
+}
+
+.nestedPropertyRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--bui-space-2) 0;
+  border-bottom: 1px solid var(--bui-border-1);
+}
+
+.nestedFieldEditor {
+  margin-top: var(--bui-space-2);
+  padding: var(--bui-space-2);
+  border: 1px solid var(--bui-border-1);
+  border-radius: var(--bui-radius-2);
+}

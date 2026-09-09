@@ -1,14 +1,6 @@
 import { useState } from 'react';
-import {
-  Stepper,
-  Step,
-  StepLabel,
-  Paper,
-  Box,
-  Button,
-  Typography,
-} from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
+import { Box, Card, Flex, Button, Text } from '@backstage/ui';
+import { RiCheckLine } from '@remixicon/react';
 import { CloudTypeSelection } from './steps/CloudTypeSelection';
 import { ProjectSelection } from './steps/ProjectSelection';
 import { CloudAccountSelection } from './steps/CloudAccountSelection';
@@ -20,29 +12,19 @@ import { VSphereInfrastructureConfiguration } from './steps/VSphereInfrastructur
 import { VirtualClusterInfrastructureConfiguration } from './steps/VirtualClusterInfrastructureConfiguration';
 import { Summary } from './steps/Summary';
 import { ClusterDeploymentState, initialDeploymentState, CloudType } from './types';
+import styles from './ClusterDeploymentWizard.module.css';
 
-const useStyles = makeStyles(theme => ({
-  root: {
-    padding: theme.spacing(3),
-  },
-  stepper: {
-    marginBottom: theme.spacing(3),
-  },
-  content: {
-    padding: theme.spacing(3),
-    minHeight: 400,
-  },
-  actions: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    marginTop: theme.spacing(3),
-    paddingTop: theme.spacing(2),
-    borderTop: `1px solid ${theme.palette.divider}`,
-  },
-  button: {
-    marginLeft: theme.spacing(1),
-  },
-}));
+type StepStatus = 'completed' | 'active' | 'upcoming';
+
+const getStepStatus = (index: number, activeStep: number): StepStatus => {
+  if (index < activeStep) {
+    return 'completed';
+  }
+  if (index === activeStep) {
+    return 'active';
+  }
+  return 'upcoming';
+};
 
 const getStepsForCloudType = (cloudType?: CloudType): string[] => {
   if (cloudType === 'virtual') {
@@ -53,7 +35,7 @@ const getStepsForCloudType = (cloudType?: CloudType): string[] => {
       'Review & Deploy',
     ];
   }
-  
+
   // Default steps for other cloud types (vSphere, EKS, etc.)
   return [
     'Cloud Type',
@@ -67,8 +49,49 @@ const getStepsForCloudType = (cloudType?: CloudType): string[] => {
   ];
 };
 
+// Hand-rolled horizontal progress-indicator header. BUI has no Stepper
+// equivalent (confirmed absent from @backstage/ui's exports), so this
+// renders a simple labeled-circle strip with a connecting line, driven
+// entirely by BUI primitives + a small CSS module for the circle/line
+// layout (no third-party or MUI component involved).
+const StepperHeader = ({
+  steps,
+  activeStep,
+}: {
+  steps: string[];
+  activeStep: number;
+}) => (
+  <Flex align="start" gap="0" className={styles.stepperRow}>
+    {steps.map((label, index) => {
+      const status = getStepStatus(index, activeStep);
+
+      return (
+        <Flex
+          key={label}
+          direction="column"
+          align="center"
+          gap="0"
+          className={`${styles.step} ${styles[status]}`}
+        >
+          <Box className={`${styles.circle} ${styles[status]}`}>
+            {status === 'completed' ? (
+              <RiCheckLine size={16} />
+            ) : (
+              <Text as="span" weight={status === 'active' ? 'bold' : 'regular'}>
+                {index + 1}
+              </Text>
+            )}
+          </Box>
+          <Text as="span" variant="body-small" className={`${styles.label} ${styles[status]}`}>
+            {label}
+          </Text>
+        </Flex>
+      );
+    })}
+  </Flex>
+);
+
 export const ClusterDeploymentWizard = () => {
-  const classes = useStyles();
   const [activeStep, setActiveStep] = useState(0);
   const [state, setState] = useState<ClusterDeploymentState>(initialDeploymentState);
   const [profileVariablesValid, setProfileVariablesValid] = useState(true);
@@ -101,7 +124,7 @@ export const ClusterDeploymentWizard = () => {
           ...initialDeploymentState,
           cloudType: updates.cloudType,
         };
-        
+
         // Initialize virtual cluster defaults
         if (updates.cloudType === 'virtual') {
           newState.cloudConfig = {
@@ -111,15 +134,15 @@ export const ClusterDeploymentWizard = () => {
             endpointType: 'LoadBalancer',
           };
         }
-        
+
         return newState;
       }
-      
+
       // Deep merge tfMetadata to preserve existing fields
       const newState = {
         ...prev,
         ...updates,
-        tfMetadata: updates.tfMetadata 
+        tfMetadata: updates.tfMetadata
           ? { ...prev.tfMetadata, ...updates.tfMetadata }
           : prev.tfMetadata,
       };
@@ -136,10 +159,10 @@ export const ClusterDeploymentWizard = () => {
         case 1: // Project
           return !!state.projectUid;
         case 2: { // Virtual Cluster Setup (name + cluster group + quotas)
-          const hasClusterName = !!state.clusterName && state.clusterName.length > 0 && 
+          const hasClusterName = !!state.clusterName && state.clusterName.length > 0 &&
                                  /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/.test(state.clusterName);
           const hasClusterGroup = !!state.cloudConfig.clusterGroupUid;
-          const hasValidQuotas = 
+          const hasValidQuotas =
             (state.cloudConfig.cpuCores ?? 0) > 0 &&
             (state.cloudConfig.memoryGiB ?? 0) > 0 &&
             (state.cloudConfig.storageGiB ?? 0) > 0;
@@ -169,59 +192,59 @@ export const ClusterDeploymentWizard = () => {
       case 6: // Infrastructure
         if (state.cloudType === 'vsphere') {
           // Validate vSphere required fields
-          const hasGlobalPlacement = 
+          const hasGlobalPlacement =
             !!state.cloudConfig.placement?.datacenter &&
             !!state.cloudConfig.placement?.folder &&
             !!state.cloudConfig.placement?.imageTemplateFolder;
-          
+
           // Validate SSH key
           const hasSSHKey = !!state.cloudConfig.sshKeys && state.cloudConfig.sshKeys.length > 0;
-          
+
           // Validate control plane
           const controlPlane = state.controlPlaneConfig;
           const hasControlPlaneSize = !!controlPlane.size && controlPlane.size > 0;
-          const hasControlPlaneInstance = 
+          const hasControlPlaneInstance =
             typeof controlPlane.instanceType === 'object' &&
             controlPlane.instanceType !== null &&
             !!controlPlane.instanceType.numCPUs &&
             !!controlPlane.instanceType.memoryMiB &&
             !!controlPlane.instanceType.diskGiB;
-          const hasControlPlanePlacement = 
+          const hasControlPlanePlacement =
             !!controlPlane.placements &&
             controlPlane.placements.length > 0 &&
             !!controlPlane.placements[0]?.cluster &&
             !!controlPlane.placements[0]?.datastore &&
             !!controlPlane.placements[0]?.network?.networkName;
-          
+
           // Validate worker pools
           const hasWorkerPools = state.workerPools.length > 0;
           const allWorkersValid = state.workerPools.every(pool => {
             const hasName = !!pool.name && pool.name.trim().length > 0;
-            const hasSize = pool.useAutoscaler 
+            const hasSize = pool.useAutoscaler
               ? (!!pool.minSize && pool.minSize > 0 && !!pool.maxSize && pool.maxSize > 0)
               : (!!pool.size && pool.size > 0);
-            const hasInstance = 
+            const hasInstance =
               typeof pool.instanceType === 'object' &&
               pool.instanceType !== null &&
               !!pool.instanceType.numCPUs &&
               !!pool.instanceType.memoryMiB &&
               !!pool.instanceType.diskGiB;
-            const hasPlacement = 
+            const hasPlacement =
               !!pool.placements &&
               pool.placements.length > 0 &&
               !!pool.placements[0]?.cluster &&
               !!pool.placements[0]?.datastore &&
               !!pool.placements[0]?.network?.networkName;
-            
+
             return hasName && hasSize && hasInstance && hasPlacement;
           });
-          
-          return hasGlobalPlacement && 
+
+          return hasGlobalPlacement &&
                  hasSSHKey &&
-                 hasControlPlaneSize && 
-                 hasControlPlaneInstance && 
-                 hasControlPlanePlacement && 
-                 hasWorkerPools && 
+                 hasControlPlaneSize &&
+                 hasControlPlaneInstance &&
+                 hasControlPlanePlacement &&
+                 hasWorkerPools &&
                  allWorkersValid;
         }
         // For other cloud types, just check worker pools exist
@@ -268,7 +291,7 @@ export const ClusterDeploymentWizard = () => {
             />
           );
         default:
-          return <Typography>Unknown step</Typography>;
+          return <Text>Unknown step</Text>;
       }
     }
 
@@ -343,7 +366,7 @@ export const ClusterDeploymentWizard = () => {
               onUpdate={(updates: any) => updateState(updates)}
             />
           );
-        } 
+        }
           return (
             <InfrastructureConfiguration
               cloudType={state.cloudType!}
@@ -353,7 +376,7 @@ export const ClusterDeploymentWizard = () => {
               onUpdate={(updates: any) => updateState(updates)}
             />
           );
-        
+
       case 7:
         return (
           <Summary
@@ -362,46 +385,40 @@ export const ClusterDeploymentWizard = () => {
           />
         );
       default:
-        return <Typography>Unknown step</Typography>;
+        return <Text>Unknown step</Text>;
     }
   };
 
   return (
-    <Box className={classes.root}>
-      <Paper>
-        <Stepper activeStep={activeStep} className={classes.stepper}>
-          {steps.map(label => (
-            <Step key={label}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
+    <Box p="6">
+      <Card>
+        <Box p="6">
+          <StepperHeader steps={steps} activeStep={activeStep} />
+        </Box>
 
-        <Box className={classes.content}>{renderStepContent()}</Box>
+        <Box p="6" style={{ minHeight: 400 }}>{renderStepContent()}</Box>
 
-        <Box className={classes.actions}>
+        <Flex justify="between" align="center" p="6" className={styles.actions}>
           <Button
-            disabled={activeStep === 0}
-            onClick={handleBack}
-            className={classes.button}
+            variant="secondary"
+            isDisabled={activeStep === 0}
+            onPress={handleBack}
           >
             Back
           </Button>
           <Box>
             {activeStep < steps.length - 1 && (
               <Button
-                variant="contained"
-                color="primary"
-                onClick={handleNext}
-                disabled={!canProceed()}
-                className={classes.button}
+                variant="primary"
+                isDisabled={!canProceed()}
+                onPress={handleNext}
               >
                 Next
               </Button>
             )}
           </Box>
-        </Box>
-      </Paper>
+        </Flex>
+      </Card>
     </Box>
   );
 };

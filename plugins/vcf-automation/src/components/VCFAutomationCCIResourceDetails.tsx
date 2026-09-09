@@ -15,89 +15,31 @@ import {
   TableColumn,
   CodeSnippet,
 } from '@backstage/core-components';
-import { 
-  Grid, 
-  Typography, 
-  Chip, 
-  Box, 
-  Card, 
-  CardContent, 
-  Tabs, 
-  Tab,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
+import {
+  Alert,
+  Badge,
+  Box,
   Button,
-  Snackbar,
+  Card,
+  CardBody,
+  Accordion,
+  AccordionTrigger,
+  AccordionPanel,
   Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions
-} from '@material-ui/core';
-import { Alert } from '@material-ui/lab';
-import { makeStyles } from '@material-ui/core/styles';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+  DialogBody,
+  DialogFooter,
+  DialogHeader,
+  Flex,
+  Grid,
+  Tab,
+  TabList,
+  TabPanel,
+  Tabs,
+  Text,
+} from '@backstage/ui';
 import * as yaml from 'js-yaml';
 import { vcfAutomationApiRef } from '../api';
 import { supervisorResourceEditPermission } from '@terasky/backstage-plugin-vcf-automation-common';
-
-const useStyles = makeStyles(theme => ({
-  statusChip: {
-    marginRight: theme.spacing(1),
-    marginBottom: theme.spacing(0.5),
-  },
-  sectionTitle: {
-    marginBottom: theme.spacing(2),
-  },
-  conditionChip: {
-    margin: theme.spacing(0.25),
-  },
-  card: {
-    marginBottom: theme.spacing(2),
-  },
-  statusCard: {
-    border: `1px solid ${theme.palette.divider}`,
-  },
-  dependencyChip: {
-    margin: theme.spacing(0.25),
-    cursor: 'pointer',
-  },
-  yamlContainer: {
-    '& .MuiAccordionSummary-root': {
-      minHeight: 48,
-    },
-  },
-  tabPanel: {
-    paddingTop: theme.spacing(2),
-  },
-  yamlEditorContainer: {
-    height: '70vh',
-    minHeight: '500px',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  monacoEditor: {
-    flex: 1,
-    border: `1px solid ${theme.palette.divider}`,
-    borderRadius: theme.shape.borderRadius,
-  },
-  validationStatus: {
-    padding: theme.spacing(1),
-    borderTop: `1px solid ${theme.palette.divider}`,
-    backgroundColor: theme.palette.background.paper,
-    flexShrink: 0,
-  },
-  yamlValidationError: {
-    color: theme.palette.error.main,
-    fontSize: '0.875rem',
-  },
-  editorActions: {
-    display: 'flex',
-    gap: theme.spacing(1),
-    marginTop: theme.spacing(2),
-    justifyContent: 'flex-end',
-  },
-}));
 
 interface Condition {
   type: string;
@@ -112,30 +54,9 @@ interface WaitCondition {
   status: string;
 }
 
-function TabPanel(props: { children?: React.ReactNode; index: number; value: number }) {
-  const { children, value, index } = props;
-  const classes = useStyles();
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`resource-tabpanel-${index}`}
-      aria-labelledby={`resource-tab-${index}`}
-    >
-      {value === index && (
-        <Box className={classes.tabPanel}>
-          {children}
-        </Box>
-      )}
-    </div>
-  );
-}
-
 export const VCFAutomationCCIResourceDetails = () => {
-  const classes = useStyles();
   const { entity } = useEntity();
-  const [tabValue, setTabValue] = useState(0);
+  const [tabValue, setTabValue] = useState('basic');
   const api = useApi(vcfAutomationApiRef);
   const catalogApi = useApi(catalogApiRef);
 
@@ -445,11 +366,11 @@ export const VCFAutomationCCIResourceDetails = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
   }, []);
 
-  const handleTabChange = (_event: React.ChangeEvent<{}>, newValue: number) => {
+  const handleTabChange = (newValue: string) => {
     setTabValue(newValue);
-    
+
     // Load manifest when YAML editor tab is selected
-    if (newValue === 5 && canEditResource && !editingYaml && !isLoadingManifest) {
+    if (newValue === 'edit' && canEditResource && !editingYaml && !isLoadingManifest) {
       loadManifestForEditing();
     }
   };
@@ -457,7 +378,7 @@ export const VCFAutomationCCIResourceDetails = () => {
   if (loading) {
     return (
       <InfoCard title="CCI Supervisor Resource Details">
-        <Typography>Loading resource details...</Typography>
+        <Text>Loading resource details...</Text>
       </InfoCard>
     );
   }
@@ -465,7 +386,7 @@ export const VCFAutomationCCIResourceDetails = () => {
   if (error) {
     return (
       <InfoCard title="CCI Supervisor Resource Details">
-        <Typography color="error">Error loading resource details: {error.message}</Typography>
+        <Text style={{ color: 'var(--bui-fg-negative)' }}>Error loading resource details: {error.message}</Text>
       </InfoCard>
     );
   }
@@ -473,7 +394,7 @@ export const VCFAutomationCCIResourceDetails = () => {
   if (!resourceData && !manifest && !objectData) {
     return (
       <InfoCard title="CCI Supervisor Resource Details">
-        <Typography>No resource data available.</Typography>
+        <Text>No resource data available.</Text>
       </InfoCard>
     );
   }
@@ -587,28 +508,28 @@ export const VCFAutomationCCIResourceDetails = () => {
   const objectStatus = getObjectStatus();
 
   const waitConditionColumns: TableColumn<WaitCondition>[] = [
-    { 
-      title: 'Status', 
+    {
+      title: 'Status',
       field: 'status',
       render: (rowData) => (
-        <Box display="flex" alignItems="center">
+        <Flex align="center" gap="2">
           {renderStatusIcon(rowData.status)}
-          <span style={{ marginLeft: 8 }}>{rowData.status}</span>
-        </Box>
+          <span>{rowData.status}</span>
+        </Flex>
       ),
     },
     { title: 'Type', field: 'type' },
   ];
 
   const resourceConditionColumns: TableColumn<Condition>[] = [
-    { 
-      title: 'Status', 
+    {
+      title: 'Status',
       field: 'status',
       render: (rowData) => (
-        <Box display="flex" alignItems="center">
+        <Flex align="center" gap="2">
           {renderStatusIcon(rowData.status)}
-          <span style={{ marginLeft: 8 }}>{rowData.status}</span>
-        </Box>
+          <span>{rowData.status}</span>
+        </Flex>
       ),
     },
     { title: 'Type', field: 'type' },
@@ -642,374 +563,370 @@ export const VCFAutomationCCIResourceDetails = () => {
   const networkInfo = getNetworkInfo();
 
   return (
-    <Grid container spacing={3}>
-      <Grid item xs={12}>
+    <Grid.Root columns="12" gap="5">
+      <Grid.Item colSpan="12">
         <InfoCard title="Resource Overview">
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} md={3}>
-              <Card className={classes.statusCard}>
-                <CardContent>
-                  <Typography variant="h6" color="textSecondary">
+          <Grid.Root columns="12" gap="4">
+            <Grid.Item colSpan={{ xs: '12', sm: '6', md: '3' }}>
+              <Card>
+                <CardBody>
+                  <Text variant="body-small" style={{ color: 'var(--bui-fg-secondary)', display: 'block' }}>
                     State
-                  </Typography>
-                  <Typography variant="h4">
+                  </Text>
+                  <Text variant="title-large" weight="bold" style={{ display: 'block' }}>
                     {resourceState || 'Unknown'}
-                  </Typography>
-                </CardContent>
+                  </Text>
+                </CardBody>
               </Card>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Card className={classes.statusCard}>
-                <CardContent>
-                  <Typography variant="h6" color="textSecondary">
+            </Grid.Item>
+            <Grid.Item colSpan={{ xs: '12', sm: '6', md: '3' }}>
+              <Card>
+                <CardBody>
+                  <Text variant="body-small" style={{ color: 'var(--bui-fg-secondary)', display: 'block' }}>
                     Sync Status
-                  </Typography>
-                  <Typography variant="h4">
+                  </Text>
+                  <Text variant="title-large" weight="bold" style={{ display: 'block' }}>
                     {syncStatus || 'Unknown'}
-                  </Typography>
-                </CardContent>
+                  </Text>
+                </CardBody>
               </Card>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Card className={classes.statusCard}>
-                <CardContent>
-                  <Typography variant="h6" color="textSecondary">
+            </Grid.Item>
+            <Grid.Item colSpan={{ xs: '12', sm: '6', md: '3' }}>
+              <Card>
+                <CardBody>
+                  <Text variant="body-small" style={{ color: 'var(--bui-fg-secondary)', display: 'block' }}>
                     Kind
-                  </Typography>
-                  <Typography variant="h4">
+                  </Text>
+                  <Text variant="title-large" weight="bold" style={{ display: 'block' }}>
                     {manifest?.kind || 'Unknown'}
-                  </Typography>
-                </CardContent>
+                  </Text>
+                </CardBody>
               </Card>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Card className={classes.statusCard}>
-                <CardContent>
-                  <Typography variant="h6" color="textSecondary">
+            </Grid.Item>
+            <Grid.Item colSpan={{ xs: '12', sm: '6', md: '3' }}>
+              <Card>
+                <CardBody>
+                  <Text variant="body-small" style={{ color: 'var(--bui-fg-secondary)', display: 'block' }}>
                     Power State
-                  </Typography>
-                  <Typography variant="h4">
+                  </Text>
+                  <Text variant="title-large" weight="bold" style={{ display: 'block' }}>
                     {objectData?.status?.powerState || 'Unknown'}
-                  </Typography>
-                </CardContent>
+                  </Text>
+                </CardBody>
               </Card>
-            </Grid>
-          </Grid>
+            </Grid.Item>
+          </Grid.Root>
         </InfoCard>
-      </Grid>
+      </Grid.Item>
 
-      <Grid item xs={12}>
+      <Grid.Item colSpan="12">
         <InfoCard>
-          <Tabs value={tabValue} onChange={handleTabChange} aria-label="resource details tabs">
-            <Tab label="Basic Information" />
-            <Tab label="Manifest Details" />
-            <Tab label="Object Status" />
-            <Tab label="Conditions" />
-            <Tab label="YAML Views" />
-            {canEditResource && resourceName && namespaceName && namespaceUrnId && apiVersion && (
-              <Tab label="Edit Manifest" />
-            )}
-          </Tabs>
+          <Tabs selectedKey={tabValue} onSelectionChange={key => handleTabChange(String(key))}>
+            <TabList>
+              <Tab id="basic">Basic Information</Tab>
+              <Tab id="manifest">Manifest Details</Tab>
+              <Tab id="status">Object Status</Tab>
+              <Tab id="conditions">Conditions</Tab>
+              <Tab id="yaml">YAML Views</Tab>
+              {canEditResource && resourceName && namespaceName && namespaceUrnId && apiVersion && (
+                <Tab id="edit">Edit Manifest</Tab>
+              )}
+            </TabList>
 
-          <TabPanel value={tabValue} index={0}>
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <StructuredMetadataTable metadata={basicInfo} />
-              </Grid>
-              
-              {entity.spec?.dependsOn && Array.isArray(entity.spec.dependsOn) && entity.spec.dependsOn.length > 0 && (
-                <Grid item xs={12}>
-                  <Typography variant="h6" className={classes.sectionTitle}>
-                    Dependencies
-                  </Typography>
-                  <Box>
-                    {entity.spec.dependsOn
-                      .filter((dep): dep is string => typeof dep === 'string')
-                      .map((dep: string, index: number) => (
-                        <Chip
-                          key={index}
-                          label={dep}
-                          size="small"
-                          className={classes.dependencyChip}
-                          color="primary"
-                          variant="outlined"
-                        />
-                      ))}
-                  </Box>
-                </Grid>
-              )}
-            </Grid>
-          </TabPanel>
+            <TabPanel id="basic">
+              <Box mt="4">
+                <Grid.Root columns="12" gap="5">
+                  <Grid.Item colSpan="12">
+                    <StructuredMetadataTable metadata={basicInfo} />
+                  </Grid.Item>
 
-          <TabPanel value={tabValue} index={1}>
-            <Grid container spacing={3}>
-              {Object.keys(manifestInfo).length > 0 && (
-                <Grid item xs={12}>
-                  <Typography variant="h6" className={classes.sectionTitle}>
-                    Manifest Information
-                  </Typography>
-                  <StructuredMetadataTable metadata={manifestInfo} />
-                </Grid>
-              )}
-              
-              {manifest?.metadata?.labels && (
-                <Grid item xs={12}>
-                  <Typography variant="h6" className={classes.sectionTitle}>
-                    Labels
-                  </Typography>
-                  <StructuredMetadataTable metadata={manifest.metadata.labels} />
-                </Grid>
-              )}
-            </Grid>
-          </TabPanel>
-
-          <TabPanel value={tabValue} index={2}>
-            <Grid container spacing={3}>
-              {objectStatus && (
-                <Grid item xs={12}>
-                  <Typography variant="h6" className={classes.sectionTitle}>
-                    Object Status
-                  </Typography>
-                  <StructuredMetadataTable metadata={objectStatus} />
-                </Grid>
-              )}
-              
-              {networkInfo && (
-                <Grid item xs={12}>
-                  <Typography variant="h6" className={classes.sectionTitle}>
-                    Network Information
-                  </Typography>
-                  <StructuredMetadataTable metadata={networkInfo} />
-                </Grid>
-              )}
-            </Grid>
-          </TabPanel>
-
-          <TabPanel value={tabValue} index={3}>
-            <Grid container spacing={3}>
-              {resourceData.wait?.conditions && resourceData.wait.conditions.length > 0 && (
-                <Grid item xs={12}>
-                  <Typography variant="h6" className={classes.sectionTitle}>
-                    Wait Conditions
-                  </Typography>
-                  <Table
-                    columns={waitConditionColumns}
-                    data={resourceData.wait.conditions}
-                    options={{
-                      search: false,
-                      paging: false,
-                      padding: 'dense',
-                    }}
-                  />
-                </Grid>
-              )}
-
-              {objectData?.status?.conditions && objectData.status.conditions.length > 0 && (
-                <Grid item xs={12}>
-                  <Typography variant="h6" className={classes.sectionTitle}>
-                    Resource Conditions
-                  </Typography>
-                  <Table
-                    columns={resourceConditionColumns}
-                    data={objectData.status.conditions}
-                    options={{
-                      search: true,
-                      paging: objectData.status.conditions.length > 10,
-                      pageSize: 10,
-                      padding: 'dense',
-                    }}
-                  />
-                </Grid>
-              )}
-            </Grid>
-          </TabPanel>
-
-          <TabPanel value={tabValue} index={4}>
-            <Grid container spacing={3}>
-              {manifest && (
-                <Grid item xs={12}>
-                  <Accordion className={classes.yamlContainer} defaultExpanded>
-                    <AccordionSummary
-                      expandIcon={<ExpandMoreIcon />}
-                      aria-controls="manifest-content"
-                      id="manifest-header"
-                    >
-                      <Typography variant="h6">Resource Manifest</Typography>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                      <Box width="100%">
-                        <CodeSnippet
-                          text={formatYaml(manifest)}
-                          language="yaml"
-                          showLineNumbers
-                          customStyle={{ 
-                            fontSize: '12px',
-                            maxHeight: '600px',
-                            overflow: 'auto'
-                          }}
-                        />
+                  {entity.spec?.dependsOn && Array.isArray(entity.spec.dependsOn) && entity.spec.dependsOn.length > 0 && (
+                    <Grid.Item colSpan="12">
+                      <Box mb="4">
+                        <Text variant="title-small" weight="bold">Dependencies</Text>
                       </Box>
-                    </AccordionDetails>
-                  </Accordion>
-                </Grid>
-              )}
+                      <Flex gap="1" style={{ flexWrap: 'wrap' }}>
+                        {entity.spec.dependsOn
+                          .filter((dep): dep is string => typeof dep === 'string')
+                          .map((dep: string, index: number) => (
+                            <Badge key={index}>{dep}</Badge>
+                          ))}
+                      </Flex>
+                    </Grid.Item>
+                  )}
+                </Grid.Root>
+              </Box>
+            </TabPanel>
 
-              {objectData && (
-                <Grid item xs={12}>
-                  <Accordion className={classes.yamlContainer}>
-                    <AccordionSummary
-                      expandIcon={<ExpandMoreIcon />}
-                      aria-controls="object-content"
-                      id="object-header"
-                    >
-                      <Typography variant="h6">Live Kubernetes Object</Typography>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                      <Box width="100%">
-                        <CodeSnippet
-                          text={formatYaml(objectData)}
-                          language="yaml"
-                          showLineNumbers
-                          customStyle={{ 
-                            fontSize: '12px',
-                            maxHeight: '600px',
-                            overflow: 'auto'
-                          }}
-                        />
+            <TabPanel id="manifest">
+              <Box mt="4">
+                <Grid.Root columns="12" gap="5">
+                  {Object.keys(manifestInfo).length > 0 && (
+                    <Grid.Item colSpan="12">
+                      <Box mb="4">
+                        <Text variant="title-small" weight="bold">Manifest Information</Text>
                       </Box>
-                    </AccordionDetails>
-                  </Accordion>
-                </Grid>
-              )}
-            </Grid>
+                      <StructuredMetadataTable metadata={manifestInfo} />
+                    </Grid.Item>
+                  )}
+
+                  {manifest?.metadata?.labels && (
+                    <Grid.Item colSpan="12">
+                      <Box mb="4">
+                        <Text variant="title-small" weight="bold">Labels</Text>
+                      </Box>
+                      <StructuredMetadataTable metadata={manifest.metadata.labels} />
+                    </Grid.Item>
+                  )}
+                </Grid.Root>
+              </Box>
+            </TabPanel>
+
+            <TabPanel id="status">
+              <Box mt="4">
+                <Grid.Root columns="12" gap="5">
+                  {objectStatus && (
+                    <Grid.Item colSpan="12">
+                      <Box mb="4">
+                        <Text variant="title-small" weight="bold">Object Status</Text>
+                      </Box>
+                      <StructuredMetadataTable metadata={objectStatus} />
+                    </Grid.Item>
+                  )}
+
+                  {networkInfo && (
+                    <Grid.Item colSpan="12">
+                      <Box mb="4">
+                        <Text variant="title-small" weight="bold">Network Information</Text>
+                      </Box>
+                      <StructuredMetadataTable metadata={networkInfo} />
+                    </Grid.Item>
+                  )}
+                </Grid.Root>
+              </Box>
+            </TabPanel>
+
+            <TabPanel id="conditions">
+              <Box mt="4">
+                <Grid.Root columns="12" gap="5">
+                  {resourceData.wait?.conditions && resourceData.wait.conditions.length > 0 && (
+                    <Grid.Item colSpan="12">
+                      <Box mb="4">
+                        <Text variant="title-small" weight="bold">Wait Conditions</Text>
+                      </Box>
+                      <Table
+                        columns={waitConditionColumns}
+                        data={resourceData.wait.conditions}
+                        options={{
+                          search: false,
+                          paging: false,
+                          padding: 'dense',
+                        }}
+                      />
+                    </Grid.Item>
+                  )}
+
+                  {objectData?.status?.conditions && objectData.status.conditions.length > 0 && (
+                    <Grid.Item colSpan="12">
+                      <Box mb="4">
+                        <Text variant="title-small" weight="bold">Resource Conditions</Text>
+                      </Box>
+                      <Table
+                        columns={resourceConditionColumns}
+                        data={objectData.status.conditions}
+                        options={{
+                          search: true,
+                          paging: objectData.status.conditions.length > 10,
+                          pageSize: 10,
+                          padding: 'dense',
+                        }}
+                      />
+                    </Grid.Item>
+                  )}
+                </Grid.Root>
+              </Box>
+            </TabPanel>
+
+          <TabPanel id="yaml">
+            <Box mt="4">
+              <Grid.Root columns="12" gap="5">
+                {manifest && (
+                  <Grid.Item colSpan="12">
+                    <Accordion defaultExpanded>
+                      <AccordionTrigger>
+                        <Text variant="title-small" weight="bold">Resource Manifest</Text>
+                      </AccordionTrigger>
+                      <AccordionPanel>
+                        <Box style={{ width: '100%' }}>
+                          <CodeSnippet
+                            text={formatYaml(manifest)}
+                            language="yaml"
+                            showLineNumbers
+                            customStyle={{
+                              fontSize: '12px',
+                              maxHeight: '600px',
+                              overflow: 'auto'
+                            }}
+                          />
+                        </Box>
+                      </AccordionPanel>
+                    </Accordion>
+                  </Grid.Item>
+                )}
+
+                {objectData && (
+                  <Grid.Item colSpan="12">
+                    <Accordion>
+                      <AccordionTrigger>
+                        <Text variant="title-small" weight="bold">Live Kubernetes Object</Text>
+                      </AccordionTrigger>
+                      <AccordionPanel>
+                        <Box style={{ width: '100%' }}>
+                          <CodeSnippet
+                            text={formatYaml(objectData)}
+                            language="yaml"
+                            showLineNumbers
+                            customStyle={{
+                              fontSize: '12px',
+                              maxHeight: '600px',
+                              overflow: 'auto'
+                            }}
+                          />
+                        </Box>
+                      </AccordionPanel>
+                    </Accordion>
+                  </Grid.Item>
+                )}
+              </Grid.Root>
+            </Box>
           </TabPanel>
 
           {/* YAML Editor Tab */}
           {canEditResource && resourceName && namespaceName && namespaceUrnId && apiVersion && (
-            <TabPanel value={tabValue} index={5}>
-              <Grid container spacing={3}>
-                <Grid item xs={12}>
-                  <Typography variant="h6" className={classes.sectionTitle}>
-                    Edit Resource Manifest
-                  </Typography>
-                  <Typography variant="body2" color="textSecondary" gutterBottom>
-                    {resourceName} ({resourceKind})
-                  </Typography>
-                  
-                  {isLoadingManifest ? (
-                    <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-                      <Typography>Loading manifest...</Typography>
+            <TabPanel id="edit">
+              <Box mt="4">
+                <Grid.Root columns="12" gap="5">
+                  <Grid.Item colSpan="12">
+                    <Box mb="4">
+                      <Text variant="title-small" weight="bold">Edit Resource Manifest</Text>
                     </Box>
-                  ) : (
-                    <Box className={classes.yamlEditorContainer}>
-                      <Box className={classes.monacoEditor}>
-                        <Editor
-                          height="100%"
-                          defaultLanguage="yaml"
-                          value={editingYaml}
-                          onChange={(value) => handleYamlChange(value || '')}
-                          theme="vs-dark"
-                          options={{
-                            minimap: { enabled: false },
-                            scrollBeyondLastLine: false,
-                            fontSize: 14,
-                            lineNumbers: 'on',
-                            wordWrap: 'off',
-                            automaticLayout: true,
-                            tabSize: 2,
-                            insertSpaces: true,
-                            folding: true,
-                            renderWhitespace: 'selection',
-                          }}
-                        />
-                      </Box>
-                      
-                      {/* Fixed Validation Status Bar */}
-                      <Box className={classes.validationStatus}>
-                        {yamlValidationError && (
-                          <Typography className={classes.yamlValidationError}>
-                            ⚠️ YAML Validation Error: {yamlValidationError}
-                          </Typography>
-                        )}
-                        {!yamlValidationError && editingYaml.trim() && (
-                          <Typography variant="caption" color="textSecondary">
-                            ✅ YAML syntax is valid
-                          </Typography>
-                        )}
-                        {!yamlValidationError && !editingYaml.trim() && (
-                          <Typography variant="caption" color="textSecondary">
-                            Enter YAML content above
-                          </Typography>
-                        )}
-                      </Box>
+                    <Text variant="body-small" style={{ color: 'var(--bui-fg-secondary)' }}>
+                      {resourceName} ({resourceKind})
+                    </Text>
 
-                      {/* Action Buttons */}
-                      <Box className={classes.editorActions}>
-                        <Button
-                          variant="outlined"
-                          onClick={handleCancelEditing}
-                          disabled={isSaving}
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          variant="contained"
-                          color="primary"
-                          onClick={() => setConfirmDialogOpen(true)}
-                          disabled={!editingYaml.trim() || !!yamlValidationError || isSaving}
-                        >
-                          {isSaving ? 'Saving...' : 'Save Changes'}
-                        </Button>
-                      </Box>
-                    </Box>
-                  )}
-                </Grid>
-              </Grid>
+                    {isLoadingManifest ? (
+                      <Flex align="center" justify="center" style={{ minHeight: '400px' }}>
+                        <Text>Loading manifest...</Text>
+                      </Flex>
+                    ) : (
+                      <Flex direction="column" style={{ height: '70vh', minHeight: '500px' }}>
+                        <Box style={{ flex: 1, border: '1px solid var(--bui-border-1)', borderRadius: 'var(--bui-radius-2)' }}>
+                          <Editor
+                            height="100%"
+                            defaultLanguage="yaml"
+                            value={editingYaml}
+                            onChange={(value) => handleYamlChange(value || '')}
+                            theme="vs-dark"
+                            options={{
+                              minimap: { enabled: false },
+                              scrollBeyondLastLine: false,
+                              fontSize: 14,
+                              lineNumbers: 'on',
+                              wordWrap: 'off',
+                              automaticLayout: true,
+                              tabSize: 2,
+                              insertSpaces: true,
+                              folding: true,
+                              renderWhitespace: 'selection',
+                            }}
+                          />
+                        </Box>
+
+                        {/* Fixed Validation Status Bar */}
+                        <Box style={{ padding: 'var(--bui-space-2)', borderTop: '1px solid var(--bui-border-1)', backgroundColor: 'var(--bui-bg-neutral-1)', flexShrink: 0 }}>
+                          {yamlValidationError && (
+                            <Text style={{ color: 'var(--bui-fg-negative)', display: 'block' }}>
+                              ⚠️ YAML Validation Error: {yamlValidationError}
+                            </Text>
+                          )}
+                          {!yamlValidationError && editingYaml.trim() && (
+                            <Text variant="body-small" style={{ color: 'var(--bui-fg-secondary)' }}>
+                              ✅ YAML syntax is valid
+                            </Text>
+                          )}
+                          {!yamlValidationError && !editingYaml.trim() && (
+                            <Text variant="body-small" style={{ color: 'var(--bui-fg-secondary)' }}>
+                              Enter YAML content above
+                            </Text>
+                          )}
+                        </Box>
+
+                        {/* Action Buttons */}
+                        <Flex justify="end" gap="2" mt="4">
+                          <Button
+                            variant="secondary"
+                            onPress={handleCancelEditing}
+                            isDisabled={isSaving}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            variant="primary"
+                            onPress={() => setConfirmDialogOpen(true)}
+                            isDisabled={!editingYaml.trim() || !!yamlValidationError || isSaving}
+                          >
+                            {isSaving ? 'Saving...' : 'Save Changes'}
+                          </Button>
+                        </Flex>
+                      </Flex>
+                    )}
+                  </Grid.Item>
+                </Grid.Root>
+              </Box>
             </TabPanel>
           )}
+          </Tabs>
 
           {/* Confirmation Dialog */}
-          <Dialog
-            open={confirmDialogOpen}
-            onClose={() => setConfirmDialogOpen(false)}
-            maxWidth="sm"
-            fullWidth
-          >
-            <DialogTitle>Confirm Changes</DialogTitle>
-            <DialogContent>
-              <Typography>
-                Are you sure you want to apply these changes to the resource? 
+          <Dialog isOpen={confirmDialogOpen} onOpenChange={open => !open && setConfirmDialogOpen(false)}>
+            <DialogHeader>Confirm Changes</DialogHeader>
+            <DialogBody>
+              <Text>
+                Are you sure you want to apply these changes to the resource?
                 This action will update the Kubernetes resource based on your modifications.
-              </Typography>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setConfirmDialogOpen(false)} color="primary">
+              </Text>
+            </DialogBody>
+            <DialogFooter>
+              <Button variant="secondary" onPress={() => setConfirmDialogOpen(false)}>
                 Cancel
               </Button>
               <Button
-                onClick={handleSaveResource}
-                color="primary"
-                variant="contained"
-                disabled={isSaving}
+                variant="primary"
+                onPress={handleSaveResource}
+                isDisabled={isSaving}
               >
                 {isSaving ? 'Applying...' : 'Apply Changes'}
               </Button>
-            </DialogActions>
+            </DialogFooter>
           </Dialog>
 
-          {/* Snackbar for notifications */}
-          <Snackbar
-            open={snackbar.open}
-            autoHideDuration={6000}
-            onClose={handleCloseSnackbar}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-          >
-            <Alert onClose={handleCloseSnackbar} severity={snackbar.severity}>
-              {snackbar.message}
-            </Alert>
-          </Snackbar>
+          {/* Notification banner */}
+          {snackbar.open && (
+            <Box style={{ position: 'fixed', bottom: 'var(--bui-space-4)', left: 'var(--bui-space-4)', zIndex: 1300, maxWidth: '400px' }}>
+              <Alert
+                status={snackbar.severity === 'success' ? 'success' : 'danger'}
+                icon
+                description={snackbar.message}
+                customActions={
+                  <Button size="small" variant="tertiary" onPress={handleCloseSnackbar}>
+                    Dismiss
+                  </Button>
+                }
+              />
+            </Box>
+          )}
         </InfoCard>
-      </Grid>
-    </Grid>
+      </Grid.Item>
+    </Grid.Root>
   );
 };

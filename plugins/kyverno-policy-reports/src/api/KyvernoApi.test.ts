@@ -47,6 +47,7 @@ describe('KyvernoApi', () => {
 
         const result = await client.getPolicyReports({
           entity: {
+            kind: 'Component',
             metadata: { name: 'test-entity', namespace: 'default' },
           },
         });
@@ -70,6 +71,7 @@ describe('KyvernoApi', () => {
         await expect(
           client.getPolicyReports({
             entity: {
+              kind: 'Component',
               metadata: { name: 'test-entity', namespace: 'default' },
             },
           })

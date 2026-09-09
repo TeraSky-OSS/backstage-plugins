@@ -5,7 +5,7 @@ import {
   ResponseErrorPanel,
   StructuredMetadataTable,
 } from '@backstage/core-components';
-import { Grid } from '@material-ui/core';
+import { Grid } from '@backstage/ui';
 import useAsync from 'react-use/lib/useAsync';
 import { useApi } from '@backstage/core-plugin-api';
 import { vcfAutomationApiRef } from '../api/VcfAutomationClient';
@@ -49,8 +49,8 @@ export const VCFAutomationVSphereVMDetails = () => {
   }
 
   return (
-    <Grid container spacing={3}>
-      <Grid item xs={12}>
+    <Grid.Root columns="12" gap="5">
+      <Grid.Item colSpan="12">
         <InfoCard title="Resource Status">
           <StructuredMetadataTable
             metadata={{
@@ -64,9 +64,9 @@ export const VCFAutomationVSphereVMDetails = () => {
             }}
           />
         </InfoCard>
-      </Grid>
+      </Grid.Item>
 
-      <Grid item xs={12} md={6}>
+      <Grid.Item colSpan={{ xs: '12', md: '6' }}>
         <InfoCard title="VM Properties">
           <StructuredMetadataTable
             metadata={{
@@ -85,9 +85,9 @@ export const VCFAutomationVSphereVMDetails = () => {
             }}
           />
         </InfoCard>
-      </Grid>
+      </Grid.Item>
 
-      <Grid item xs={12} md={6}>
+      <Grid.Item colSpan={{ xs: '12', md: '6' }}>
         <InfoCard title="Storage Configuration">
           <StructuredMetadataTable
             metadata={{
@@ -100,9 +100,9 @@ export const VCFAutomationVSphereVMDetails = () => {
             }}
           />
         </InfoCard>
-      </Grid>
+      </Grid.Item>
 
-      <Grid item xs={12} md={6}>
+      <Grid.Item colSpan={{ xs: '12', md: '6' }}>
         <InfoCard title="Network Configuration">
           <StructuredMetadataTable
             metadata={{
@@ -116,9 +116,9 @@ export const VCFAutomationVSphereVMDetails = () => {
             }}
           />
         </InfoCard>
-      </Grid>
+      </Grid.Item>
 
-      <Grid item xs={12} md={6}>
+      <Grid.Item colSpan={{ xs: '12', md: '6' }}>
         <InfoCard title="Expense Information">
           <StructuredMetadataTable
             metadata={{
@@ -131,7 +131,7 @@ export const VCFAutomationVSphereVMDetails = () => {
             }}
           />
         </InfoCard>
-      </Grid>
-    </Grid>
+      </Grid.Item>
+    </Grid.Root>
   );
 }; 

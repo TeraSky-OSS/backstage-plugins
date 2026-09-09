@@ -1,0 +1,32 @@
+.row {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin-bottom: var(--bui-space-4);
+}
+
+.metricBox {
+  display: flex;
+  align-items: center;
+  gap: var(--bui-space-1);
+}
+
+.wideTooltip {
+  max-width: 900px !important;
+}
+
+.detailTable {
+  border-collapse: collapse;
+  width: 100%;
+}
+.detailTable th,
+.detailTable td {
+  padding: var(--bui-space-1) var(--bui-space-2);
+  white-space: nowrap;
+  text-align: left;
+  border-bottom: 1px solid var(--bui-border-1);
+}
+.messageCol {
+  white-space: normal !important;
+  width: 100%;
+}

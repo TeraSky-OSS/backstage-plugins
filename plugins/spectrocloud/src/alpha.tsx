@@ -11,6 +11,11 @@ import {
   EntityContentBlueprint,
 } from '@backstage/plugin-catalog-react/alpha';
 import { Entity } from '@backstage/catalog-model';
+// BUI-EXCEPTION: SiKubernetes (react-icons, Simple Icons brand-logo set) is
+// not an MUI import. It is kept as a recognizable Kubernetes brand logo —
+// @remixicon/react (RemixIcon) is a generic UI-icon set with no equivalent
+// brand/logo icon, so swapping it would be a visual regression, not an
+// improvement. See MUI_TO_BUI_MIGRATION.md's spectrocloud row.
 import { SiKubernetes } from 'react-icons/si';
 import { spectroCloudApiRef, SpectroCloudApiClient } from './api';
 // eslint-disable-next-line @backstage/no-mixed-plugin-imports
@@ -20,7 +25,7 @@ import {
   clusterViewerRouteRef,
   virtualClusterViewerRouteRef,
 } from './routes';
-import AddCircleIcon from '@material-ui/icons/AddCircle';
+import { RiAddCircleFill } from '@remixicon/react';
 
 /**
  * Check if entity is a SpectroCloud cluster
@@ -156,7 +161,7 @@ export const spectroCloudClusterDeploymentPage = PageBlueprint.make({
   name: 'spectrocloud.cluster-deployment',
   params: {
     title: 'Deploy Cluster',
-    icon: <AddCircleIcon />,
+    icon: <RiAddCircleFill />,
     path: '/spectrocloud/deploy',
     routeRef: clusterDeploymentRouteRef,
     loader: () =>

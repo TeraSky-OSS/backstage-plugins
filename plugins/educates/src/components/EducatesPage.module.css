@@ -1,0 +1,27 @@
+.content {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 200px);
+}
+
+.mainContent {
+  flex: 1;
+}
+
+.footer {
+  padding: var(--bui-space-6);
+  margin-top: var(--bui-space-8);
+  border-top: 1px solid var(--bui-border-1);
+}
+
+.footerLinks {
+  display: flex;
+  justify-content: center;
+  gap: var(--bui-space-8);
+}
+
+.footerLink {
+  display: flex;
+  align-items: center;
+  gap: var(--bui-space-2);
+}

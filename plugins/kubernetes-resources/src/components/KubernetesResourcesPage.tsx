@@ -1,35 +1,30 @@
 import { useState, useEffect } from 'react';
+// BUI-EXCEPTION: `Drawer` has no BUI equivalent (see MUI_TO_BUI_MIGRATION.md exception list).
+// `useTheme` is kept narrowly to feed `react-syntax-highlighter`, a third-party library that
+// needs a real JS style object, not a CSS custom property.
+import { useTheme, Drawer } from '@material-ui/core';
 import {
-    useTheme,
-    Drawer,
-    IconButton,
+    Accordion,
+    AccordionPanel,
+    AccordionTrigger,
     Box,
     Button,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableRow,
-    Typography,
-    CircularProgress,
-    Accordion,
-    AccordionSummary,
-    AccordionDetails,
-} from '@material-ui/core';
+    ButtonIcon,
+    Flex,
+    Text,
+} from '@backstage/ui';
+import { Progress, Table, TableColumn, CopyTextButton } from '@backstage/core-components';
 import { useApi, configApiRef, identityApiRef } from '@backstage/core-plugin-api';
 import { KubernetesObject } from '@backstage/plugin-kubernetes';
 import { kubernetesApiRef } from '@backstage/plugin-kubernetes-react';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import YAML from 'js-yaml';
-import CloseIcon from '@material-ui/icons/Close';
-import { CopyToClipboard } from 'react-copy-to-clipboard';
+import { RiCloseLine, RiEyeLine } from '@remixicon/react';
 import { saveAs } from 'file-saver';
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { docco, dark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { usePermission } from '@backstage/plugin-permission-react';
 import { listResourcesPermission, listSecretsPermission, showEventsResourcesPermission, viewSecretsPermission, viewYamlResourcesPermission } from '@terasky/backstage-plugin-kubernetes-resources-common';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import VisibilityIcon from '@material-ui/icons/Visibility';
 
 interface ExtendedKubernetesObject extends KubernetesObject {
     apiVersion?: string;
@@ -322,107 +317,107 @@ const KubernetesResourcesPage = () => {
         return acc;
     }, {} as Record<string, ExtendedKubernetesObject[]>);
 
-    const renderResourceTable = (kindResources: ExtendedKubernetesObject[], kind: string) => (
-        <Accordion key={kind}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="h6">{kind}</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-                <Table size="small">
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>Name</TableCell>
-                            {kindResources.some(r => r.metadata?.namespace) && (
-                                <TableCell>Namespace</TableCell>
-                            )}
-                            <TableCell>Conditions</TableCell>
-                            <TableCell>Actions</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {kindResources.map((resource) => (
-                            <TableRow key={resource.metadata?.uid}>
-                                <TableCell>{resource.metadata?.name}</TableCell>
-                                {kindResources.some(r => r.metadata?.namespace) && (
-                                    <TableCell>{resource.metadata?.namespace}</TableCell>
-                                )}
-                                <TableCell>
-                                    {(resource.status?.conditions || []).map((condition: any, index: number) => (
-                                        <div key={index}>
-                                            {condition.type}: {condition.status}
-                                        </div>
-                                    ))}
-                                </TableCell>
-                                <TableCell>
-                                    <Button
-                                        startIcon={<VisibilityIcon />}
-                                        onClick={() => handleViewYaml(resource)}
-                                        style={{ marginRight: '8px' }}
-                                        disabled={!canViewYaml || (resource.kind === 'Secret' && !canViewSecrets)}
-                                    >
-                                        YAML
-                                    </Button>
-                                    <Button
-                                        startIcon={<VisibilityIcon />}
-                                        onClick={() => handleViewEvents(resource)}
-                                        disabled={!canShowEvents}
-                                    >
-                                        Events
-                                    </Button>
-                                </TableCell>
-                            </TableRow>
+    const renderResourceTable = (kindResources: ExtendedKubernetesObject[], kind: string) => {
+        const hasNamespace = kindResources.some(r => r.metadata?.namespace);
+        const columns: TableColumn<ExtendedKubernetesObject>[] = [
+            { title: 'Name', field: 'metadata.name' },
+            ...(hasNamespace ? [{ title: 'Namespace', field: 'metadata.namespace' }] : []),
+            {
+                title: 'Conditions',
+                render: (resource: ExtendedKubernetesObject) => (
+                    <>
+                        {(resource.status?.conditions || []).map((condition: any, index: number) => (
+                            <div key={index}>
+                                {condition.type}: {condition.status}
+                            </div>
                         ))}
-                    </TableBody>
-                </Table>
-            </AccordionDetails>
-        </Accordion>
-    );
+                    </>
+                ),
+            },
+            {
+                title: 'Actions',
+                render: (resource: ExtendedKubernetesObject) => (
+                    <Flex gap="2">
+                        <Button
+                            size="small"
+                            variant="secondary"
+                            iconStart={<RiEyeLine />}
+                            onPress={() => handleViewYaml(resource)}
+                            isDisabled={!canViewYaml || (resource.kind === 'Secret' && !canViewSecrets)}
+                        >
+                            YAML
+                        </Button>
+                        <Button
+                            size="small"
+                            variant="secondary"
+                            iconStart={<RiEyeLine />}
+                            onPress={() => handleViewEvents(resource)}
+                            isDisabled={!canShowEvents}
+                        >
+                            Events
+                        </Button>
+                    </Flex>
+                ),
+            },
+        ];
+
+        return (
+            <Accordion key={kind}>
+                <AccordionTrigger>
+                    <Text variant="title-small" weight="bold">{kind}</Text>
+                </AccordionTrigger>
+                <AccordionPanel>
+                    <Table options={{ search: false, paging: false }} columns={columns} data={kindResources} />
+                </AccordionPanel>
+            </Accordion>
+        );
+    };
 
     if (!canListResources) {
         return (
-            <Typography variant="h6" color="error">
+            <Text variant="title-small" weight="bold" style={{ color: 'var(--bui-fg-negative)' }}>
                 You do not have permission to view Kubernetes resources.
-            </Typography>
+            </Text>
         );
     }
 
     if (loading) {
-        return <CircularProgress />;
+        return <Progress />;
     }
 
+    const eventColumns: TableColumn<any>[] = [
+        { title: 'Type', field: 'type' },
+        { title: 'Reason', field: 'reason' },
+        { title: 'Message', field: 'message' },
+        { title: 'First Seen', field: 'firstTimestamp' },
+        { title: 'Last Seen', field: 'lastTimestamp' },
+    ];
+
     return (
-        <div>
-            <Typography variant="h4" gutterBottom>
+        <Box>
+            <Text variant="title-small" weight="bold" style={{ marginBottom: 'var(--bui-space-4)', display: 'block' }}>
                 Kubernetes Resources
-            </Typography>
-            {Object.entries(groupedResources).map(([kind, kindResources]) => 
+            </Text>
+            {Object.entries(groupedResources).map(([kind, kindResources]) =>
                 renderResourceTable(kindResources, kind)
             )}
             <Drawer anchor="right" open={drawerOpen} onClose={handleCloseDrawer}>
-                <div style={{ width: '50vw', padding: '16px', backgroundColor: theme.palette.background.default, color: theme.palette.text.primary }}>
-                    <IconButton onClick={handleCloseDrawer}>
-                        <CloseIcon />
-                    </IconButton>
+                <Box style={{ width: '50vw', padding: 'var(--bui-space-4)', backgroundColor: theme.palette.background.default, color: theme.palette.text.primary }}>
+                    <Flex align="center" justify="between" style={{ marginBottom: 'var(--bui-space-4)' }}>
+                        <Text variant="title-small" weight="bold">
+                            {drawerContent === 'yaml' ? 'Kubernetes Manifest' : 'Kubernetes Events'}
+                        </Text>
+                        <ButtonIcon aria-label="Close" icon={<RiCloseLine />} onPress={handleCloseDrawer} />
+                    </Flex>
                     {selectedResource && drawerContent === 'yaml' && (
                         <>
-                            <Typography variant="h4" gutterBottom>Kubernetes Manifest</Typography>
-                            <Box style={{ maxHeight: '80vh', overflow: 'auto', border: '1px solid #ccc', padding: '8px' }}>
-                                <Box mb={2}>
-                                    <Box display="flex" justifyContent="flex-start" mt={1}>
-                                        <CopyToClipboard text={YAML.dump(removeManagedFields(selectedResource))}>
-                                            <Button variant="contained" color="primary" style={{ marginRight: '8px' }}>
-                                                Copy to Clipboard
-                                            </Button>
-                                        </CopyToClipboard>
-                                        <Button
-                                            variant="contained"
-                                            color="primary"
-                                            onClick={() => handleDownloadYaml(selectedResource)}
-                                        >
-                                            Download YAML
-                                        </Button>
-                                    </Box>
-                                </Box>
+                            <Box style={{ maxHeight: '80vh', overflow: 'auto', border: '1px solid var(--bui-border-1)', padding: 'var(--bui-space-2)' }}>
+                                <Flex gap="2" mb="4">
+                                    <CopyTextButton text={YAML.dump(removeManagedFields(selectedResource))} aria-label="Copy manifest to clipboard" />
+                                    <Button variant="primary" onPress={() => handleDownloadYaml(selectedResource)}>
+                                        Download YAML
+                                    </Button>
+                                </Flex>
                                 <SyntaxHighlighter language="yaml" style={theme.palette.type === 'dark' ? dark : docco}>
                                     {YAML.dump(removeManagedFields(selectedResource))}
                                 </SyntaxHighlighter>
@@ -431,36 +426,14 @@ const KubernetesResourcesPage = () => {
                     )}
                     {selectedResource && drawerContent === 'events' && (
                         <>
-                            <Typography variant="h4" gutterBottom>Kubernetes Events</Typography>
-                            <Box style={{ maxHeight: '80vh', overflow: 'auto', border: '1px solid #ccc', padding: '8px' }}>
-                                <Table>
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell>Type</TableCell>
-                                            <TableCell>Reason</TableCell>
-                                            <TableCell>Message</TableCell>
-                                            <TableCell>First Seen</TableCell>
-                                            <TableCell>Last Seen</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {events.map(event => (
-                                            <TableRow key={event.metadata?.uid}>
-                                                <TableCell>{event.type}</TableCell>
-                                                <TableCell>{event.reason}</TableCell>
-                                                <TableCell>{event.message}</TableCell>
-                                                <TableCell>{event.firstTimestamp}</TableCell>
-                                                <TableCell>{event.lastTimestamp}</TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
+                            <Box style={{ maxHeight: '80vh', overflow: 'auto', border: '1px solid var(--bui-border-1)', padding: 'var(--bui-space-2)' }}>
+                                <Table options={{ search: false, paging: false }} columns={eventColumns} data={events} />
                             </Box>
                         </>
                     )}
-                </div>
+                </Box>
             </Drawer>
-        </div>
+        </Box>
     );
 };
 

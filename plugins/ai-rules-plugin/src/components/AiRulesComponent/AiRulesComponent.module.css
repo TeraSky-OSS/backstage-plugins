@@ -1,0 +1,70 @@
+.filterSection {
+  margin-bottom: var(--bui-space-4);
+  padding: var(--bui-space-4);
+  background-color: var(--bui-bg-neutral-2);
+  border-radius: var(--bui-radius-2);
+}
+
+.searchBar {
+  margin-bottom: var(--bui-space-4);
+  width: 100%;
+}
+
+.ruleCard {
+  margin-bottom: var(--bui-space-2);
+  border: 1px solid var(--bui-border-1);
+  border-radius: var(--bui-radius-2);
+}
+
+.ruleContent {
+  padding: var(--bui-space-2);
+  border-radius: var(--bui-radius-2);
+  overflow: auto;
+  max-height: 300px;
+}
+
+.ruleMetadata {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bui-space-1);
+  margin-bottom: var(--bui-space-2);
+}
+
+.statsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bui-space-4);
+  margin-bottom: var(--bui-space-4);
+  align-items: center;
+}
+
+.statCard {
+  flex: 1 1 100px;
+  text-align: center;
+}
+
+.filterContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bui-space-2);
+}
+
+.applyFilterButton {
+  margin-top: var(--bui-space-2);
+}
+
+.viewToggle {
+  margin-bottom: var(--bui-space-2);
+}
+
+.exportButton {
+  margin-left: auto;
+}
+
+.frontmatterBox {
+  margin-bottom: var(--bui-space-4);
+  padding: var(--bui-space-4);
+  background-color: var(--bui-bg-neutral-2);
+  border-radius: var(--bui-radius-2);
+  border: 1px solid var(--bui-border-1);
+}

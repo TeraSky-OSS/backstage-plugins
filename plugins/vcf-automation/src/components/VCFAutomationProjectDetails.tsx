@@ -7,7 +7,7 @@ import {
   Table,
   Link,
 } from '@backstage/core-components';
-import { Grid } from '@material-ui/core';
+import { Grid } from '@backstage/ui';
 import useAsync from 'react-use/lib/useAsync';
 import { useApi } from '@backstage/core-plugin-api';
 import { vcfAutomationApiRef } from '../api/VcfAutomationClient';
@@ -111,7 +111,7 @@ export const VCFAutomationProjectDetails = () => {
   }
 
   const renderMemberTable = (members: ProjectMember[], title: string) => (
-    <Grid item xs={12} md={6}>
+    <Grid.Item colSpan={{ xs: '12', md: '6' }}>
       <InfoCard title={title}>
         <Table
           columns={[
@@ -122,12 +122,12 @@ export const VCFAutomationProjectDetails = () => {
           options={{ search: false, paging: false }}
         />
       </InfoCard>
-    </Grid>
+    </Grid.Item>
   );
 
   return (
-    <Grid container spacing={3}>
-      <Grid item xs={12}>
+    <Grid.Root columns="12" gap="5">
+      <Grid.Item colSpan="12">
         <InfoCard title="Project Overview">
           <StructuredMetadataTable
             metadata={{
@@ -141,9 +141,9 @@ export const VCFAutomationProjectDetails = () => {
             }}
           />
         </InfoCard>
-      </Grid>
+      </Grid.Item>
 
-      <Grid item xs={12}>
+      <Grid.Item colSpan="12">
         <InfoCard title="Project Deployments">
           <Table
             columns={[
@@ -173,23 +173,23 @@ export const VCFAutomationProjectDetails = () => {
             }}
           />
         </InfoCard>
-      </Grid>
+      </Grid.Item>
 
-      <Grid item xs={12}>
+      <Grid.Item colSpan="12">
         <InfoCard title="Project Members">
-          <Grid container spacing={3}>
+          <Grid.Root columns="12" gap="5">
             {renderMemberTable(projectData.administrators || [], 'Administrators')}
             {renderMemberTable(projectData.members || [], 'Members')}
             {renderMemberTable(projectData.viewers || [], 'Viewers')}
             {renderMemberTable(projectData.supervisors || [], 'Supervisors')}
             {projectData.users && projectData.users.length > 0 && renderMemberTable(projectData.users, 'Users')}
             {projectData.auditors && projectData.auditors.length > 0 && renderMemberTable(projectData.auditors, 'Auditors')}
-          </Grid>
+          </Grid.Root>
         </InfoCard>
-      </Grid>
+      </Grid.Item>
 
       {projectData.zones && projectData.zones.length > 0 && (
-        <Grid item xs={12}>
+        <Grid.Item colSpan="12">
           <InfoCard title="Project Zones">
             <Table
               columns={[
@@ -223,41 +223,41 @@ export const VCFAutomationProjectDetails = () => {
               }}
             />
           </InfoCard>
-        </Grid>
+        </Grid.Item>
       )}
 
       {projectData.constraints && Object.keys(projectData.constraints).length > 0 && (
-        <Grid item xs={12}>
+        <Grid.Item colSpan="12">
           <InfoCard title="Constraints">
             <StructuredMetadataTable
               metadata={projectData.constraints}
             />
           </InfoCard>
-        </Grid>
+        </Grid.Item>
       )}
 
       {projectData.customProperties && Object.keys(projectData.customProperties).length > 0 && (
-        <Grid item xs={12}>
+        <Grid.Item colSpan="12">
           <InfoCard title="Custom Properties">
             <StructuredMetadataTable
               metadata={projectData.customProperties}
             />
           </InfoCard>
-        </Grid>
+        </Grid.Item>
       )}
 
       {projectData.properties && Object.keys(projectData.properties).length > 0 && (
-        <Grid item xs={12}>
+        <Grid.Item colSpan="12">
           <InfoCard title="Properties">
             <StructuredMetadataTable
               metadata={projectData.properties}
             />
           </InfoCard>
-        </Grid>
+        </Grid.Item>
       )}
 
       {projectData.orgId && (
-        <Grid item xs={12}>
+        <Grid.Item colSpan="12">
           <InfoCard title="Organization Information">
             <StructuredMetadataTable
               metadata={{
@@ -266,8 +266,8 @@ export const VCFAutomationProjectDetails = () => {
               }}
             />
           </InfoCard>
-        </Grid>
+        </Grid.Item>
       )}
-    </Grid>
+    </Grid.Root>
   );
 }; 

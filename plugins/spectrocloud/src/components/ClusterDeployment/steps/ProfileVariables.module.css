@@ -1,0 +1,8 @@
+.profileIcon {
+  color: var(--bui-accent-fg);
+  flex-shrink: 0;
+}
+
+.profileTitle {
+  font-size: 1.1rem;
+}

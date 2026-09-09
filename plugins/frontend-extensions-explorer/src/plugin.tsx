@@ -3,12 +3,12 @@ import {
   PageBlueprint,
 } from '@backstage/frontend-plugin-api';
 import { rootRouteRef } from './routes';
-import ExtensionIcon from '@material-ui/icons/Extension';
+import { RiPuzzleLine } from '@remixicon/react';
 
 const frontendExtensionsExplorerPage = PageBlueprint.make({
   params: {
     title: 'Extensions Explorer',
-    icon: <ExtensionIcon />,
+    icon: <RiPuzzleLine />,
     path: '/frontend-extensions-explorer',
     routeRef: rootRouteRef,
     loader: () =>

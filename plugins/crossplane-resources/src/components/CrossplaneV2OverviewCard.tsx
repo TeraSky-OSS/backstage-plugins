@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, Typography, Box, Grid, Tooltip, makeStyles } from '@material-ui/core';
+import { Box, Card, CardBody, Grid, Text, Tooltip, TooltipTrigger } from '@backstage/ui';
 import { useApi } from '@backstage/core-plugin-api';
 import { crossplaneApiRef } from '../api/CrossplaneApi';
 import { useEntity } from '@backstage/plugin-catalog-react';
@@ -7,21 +7,8 @@ import { usePermission } from '@backstage/plugin-permission-react';
 import { showOverview } from '@terasky/backstage-plugin-crossplane-common';
 import { configApiRef } from '@backstage/core-plugin-api';
 import { getAnnotation, getAnnotationPrefix } from './annotationUtils';
-import CheckCircleIcon from '@material-ui/icons/CheckCircle';
-import CancelIcon from '@material-ui/icons/Cancel';
-import { green, red } from '@material-ui/core/colors';
-
-const useStyles = makeStyles((theme) => ({
-    button: {
-      margin: theme.spacing(1),
-    },
-    customWidth: {
-      maxWidth: 500,
-    },
-    noMaxWidth: {
-      maxWidth: 'none',
-    },
-  }));
+import { RiCheckboxCircleLine, RiCloseCircleLine } from '@remixicon/react';
+import styles from './CrossplaneV2OverviewCard.module.css';
 
 const CrossplaneV2OverviewCard = () => {
     const { entity } = useEntity();
@@ -33,7 +20,6 @@ const CrossplaneV2OverviewCard = () => {
     const canShowOverview = enablePermissions ? canShowOverviewTemp : true;
     const [composite, setComposite] = useState<any | null>(null);
     const [managedResourcesCount, setManagedResourcesCount] = useState<number>(0);
-    const classes = useStyles();
 
     useEffect(() => {
         if (!canShowOverview) {
@@ -77,97 +63,99 @@ const CrossplaneV2OverviewCard = () => {
 
     if (!canShowOverview) {
         return (
-          <Card style={{ width: '450px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)' }}>
-          <CardContent>
-            <Typography variant="h5" component="h1" align="center">
+          <Card style={{ width: '450px' }}>
+          <CardBody>
+            <Text variant="title-small" weight="bold" style={{ display: 'block', textAlign: 'center' }}>
               Crossplane Overview
-            </Typography>
-          <Box m={2}>
-            <Typography  gutterBottom>
+            </Text>
+          <Box m="2">
+            <Text>
               You don't have permissions to view composite resources
-            </Typography>
+            </Text>
           </Box>
-          </CardContent>
+          </CardBody>
           </Card>
         );
       }
     const renderStatusIcon = (status: string) => {
-        return status === 'True' ? <CheckCircleIcon style={{ color: green[500] }} /> : <CancelIcon style={{ color: red[500] }} />;
+        return status === 'True'
+          ? <RiCheckboxCircleLine style={{ color: 'var(--bui-fg-positive)' }} />
+          : <RiCloseCircleLine style={{ color: 'var(--bui-fg-negative)' }} />;
     };
     const renderConditionTooltip = (condition: any) => (
-        <Card style={{ width: '400px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)' }}>
-            <CardContent>
-                <Typography variant="subtitle1">Condition: {condition.type}</Typography>
-                <Typography variant="body2">Status: {condition.status}</Typography>
-                <Typography variant="body2">Reason: {condition.reason}</Typography>
-                <Typography variant="body2">Last Transition Time: {condition.lastTransitionTime}</Typography>
-                <Typography variant="body2" style={{ wordWrap: 'break-word', maxWidth: '380px', alignSelf: 'center', }}>Message: {condition.message}</Typography>
-            </CardContent>
-        </Card>
+        <Box style={{ width: '380px' }}>
+            <Text variant="body-small" weight="bold" style={{ display: 'block' }}>Condition: {condition.type}</Text>
+            <Text variant="body-small" style={{ display: 'block' }}>Status: {condition.status}</Text>
+            <Text variant="body-small" style={{ display: 'block' }}>Reason: {condition.reason}</Text>
+            <Text variant="body-small" style={{ display: 'block' }}>Last Transition Time: {condition.lastTransitionTime}</Text>
+            <Text variant="body-small" style={{ wordWrap: 'break-word', display: 'block' }}>Message: {condition.message}</Text>
+        </Box>
     );
     return (
         <Card>
-            <CardContent>
-                <Typography variant="h6" gutterBottom>Crossplane v2 Overview</Typography>
+            <CardBody>
+                <Box mb="4">
+                    <Text variant="title-small" weight="bold">Crossplane v2 Overview</Text>
+                </Box>
                 {composite ? (
                     <Box>
-                        <Grid container spacing={2}>
-                            <Grid item xs={12} sm={6}>
-                                <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray' }}>Kind</Typography>
-                                <Typography variant="body2">{composite.kind}</Typography>
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray', width: '350px' }}>Synced</Typography>
-                                <Tooltip
-                                    classes={{ tooltip: classes.customWidth }}
-                                    title={renderConditionTooltip(composite.status?.conditions?.find((condition: any) => condition.type === 'Synced') || {})}
-                                >
-                                    <Typography variant="body2">
+                        <Grid.Root columns="12" gap="4">
+                            <Grid.Item colSpan={{ xs: '12', sm: '6' }}>
+                                <Text variant="body-small" weight="bold" style={{ display: 'block', color: 'var(--bui-fg-secondary)' }}>Kind</Text>
+                                <Text variant="body-small">{composite.kind}</Text>
+                            </Grid.Item>
+                            <Grid.Item colSpan={{ xs: '12', sm: '6' }}>
+                                <Text variant="body-small" weight="bold" style={{ display: 'block', color: 'var(--bui-fg-secondary)' }}>Synced</Text>
+                                <TooltipTrigger>
+                                    <Text variant="body-small" style={{ display: 'inline-block' }}>
                                         {renderStatusIcon(composite.status?.conditions?.find((condition: any) => condition.type === 'Synced')?.status || 'Unknown')}
-                                    </Typography>
-                                </Tooltip>
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray' }}>Name</Typography>
-                                <Typography variant="body2">{composite.metadata?.name}</Typography>
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray' }}>Ready</Typography>
-                                <Tooltip
-                                    classes={{ tooltip: classes.customWidth }}
-                                    title={renderConditionTooltip(composite.status?.conditions?.find((condition: any) => condition.type === 'Ready') || {})}
-                                >
-                                    <Typography variant="body2">
+                                    </Text>
+                                    <Tooltip className={styles.wideTooltip}>
+                                        {renderConditionTooltip(composite.status?.conditions?.find((condition: any) => condition.type === 'Synced') || {})}
+                                    </Tooltip>
+                                </TooltipTrigger>
+                            </Grid.Item>
+                            <Grid.Item colSpan={{ xs: '12', sm: '6' }}>
+                                <Text variant="body-small" weight="bold" style={{ display: 'block', color: 'var(--bui-fg-secondary)' }}>Name</Text>
+                                <Text variant="body-small">{composite.metadata?.name}</Text>
+                            </Grid.Item>
+                            <Grid.Item colSpan={{ xs: '12', sm: '6' }}>
+                                <Text variant="body-small" weight="bold" style={{ display: 'block', color: 'var(--bui-fg-secondary)' }}>Ready</Text>
+                                <TooltipTrigger>
+                                    <Text variant="body-small" style={{ display: 'inline-block' }}>
                                         {renderStatusIcon(composite.status?.conditions?.find((condition: any) => condition.type === 'Ready')?.status || 'Unknown')}
-                                    </Typography>
-                                </Tooltip>
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray' }}>Namespace</Typography>
-                                <Typography variant="body2">{composite.metadata?.namespace}</Typography>
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray' }}>Managed Resources</Typography>
-                                <Typography variant="body2">{managedResourcesCount}</Typography>
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray' }}>Cluster</Typography>
-                                <Typography variant="body2">{entity.metadata?.annotations?.['backstage.io/managed-by-location'].split(": ")[1] || "Unknown" }</Typography>
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray' }}>Composition</Typography>
-                                <Typography variant="body2">{getAnnotation(entity.metadata?.annotations || {}, annotationPrefix, 'composition-name') || "Unknown" }</Typography>
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray' }}>XR Scope</Typography>
-                                <Typography variant="body2">{getAnnotation(entity.metadata?.annotations || {}, annotationPrefix, 'crossplane-scope') || 'Unknown'}</Typography>
-                            </Grid>
-                        </Grid>
+                                    </Text>
+                                    <Tooltip className={styles.wideTooltip}>
+                                        {renderConditionTooltip(composite.status?.conditions?.find((condition: any) => condition.type === 'Ready') || {})}
+                                    </Tooltip>
+                                </TooltipTrigger>
+                            </Grid.Item>
+                            <Grid.Item colSpan={{ xs: '12', sm: '6' }}>
+                                <Text variant="body-small" weight="bold" style={{ display: 'block', color: 'var(--bui-fg-secondary)' }}>Namespace</Text>
+                                <Text variant="body-small">{composite.metadata?.namespace}</Text>
+                            </Grid.Item>
+                            <Grid.Item colSpan={{ xs: '12', sm: '6' }}>
+                                <Text variant="body-small" weight="bold" style={{ display: 'block', color: 'var(--bui-fg-secondary)' }}>Managed Resources</Text>
+                                <Text variant="body-small">{managedResourcesCount}</Text>
+                            </Grid.Item>
+                            <Grid.Item colSpan={{ xs: '12', sm: '6' }}>
+                                <Text variant="body-small" weight="bold" style={{ display: 'block', color: 'var(--bui-fg-secondary)' }}>Cluster</Text>
+                                <Text variant="body-small">{entity.metadata?.annotations?.['backstage.io/managed-by-location'].split(": ")[1] || "Unknown" }</Text>
+                            </Grid.Item>
+                            <Grid.Item colSpan={{ xs: '12', sm: '6' }}>
+                                <Text variant="body-small" weight="bold" style={{ display: 'block', color: 'var(--bui-fg-secondary)' }}>Composition</Text>
+                                <Text variant="body-small">{getAnnotation(entity.metadata?.annotations || {}, annotationPrefix, 'composition-name') || "Unknown" }</Text>
+                            </Grid.Item>
+                            <Grid.Item colSpan={{ xs: '12', sm: '6' }}>
+                                <Text variant="body-small" weight="bold" style={{ display: 'block', color: 'var(--bui-fg-secondary)' }}>XR Scope</Text>
+                                <Text variant="body-small">{getAnnotation(entity.metadata?.annotations || {}, annotationPrefix, 'crossplane-scope') || 'Unknown'}</Text>
+                            </Grid.Item>
+                        </Grid.Root>
                     </Box>
                 ) : (
-                    <Typography>Loading...</Typography>
+                    <Text>Loading...</Text>
                 )}
-            </CardContent>
+            </CardBody>
         </Card>
     );
 };

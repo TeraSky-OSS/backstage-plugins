@@ -1,15 +1,5 @@
 import { useState, useMemo } from 'react';
-import {
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormHelperText,
-  TextField,
-  Box,
-  Button,
-} from '@material-ui/core';
-import AddIcon from '@material-ui/icons/Add';
+import { Box, Button, Flex, Select, Text, TextField } from '@backstage/ui';
 
 export interface FieldTypeOption {
   value: string;
@@ -27,6 +17,8 @@ const BUILT_IN_TYPES: FieldTypeOption[] = [
   { value: 'object', label: 'Object', description: 'Nested object', isCustom: false },
 ];
 
+const CUSTOM_OPTION_ID = '__custom__';
+
 export interface FieldTypeSelectorProps {
   value: string;
   customFieldType?: string;
@@ -36,7 +28,7 @@ export interface FieldTypeSelectorProps {
 }
 
 export function FieldTypeSelector(props: FieldTypeSelectorProps) {
-  const { value, customFieldType, availableExtensions, onChange, fullWidth = true } = props;
+  const { value, customFieldType, availableExtensions, onChange } = props;
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [customFieldName, setCustomFieldName] = useState('');
 
@@ -54,11 +46,11 @@ export function FieldTypeSelector(props: FieldTypeSelectorProps) {
   }, [availableExtensions]);
 
   const handleChange = (newValue: string) => {
-    if (newValue === '__custom__') {
+    if (newValue === CUSTOM_OPTION_ID) {
       setShowCustomInput(true);
       return;
     }
-    
+
     const customType = customFieldTypes.find(t => t.value === newValue);
     if (customType) {
       onChange(newValue, true);
@@ -79,93 +71,69 @@ export function FieldTypeSelector(props: FieldTypeSelectorProps) {
     return (
       <Box>
         <TextField
-          fullWidth
           label="Custom Field Type Name"
           value={customFieldName}
-          onChange={e => setCustomFieldName(e.target.value)}
-          variant="outlined"
+          onChange={setCustomFieldName}
           size="small"
           placeholder="e.g., MyCustomFieldExtension"
-          helperText="Enter the exact name of your registered custom field extension"
-          onKeyPress={e => {
+          description="Enter the exact name of your registered custom field extension"
+          onKeyDown={e => {
             if (e.key === 'Enter') {
               handleCustomFieldSubmit();
             }
           }}
         />
-        <Box mt={1} display="flex" style={{ gap: 8 }}>
-          <Button
-            variant="contained"
-            color="primary"
-            size="small"
-            onClick={handleCustomFieldSubmit}
-          >
+        <Flex mt="1" gap="2">
+          <Button variant="primary" size="small" onPress={handleCustomFieldSubmit}>
             Add
           </Button>
           <Button
-            variant="outlined"
+            variant="secondary"
             size="small"
-            onClick={() => {
+            onPress={() => {
               setShowCustomInput(false);
               setCustomFieldName('');
             }}
           >
             Cancel
           </Button>
-        </Box>
+        </Flex>
       </Box>
     );
   }
 
-  // Build menu items as a flat array to avoid Fragment issues
-  const menuItems = [
-    <MenuItem key="header-basic" disabled>
-      <em>Basic Types</em>
-    </MenuItem>,
-    ...BUILT_IN_TYPES.map(type => (
-      <MenuItem key={type.value} value={type.value}>
-        {type.label}
-      </MenuItem>
-    )),
+  const options = [
+    {
+      title: 'Basic Types',
+      options: BUILT_IN_TYPES.map(type => ({ id: type.value, label: type.label })),
+    },
+    ...(customFieldTypes.length > 0
+      ? [
+          {
+            title: `Available Field Extensions (${customFieldTypes.length})`,
+            options: customFieldTypes.map(type => ({ id: type.value, label: type.label })),
+          },
+        ]
+      : []),
+    {
+      title: 'Other',
+      options: [{ id: CUSTOM_OPTION_ID, label: 'Add Custom Field Type...' }],
+    },
   ];
 
-  if (customFieldTypes.length > 0) {
-    menuItems.push(
-      <MenuItem key="header-extensions" disabled style={{ marginTop: 8 }}>
-        <em>Available Field Extensions ({customFieldTypes.length})</em>
-      </MenuItem>
-    );
-    menuItems.push(
-      ...customFieldTypes.map(type => (
-        <MenuItem key={type.value} value={type.value}>
-          {type.label}
-        </MenuItem>
-      ))
-    );
-  }
-
-  menuItems.push(
-    <MenuItem key="custom-add" value="__custom__" style={{ marginTop: 8, fontStyle: 'italic' }}>
-      <AddIcon fontSize="small" style={{ marginRight: 8 }} />
-      Add Custom Field Type...
-    </MenuItem>
-  );
-
   return (
-    <FormControl fullWidth={fullWidth} variant="outlined" size="small">
-      <InputLabel>Field Type</InputLabel>
+    <Box>
       <Select
-        value={displayValue}
-        onChange={e => handleChange(e.target.value as string)}
         label="Field Type"
-      >
-        {menuItems}
-      </Select>
+        selectedKey={displayValue}
+        onSelectionChange={key => handleChange(key as string)}
+        options={options}
+      />
       {isCustom && (
-        <FormHelperText>
+        <Text variant="body-small" color="secondary">
           Using custom field extension: {customFieldType}
-        </FormHelperText>
+        </Text>
       )}
-    </FormControl>
+    </Box>
   );
 }

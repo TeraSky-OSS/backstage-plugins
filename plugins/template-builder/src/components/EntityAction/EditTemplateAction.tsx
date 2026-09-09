@@ -1,5 +1,5 @@
-import { Button } from '@material-ui/core';
-import BuildIcon from '@material-ui/icons/Build';
+import { Button } from '@backstage/ui';
+import { RiHammerLine } from '@remixicon/react';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -20,12 +20,7 @@ export function EditTemplateAction() {
   }
 
   return (
-    <Button
-      variant="outlined"
-      color="primary"
-      startIcon={<BuildIcon />}
-      onClick={handleClick}
-    >
+    <Button variant="secondary" iconStart={<RiHammerLine />} onPress={handleClick}>
       Edit in Template Builder
     </Button>
   );

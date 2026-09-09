@@ -1,169 +1,44 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import type { Key } from 'react';
 import {
-  Box,
-  Typography,
-  TextField,
-  Button,
-  IconButton,
-  Grid,
-  FormControlLabel,
-  Switch,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormHelperText,
   Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  CircularProgress,
+  AccordionPanel,
+  AccordionTrigger,
+  Alert,
+  Badge,
+  Box,
+  Button,
+  ButtonIcon,
   Card,
-  Chip,
-} from '@material-ui/core';
-import { Alert, Autocomplete } from '@material-ui/lab';
-import { makeStyles } from '@material-ui/core/styles';
-import AddIcon from '@material-ui/icons/Add';
-import DeleteIcon from '@material-ui/icons/Delete';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import StorageIcon from '@material-ui/icons/Storage';
-import CloudIcon from '@material-ui/icons/Cloud';
-import SettingsIcon from '@material-ui/icons/Settings';
-import NetworkCheckIcon from '@material-ui/icons/NetworkCheck';
-import WorkIcon from '@material-ui/icons/Work';
-import DnsIcon from '@material-ui/icons/Dns';
-import SecurityIcon from '@material-ui/icons/Security';
+  CardBody,
+  CardHeader,
+  Combobox,
+  Flex,
+  Grid,
+  NumberField,
+  Select,
+  Switch,
+  Tag,
+  TagGroup,
+  Text,
+  TextField,
+} from '@backstage/ui';
+import { Progress } from '@backstage/core-components';
+import {
+  RiAddLine,
+  RiBriefcaseLine,
+  RiCloudLine,
+  RiDeleteBinLine,
+  RiHardDriveLine,
+  RiShieldCheckLine,
+  RiSettings3Line,
+  RiTimeLine,
+  RiWifiLine,
+} from '@remixicon/react';
 import { useApi } from '@backstage/core-plugin-api';
 import { spectroCloudApiRef } from '../../../api';
 import { WorkerPoolConfig } from '../types';
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    padding: theme.spacing(3),
-    maxWidth: 1400,
-    margin: '0 auto',
-  },
-  sectionCard: {
-    marginBottom: theme.spacing(3),
-    borderRadius: 12,
-    boxShadow: theme.palette.type === 'dark' 
-      ? '0 4px 20px rgba(0, 0, 0, 0.5)' 
-      : '0 2px 12px rgba(0, 0, 0, 0.08)',
-    border: `1px solid ${theme.palette.divider}`,
-    overflow: 'visible',
-  },
-  sectionHeader: {
-    padding: theme.spacing(2, 3),
-    backgroundColor: theme.palette.type === 'dark' ? '#1e1e1e' : '#f8f9fa',
-    borderBottom: `1px solid ${theme.palette.divider}`,
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(1.5),
-  },
-  sectionTitle: {
-    fontWeight: 600,
-    fontSize: '1.1rem',
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(1),
-  },
-  sectionIcon: {
-    color: theme.palette.primary.main,
-  },
-  sectionContent: {
-    padding: theme.spacing(3),
-  },
-  subsectionTitle: {
-    fontWeight: 600,
-    fontSize: '0.95rem',
-    marginBottom: theme.spacing(2),
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(1),
-    color: theme.palette.text.primary,
-  },
-  poolCard: {
-    marginBottom: theme.spacing(2),
-    borderRadius: 8,
-    border: `2px solid ${theme.palette.divider}`,
-    backgroundColor: theme.palette.type === 'dark' ? '#2a2a2a' : '#ffffff',
-    transition: 'all 0.2s ease',
-    '&:hover': {
-      borderColor: theme.palette.primary.main,
-      boxShadow: theme.palette.type === 'dark'
-        ? '0 4px 16px rgba(66, 153, 225, 0.3)'
-        : '0 2px 8px rgba(66, 153, 225, 0.2)',
-    },
-  },
-  poolHeader: {
-    padding: theme.spacing(2, 2.5),
-    backgroundColor: theme.palette.type === 'dark' ? '#1e1e1e' : '#f8f9fa',
-    borderBottom: `1px solid ${theme.palette.divider}`,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  poolTitle: {
-    fontWeight: 600,
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(1),
-  },
-  poolContent: {
-    padding: theme.spacing(2.5),
-  },
-  formControl: {
-    width: '100%',
-  },
-  accordion: {
-    marginTop: theme.spacing(2),
-    marginBottom: theme.spacing(2),
-    borderRadius: '8px !important',
-    border: `1px solid ${theme.palette.divider}`,
-    '&:before': {
-      display: 'none',
-    },
-    boxShadow: 'none',
-  },
-  accordionSummary: {
-    backgroundColor: theme.palette.type === 'dark' ? '#2a2a2a' : '#f5f5f5',
-    borderRadius: '8px !important',
-    minHeight: '48px !important',
-    '&.Mui-expanded': {
-      minHeight: '48px !important',
-      borderBottom: `1px solid ${theme.palette.divider}`,
-      borderRadius: '8px 8px 0 0 !important',
-    },
-  },
-  accordionDetails: {
-    padding: theme.spacing(2),
-    backgroundColor: theme.palette.type === 'dark' ? '#1e1e1e' : '#fafafa',
-  },
-  helperText: {
-    fontSize: '0.75rem',
-    marginTop: theme.spacing(0.5),
-    color: theme.palette.text.secondary,
-  },
-  addButton: {
-    marginTop: theme.spacing(2),
-    borderRadius: 8,
-    textTransform: 'none',
-    fontWeight: 600,
-    padding: theme.spacing(1, 3),
-  },
-  chip: {
-    marginLeft: theme.spacing(1),
-    fontWeight: 600,
-  },
-  keyValueRow: {
-    display: 'flex',
-    gap: theme.spacing(1.5),
-    marginBottom: theme.spacing(1.5),
-    alignItems: 'flex-start',
-  },
-  gridItem: {
-    paddingBottom: theme.spacing(2),
-  },
-}));
+import styles from './VSphereInfrastructureConfiguration.module.css';
 
 interface VSphereInfrastructureConfigurationProps {
   cloudAccountUid: string;
@@ -211,6 +86,251 @@ interface IPPool {
   uid: string;
 }
 
+interface Taint {
+  key: string;
+  value: string;
+  effect: 'NoSchedule' | 'NoExecute' | 'PreferNoSchedule';
+}
+
+const TAINT_EFFECT_OPTIONS = [
+  { id: 'NoSchedule', label: 'NoSchedule' },
+  { id: 'NoExecute', label: 'NoExecute' },
+  { id: 'PreferNoSchedule', label: 'PreferNoSchedule' },
+];
+
+/**
+ * A combobox over a plain string list. Supports two modes:
+ * - strict selection (must pick one of `options`)
+ * - `allowsCustomValue` ("freeSolo"): the field behaves as a plain text input
+ *   with suggestions, and every keystroke is committed via `onChange`.
+ */
+function StringCombobox({
+  label,
+  options,
+  value,
+  onChange,
+  isRequired,
+  isDisabled,
+  description,
+  allowsCustomValue,
+  placeholder,
+}: {
+  label: string;
+  options: string[];
+  value: string;
+  onChange: (value: string) => void;
+  isRequired?: boolean;
+  isDisabled?: boolean;
+  description?: string;
+  allowsCustomValue?: boolean;
+  placeholder?: string;
+}) {
+  const comboOptions = options.map(opt => ({ id: opt, label: opt }));
+
+  if (allowsCustomValue) {
+    return (
+      <Combobox
+        options={comboOptions}
+        label={label}
+        isRequired={isRequired}
+        isDisabled={isDisabled}
+        description={description}
+        placeholder={placeholder}
+        allowsCustomValue
+        search={{ inputValue: value, onInputChange: onChange }}
+      />
+    );
+  }
+
+  return (
+    <Combobox
+      options={comboOptions}
+      label={label}
+      isRequired={isRequired}
+      isDisabled={isDisabled}
+      description={description}
+      placeholder={placeholder}
+      selectedKey={value || null}
+      onSelectionChange={(key: Key | null) => {
+        if (key !== null && key !== undefined) {
+          onChange(String(key));
+        }
+      }}
+    />
+  );
+}
+
+/**
+ * A combobox over a list of objects (e.g. SSH keys, IP pools), selected by a
+ * strict, unique identifier.
+ */
+function ObjectCombobox<T>({
+  label,
+  options,
+  getOptionId,
+  getOptionLabel,
+  selectedId,
+  onSelect,
+  isRequired,
+  description,
+}: {
+  label: string;
+  options: T[];
+  getOptionId: (option: T) => string;
+  getOptionLabel: (option: T) => string;
+  selectedId: string | null | undefined;
+  onSelect: (option: T) => void;
+  isRequired?: boolean;
+  description?: string;
+}) {
+  return (
+    <Combobox
+      options={options.map(o => ({ id: getOptionId(o), label: getOptionLabel(o) }))}
+      label={label}
+      isRequired={isRequired}
+      description={description}
+      selectedKey={selectedId ?? null}
+      onSelectionChange={(key: Key | null) => {
+        if (key === null || key === undefined) return;
+        const found = options.find(o => getOptionId(o) === key);
+        if (found) onSelect(found);
+      }}
+    />
+  );
+}
+
+/** A repeatable key/value list editor, used for node labels & annotations. */
+function KeyValueEditor({
+  title,
+  entries,
+  onAdd,
+  onKeyChange,
+  onValueChange,
+  onRemove,
+  addButtonLabel,
+}: {
+  title: string;
+  entries: Record<string, string>;
+  onAdd: () => void;
+  onKeyChange: (oldKey: string, newKey: string) => void;
+  onValueChange: (key: string, value: string) => void;
+  onRemove: (key: string) => void;
+  addButtonLabel: string;
+}) {
+  return (
+    <Box style={{ width: '100%' }}>
+      <Text variant="body-small" weight="bold" as="div" style={{ marginBottom: 'var(--bui-space-2)' }}>
+        {title}
+      </Text>
+      {Object.entries(entries).map(([key, value], idx) => (
+        <Flex key={idx} align="center" gap="2" mb="2">
+          <Box style={{ flexGrow: 1 }}>
+            <TextField
+              label="Key"
+              value={key}
+              size="small"
+              onChange={newKey => onKeyChange(key, newKey)}
+            />
+          </Box>
+          <Box style={{ flexGrow: 1 }}>
+            <TextField
+              label="Value"
+              value={value}
+              size="small"
+              onChange={newValue => onValueChange(key, newValue)}
+            />
+          </Box>
+          <ButtonIcon
+            icon={<RiDeleteBinLine />}
+            onPress={() => onRemove(key)}
+            size="small"
+            aria-label={`Remove ${key || 'entry'}`}
+          />
+        </Flex>
+      ))}
+      <Button iconStart={<RiAddLine />} onPress={onAdd} size="small">
+        {addButtonLabel}
+      </Button>
+    </Box>
+  );
+}
+
+/** A repeatable taints (key/value/effect) list editor. */
+function TaintsEditor({
+  taints,
+  onChange,
+}: {
+  taints: Taint[];
+  onChange: (taints: Taint[]) => void;
+}) {
+  return (
+    <Box style={{ width: '100%' }}>
+      <Text variant="body-small" color="secondary" as="div" style={{ marginBottom: 'var(--bui-space-2)' }}>
+        Taints prevent pods from being scheduled on these nodes unless they have matching tolerations
+      </Text>
+      {taints.map((taint, idx) => (
+        <Grid.Root key={idx} columns="12" gap="2" style={{ marginBottom: 'var(--bui-space-2)' }}>
+          <Grid.Item colSpan={{ xs: '12', md: '4' }}>
+            <TextField
+              label="Key"
+              value={taint.key}
+              size="small"
+              onChange={val => {
+                const updated = [...taints];
+                updated[idx] = { ...updated[idx], key: val };
+                onChange(updated);
+              }}
+            />
+          </Grid.Item>
+          <Grid.Item colSpan={{ xs: '12', md: '3' }}>
+            <TextField
+              label="Value"
+              value={taint.value}
+              size="small"
+              onChange={val => {
+                const updated = [...taints];
+                updated[idx] = { ...updated[idx], value: val };
+                onChange(updated);
+              }}
+            />
+          </Grid.Item>
+          <Grid.Item colSpan={{ xs: '9', md: '3' }}>
+            <Select
+              label="Effect"
+              selectedKey={taint.effect}
+              onSelectionChange={key => {
+                const updated = [...taints];
+                updated[idx] = { ...updated[idx], effect: String(key) as Taint['effect'] };
+                onChange(updated);
+              }}
+              options={TAINT_EFFECT_OPTIONS}
+            />
+          </Grid.Item>
+          <Grid.Item colSpan={{ xs: '3', md: '2' }}>
+            <ButtonIcon
+              icon={<RiDeleteBinLine />}
+              onPress={() => {
+                const updated = [...taints];
+                updated.splice(idx, 1);
+                onChange(updated);
+              }}
+              size="small"
+              aria-label="Remove taint"
+            />
+          </Grid.Item>
+        </Grid.Root>
+      ))}
+      <Button
+        iconStart={<RiAddLine />}
+        onPress={() => onChange([...taints, { key: '', value: '', effect: 'NoSchedule' }])}
+        size="small"
+      >
+        Add Taint
+      </Button>
+    </Box>
+  );
+}
+
 export const VSphereInfrastructureConfiguration = ({
   cloudAccountUid,
   projectUid,
@@ -220,7 +340,6 @@ export const VSphereInfrastructureConfiguration = ({
   tfMetadata,
   onUpdate,
 }: VSphereInfrastructureConfigurationProps) => {
-  const classes = useStyles();
   const spectroCloudApi = useApi(spectroCloudApiRef);
   const [metadata, setMetadata] = useState<VSphereMetadata | null>(null);
   const [sshKeys, setSshKeys] = useState<Array<{ name: string; uid: string; publicKey: string; context?: string }>>([]);
@@ -230,18 +349,18 @@ export const VSphereInfrastructureConfiguration = ({
   const [error, setError] = useState<string>();
   const [ntpInput, setNtpInput] = useState('');
   const [showValidation, setShowValidation] = useState(false);
-  
+
   // Resources for control plane
   const [cpResources, setCpResources] = useState<ClusterResources | null>(null);
   const [cpResourcesLoading, setCpResourcesLoading] = useState(false);
-  
+
   // Resources for each worker pool
   const [poolResources, setPoolResources] = useState<Map<number, ClusterResources>>(new Map());
   const [poolResourcesLoading, setPoolResourcesLoading] = useState<Set<number>>(new Set());
-  
+
   // Track expanded sections
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['global', 'auth-network', 'controlplane', 'workerpools']));
-  
+
   const handleSectionToggle = (section: string) => {
     setExpandedSections(prev => {
       const newSet = new Set(prev);
@@ -293,10 +412,10 @@ export const VSphereInfrastructureConfiguration = ({
         // Find matching PCG name from overlords
         let pcgName = 'your-pcg-name';
         if (pcgUid && overlordsRes?.items) {
-          const matchingOverlord = overlordsRes.items.find((overlord: any) => 
+          const matchingOverlord = overlordsRes.items.find((overlord: any) =>
             overlord.metadata?.uid === pcgUid
           );
-          
+
           if (matchingOverlord) {
             pcgName = matchingOverlord.metadata?.name || pcgName;
           }
@@ -312,7 +431,7 @@ export const VSphereInfrastructureConfiguration = ({
             }))
             .sort((a: IPPool, b: IPPool) => a.name.localeCompare(b.name));
           setIpPools(sortedPools);
-          
+
           // Initialize tfMetadata with PCG, PCG name, and IP pools
           onUpdate({
             tfMetadata: {
@@ -339,7 +458,7 @@ export const VSphereInfrastructureConfiguration = ({
   useEffect(() => {
     // Set default values if not already set
     const updates: any = {};
-    
+
     // Set default imageTemplateFolder if not set
     if (!cloudConfig.placement?.imageTemplateFolder) {
       updates.cloudConfig = {
@@ -350,7 +469,7 @@ export const VSphereInfrastructureConfiguration = ({
         },
       };
     }
-    
+
     // Set default control plane values if not set
     if (!controlPlaneConfig.size) {
       updates.controlPlaneConfig = {
@@ -363,7 +482,7 @@ export const VSphereInfrastructureConfiguration = ({
         },
       };
     }
-    
+
     // Apply updates if any
     if (Object.keys(updates).length > 0) {
       onUpdate(updates);
@@ -376,7 +495,7 @@ export const VSphereInfrastructureConfiguration = ({
     const timer = setTimeout(() => {
       setShowValidation(true);
     }, 2000); // Show validation after 2 seconds
-    
+
     return () => clearTimeout(timer);
   }, []);
 
@@ -385,7 +504,7 @@ export const VSphereInfrastructureConfiguration = ({
     const fetchCpResources = async () => {
       const datacenter = cloudConfig.placement?.datacenter;
       const cluster = controlPlaneConfig.placements?.[0]?.cluster;
-      
+
       if (!datacenter || !cluster) {
         setCpResources(null);
         return;
@@ -421,7 +540,7 @@ export const VSphereInfrastructureConfiguration = ({
   const fetchPoolResources = async (poolIndex: number, clusterName?: string) => {
     const datacenter = cloudConfig.placement?.datacenter;
     const cluster = clusterName || workerPools[poolIndex]?.placements?.[0]?.cluster;
-    
+
     if (!datacenter || !cluster) {
       return;
     }
@@ -500,7 +619,7 @@ export const VSphereInfrastructureConfiguration = ({
     const instanceTypeObj = typeof currentInstanceType === 'object' && currentInstanceType !== null
       ? currentInstanceType
       : {};
-    
+
     onUpdate({
       controlPlaneConfig: {
         ...controlPlaneConfig,
@@ -521,7 +640,7 @@ export const VSphereInfrastructureConfiguration = ({
     }];
     const updated = [...placements];
     updated[index] = { ...updated[index], [field]: value };
-    
+
     onUpdate({
       controlPlaneConfig: {
         ...controlPlaneConfig,
@@ -551,7 +670,7 @@ export const VSphereInfrastructureConfiguration = ({
         [field]: value,
       },
     };
-    
+
     onUpdate({
       controlPlaneConfig: {
         ...controlPlaneConfig,
@@ -610,7 +729,7 @@ export const VSphereInfrastructureConfiguration = ({
     const instanceTypeObj = typeof currentInstanceType === 'object' && currentInstanceType !== null
       ? currentInstanceType
       : {};
-    
+
     updated[poolIndex] = {
       ...updated[poolIndex],
       instanceType: {
@@ -644,7 +763,7 @@ export const VSphereInfrastructureConfiguration = ({
     const updated = [...workerPools];
     const cpPlacement = controlPlaneConfig.placements?.[0];
     const cpInstanceType = controlPlaneConfig.instanceType;
-    
+
     if (cpPlacement) {
       // Copy placement settings
       updated[poolIndex] = {
@@ -660,7 +779,7 @@ export const VSphereInfrastructureConfiguration = ({
           },
         }],
       };
-      
+
       // Copy instance type if it's an object (vSphere style)
       if (typeof cpInstanceType === 'object' && cpInstanceType !== null) {
         updated[poolIndex].instanceType = {
@@ -669,9 +788,9 @@ export const VSphereInfrastructureConfiguration = ({
           diskGiB: cpInstanceType.diskGiB || 60,
         };
       }
-      
+
       onUpdate({ workerPools: updated });
-      
+
       // Fetch resources for this pool since we copied the cluster
       if (cpPlacement.cluster && cloudConfig.placement?.datacenter) {
         fetchPoolResources(poolIndex);
@@ -706,33 +825,33 @@ export const VSphereInfrastructureConfiguration = ({
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
-        <CircularProgress />
-      </Box>
+      <Flex align="center" justify="center" style={{ minHeight: 200 }}>
+        <Progress />
+      </Flex>
     );
   }
 
   if (error) {
     return (
-      <Box className={classes.root}>
-        <Alert severity="error">{error}</Alert>
+      <Box className={styles.root}>
+        <Alert status="danger" description={error} />
       </Box>
     );
   }
 
   const getValidationErrors = (): string[] => {
     const errors: string[] = [];
-    
+
     // Global placement
     if (!cloudConfig.placement?.datacenter) errors.push('Global: Datacenter is required');
     if (!cloudConfig.placement?.folder) errors.push('Global: Folder is required');
     if (!cloudConfig.placement?.imageTemplateFolder) errors.push('Global: Image Template Folder is required');
-    
+
     // SSH Key (required)
     if (!cloudConfig.sshKeys || cloudConfig.sshKeys.length === 0) {
       errors.push('Authentication & Network: SSH Key is required');
     }
-    
+
     // Control Plane
     if (!controlPlaneConfig.size || controlPlaneConfig.size <= 0) {
       errors.push('Control Plane: Node count is required');
@@ -754,15 +873,15 @@ export const VSphereInfrastructureConfiguration = ({
       if (!placement.datastore) errors.push('Control Plane: Datastore is required');
       if (!placement.network?.networkName) errors.push('Control Plane: Network is required');
     }
-    
+
     // Worker Pools
     if (workerPools.length === 0) {
       errors.push('At least one Worker Pool is required');
     }
-    
+
     workerPools.forEach((pool, idx) => {
       const poolName = pool.name || `Worker Pool ${idx + 1}`;
-      
+
       if (!pool.name || pool.name.trim().length === 0) {
         errors.push(`${poolName}: Pool name is required`);
       }
@@ -796,7 +915,7 @@ export const VSphereInfrastructureConfiguration = ({
         if (!placement.network?.networkName) errors.push(`${poolName}: Network is required`);
       }
     });
-    
+
     return errors;
   };
 
@@ -804,1316 +923,814 @@ export const VSphereInfrastructureConfiguration = ({
   const isValid = validationErrors.length === 0;
 
   return (
-    <Box className={classes.root}>
-      <Box mb={4}>
-        <Typography variant="h4" style={{ fontWeight: 600, marginBottom: 8 }}>
+    <Box className={styles.root}>
+      <Box mb="4">
+        <Text variant="title-large" weight="bold" as="div">
           vSphere Infrastructure Configuration
-        </Typography>
-        <Typography variant="body2" color="textSecondary">
+        </Text>
+        <Text variant="body-medium" color="secondary" as="div">
           Configure your vSphere infrastructure settings for control plane and worker nodes
-        </Typography>
+        </Text>
       </Box>
 
       {showValidation && !isValid && (
-        <Alert severity="error" style={{ marginBottom: 24 }} onClose={() => setShowValidation(false)}>
-          <Typography variant="subtitle2" style={{ fontWeight: 600, marginBottom: 8 }}>
-            Please complete the following required fields:
-          </Typography>
-          <ul style={{ margin: 0, paddingLeft: 20 }}>
-            {validationErrors.map((errMsg, idx) => (
-              <li key={idx}><Typography variant="body2">{errMsg}</Typography></li>
-            ))}
-          </ul>
-        </Alert>
+        <Box mb="4">
+          <Alert
+            status="danger"
+            title="Please complete the following required fields:"
+            description={
+              <ul style={{ margin: 0, paddingLeft: 20 }}>
+                {validationErrors.map((errMsg, idx) => (
+                  <li key={idx}>{errMsg}</li>
+                ))}
+              </ul>
+            }
+            customActions={
+              <Button size="small" variant="tertiary" onPress={() => setShowValidation(false)}>
+                Dismiss
+              </Button>
+            }
+          />
+        </Box>
       )}
 
       {/* Global Placement Settings */}
-      <Accordion 
-        expanded={expandedSections.has('global')}
-        onChange={() => handleSectionToggle('global')}
+      <Accordion
+        isExpanded={expandedSections.has('global')}
+        onExpandedChange={() => handleSectionToggle('global')}
       >
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Box display="flex" alignItems="center" width="100%">
-            <CloudIcon className={classes.sectionIcon} style={{ marginRight: 8 }} />
-            <Typography className={classes.sectionTitle}>
-              Global Placement Settings
-            </Typography>
-            <Chip label="Required" size="small" color="primary" className={classes.chip} />
-          </Box>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Box className={classes.sectionContent} style={{ width: '100%' }}>
-          <Grid container spacing={3}>
-          <Grid item xs={12} md={4} className={classes.gridItem}>
-            <Autocomplete
-              options={metadata?.datacenters?.map(dc => dc.datacenter) || []}
-              value={cloudConfig.placement?.datacenter || ''}
-              onChange={(_, newValue) => {
-                if (newValue) {
-                  handlePlacementChange('datacenter', newValue);
-                }
-              }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Datacenter"
-                  required
-                  helperText="Primary datacenter for cluster resources"
-                />
-              )}
-            />
-          </Grid>
-          <Grid item xs={12} md={4} className={classes.gridItem}>
-            <Autocomplete
-              freeSolo
-              options={selectedDatacenter?.folders || []}
-              value={cloudConfig.placement?.folder || ''}
-              onChange={(_, newValue) => {
-                if (newValue) {
-                  handlePlacementChange('folder', newValue);
-                }
-              }}
-              onInputChange={(_, newValue) => {
-                handlePlacementChange('folder', newValue);
-              }}
-              disabled={!selectedDatacenter}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Folder"
-                  required
-                  helperText="VM folder path (can type custom path)"
-                />
-              )}
-            />
-          </Grid>
-          <Grid item xs={12} md={4} className={classes.gridItem}>
-            <Autocomplete
-              freeSolo
-              options={selectedDatacenter?.folders || []}
-              value={cloudConfig.placement?.imageTemplateFolder || 'spectro-templates'}
-              onChange={(_, newValue) => {
-                if (newValue) {
-                  handlePlacementChange('imageTemplateFolder', newValue);
-                }
-              }}
-              onInputChange={(_, newValue) => {
-                handlePlacementChange('imageTemplateFolder', newValue || 'spectro-templates');
-              }}
-              disabled={!selectedDatacenter}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Image Template Folder"
-                  required
-                  helperText="Template location (default: spectro-templates)"
-                />
-              )}
-            />
-          </Grid>
-        </Grid>
-          </Box>
-        </AccordionDetails>
+        <AccordionTrigger>
+          <Flex align="center" gap="2" style={{ width: '100%' }}>
+            <RiCloudLine className={styles.sectionIcon} />
+            <Text weight="bold">Global Placement Settings</Text>
+            <Badge>Required</Badge>
+          </Flex>
+        </AccordionTrigger>
+        <AccordionPanel>
+          <Grid.Root columns="12" gap="4">
+            <Grid.Item colSpan={{ xs: '12', md: '4' }}>
+              <StringCombobox
+                label="Datacenter"
+                options={metadata?.datacenters?.map(dc => dc.datacenter) || []}
+                value={cloudConfig.placement?.datacenter || ''}
+                onChange={value => handlePlacementChange('datacenter', value)}
+                isRequired
+                description="Primary datacenter for cluster resources"
+              />
+            </Grid.Item>
+            <Grid.Item colSpan={{ xs: '12', md: '4' }}>
+              <StringCombobox
+                label="Folder"
+                options={selectedDatacenter?.folders || []}
+                value={cloudConfig.placement?.folder || ''}
+                onChange={value => handlePlacementChange('folder', value)}
+                allowsCustomValue
+                isDisabled={!selectedDatacenter}
+                isRequired
+                description="VM folder path (can type custom path)"
+              />
+            </Grid.Item>
+            <Grid.Item colSpan={{ xs: '12', md: '4' }}>
+              <StringCombobox
+                label="Image Template Folder"
+                options={selectedDatacenter?.folders || []}
+                value={cloudConfig.placement?.imageTemplateFolder || 'spectro-templates'}
+                onChange={value => handlePlacementChange('imageTemplateFolder', value || 'spectro-templates')}
+                allowsCustomValue
+                isDisabled={!selectedDatacenter}
+                isRequired
+                description="Template location (default: spectro-templates)"
+              />
+            </Grid.Item>
+          </Grid.Root>
+        </AccordionPanel>
       </Accordion>
 
       {/* SSH Keys & Network Settings */}
-      <Accordion 
-        expanded={expandedSections.has('auth-network')}
-        onChange={() => handleSectionToggle('auth-network')}
+      <Accordion
+        isExpanded={expandedSections.has('auth-network')}
+        onExpandedChange={() => handleSectionToggle('auth-network')}
       >
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Box display="flex" alignItems="center" width="100%">
-            <SecurityIcon className={classes.sectionIcon} style={{ marginRight: 8 }} />
-            <Typography className={classes.sectionTitle}>
-              Authentication & Network
-            </Typography>
-            <Chip label="Required" size="small" color="primary" className={classes.chip} />
-          </Box>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Box style={{ width: '100%' }}>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6} className={classes.gridItem}>
-              <Typography className={classes.subsectionTitle}>
-                <SecurityIcon fontSize="small" style={{ marginRight: 4 }} />
-                SSH Key
-              </Typography>
+        <AccordionTrigger>
+          <Flex align="center" gap="2" style={{ width: '100%' }}>
+            <RiShieldCheckLine className={styles.sectionIcon} />
+            <Text weight="bold">Authentication &amp; Network</Text>
+            <Badge>Required</Badge>
+          </Flex>
+        </AccordionTrigger>
+        <AccordionPanel>
+          <Grid.Root columns="12" gap="4">
+            <Grid.Item colSpan={{ xs: '12', md: '6' }}>
+              <Flex align="center" gap="1" mb="2">
+                <RiShieldCheckLine size={16} />
+                <Text weight="bold">SSH Key</Text>
+              </Flex>
               {sshKeys.length > 0 ? (
-                <Autocomplete
+                <ObjectCombobox
+                  label="Select SSH Key"
                   options={sshKeys}
-                  getOptionLabel={(option) => option.name}
-                  value={sshKeys.find(k => k.publicKey === cloudConfig.sshKeys?.[0]) || null}
-                  onChange={(_, newValue) => {
-                    if (newValue) {
-                      // Update cloud config with SSH key
-                      handleCloudConfigChange('sshKeys', [newValue.publicKey]);
-                      
-                      // Update tfMetadata with SSH key info, preserving existing values
-                      onUpdate({
-                        tfMetadata: {
-                          ...tfMetadata,
-                          sshKeyName: newValue.name,
-                          sshKeyContext: (newValue.context === 'tenant' ? 'tenant' : 'project') as 'tenant' | 'project',
-                          pcgUid: overlordUid,
-                          ipPools: ipPools.reduce((acc: Record<string, string>, pool: IPPool) => ({ ...acc, [pool.uid]: pool.name }), {}),
-                        },
-                      });
-                    }
+                  getOptionId={k => k.publicKey}
+                  getOptionLabel={k => k.name}
+                  selectedId={cloudConfig.sshKeys?.[0] ?? null}
+                  onSelect={newValue => {
+                    handleCloudConfigChange('sshKeys', [newValue.publicKey]);
+                    onUpdate({
+                      tfMetadata: {
+                        ...tfMetadata,
+                        sshKeyName: newValue.name,
+                        sshKeyContext: (newValue.context === 'tenant' ? 'tenant' : 'project') as 'tenant' | 'project',
+                        pcgUid: overlordUid,
+                        ipPools: ipPools.reduce((acc: Record<string, string>, pool: IPPool) => ({ ...acc, [pool.uid]: pool.name }), {}),
+                      },
+                    });
                   }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="Select SSH Key *"
-                      required
-                      error={showValidation && (!cloudConfig.sshKeys || cloudConfig.sshKeys.length === 0)}
-                      helperText={
-                        showValidation && (!cloudConfig.sshKeys || cloudConfig.sshKeys.length === 0)
-                          ? "SSH Key is required"
-                          : "Authentication key for SSH access"
-                      }
-                    />
-                  )}
+                  isRequired
+                  description={
+                    showValidation && (!cloudConfig.sshKeys || cloudConfig.sshKeys.length === 0)
+                      ? 'SSH Key is required'
+                      : 'Authentication key for SSH access'
+                  }
                 />
               ) : (
-                <Alert severity="warning">
-                  No SSH keys found. Please create an SSH key in Spectro Cloud first.
-                </Alert>
+                <Alert status="warning" description="No SSH keys found. Please create an SSH key in Spectro Cloud first." />
               )}
-            </Grid>
-            <Grid item xs={12} md={6} className={classes.gridItem}>
-              <Typography className={classes.subsectionTitle}>
-                <NetworkCheckIcon fontSize="small" style={{ marginRight: 4 }} />
-                IP Allocation
-              </Typography>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={cloudConfig.staticIp || false}
-                    onChange={e => handleCloudConfigChange('staticIp', e.target.checked)}
-                    color="primary"
-                  />
-                }
-                label={
-                  <Box>
-                    <Typography variant="body2" style={{ fontWeight: 500 }}>
-                      Use Static IP Allocation
-                    </Typography>
-                    <Typography variant="caption" color="textSecondary">
-                      Enable for static IP pools (recommended for production)
-                    </Typography>
-                  </Box>
-                }
+            </Grid.Item>
+            <Grid.Item colSpan={{ xs: '12', md: '6' }}>
+              <Flex align="center" gap="1" mb="2">
+                <RiWifiLine size={16} />
+                <Text weight="bold">IP Allocation</Text>
+              </Flex>
+              <Switch
+                label="Use Static IP Allocation"
+                isSelected={cloudConfig.staticIp || false}
+                onChange={isSelected => handleCloudConfigChange('staticIp', isSelected)}
               />
-            </Grid>
+              <Text variant="body-small" color="secondary" as="div">
+                Enable for static IP pools (recommended for production)
+              </Text>
+            </Grid.Item>
 
             {/* NTP Servers */}
-            <Grid item xs={12}>
-              <Typography className={classes.subsectionTitle} style={{ marginTop: 16 }}>
-                <DnsIcon fontSize="small" style={{ marginRight: 4 }} />
-                NTP Servers <Chip label="Optional" size="small" variant="outlined" style={{ marginLeft: 8 }} />
-              </Typography>
-              <Grid container spacing={2} alignItems="center">
-                <Grid item xs={10}>
+            <Grid.Item colSpan="12">
+              <Flex align="center" gap="2" mb="2">
+                <RiTimeLine size={16} />
+                <Text weight="bold">NTP Servers</Text>
+                <Badge>Optional</Badge>
+              </Flex>
+              <Flex align="end" gap="2">
+                <Box style={{ flexGrow: 1 }}>
                   <TextField
                     value={ntpInput}
-                    onChange={e => setNtpInput(e.target.value)}
-                    onKeyPress={e => {
+                    onChange={setNtpInput}
+                    onKeyDown={e => {
                       if (e.key === 'Enter') {
                         handleAddNTPServer();
                       }
                     }}
-                    fullWidth
                     placeholder="e.g., pool.ntp.org or 10.100.100.100"
-                    helperText="Add time synchronization servers (press Enter or click Add)"
+                    description="Add time synchronization servers (press Enter or click Add)"
                   />
-                </Grid>
-                <Grid item xs={2}>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<AddIcon />}
-                    onClick={handleAddNTPServer}
-                    fullWidth
-                    className={classes.addButton}
-                  >
-                    Add
-                  </Button>
-                </Grid>
-              </Grid>
-              {(cloudConfig.ntpServers || []).map((server: string, idx: number) => (
-                <Chip
-                  key={idx}
-                  label={server}
-                  onDelete={() => handleRemoveNTPServer(idx)}
-                  color="default"
-                  style={{ margin: '8px 8px 0 0' }}
-                />
-              ))}
-            </Grid>
-          </Grid>
-          </Box>
-        </AccordionDetails>
+                </Box>
+                <Button iconStart={<RiAddLine />} onPress={handleAddNTPServer}>
+                  Add
+                </Button>
+              </Flex>
+              {(() => {
+                const ntpServers: string[] = cloudConfig.ntpServers || [];
+                if (ntpServers.length === 0) return null;
+                return (
+                  <Box mt="2">
+                    <TagGroup
+                      aria-label="NTP Servers"
+                      items={ntpServers.map((server, idx) => ({ id: idx, label: server }))}
+                      onRemove={keys => {
+                        const [key] = keys;
+                        if (typeof key === 'number') handleRemoveNTPServer(key);
+                      }}
+                    >
+                      {item => <Tag id={item.id} textValue={item.label}>{item.label}</Tag>}
+                    </TagGroup>
+                  </Box>
+                );
+              })()}
+            </Grid.Item>
+          </Grid.Root>
+        </AccordionPanel>
       </Accordion>
 
       {/* Control Plane */}
-      <Accordion 
-        expanded={expandedSections.has('controlplane')}
-        onChange={() => handleSectionToggle('controlplane')}
+      <Accordion
+        isExpanded={expandedSections.has('controlplane')}
+        onExpandedChange={() => handleSectionToggle('controlplane')}
       >
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Box display="flex" alignItems="center" width="100%">
-            <SettingsIcon className={classes.sectionIcon} style={{ marginRight: 8 }} />
-            <Typography className={classes.sectionTitle}>
-              Control Plane Configuration
-            </Typography>
-            <Chip label="Required" size="small" color="primary" className={classes.chip} />
-          </Box>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Box style={{ width: '100%' }}>
-          <Accordion defaultExpanded className={classes.accordion}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />} className={classes.accordionSummary}>
-              <Typography style={{ fontWeight: 600 }}>
-                <StorageIcon fontSize="small" style={{ verticalAlign: 'middle', marginRight: 8 }} />
-                Instance Type & Size
-              </Typography>
-            </AccordionSummary>
-            <AccordionDetails className={classes.accordionDetails}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={3}>
-                <TextField
-                  label="CPU Cores *"
-                  type="number"
-                  value={
-                    typeof controlPlaneConfig.instanceType === 'object' && controlPlaneConfig.instanceType !== null
-                      ? controlPlaneConfig.instanceType.numCPUs || 4
-                      : 4
-                  }
-                  onChange={e => handleControlPlaneInstanceTypeChange('numCPUs', parseInt(e.target.value, 10))}
-                  fullWidth
-                  required
-                  inputProps={{ min: 2 }}
-                />
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <TextField
-                  label="Memory (MiB) *"
-                  type="number"
-                  value={
-                    typeof controlPlaneConfig.instanceType === 'object' && controlPlaneConfig.instanceType !== null
-                      ? controlPlaneConfig.instanceType.memoryMiB || 8192
-                      : 8192
-                  }
-                  onChange={e => handleControlPlaneInstanceTypeChange('memoryMiB', parseInt(e.target.value, 10))}
-                  fullWidth
-                  required
-                  inputProps={{ min: 4096, step: 1024 }}
-                />
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <TextField
-                  label="Disk (GiB) *"
-                  type="number"
-                  value={
-                    typeof controlPlaneConfig.instanceType === 'object' && controlPlaneConfig.instanceType !== null
-                      ? controlPlaneConfig.instanceType.diskGiB || 60
-                      : 60
-                  }
-                  onChange={e => handleControlPlaneInstanceTypeChange('diskGiB', parseInt(e.target.value, 10))}
-                  fullWidth
-                  required
-                  inputProps={{ min: 20 }}
-                />
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <TextField
-                  label="Node Count *"
-                  type="number"
-                  value={controlPlaneConfig.size || 1}
-                  onChange={e => handleControlPlaneChange('size', parseInt(e.target.value, 10))}
-                  fullWidth
-                  required
-                  inputProps={{ min: 1, max: 10 }}
-                />
-              </Grid>
-            </Grid>
-          </AccordionDetails>
-        </Accordion>
-
-        <Box mt={2} mb={2}>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={controlPlaneConfig.useControlPlaneAsWorker || false}
-                onChange={(e) => handleControlPlaneChange('useControlPlaneAsWorker', e.target.checked)}
-                color="primary"
-              />
-            }
-            label="Allow workloads on control plane nodes"
-          />
-          <Typography variant="caption" color="textSecondary" display="block">
-            When enabled, the control plane nodes can also run regular workloads (not recommended for production)
-          </Typography>
-        </Box>
-
-        <Accordion defaultExpanded>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography>Placement Configuration</Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            {!selectedDatacenter && (
-              <Alert severity="info" style={{ marginBottom: 16, width: '100%' }}>
-                Please select a datacenter first
-              </Alert>
-            )}
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
-                <Autocomplete
-                  options={selectedDatacenter?.computeclusters || []}
-                  value={controlPlaneConfig.placements?.[0]?.cluster || ''}
-                  onChange={(_, newValue) => {
-                    if (newValue) {
-                      handleControlPlanePlacementChange(0, 'cluster', newValue);
-                    }
-                  }}
-                  disabled={!selectedDatacenter}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="Compute Cluster *"
-                      required
-                    />
-                  )}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Autocomplete
-                  freeSolo
-                  options={cpResources?.datastores || []}
-                  value={controlPlaneConfig.placements?.[0]?.datastore || ''}
-                  onChange={(_, newValue) => {
-                    if (newValue) {
-                      handleControlPlanePlacementChange(0, 'datastore', newValue);
-                    }
-                  }}
-                  onInputChange={(_, newValue) => {
-                    handleControlPlanePlacementChange(0, 'datastore', newValue);
-                  }}
-                  loading={cpResourcesLoading}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="Datastore *"
-                      required
-                      helperText={cpResourcesLoading ? 'Loading...' : 'Select or type datastore name'}
-                    />
-                  )}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Autocomplete
-                  freeSolo
-                  options={['', ...(cpResources?.resourcePools || [])]}
-                  value={controlPlaneConfig.placements?.[0]?.resourcePool || ''}
-                  onChange={(_, newValue) => {
-                    handleControlPlanePlacementChange(0, 'resourcePool', newValue || '');
-                  }}
-                  onInputChange={(_, newValue) => {
-                    handleControlPlanePlacementChange(0, 'resourcePool', newValue);
-                  }}
-                  loading={cpResourcesLoading}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="Resource Pool"
-                      helperText={cpResourcesLoading ? 'Loading...' : 'Leave empty for default or type custom name'}
-                    />
-                  )}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Autocomplete
-                  freeSolo
-                  options={cpResources?.networks || []}
-                  value={controlPlaneConfig.placements?.[0]?.network?.networkName || ''}
-                  onChange={(_, newValue) => {
-                    if (newValue) {
-                      handleControlPlaneNetworkChange(0, 'networkName', newValue);
-                    }
-                  }}
-                  onInputChange={(_, newValue) => {
-                    handleControlPlaneNetworkChange(0, 'networkName', newValue);
-                  }}
-                  loading={cpResourcesLoading}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="Network *"
-                      required
-                      helperText={cpResourcesLoading ? 'Loading...' : 'Select or type network path (e.g., /infra/segments/Demo-Network)'}
-                    />
-                  )}
-                />
-              </Grid>
-              {cloudConfig.staticIp && (
-                <Grid item xs={12} md={6}>
-                  <Autocomplete
-                    options={ipPools}
-                    getOptionLabel={(option) => option.name}
-                    value={ipPools.find(p => p.uid === controlPlaneConfig.placements?.[0]?.network?.parentPoolUid) || null}
-                    onChange={(_, newValue) => {
-                      if (newValue) {
-                        handleControlPlaneNetworkChange(0, 'parentPoolUid', newValue.uid);
+        <AccordionTrigger>
+          <Flex align="center" gap="2" style={{ width: '100%' }}>
+            <RiSettings3Line className={styles.sectionIcon} />
+            <Text weight="bold">Control Plane Configuration</Text>
+            <Badge>Required</Badge>
+          </Flex>
+        </AccordionTrigger>
+        <AccordionPanel>
+          <Box className={styles.highlightedAccordion}>
+            <Accordion defaultExpanded>
+              <AccordionTrigger>
+                <Flex align="center" gap="1">
+                  <RiHardDriveLine size={16} />
+                  <Text weight="bold">Instance Type &amp; Size</Text>
+                </Flex>
+              </AccordionTrigger>
+              <AccordionPanel>
+                <Grid.Root columns="12" gap="4">
+                  <Grid.Item colSpan={{ xs: '12', md: '3' }}>
+                    <NumberField
+                      label="CPU Cores"
+                      isRequired
+                      value={
+                        typeof controlPlaneConfig.instanceType === 'object' && controlPlaneConfig.instanceType !== null
+                          ? controlPlaneConfig.instanceType.numCPUs || 4
+                          : 4
                       }
-                    }}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="IP Pool *"
-                        required
-                        helperText="Select IP pool for static IP allocation"
-                      />
-                    )}
-                  />
-                </Grid>
-              )}
-            </Grid>
-          </AccordionDetails>
-        </Accordion>
-
-        <Accordion>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography>Additional Labels & Annotations (Optional)</Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            <Box width="100%">
-              <Typography variant="subtitle2" gutterBottom>
-                Labels (Kubernetes Node Labels)
-              </Typography>
-              {Object.entries(controlPlaneConfig.additionalLabels || {}).map(([key, value], idx) => (
-                <Grid container spacing={2} key={idx} style={{ marginBottom: 8 }}>
-                  <Grid item xs={5}>
-                    <TextField
-                      label="Key"
-                      value={key}
-                      onChange={e => {
-                        const newLabels = { ...controlPlaneConfig.additionalLabels };
-                        delete newLabels[key];
-                        newLabels[e.target.value] = value;
-                        handleControlPlaneChange('additionalLabels', newLabels);
-                      }}
-                      fullWidth
-                      size="small"
+                      onChange={value => handleControlPlaneInstanceTypeChange('numCPUs', value)}
+                      minValue={2}
                     />
-                  </Grid>
-                  <Grid item xs={5}>
-                    <TextField
-                      label="Value"
-                      value={value}
-                      onChange={e => {
-                        const newLabels = { ...controlPlaneConfig.additionalLabels };
-                        newLabels[key] = e.target.value;
-                        handleControlPlaneChange('additionalLabels', newLabels);
-                      }}
-                      fullWidth
-                      size="small"
+                  </Grid.Item>
+                  <Grid.Item colSpan={{ xs: '12', md: '3' }}>
+                    <NumberField
+                      label="Memory (MiB)"
+                      isRequired
+                      value={
+                        typeof controlPlaneConfig.instanceType === 'object' && controlPlaneConfig.instanceType !== null
+                          ? controlPlaneConfig.instanceType.memoryMiB || 8192
+                          : 8192
+                      }
+                      onChange={value => handleControlPlaneInstanceTypeChange('memoryMiB', value)}
+                      minValue={4096}
+                      step={1024}
                     />
-                  </Grid>
-                  <Grid item xs={2}>
-                    <IconButton
-                      onClick={() => {
-                        const newLabels = { ...controlPlaneConfig.additionalLabels };
-                        delete newLabels[key];
-                        handleControlPlaneChange('additionalLabels', newLabels);
-                      }}
-                      size="small"
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Grid>
-                </Grid>
-              ))}
-              <Button
-                startIcon={<AddIcon />}
-                onClick={() => {
-                  const newLabels = { ...(controlPlaneConfig.additionalLabels || {}), '': '' };
-                  handleControlPlaneChange('additionalLabels', newLabels);
-                }}
-                size="small"
-              >
-                Add Label
-              </Button>
-
-              <Box mt={3} mb={2}>
-                <Typography variant="subtitle2" gutterBottom>
-                Annotations (Kubernetes Node Annotations)
-              </Typography>
-              {Object.entries(controlPlaneConfig.additionalAnnotations || {}).map(([key, value], idx) => (
-                <Grid container spacing={2} key={idx} style={{ marginBottom: 8 }}>
-                  <Grid item xs={5}>
-                    <TextField
-                      label="Key"
-                      value={key}
-                      onChange={e => {
-                        const newAnnotations = { ...controlPlaneConfig.additionalAnnotations };
-                        delete newAnnotations[key];
-                        newAnnotations[e.target.value] = value;
-                        handleControlPlaneChange('additionalAnnotations', newAnnotations);
-                      }}
-                      fullWidth
-                      size="small"
+                  </Grid.Item>
+                  <Grid.Item colSpan={{ xs: '12', md: '3' }}>
+                    <NumberField
+                      label="Disk (GiB)"
+                      isRequired
+                      value={
+                        typeof controlPlaneConfig.instanceType === 'object' && controlPlaneConfig.instanceType !== null
+                          ? controlPlaneConfig.instanceType.diskGiB || 60
+                          : 60
+                      }
+                      onChange={value => handleControlPlaneInstanceTypeChange('diskGiB', value)}
+                      minValue={20}
                     />
-                  </Grid>
-                  <Grid item xs={5}>
-                    <TextField
-                      label="Value"
-                      value={value}
-                      onChange={e => {
-                        const newAnnotations = { ...controlPlaneConfig.additionalAnnotations };
-                        newAnnotations[key] = e.target.value;
-                        handleControlPlaneChange('additionalAnnotations', newAnnotations);
-                      }}
-                      fullWidth
-                      size="small"
+                  </Grid.Item>
+                  <Grid.Item colSpan={{ xs: '12', md: '3' }}>
+                    <NumberField
+                      label="Node Count"
+                      isRequired
+                      value={controlPlaneConfig.size || 1}
+                      onChange={value => handleControlPlaneChange('size', value)}
+                      minValue={1}
+                      maxValue={10}
                     />
-                  </Grid>
-                  <Grid item xs={2}>
-                    <IconButton
-                      onClick={() => {
-                        const newAnnotations = { ...controlPlaneConfig.additionalAnnotations };
-                        delete newAnnotations[key];
-                        handleControlPlaneChange('additionalAnnotations', newAnnotations);
-                      }}
-                      size="small"
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Grid>
-                </Grid>
-              ))}
-              <Button
-                startIcon={<AddIcon />}
-                onClick={() => {
-                  const newAnnotations = { ...(controlPlaneConfig.additionalAnnotations || {}), '': '' };
-                  handleControlPlaneChange('additionalAnnotations', newAnnotations);
-                }}
-                size="small"
-              >
-                Add Annotation
-              </Button>
-              </Box>
-            </Box>
-          </AccordionDetails>
-        </Accordion>
-
-        <Accordion>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography>Taints (Optional)</Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            <Box width="100%">
-              <Typography variant="body2" color="textSecondary" paragraph>
-                Taints prevent pods from being scheduled on these nodes unless they have matching tolerations
-              </Typography>
-              {(controlPlaneConfig.taints || []).map((taint: { key: string; value: string; effect: string }, idx: number) => (
-                <Grid container spacing={2} key={idx} style={{ marginBottom: 8 }}>
-                  <Grid item xs={4}>
-                    <TextField
-                      label="Key"
-                      value={taint.key}
-                      onChange={e => {
-                        const newTaints = [...(controlPlaneConfig.taints || [])];
-                        newTaints[idx] = { ...newTaints[idx], key: e.target.value };
-                        handleControlPlaneChange('taints', newTaints);
-                      }}
-                      fullWidth
-                      size="small"
-                    />
-                  </Grid>
-                  <Grid item xs={3}>
-                    <TextField
-                      label="Value"
-                      value={taint.value}
-                      onChange={e => {
-                        const newTaints = [...(controlPlaneConfig.taints || [])];
-                        newTaints[idx] = { ...newTaints[idx], value: e.target.value };
-                        handleControlPlaneChange('taints', newTaints);
-                      }}
-                      fullWidth
-                      size="small"
-                    />
-                  </Grid>
-                  <Grid item xs={3}>
-                    <FormControl fullWidth size="small">
-                      <InputLabel>Effect</InputLabel>
-                      <Select
-                        value={taint.effect}
-                        onChange={e => {
-                          const newTaints = [...(controlPlaneConfig.taints || [])];
-                          newTaints[idx] = { ...newTaints[idx], effect: e.target.value as any };
-                          handleControlPlaneChange('taints', newTaints);
-                        }}
-                      >
-                        <MenuItem value="NoSchedule">NoSchedule</MenuItem>
-                        <MenuItem value="NoExecute">NoExecute</MenuItem>
-                        <MenuItem value="PreferNoSchedule">PreferNoSchedule</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={2}>
-                    <IconButton
-                      onClick={() => {
-                        const newTaints = [...(controlPlaneConfig.taints || [])];
-                        newTaints.splice(idx, 1);
-                        handleControlPlaneChange('taints', newTaints);
-                      }}
-                      size="small"
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Grid>
-                </Grid>
-              ))}
-              <Button
-                startIcon={<AddIcon />}
-                onClick={() => {
-                  const newTaints = [...(controlPlaneConfig.taints || []), { key: '', value: '', effect: 'NoSchedule' }];
-                  handleControlPlaneChange('taints', newTaints);
-                }}
-                size="small"
-              >
-                Add Taint
-              </Button>
-            </Box>
-          </AccordionDetails>
-        </Accordion>
+                  </Grid.Item>
+                </Grid.Root>
+              </AccordionPanel>
+            </Accordion>
           </Box>
-        </AccordionDetails>
+
+          <Box mt="2" mb="4">
+            <Switch
+              label="Allow workloads on control plane nodes"
+              isSelected={controlPlaneConfig.useControlPlaneAsWorker || false}
+              onChange={isSelected => handleControlPlaneChange('useControlPlaneAsWorker', isSelected)}
+            />
+            <Text variant="body-small" color="secondary" as="div">
+              When enabled, the control plane nodes can also run regular workloads (not recommended for production)
+            </Text>
+          </Box>
+
+          <Accordion defaultExpanded>
+            <AccordionTrigger>Placement Configuration</AccordionTrigger>
+            <AccordionPanel>
+              {!selectedDatacenter && (
+                <Box mb="4">
+                  <Alert status="info" description="Please select a datacenter first" />
+                </Box>
+              )}
+              <Grid.Root columns="12" gap="4">
+                <Grid.Item colSpan={{ xs: '12', md: '6' }}>
+                  <StringCombobox
+                    label="Compute Cluster"
+                    options={selectedDatacenter?.computeclusters || []}
+                    value={controlPlaneConfig.placements?.[0]?.cluster || ''}
+                    onChange={value => handleControlPlanePlacementChange(0, 'cluster', value)}
+                    isDisabled={!selectedDatacenter}
+                    isRequired
+                  />
+                </Grid.Item>
+                <Grid.Item colSpan={{ xs: '12', md: '6' }}>
+                  <StringCombobox
+                    label="Datastore"
+                    options={cpResources?.datastores || []}
+                    value={controlPlaneConfig.placements?.[0]?.datastore || ''}
+                    onChange={value => handleControlPlanePlacementChange(0, 'datastore', value)}
+                    allowsCustomValue
+                    isRequired
+                    description={cpResourcesLoading ? 'Loading...' : 'Select or type datastore name'}
+                  />
+                </Grid.Item>
+                <Grid.Item colSpan={{ xs: '12', md: '6' }}>
+                  <StringCombobox
+                    label="Resource Pool"
+                    options={cpResources?.resourcePools || []}
+                    value={controlPlaneConfig.placements?.[0]?.resourcePool || ''}
+                    onChange={value => handleControlPlanePlacementChange(0, 'resourcePool', value)}
+                    allowsCustomValue
+                    description={cpResourcesLoading ? 'Loading...' : 'Leave empty for default or type custom name'}
+                  />
+                </Grid.Item>
+                <Grid.Item colSpan={{ xs: '12', md: '6' }}>
+                  <StringCombobox
+                    label="Network"
+                    options={cpResources?.networks || []}
+                    value={controlPlaneConfig.placements?.[0]?.network?.networkName || ''}
+                    onChange={value => handleControlPlaneNetworkChange(0, 'networkName', value)}
+                    allowsCustomValue
+                    isRequired
+                    description={cpResourcesLoading ? 'Loading...' : 'Select or type network path (e.g., /infra/segments/Demo-Network)'}
+                  />
+                </Grid.Item>
+                {cloudConfig.staticIp && (
+                  <Grid.Item colSpan={{ xs: '12', md: '6' }}>
+                    <ObjectCombobox
+                      label="IP Pool"
+                      options={ipPools}
+                      getOptionId={p => p.uid}
+                      getOptionLabel={p => p.name}
+                      selectedId={controlPlaneConfig.placements?.[0]?.network?.parentPoolUid}
+                      onSelect={newValue => handleControlPlaneNetworkChange(0, 'parentPoolUid', newValue.uid)}
+                      isRequired
+                      description="Select IP pool for static IP allocation"
+                    />
+                  </Grid.Item>
+                )}
+              </Grid.Root>
+            </AccordionPanel>
+          </Accordion>
+
+          <Accordion>
+            <AccordionTrigger>Additional Labels &amp; Annotations (Optional)</AccordionTrigger>
+            <AccordionPanel>
+              <Flex direction="column" gap="4">
+                <KeyValueEditor
+                  title="Labels (Kubernetes Node Labels)"
+                  entries={controlPlaneConfig.additionalLabels || {}}
+                  addButtonLabel="Add Label"
+                  onAdd={() => handleControlPlaneChange('additionalLabels', { ...(controlPlaneConfig.additionalLabels || {}), '': '' })}
+                  onKeyChange={(oldKey, newKey) => {
+                    const updatedLabels = { ...(controlPlaneConfig.additionalLabels || {}) };
+                    const value = updatedLabels[oldKey];
+                    delete updatedLabels[oldKey];
+                    updatedLabels[newKey] = value;
+                    handleControlPlaneChange('additionalLabels', updatedLabels);
+                  }}
+                  onValueChange={(key, value) => handleControlPlaneChange('additionalLabels', { ...(controlPlaneConfig.additionalLabels || {}), [key]: value })}
+                  onRemove={key => {
+                    const updatedLabels = { ...(controlPlaneConfig.additionalLabels || {}) };
+                    delete updatedLabels[key];
+                    handleControlPlaneChange('additionalLabels', updatedLabels);
+                  }}
+                />
+                <KeyValueEditor
+                  title="Annotations (Kubernetes Node Annotations)"
+                  entries={controlPlaneConfig.additionalAnnotations || {}}
+                  addButtonLabel="Add Annotation"
+                  onAdd={() => handleControlPlaneChange('additionalAnnotations', { ...(controlPlaneConfig.additionalAnnotations || {}), '': '' })}
+                  onKeyChange={(oldKey, newKey) => {
+                    const updatedAnnotations = { ...(controlPlaneConfig.additionalAnnotations || {}) };
+                    const value = updatedAnnotations[oldKey];
+                    delete updatedAnnotations[oldKey];
+                    updatedAnnotations[newKey] = value;
+                    handleControlPlaneChange('additionalAnnotations', updatedAnnotations);
+                  }}
+                  onValueChange={(key, value) => handleControlPlaneChange('additionalAnnotations', { ...(controlPlaneConfig.additionalAnnotations || {}), [key]: value })}
+                  onRemove={key => {
+                    const updatedAnnotations = { ...(controlPlaneConfig.additionalAnnotations || {}) };
+                    delete updatedAnnotations[key];
+                    handleControlPlaneChange('additionalAnnotations', updatedAnnotations);
+                  }}
+                />
+              </Flex>
+            </AccordionPanel>
+          </Accordion>
+
+          <Accordion>
+            <AccordionTrigger>Taints (Optional)</AccordionTrigger>
+            <AccordionPanel>
+              <TaintsEditor
+                taints={controlPlaneConfig.taints || []}
+                onChange={taints => handleControlPlaneChange('taints', taints)}
+              />
+            </AccordionPanel>
+          </Accordion>
+        </AccordionPanel>
       </Accordion>
 
       {/* Worker Pools */}
-      <Accordion 
-        expanded={expandedSections.has('workerpools')}
-        onChange={() => handleSectionToggle('workerpools')}
+      <Accordion
+        isExpanded={expandedSections.has('workerpools')}
+        onExpandedChange={() => handleSectionToggle('workerpools')}
       >
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Box display="flex" alignItems="center" width="100%">
-            <WorkIcon className={classes.sectionIcon} style={{ marginRight: 8 }} />
-            <Typography className={classes.sectionTitle}>
-              Worker Pools
-            </Typography>
-            <Chip label={`${workerPools.length} Pool(s)`} size="small" color="secondary" className={classes.chip} />
-          </Box>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Box style={{ width: '100%' }}>
-          {workerPools.map((pool, poolIdx) => {
-            const poolResourceData = poolResources.get(poolIdx);
-            const isLoadingPoolResources = poolResourcesLoading.has(poolIdx);
-            
-            return (
-              <Card key={poolIdx} className={classes.poolCard}>
-                <Box className={classes.poolHeader}>
-                  <Typography className={classes.poolTitle}>
-                    <WorkIcon fontSize="small" style={{ marginRight: 8 }} />
-                    Worker Pool {poolIdx + 1}: {pool.name || 'Unnamed'}
-                  </Typography>
-                  <IconButton onClick={() => handleRemoveWorkerPool(poolIdx)} size="small" color="secondary">
-                    <DeleteIcon />
-                  </IconButton>
-                </Box>
+        <AccordionTrigger>
+          <Flex align="center" gap="2" style={{ width: '100%' }}>
+            <RiBriefcaseLine className={styles.sectionIcon} />
+            <Text weight="bold">Worker Pools</Text>
+            <Badge>{`${workerPools.length} Pool(s)`}</Badge>
+          </Flex>
+        </AccordionTrigger>
+        <AccordionPanel>
+          <Flex direction="column" gap="4">
+            {workerPools.map((pool, poolIdx) => {
+              const poolResourceData = poolResources.get(poolIdx);
+              const isLoadingPoolResources = poolResourcesLoading.has(poolIdx);
 
-                <Box className={classes.poolContent}>
-                  <Accordion className={classes.accordion}>
-                    <AccordionSummary expandIcon={<ExpandMoreIcon />} className={classes.accordionSummary}>
-                      <Typography style={{ fontWeight: 600 }}>
-                        <SettingsIcon fontSize="small" style={{ verticalAlign: 'middle', marginRight: 8 }} />
-                        Basic Configuration
-                      </Typography>
-                    </AccordionSummary>
-                    <AccordionDetails className={classes.accordionDetails}>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        label="Pool Name *"
-                        value={pool.name}
-                        onChange={e => handleWorkerPoolChange(poolIdx, 'name', e.target.value)}
-                        fullWidth
-                        required
+              return (
+                <Card key={poolIdx} className={styles.poolCard}>
+                  <CardHeader>
+                    <Flex align="center" justify="between">
+                      <Flex align="center" gap="2">
+                        <RiBriefcaseLine size={16} />
+                        <Text weight="bold">
+                          Worker Pool {poolIdx + 1}: {pool.name || 'Unnamed'}
+                        </Text>
+                      </Flex>
+                      <ButtonIcon
+                        icon={<RiDeleteBinLine />}
+                        onPress={() => handleRemoveWorkerPool(poolIdx)}
+                        size="small"
+                        aria-label={`Remove worker pool ${poolIdx + 1}`}
                       />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={pool.useAutoscaler || false}
-                            onChange={e => handleWorkerPoolChange(poolIdx, 'useAutoscaler', e.target.checked)}
-                            color="primary"
-                          />
-                        }
-                        label="Enable Autoscaler"
-                      />
-                    </Grid>
-                    {pool.useAutoscaler ? (
-                      <>
-                        <Grid item xs={12} md={6}>
-                          <TextField
-                            label="Min Size *"
-                            type="number"
-                            value={pool.minSize || 1}
-                            onChange={e => handleWorkerPoolChange(poolIdx, 'minSize', parseInt(e.target.value, 10))}
-                            fullWidth
-                            required
-                            inputProps={{ min: 0 }}
-                          />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                          <TextField
-                            label="Max Size *"
-                            type="number"
-                            value={pool.maxSize || 10}
-                            onChange={e => handleWorkerPoolChange(poolIdx, 'maxSize', parseInt(e.target.value, 10))}
-                            fullWidth
-                            required
-                            inputProps={{ min: 1 }}
-                          />
-                        </Grid>
-                      </>
-                    ) : (
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          label="Size *"
-                          type="number"
-                          value={pool.size}
-                          onChange={e => handleWorkerPoolChange(poolIdx, 'size', parseInt(e.target.value, 10))}
-                          fullWidth
-                          required
-                          inputProps={{ min: 0 }}
-                        />
-                      </Grid>
-                    )}
-                    <Grid item xs={12}>
-                      <FormControl fullWidth>
-                        <InputLabel>Update Strategy</InputLabel>
-                        <Select
-                          value={pool.updateStrategy?.type || 'RollingUpdateScaleOut'}
-                          onChange={e => {
-                            const updated = [...workerPools];
-                            updated[poolIdx] = {
-                              ...updated[poolIdx],
-                              updateStrategy: {
-                                type: e.target.value as 'RollingUpdateScaleOut' | 'RollingUpdateScaleIn' | 'OverrideScaling',
-                                ...(e.target.value === 'OverrideScaling' ? { maxSurge: '1', maxUnavailable: '0' } : {})
+                    </Flex>
+                  </CardHeader>
+
+                  <CardBody>
+                    <Box className={styles.highlightedAccordion}>
+                      <Accordion>
+                        <AccordionTrigger>
+                          <Flex align="center" gap="1">
+                            <RiSettings3Line size={16} />
+                            <Text weight="bold">Basic Configuration</Text>
+                          </Flex>
+                        </AccordionTrigger>
+                        <AccordionPanel>
+                          <Grid.Root columns="12" gap="4">
+                            <Grid.Item colSpan={{ xs: '12', md: '6' }}>
+                              <TextField
+                                label="Pool Name"
+                                value={pool.name}
+                                onChange={value => handleWorkerPoolChange(poolIdx, 'name', value)}
+                                isRequired
+                              />
+                            </Grid.Item>
+                            <Grid.Item colSpan={{ xs: '12', md: '6' }}>
+                              <Switch
+                                label="Enable Autoscaler"
+                                isSelected={pool.useAutoscaler || false}
+                                onChange={isSelected => handleWorkerPoolChange(poolIdx, 'useAutoscaler', isSelected)}
+                              />
+                            </Grid.Item>
+                            {pool.useAutoscaler ? (
+                              <>
+                                <Grid.Item colSpan={{ xs: '12', md: '6' }}>
+                                  <NumberField
+                                    label="Min Size"
+                                    isRequired
+                                    value={pool.minSize || 1}
+                                    onChange={value => handleWorkerPoolChange(poolIdx, 'minSize', value)}
+                                    minValue={0}
+                                  />
+                                </Grid.Item>
+                                <Grid.Item colSpan={{ xs: '12', md: '6' }}>
+                                  <NumberField
+                                    label="Max Size"
+                                    isRequired
+                                    value={pool.maxSize || 10}
+                                    onChange={value => handleWorkerPoolChange(poolIdx, 'maxSize', value)}
+                                    minValue={1}
+                                  />
+                                </Grid.Item>
+                              </>
+                            ) : (
+                              <Grid.Item colSpan={{ xs: '12', md: '6' }}>
+                                <NumberField
+                                  label="Size"
+                                  isRequired
+                                  value={pool.size}
+                                  onChange={value => handleWorkerPoolChange(poolIdx, 'size', value)}
+                                  minValue={0}
+                                />
+                              </Grid.Item>
+                            )}
+                            <Grid.Item colSpan="12">
+                              <Select
+                                label="Update Strategy"
+                                selectedKey={pool.updateStrategy?.type || 'RollingUpdateScaleOut'}
+                                onSelectionChange={key => {
+                                  const updated = [...workerPools];
+                                  const type = String(key) as 'RollingUpdateScaleOut' | 'RollingUpdateScaleIn' | 'OverrideScaling';
+                                  updated[poolIdx] = {
+                                    ...updated[poolIdx],
+                                    updateStrategy: {
+                                      type,
+                                      ...(type === 'OverrideScaling' ? { maxSurge: '1', maxUnavailable: '0' } : {})
+                                    }
+                                  };
+                                  onUpdate({ workerPools: updated });
+                                }}
+                                options={[
+                                  { id: 'RollingUpdateScaleOut', label: 'Expand First (Scale Out)' },
+                                  { id: 'RollingUpdateScaleIn', label: 'Contract First (Scale In)' },
+                                  { id: 'OverrideScaling', label: 'Custom' },
+                                ]}
+                                description={
+                                  (pool.updateStrategy?.type === 'RollingUpdateScaleOut' && 'Adds new nodes before removing old ones') ||
+                                  (pool.updateStrategy?.type === 'RollingUpdateScaleIn' && 'Removes old nodes before adding new ones') ||
+                                  (pool.updateStrategy?.type === 'OverrideScaling' && 'Specify custom maxSurge and maxUnavailable values') ||
+                                  undefined
+                                }
+                              />
+                            </Grid.Item>
+                            {pool.updateStrategy?.type === 'OverrideScaling' && (
+                              <>
+                                <Grid.Item colSpan={{ xs: '12', md: '6' }}>
+                                  <TextField
+                                    label="Max Surge"
+                                    value={pool.updateStrategy?.maxSurge || '1'}
+                                    onChange={value => {
+                                      const updated = [...workerPools];
+                                      updated[poolIdx] = {
+                                        ...updated[poolIdx],
+                                        updateStrategy: {
+                                          ...updated[poolIdx].updateStrategy!,
+                                          maxSurge: value
+                                        }
+                                      };
+                                      onUpdate({ workerPools: updated });
+                                    }}
+                                    description="Number or percentage of pods that can be created above desired amount"
+                                  />
+                                </Grid.Item>
+                                <Grid.Item colSpan={{ xs: '12', md: '6' }}>
+                                  <TextField
+                                    label="Max Unavailable"
+                                    value={pool.updateStrategy?.maxUnavailable || '0'}
+                                    onChange={value => {
+                                      const updated = [...workerPools];
+                                      updated[poolIdx] = {
+                                        ...updated[poolIdx],
+                                        updateStrategy: {
+                                          ...updated[poolIdx].updateStrategy!,
+                                          maxUnavailable: value
+                                        }
+                                      };
+                                      onUpdate({ workerPools: updated });
+                                    }}
+                                    description="Number or percentage of pods that can be unavailable during update"
+                                  />
+                                </Grid.Item>
+                              </>
+                            )}
+                          </Grid.Root>
+                        </AccordionPanel>
+                      </Accordion>
+                    </Box>
+
+                    <Accordion>
+                      <AccordionTrigger>Instance Type</AccordionTrigger>
+                      <AccordionPanel>
+                        <Grid.Root columns="12" gap="4">
+                          <Grid.Item colSpan={{ xs: '12', md: '4' }}>
+                            <NumberField
+                              label="CPU Cores"
+                              isRequired
+                              value={
+                                typeof pool.instanceType === 'object' && pool.instanceType !== null
+                                  ? pool.instanceType.numCPUs || 4
+                                  : 4
                               }
-                            };
+                              onChange={value => handleWorkerPoolInstanceTypeChange(poolIdx, 'numCPUs', value)}
+                              minValue={2}
+                            />
+                          </Grid.Item>
+                          <Grid.Item colSpan={{ xs: '12', md: '4' }}>
+                            <NumberField
+                              label="Memory (MiB)"
+                              isRequired
+                              value={
+                                typeof pool.instanceType === 'object' && pool.instanceType !== null
+                                  ? pool.instanceType.memoryMiB || 8192
+                                  : 8192
+                              }
+                              onChange={value => handleWorkerPoolInstanceTypeChange(poolIdx, 'memoryMiB', value)}
+                              minValue={4096}
+                              step={1024}
+                            />
+                          </Grid.Item>
+                          <Grid.Item colSpan={{ xs: '12', md: '4' }}>
+                            <NumberField
+                              label="Disk (GiB)"
+                              isRequired
+                              value={
+                                typeof pool.instanceType === 'object' && pool.instanceType !== null
+                                  ? pool.instanceType.diskGiB || 60
+                                  : 60
+                              }
+                              onChange={value => handleWorkerPoolInstanceTypeChange(poolIdx, 'diskGiB', value)}
+                              minValue={20}
+                            />
+                          </Grid.Item>
+                        </Grid.Root>
+                      </AccordionPanel>
+                    </Accordion>
+
+                    <Accordion>
+                      <AccordionTrigger>Placement Configuration</AccordionTrigger>
+                      <AccordionPanel>
+                        {!selectedDatacenter && (
+                          <Box mb="4">
+                            <Alert status="info" description="Please select a datacenter first" />
+                          </Box>
+                        )}
+                        <Flex justify="end" mb="2">
+                          <Button
+                            variant="secondary"
+                            size="small"
+                            onPress={() => handleCopyFromControlPlane(poolIdx)}
+                            isDisabled={!controlPlaneConfig.placements?.[0]?.cluster}
+                          >
+                            Copy from Control Plane
+                          </Button>
+                        </Flex>
+                        <Grid.Root columns="12" gap="4">
+                          <Grid.Item colSpan={{ xs: '12', md: '6' }}>
+                            <StringCombobox
+                              label="Compute Cluster"
+                              options={selectedDatacenter?.computeclusters || []}
+                              value={pool.placements?.[0]?.cluster || ''}
+                              onChange={value => handleWorkerPoolPlacementChange(poolIdx, 0, 'cluster', value)}
+                              isDisabled={!selectedDatacenter}
+                              isRequired
+                            />
+                          </Grid.Item>
+                          <Grid.Item colSpan={{ xs: '12', md: '6' }}>
+                            <StringCombobox
+                              label="Datastore"
+                              options={poolResourceData?.datastores || []}
+                              value={pool.placements?.[0]?.datastore || ''}
+                              onChange={value => handleWorkerPoolPlacementChange(poolIdx, 0, 'datastore', value)}
+                              allowsCustomValue
+                              isRequired
+                              description={isLoadingPoolResources ? 'Loading...' : 'Select or type datastore name'}
+                            />
+                          </Grid.Item>
+                          <Grid.Item colSpan={{ xs: '12', md: '6' }}>
+                            <StringCombobox
+                              label="Resource Pool"
+                              options={poolResourceData?.resourcePools || []}
+                              value={pool.placements?.[0]?.resourcePool || ''}
+                              onChange={value => handleWorkerPoolPlacementChange(poolIdx, 0, 'resourcePool', value)}
+                              allowsCustomValue
+                              description={isLoadingPoolResources ? 'Loading...' : 'Leave empty for default or type custom name'}
+                            />
+                          </Grid.Item>
+                          <Grid.Item colSpan={{ xs: '12', md: '6' }}>
+                            <StringCombobox
+                              label="Network"
+                              options={poolResourceData?.networks || []}
+                              value={pool.placements?.[0]?.network?.networkName || ''}
+                              onChange={value => handleWorkerPoolNetworkChange(poolIdx, 0, 'networkName', value)}
+                              allowsCustomValue
+                              isRequired
+                              description={isLoadingPoolResources ? 'Loading...' : 'Select or type network path (e.g., /infra/segments/Demo-Network)'}
+                            />
+                          </Grid.Item>
+                          {cloudConfig.staticIp && (
+                            <Grid.Item colSpan={{ xs: '12', md: '6' }}>
+                              <ObjectCombobox
+                                label="IP Pool"
+                                options={ipPools}
+                                getOptionId={p => p.uid}
+                                getOptionLabel={p => p.name}
+                                selectedId={pool.placements?.[0]?.network?.parentPoolUid}
+                                onSelect={newValue => handleWorkerPoolNetworkChange(poolIdx, 0, 'parentPoolUid', newValue.uid)}
+                                isRequired
+                                description="Select IP pool for static IP allocation"
+                              />
+                            </Grid.Item>
+                          )}
+                        </Grid.Root>
+                      </AccordionPanel>
+                    </Accordion>
+
+                    <Accordion>
+                      <AccordionTrigger>Additional Labels &amp; Annotations (Optional)</AccordionTrigger>
+                      <AccordionPanel>
+                        <Flex direction="column" gap="4">
+                          <KeyValueEditor
+                            title="Labels (Kubernetes Node Labels)"
+                            entries={pool.additionalLabels || {}}
+                            addButtonLabel="Add Label"
+                            onAdd={() => {
+                              const updated = [...workerPools];
+                              updated[poolIdx] = {
+                                ...updated[poolIdx],
+                                additionalLabels: { ...(updated[poolIdx].additionalLabels || {}), '': '' }
+                              };
+                              onUpdate({ workerPools: updated });
+                            }}
+                            onKeyChange={(oldKey, newKey) => {
+                              const updated = [...workerPools];
+                              const newLabels = { ...updated[poolIdx].additionalLabels };
+                              const value = newLabels[oldKey];
+                              delete newLabels[oldKey];
+                              newLabels[newKey] = value;
+                              updated[poolIdx] = { ...updated[poolIdx], additionalLabels: newLabels };
+                              onUpdate({ workerPools: updated });
+                            }}
+                            onValueChange={(key, value) => {
+                              const updated = [...workerPools];
+                              const newLabels = { ...updated[poolIdx].additionalLabels, [key]: value };
+                              updated[poolIdx] = { ...updated[poolIdx], additionalLabels: newLabels };
+                              onUpdate({ workerPools: updated });
+                            }}
+                            onRemove={key => {
+                              const updated = [...workerPools];
+                              const newLabels = { ...updated[poolIdx].additionalLabels };
+                              delete newLabels[key];
+                              updated[poolIdx] = { ...updated[poolIdx], additionalLabels: newLabels };
+                              onUpdate({ workerPools: updated });
+                            }}
+                          />
+                          <KeyValueEditor
+                            title="Annotations (Kubernetes Node Annotations)"
+                            entries={pool.additionalAnnotations || {}}
+                            addButtonLabel="Add Annotation"
+                            onAdd={() => {
+                              const updated = [...workerPools];
+                              updated[poolIdx] = {
+                                ...updated[poolIdx],
+                                additionalAnnotations: { ...(updated[poolIdx].additionalAnnotations || {}), '': '' }
+                              };
+                              onUpdate({ workerPools: updated });
+                            }}
+                            onKeyChange={(oldKey, newKey) => {
+                              const updated = [...workerPools];
+                              const newAnnotations = { ...updated[poolIdx].additionalAnnotations };
+                              const value = newAnnotations[oldKey];
+                              delete newAnnotations[oldKey];
+                              newAnnotations[newKey] = value;
+                              updated[poolIdx] = { ...updated[poolIdx], additionalAnnotations: newAnnotations };
+                              onUpdate({ workerPools: updated });
+                            }}
+                            onValueChange={(key, value) => {
+                              const updated = [...workerPools];
+                              const newAnnotations = { ...updated[poolIdx].additionalAnnotations, [key]: value };
+                              updated[poolIdx] = { ...updated[poolIdx], additionalAnnotations: newAnnotations };
+                              onUpdate({ workerPools: updated });
+                            }}
+                            onRemove={key => {
+                              const updated = [...workerPools];
+                              const newAnnotations = { ...updated[poolIdx].additionalAnnotations };
+                              delete newAnnotations[key];
+                              updated[poolIdx] = { ...updated[poolIdx], additionalAnnotations: newAnnotations };
+                              onUpdate({ workerPools: updated });
+                            }}
+                          />
+                        </Flex>
+                      </AccordionPanel>
+                    </Accordion>
+
+                    <Accordion>
+                      <AccordionTrigger>Taints (Optional)</AccordionTrigger>
+                      <AccordionPanel>
+                        <TaintsEditor
+                          taints={pool.taints || []}
+                          onChange={taints => {
+                            const updated = [...workerPools];
+                            updated[poolIdx] = { ...updated[poolIdx], taints };
                             onUpdate({ workerPools: updated });
                           }}
-                        >
-                          <MenuItem value="RollingUpdateScaleOut">Expand First (Scale Out)</MenuItem>
-                          <MenuItem value="RollingUpdateScaleIn">Contract First (Scale In)</MenuItem>
-                          <MenuItem value="OverrideScaling">Custom</MenuItem>
-                        </Select>
-                        <FormHelperText>
-                          {pool.updateStrategy?.type === 'RollingUpdateScaleOut' && 'Adds new nodes before removing old ones'}
-                          {pool.updateStrategy?.type === 'RollingUpdateScaleIn' && 'Removes old nodes before adding new ones'}
-                          {pool.updateStrategy?.type === 'OverrideScaling' && 'Specify custom maxSurge and maxUnavailable values'}
-                        </FormHelperText>
-                      </FormControl>
-                    </Grid>
-                    {pool.updateStrategy?.type === 'OverrideScaling' && (
-                      <>
-                        <Grid item xs={12} md={6}>
-                          <TextField
-                            label="Max Surge"
-                            value={pool.updateStrategy?.maxSurge || '1'}
-                            onChange={e => {
-                              const updated = [...workerPools];
-                              updated[poolIdx] = {
-                                ...updated[poolIdx],
-                                updateStrategy: {
-                                  ...updated[poolIdx].updateStrategy!,
-                                  maxSurge: e.target.value
-                                }
-                              };
-                              onUpdate({ workerPools: updated });
-                            }}
-                            fullWidth
-                            helperText="Number or percentage of pods that can be created above desired amount"
-                          />
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                          <TextField
-                            label="Max Unavailable"
-                            value={pool.updateStrategy?.maxUnavailable || '0'}
-                            onChange={e => {
-                              const updated = [...workerPools];
-                              updated[poolIdx] = {
-                                ...updated[poolIdx],
-                                updateStrategy: {
-                                  ...updated[poolIdx].updateStrategy!,
-                                  maxUnavailable: e.target.value
-                                }
-                              };
-                              onUpdate({ workerPools: updated });
-                            }}
-                            fullWidth
-                            helperText="Number or percentage of pods that can be unavailable during update"
-                          />
-                        </Grid>
-                      </>
-                    )}
-                  </Grid>
-                </AccordionDetails>
-              </Accordion>
-
-              <Accordion>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Typography>Instance Type</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} md={4}>
-                      <TextField
-                        label="CPU Cores *"
-                        type="number"
-                        value={
-                          typeof pool.instanceType === 'object' && pool.instanceType !== null
-                            ? pool.instanceType.numCPUs || 4
-                            : 4
-                        }
-                        onChange={e => handleWorkerPoolInstanceTypeChange(poolIdx, 'numCPUs', parseInt(e.target.value, 10))}
-                        fullWidth
-                        required
-                        inputProps={{ min: 2 }}
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={4}>
-                      <TextField
-                        label="Memory (MiB) *"
-                        type="number"
-                        value={
-                          typeof pool.instanceType === 'object' && pool.instanceType !== null
-                            ? pool.instanceType.memoryMiB || 8192
-                            : 8192
-                        }
-                        onChange={e => handleWorkerPoolInstanceTypeChange(poolIdx, 'memoryMiB', parseInt(e.target.value, 10))}
-                        fullWidth
-                        required
-                        inputProps={{ min: 4096, step: 1024 }}
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={4}>
-                      <TextField
-                        label="Disk (GiB) *"
-                        type="number"
-                        value={
-                          typeof pool.instanceType === 'object' && pool.instanceType !== null
-                            ? pool.instanceType.diskGiB || 60
-                            : 60
-                        }
-                        onChange={e => handleWorkerPoolInstanceTypeChange(poolIdx, 'diskGiB', parseInt(e.target.value, 10))}
-                        fullWidth
-                        required
-                        inputProps={{ min: 20 }}
-                      />
-                    </Grid>
-                  </Grid>
-                </AccordionDetails>
-              </Accordion>
-
-              <Accordion>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Typography>Placement Configuration</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Box width="100%">
-                    {!selectedDatacenter && (
-                      <Alert severity="info" style={{ marginBottom: 16 }}>
-                        Please select a datacenter first
-                      </Alert>
-                    )}
-                    <Box display="flex" justifyContent="flex-end" mb={2}>
-                      <Button
-                        variant="outlined"
-                        color="primary"
-                        size="small"
-                        onClick={() => handleCopyFromControlPlane(poolIdx)}
-                        disabled={!controlPlaneConfig.placements?.[0]?.cluster}
-                      >
-                        Copy from Control Plane
-                      </Button>
-                    </Box>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} md={6}>
-                      <Autocomplete
-                        options={selectedDatacenter?.computeclusters || []}
-                        value={pool.placements?.[0]?.cluster || ''}
-                        onChange={(_, newValue) => {
-                          if (newValue) {
-                            handleWorkerPoolPlacementChange(poolIdx, 0, 'cluster', newValue);
-                          }
-                        }}
-                        disabled={!selectedDatacenter}
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            label="Compute Cluster *"
-                            required
-                          />
-                        )}
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <Autocomplete
-                        freeSolo
-                        options={poolResourceData?.datastores || []}
-                        value={pool.placements?.[0]?.datastore || ''}
-                        onChange={(_, newValue) => {
-                          if (newValue) {
-                            handleWorkerPoolPlacementChange(poolIdx, 0, 'datastore', newValue);
-                          }
-                        }}
-                        onInputChange={(_, newValue) => {
-                          handleWorkerPoolPlacementChange(poolIdx, 0, 'datastore', newValue);
-                        }}
-                        loading={isLoadingPoolResources}
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            label="Datastore *"
-                            required
-                            helperText={isLoadingPoolResources ? 'Loading...' : 'Select or type datastore name'}
-                          />
-                        )}
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <Autocomplete
-                        freeSolo
-                        options={['', ...(poolResourceData?.resourcePools || [])]}
-                        value={pool.placements?.[0]?.resourcePool || ''}
-                        onChange={(_, newValue) => {
-                          handleWorkerPoolPlacementChange(poolIdx, 0, 'resourcePool', newValue || '');
-                        }}
-                        onInputChange={(_, newValue) => {
-                          handleWorkerPoolPlacementChange(poolIdx, 0, 'resourcePool', newValue);
-                        }}
-                        loading={isLoadingPoolResources}
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            label="Resource Pool"
-                            helperText={isLoadingPoolResources ? 'Loading...' : 'Leave empty for default or type custom name'}
-                          />
-                        )}
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <Autocomplete
-                        freeSolo
-                        options={poolResourceData?.networks || []}
-                        value={pool.placements?.[0]?.network?.networkName || ''}
-                        onChange={(_, newValue) => {
-                          if (newValue) {
-                            handleWorkerPoolNetworkChange(poolIdx, 0, 'networkName', newValue);
-                          }
-                        }}
-                        onInputChange={(_, newValue) => {
-                          handleWorkerPoolNetworkChange(poolIdx, 0, 'networkName', newValue);
-                        }}
-                        loading={isLoadingPoolResources}
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            label="Network *"
-                            required
-                            helperText={isLoadingPoolResources ? 'Loading...' : 'Select or type network path (e.g., /infra/segments/Demo-Network)'}
-                          />
-                        )}
-                      />
-                    </Grid>
-                    {cloudConfig.staticIp && (
-                      <Grid item xs={12} md={6}>
-                        <Autocomplete
-                          options={ipPools}
-                          getOptionLabel={(option) => option.name}
-                          value={ipPools.find(p => p.uid === pool.placements?.[0]?.network?.parentPoolUid) || null}
-                          onChange={(_, newValue) => {
-                            if (newValue) {
-                              handleWorkerPoolNetworkChange(poolIdx, 0, 'parentPoolUid', newValue.uid);
-                            }
-                          }}
-                          renderInput={(params) => (
-                            <TextField
-                              {...params}
-                              label="IP Pool *"
-                              required
-                              helperText="Select IP pool for static IP allocation"
-                            />
-                          )}
                         />
-                      </Grid>
-                    )}
-                  </Grid>
-                  </Box>
-                </AccordionDetails>
-              </Accordion>
+                      </AccordionPanel>
+                    </Accordion>
+                  </CardBody>
+                </Card>
+              );
+            })}
 
-              <Accordion>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Typography>Additional Labels & Annotations (Optional)</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Box width="100%">
-                    <Typography variant="subtitle2" gutterBottom>
-                      Labels (Kubernetes Node Labels)
-                    </Typography>
-                    {Object.entries(pool.additionalLabels || {}).map(([key, value], idx) => (
-                      <Grid container spacing={2} key={idx} style={{ marginBottom: 8 }}>
-                        <Grid item xs={5}>
-                          <TextField
-                            label="Key"
-                            value={key}
-                            onChange={e => {
-                              const updated = [...workerPools];
-                              const newLabels = { ...updated[poolIdx].additionalLabels };
-                              delete newLabels[key];
-                              newLabels[e.target.value] = value;
-                              updated[poolIdx] = { ...updated[poolIdx], additionalLabels: newLabels };
-                              onUpdate({ workerPools: updated });
-                            }}
-                            fullWidth
-                            size="small"
-                          />
-                        </Grid>
-                        <Grid item xs={5}>
-                          <TextField
-                            label="Value"
-                            value={value}
-                            onChange={e => {
-                              const updated = [...workerPools];
-                              const newLabels = { ...updated[poolIdx].additionalLabels };
-                              newLabels[key] = e.target.value;
-                              updated[poolIdx] = { ...updated[poolIdx], additionalLabels: newLabels };
-                              onUpdate({ workerPools: updated });
-                            }}
-                            fullWidth
-                            size="small"
-                          />
-                        </Grid>
-                        <Grid item xs={2}>
-                          <IconButton
-                            onClick={() => {
-                              const updated = [...workerPools];
-                              const newLabels = { ...updated[poolIdx].additionalLabels };
-                              delete newLabels[key];
-                              updated[poolIdx] = { ...updated[poolIdx], additionalLabels: newLabels };
-                              onUpdate({ workerPools: updated });
-                            }}
-                            size="small"
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Grid>
-                      </Grid>
-                    ))}
-                    <Button
-                      startIcon={<AddIcon />}
-                      onClick={() => {
-                        const updated = [...workerPools];
-                        updated[poolIdx] = {
-                          ...updated[poolIdx],
-                          additionalLabels: { ...(updated[poolIdx].additionalLabels || {}), '': '' }
-                        };
-                        onUpdate({ workerPools: updated });
-                      }}
-                      size="small"
-                    >
-                      Add Label
-                    </Button>
-
-                    <Box mt={3} mb={2}>
-                      <Typography variant="subtitle2" gutterBottom>
-                      Annotations (Kubernetes Node Annotations)
-                    </Typography>
-                    {Object.entries(pool.additionalAnnotations || {}).map(([key, value], idx) => (
-                      <Grid container spacing={2} key={idx} style={{ marginBottom: 8 }}>
-                        <Grid item xs={5}>
-                          <TextField
-                            label="Key"
-                            value={key}
-                            onChange={e => {
-                              const updated = [...workerPools];
-                              const newAnnotations = { ...updated[poolIdx].additionalAnnotations };
-                              delete newAnnotations[key];
-                              newAnnotations[e.target.value] = value;
-                              updated[poolIdx] = { ...updated[poolIdx], additionalAnnotations: newAnnotations };
-                              onUpdate({ workerPools: updated });
-                            }}
-                            fullWidth
-                            size="small"
-                          />
-                        </Grid>
-                        <Grid item xs={5}>
-                          <TextField
-                            label="Value"
-                            value={value}
-                            onChange={e => {
-                              const updated = [...workerPools];
-                              const newAnnotations = { ...updated[poolIdx].additionalAnnotations };
-                              newAnnotations[key] = e.target.value;
-                              updated[poolIdx] = { ...updated[poolIdx], additionalAnnotations: newAnnotations };
-                              onUpdate({ workerPools: updated });
-                            }}
-                            fullWidth
-                            size="small"
-                          />
-                        </Grid>
-                        <Grid item xs={2}>
-                          <IconButton
-                            onClick={() => {
-                              const updated = [...workerPools];
-                              const newAnnotations = { ...updated[poolIdx].additionalAnnotations };
-                              delete newAnnotations[key];
-                              updated[poolIdx] = { ...updated[poolIdx], additionalAnnotations: newAnnotations };
-                              onUpdate({ workerPools: updated });
-                            }}
-                            size="small"
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Grid>
-                      </Grid>
-                    ))}
-                    <Button
-                      startIcon={<AddIcon />}
-                      onClick={() => {
-                        const updated = [...workerPools];
-                        updated[poolIdx] = {
-                          ...updated[poolIdx],
-                          additionalAnnotations: { ...(updated[poolIdx].additionalAnnotations || {}), '': '' }
-                        };
-                        onUpdate({ workerPools: updated });
-                      }}
-                      size="small"
-                    >
-                      Add Annotation
-                    </Button>
-                    </Box>
-                  </Box>
-                </AccordionDetails>
-              </Accordion>
-
-              <Accordion>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Typography>Taints (Optional)</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Box width="100%">
-                    <Typography variant="body2" color="textSecondary" paragraph>
-                      Taints prevent pods from being scheduled on these nodes unless they have matching tolerations
-                    </Typography>
-                    {(pool.taints || []).map((taint, idx) => (
-                      <Grid container spacing={2} key={idx} style={{ marginBottom: 8 }}>
-                        <Grid item xs={4}>
-                          <TextField
-                            label="Key"
-                            value={taint.key}
-                            onChange={e => {
-                              const updated = [...workerPools];
-                              const newTaints = [...(updated[poolIdx].taints || [])];
-                              newTaints[idx] = { ...newTaints[idx], key: e.target.value };
-                              updated[poolIdx] = { ...updated[poolIdx], taints: newTaints };
-                              onUpdate({ workerPools: updated });
-                            }}
-                            fullWidth
-                            size="small"
-                          />
-                        </Grid>
-                        <Grid item xs={3}>
-                          <TextField
-                            label="Value"
-                            value={taint.value}
-                            onChange={e => {
-                              const updated = [...workerPools];
-                              const newTaints = [...(updated[poolIdx].taints || [])];
-                              newTaints[idx] = { ...newTaints[idx], value: e.target.value };
-                              updated[poolIdx] = { ...updated[poolIdx], taints: newTaints };
-                              onUpdate({ workerPools: updated });
-                            }}
-                            fullWidth
-                            size="small"
-                          />
-                        </Grid>
-                        <Grid item xs={3}>
-                          <FormControl fullWidth size="small">
-                            <InputLabel>Effect</InputLabel>
-                            <Select
-                              value={taint.effect}
-                              onChange={e => {
-                                const updated = [...workerPools];
-                                const newTaints = [...(updated[poolIdx].taints || [])];
-                                newTaints[idx] = { ...newTaints[idx], effect: e.target.value as any };
-                                updated[poolIdx] = { ...updated[poolIdx], taints: newTaints };
-                                onUpdate({ workerPools: updated });
-                              }}
-                            >
-                              <MenuItem value="NoSchedule">NoSchedule</MenuItem>
-                              <MenuItem value="NoExecute">NoExecute</MenuItem>
-                              <MenuItem value="PreferNoSchedule">PreferNoSchedule</MenuItem>
-                            </Select>
-                          </FormControl>
-                        </Grid>
-                        <Grid item xs={2}>
-                          <IconButton
-                            onClick={() => {
-                              const updated = [...workerPools];
-                              const newTaints = [...(updated[poolIdx].taints || [])];
-                              newTaints.splice(idx, 1);
-                              updated[poolIdx] = { ...updated[poolIdx], taints: newTaints };
-                              onUpdate({ workerPools: updated });
-                            }}
-                            size="small"
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Grid>
-                      </Grid>
-                    ))}
-                    <Button
-                      startIcon={<AddIcon />}
-                      onClick={() => {
-                        const updated = [...workerPools];
-                        updated[poolIdx] = {
-                          ...updated[poolIdx],
-                          taints: [...(updated[poolIdx].taints || []), { key: '', value: '', effect: 'NoSchedule' }]
-                        };
-                        onUpdate({ workerPools: updated });
-                      }}
-                      size="small"
-                    >
-                      Add Taint
-                    </Button>
-                  </Box>
-                </AccordionDetails>
-              </Accordion>
-                </Box>
-              </Card>
-            );
-          })}
-
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={handleAddWorkerPool}
-            className={classes.addButton}
-            size="large"
-          >
-            Add Worker Pool
-          </Button>
-          </Box>
-        </AccordionDetails>
+            <Button iconStart={<RiAddLine />} onPress={handleAddWorkerPool} variant="primary">
+              Add Worker Pool
+            </Button>
+          </Flex>
+        </AccordionPanel>
       </Accordion>
     </Box>
   );

@@ -10,85 +10,14 @@ import {
   StatusPending,
   Progress,
 } from '@backstage/core-components';
-import {
-  Grid,
-  Typography,
-  Chip,
-  makeStyles,
-  Box,
-  Divider,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Button,
-  CircularProgress,
-  LinearProgress,
-  Tooltip,
-} from '@material-ui/core';
-import { Alert } from '@material-ui/lab';
-import LayersIcon from '@material-ui/icons/Layers';
-import MemoryIcon from '@material-ui/icons/Memory';
-import SpeedIcon from '@material-ui/icons/Speed';
-import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
+import { Alert, Badge, Box, Button, Flex, Grid, Text, Tooltip, TooltipTrigger } from '@backstage/ui';
+import { RiStackLine, RiRamLine, RiSpeedLine, RiDownloadCloud2Line } from '@remixicon/react';
 import { saveAs } from 'file-saver';
 import { spectroCloudApiRef } from '../api';
 import {
   useCanDownloadKubeconfig,
 } from './PermissionGuards';
-
-const useStyles = makeStyles(theme => ({
-  chip: {
-    margin: theme.spacing(0.5),
-  },
-  infoRow: {
-    marginBottom: theme.spacing(1),
-  },
-  label: {
-    fontWeight: 600,
-    color: theme.palette.text.secondary,
-    marginBottom: theme.spacing(0.5),
-  },
-  value: {
-    color: theme.palette.text.primary,
-  },
-  divider: {
-    margin: theme.spacing(2, 0),
-  },
-  statusContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(1),
-  },
-  resourceList: {
-    paddingTop: 0,
-  },
-  resourceListItem: {
-    paddingTop: theme.spacing(0.5),
-    paddingBottom: theme.spacing(0.5),
-  },
-  resourceIcon: {
-    minWidth: 36,
-    color: theme.palette.primary.main,
-  },
-  noResourceText: {
-    padding: theme.spacing(1, 0),
-    color: theme.palette.text.secondary,
-    fontStyle: 'italic',
-  },
-  entityLink: {
-    color: theme.palette.primary.main,
-    textDecoration: 'none',
-    '&:hover': {
-      textDecoration: 'underline',
-    },
-  },
-  progressBar: {
-    marginTop: theme.spacing(1),
-    height: 6,
-    borderRadius: 3,
-  },
-}));
+import styles from './SpectroCloudVirtualClusterCard.module.css';
 
 const getStatusComponent = (state: string) => {
   switch (state?.toLowerCase()) {
@@ -110,20 +39,19 @@ const getStatusComponent = (state: string) => {
 };
 
 export const SpectroCloudVirtualClusterCard = () => {
-  const classes = useStyles();
   const { entity } = useEntity();
   const configApi = useApi(configApiRef);
   const spectroCloudApi = useApi(spectroCloudApiRef);
-  
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>();
   const [downloading, setDownloading] = useState(false);
   const [clusterDetails, setClusterDetails] = useState<any>(null);
-  
+
   const { allowed: canDownload } = useCanDownloadKubeconfig();
-  
+
   const annotationPrefix = configApi.getOptionalConfig('spectrocloud')?.getOptionalString('annotationPrefix') ?? 'terasky.backstage.io';
-  
+
   const annotations = entity.metadata.annotations || {};
   const clusterId = annotations[`${annotationPrefix}/cluster-id`];
   const scope = annotations[`${annotationPrefix}/scope`] || 'tenant';
@@ -133,42 +61,42 @@ export const SpectroCloudVirtualClusterCard = () => {
   const instanceName = annotations[`${annotationPrefix}/instance`];
   const hostClusterId = annotations[`${annotationPrefix}/host-cluster-id`];
   const clusterGroupId = annotations[`${annotationPrefix}/cluster-group-id`];
-  
+
   // Get related entities (host cluster, cluster group, profiles) - MUST be before any conditional returns
   const { entities: dependsOnEntities } = useRelatedEntities(entity, {
     type: 'dependsOn',
     kind: 'resource',
   });
-  
+
   // Find the system entity for the project - MUST be before any conditional returns
   const { entities: systemEntities } = useRelatedEntities(entity, {
     type: 'partOf',
     kind: 'system',
   });
-  
-  const hostCluster = dependsOnEntities?.find((e: Entity) => 
+
+  const hostCluster = dependsOnEntities?.find((e: Entity) =>
     e.metadata.annotations?.[`${annotationPrefix}/cluster-id`] === hostClusterId
   );
-  
-  const clusterGroup = dependsOnEntities?.find((e: Entity) => 
+
+  const clusterGroup = dependsOnEntities?.find((e: Entity) =>
     e.spec?.type === 'spectrocloud-cluster-group' &&
     e.metadata.annotations?.[`${annotationPrefix}/cluster-group-id`] === clusterGroupId
   );
-  
-  const profiles = dependsOnEntities?.filter((e: Entity) => 
+
+  const profiles = dependsOnEntities?.filter((e: Entity) =>
     e.spec?.type === 'spectrocloud-cluster-profile'
   ) || [];
-  
+
   const projectSystem = systemEntities?.[0];
-  
+
   // Fetch cluster details for metrics
   useEffect(() => {
     const fetchClusterDetails = async () => {
       if (!clusterId) return;
-      
+
       setLoading(true);
       setError(undefined);
-      
+
       try {
         const details = await spectroCloudApi.getVirtualClusterDetails(
           clusterId,
@@ -182,13 +110,13 @@ export const SpectroCloudVirtualClusterCard = () => {
         setLoading(false);
       }
     };
-    
+
     fetchClusterDetails();
   }, [clusterId, projectId, instanceName, spectroCloudApi]);
-  
+
   const handleDownloadKubeconfig = useCallback(async () => {
     if (!clusterId) return;
-    
+
     setDownloading(true);
     try {
       const kubeconfig = await spectroCloudApi.getVirtualClusterKubeconfig(
@@ -197,7 +125,7 @@ export const SpectroCloudVirtualClusterCard = () => {
         instanceName,
         true
       );
-      
+
       const blob = new Blob([kubeconfig], { type: 'application/x-yaml' });
       saveAs(blob, `${entity.metadata.name}-kubeconfig.yaml`);
     } catch (err) {
@@ -206,20 +134,20 @@ export const SpectroCloudVirtualClusterCard = () => {
       setDownloading(false);
     }
   }, [clusterId, projectId, instanceName, spectroCloudApi, entity.metadata.name]);
-  
+
   // Extract metrics
   const cpuMetrics = clusterDetails?.status?.metrics?.cpu;
   const memoryMetrics = clusterDetails?.status?.metrics?.memory;
-  
+
   const formatCpu = (value: number | undefined) => value ? `${(value / 1000).toFixed(2)} cores` : 'N/A';
   const formatMemory = (value: number | undefined) => value ? `${(value / (1024 * 1024)).toFixed(2)} GiB` : 'N/A';
-  
+
   // Calculate usage as percentage of LIMIT (not total)
-  const cpuUsagePercent = cpuMetrics?.limit && cpuMetrics?.usage 
-    ? (cpuMetrics.usage / cpuMetrics.limit) * 100 
+  const cpuUsagePercent = cpuMetrics?.limit && cpuMetrics?.usage
+    ? (cpuMetrics.usage / cpuMetrics.limit) * 100
     : 0;
-  const memoryUsagePercent = memoryMetrics?.limit && memoryMetrics?.usage 
-    ? (memoryMetrics.usage / memoryMetrics.limit) * 100 
+  const memoryUsagePercent = memoryMetrics?.limit && memoryMetrics?.usage
+    ? (memoryMetrics.usage / memoryMetrics.limit) * 100
     : 0;
 
   if (loading) {
@@ -233,250 +161,242 @@ export const SpectroCloudVirtualClusterCard = () => {
   return (
     <InfoCard title="Virtual Cluster Overview">
       {error && (
-        <Alert severity="error" style={{ marginBottom: 16 }}>
-          {error}
-        </Alert>
+        <Box mb="4">
+          <Alert status="danger" description={error} />
+        </Box>
       )}
-      
-      <Grid container spacing={3}>
+
+      <Grid.Root columns="12" gap="4">
         {/* Basic Info Column */}
-        <Grid item xs={12} md={6}>
-          <Box className={classes.infoRow}>
-            <Typography variant="body2" className={classes.label}>
+        <Grid.Item colSpan={{ xs: '12', md: '6' }}>
+          <Box mb="2">
+            <Text variant="body-small" weight="bold" color="secondary" style={{ display: 'block' }}>
               Status
-            </Typography>
-            <Box className={classes.statusContainer}>
+            </Text>
+            <Flex align="center" gap="2">
               {getStatusComponent(state)}
-              <Typography variant="body2">{state}</Typography>
-            </Box>
+              <Text variant="body-small">{state}</Text>
+            </Flex>
           </Box>
 
-          <Box className={classes.infoRow}>
-            <Typography variant="body2" className={classes.label}>
+          <Box mb="2">
+            <Text variant="body-small" weight="bold" color="secondary" style={{ display: 'block' }}>
               Type
-            </Typography>
-            <Box display="flex" style={{ gap: 8 }}>
-              <Chip label="Virtual Cluster" size="small" color="primary" />
-              <Chip label="Nested" size="small" />
-            </Box>
+            </Text>
+            <Flex gap="2">
+              <Badge className={styles.accentBadge}>Virtual Cluster</Badge>
+              <Badge>Nested</Badge>
+            </Flex>
           </Box>
 
-          <Box className={classes.infoRow}>
-            <Typography variant="body2" className={classes.label}>
+          <Box mb="2">
+            <Text variant="body-small" weight="bold" color="secondary" style={{ display: 'block' }}>
               Scope
-            </Typography>
-            <Chip 
-              label={scope} 
-              size="small"
-              color={scope === 'tenant' ? 'secondary' : 'default'}
-            />
+            </Text>
+            <Badge className={scope === 'tenant' ? undefined : styles.accentBadge}>{scope}</Badge>
           </Box>
 
           {scope === 'project' && projectSystem && (
-            <Box className={classes.infoRow}>
-              <Typography variant="body2" className={classes.label}>
+            <Box mb="2">
+              <Text variant="body-small" weight="bold" color="secondary" style={{ display: 'block' }}>
                 Project
-              </Typography>
+              </Text>
               <EntityRefLink
                 entityRef={projectSystem}
                 title={projectName || projectSystem.metadata.title || projectSystem.metadata.name}
-                className={classes.entityLink}
+                className={styles.entityLink}
               />
             </Box>
           )}
 
-          <Divider className={classes.divider} />
+          <hr className={styles.divider} />
 
-          <Box className={classes.infoRow}>
-            <Typography variant="body2" className={classes.label}>
+          <Box mb="2">
+            <Text variant="body-small" weight="bold" color="secondary" style={{ display: 'block' }}>
               Host Cluster
-            </Typography>
+            </Text>
             {hostCluster ? (
               <EntityRefLink
                 entityRef={hostCluster}
                 title={hostCluster.metadata.title || hostCluster.metadata.name}
-                className={classes.entityLink}
+                className={styles.entityLink}
               />
             ) : (
-              <Typography variant="body2" color="textSecondary">
+              <Text variant="body-small" color="secondary">
                 Not found in catalog
-              </Typography>
+              </Text>
             )}
           </Box>
 
-          <Box className={classes.infoRow}>
-            <Typography variant="body2" className={classes.label}>
+          <Box mb="2">
+            <Text variant="body-small" weight="bold" color="secondary" style={{ display: 'block' }}>
               Cluster Group
-            </Typography>
+            </Text>
             {clusterGroup ? (
               <EntityRefLink
                 entityRef={clusterGroup}
                 title={clusterGroup.metadata.title || clusterGroup.metadata.name}
-                className={classes.entityLink}
+                className={styles.entityLink}
               />
             ) : (
-              <Typography variant="body2" color="textSecondary">
+              <Text variant="body-small" color="secondary">
                 Not found in catalog
-              </Typography>
+              </Text>
             )}
           </Box>
 
           {canDownload && (
-            <Box mt={2}>
+            <Box mt="4">
               <Button
-                variant="contained"
-                color="primary"
-                startIcon={downloading ? <CircularProgress size={16} /> : <CloudDownloadIcon />}
-                onClick={handleDownloadKubeconfig}
-                disabled={downloading}
-                fullWidth
+                variant="primary"
+                iconStart={<RiDownloadCloud2Line />}
+                onPress={handleDownloadKubeconfig}
+                isDisabled={downloading}
+                isPending={downloading}
+                style={{ width: '100%' }}
               >
                 {downloading ? 'Downloading...' : 'Download Kubeconfig'}
               </Button>
             </Box>
           )}
-        </Grid>
+        </Grid.Item>
 
         {/* Metrics and Profiles Column */}
-        <Grid item xs={12} md={6}>
+        <Grid.Item colSpan={{ xs: '12', md: '6' }}>
           {/* Resource Metrics */}
-          <Box mb={2}>
-            <Typography variant="h6" gutterBottom>
+          <Box mb="4">
+            <Text variant="title-small" weight="bold" style={{ display: 'block', marginBottom: 'var(--bui-space-2)' }}>
               Resource Metrics
-            </Typography>
-            
+            </Text>
+
             {/* CPU Metrics */}
-            <Box mb={2}>
-              <Box display="flex" alignItems="center" mb={0.5}>
-                <SpeedIcon fontSize="small" style={{ marginRight: 8 }} />
-                <Typography variant="body2" className={classes.label}>
+            <Box mb="4">
+              <Flex align="center" gap="2" mb="1">
+                <RiSpeedLine size={16} />
+                <Text variant="body-small" weight="bold" color="secondary">
                   CPU
-                </Typography>
-              </Box>
-              <Grid container spacing={1}>
-                <Grid item xs={4}>
-                  <Typography variant="caption" color="textSecondary">
+                </Text>
+              </Flex>
+              <Grid.Root columns="12" gap="2">
+                <Grid.Item colSpan="4">
+                  <Text variant="body-x-small" color="secondary" style={{ display: 'block' }}>
                     Request
-                  </Typography>
-                  <Typography variant="body2" className={classes.value}>
-                    {formatCpu(cpuMetrics?.request)}
-                  </Typography>
-                </Grid>
-                <Grid item xs={4}>
-                  <Typography variant="caption" color="textSecondary">
+                  </Text>
+                  <Text variant="body-small">{formatCpu(cpuMetrics?.request)}</Text>
+                </Grid.Item>
+                <Grid.Item colSpan="4">
+                  <Text variant="body-x-small" color="secondary" style={{ display: 'block' }}>
                     Limit
-                  </Typography>
-                  <Typography variant="body2" className={classes.value}>
-                    {formatCpu(cpuMetrics?.limit)}
-                  </Typography>
-                </Grid>
-                <Grid item xs={4}>
-                  <Typography variant="caption" color="textSecondary">
+                  </Text>
+                  <Text variant="body-small">{formatCpu(cpuMetrics?.limit)}</Text>
+                </Grid.Item>
+                <Grid.Item colSpan="4">
+                  <Text variant="body-x-small" color="secondary" style={{ display: 'block' }}>
                     Usage
-                  </Typography>
-                  <Typography variant="body2" className={classes.value}>
-                    {formatCpu(cpuMetrics?.usage)}
-                  </Typography>
-                </Grid>
-              </Grid>
+                  </Text>
+                  <Text variant="body-small">{formatCpu(cpuMetrics?.usage)}</Text>
+                </Grid.Item>
+              </Grid.Root>
               {cpuUsagePercent > 0 && (
-                <Tooltip title={cpuUsagePercent > 100 ? `Exceeding limit by ${(cpuUsagePercent - 100).toFixed(1)}%` : `${cpuUsagePercent.toFixed(1)}% of limit`}>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={Math.min(cpuUsagePercent, 100)} 
-                    className={classes.progressBar}
+                <TooltipTrigger>
+                  <Progress
+                    variant="determinate"
+                    value={Math.min(cpuUsagePercent, 100)}
+                    className={styles.progressBar}
                     color={cpuUsagePercent > 80 ? 'secondary' : 'primary'}
                   />
-                </Tooltip>
+                  <Tooltip>
+                    {cpuUsagePercent > 100
+                      ? `Exceeding limit by ${(cpuUsagePercent - 100).toFixed(1)}%`
+                      : `${cpuUsagePercent.toFixed(1)}% of limit`}
+                  </Tooltip>
+                </TooltipTrigger>
               )}
               {cpuUsagePercent > 100 && (
-                <Typography variant="caption" color="error" style={{ marginTop: 4 }}>
+                <Text variant="body-x-small" color="danger" style={{ display: 'block', marginTop: 'var(--bui-space-1)' }}>
                   ⚠️ Exceeding limit by {(cpuUsagePercent - 100).toFixed(1)}%
-                </Typography>
+                </Text>
               )}
             </Box>
 
             {/* Memory Metrics */}
             <Box>
-              <Box display="flex" alignItems="center" mb={0.5}>
-                <MemoryIcon fontSize="small" style={{ marginRight: 8 }} />
-                <Typography variant="body2" className={classes.label}>
+              <Flex align="center" gap="2" mb="1">
+                <RiRamLine size={16} />
+                <Text variant="body-small" weight="bold" color="secondary">
                   Memory
-                </Typography>
-              </Box>
-              <Grid container spacing={1}>
-                <Grid item xs={4}>
-                  <Typography variant="caption" color="textSecondary">
+                </Text>
+              </Flex>
+              <Grid.Root columns="12" gap="2">
+                <Grid.Item colSpan="4">
+                  <Text variant="body-x-small" color="secondary" style={{ display: 'block' }}>
                     Request
-                  </Typography>
-                  <Typography variant="body2" className={classes.value}>
-                    {formatMemory(memoryMetrics?.request)}
-                  </Typography>
-                </Grid>
-                <Grid item xs={4}>
-                  <Typography variant="caption" color="textSecondary">
+                  </Text>
+                  <Text variant="body-small">{formatMemory(memoryMetrics?.request)}</Text>
+                </Grid.Item>
+                <Grid.Item colSpan="4">
+                  <Text variant="body-x-small" color="secondary" style={{ display: 'block' }}>
                     Limit
-                  </Typography>
-                  <Typography variant="body2" className={classes.value}>
-                    {formatMemory(memoryMetrics?.limit)}
-                  </Typography>
-                </Grid>
-                <Grid item xs={4}>
-                  <Typography variant="caption" color="textSecondary">
+                  </Text>
+                  <Text variant="body-small">{formatMemory(memoryMetrics?.limit)}</Text>
+                </Grid.Item>
+                <Grid.Item colSpan="4">
+                  <Text variant="body-x-small" color="secondary" style={{ display: 'block' }}>
                     Usage
-                  </Typography>
-                  <Typography variant="body2" className={classes.value}>
-                    {formatMemory(memoryMetrics?.usage)}
-                  </Typography>
-                </Grid>
-              </Grid>
+                  </Text>
+                  <Text variant="body-small">{formatMemory(memoryMetrics?.usage)}</Text>
+                </Grid.Item>
+              </Grid.Root>
               {memoryUsagePercent > 0 && (
-                <Tooltip title={memoryUsagePercent > 100 ? `Exceeding limit by ${(memoryUsagePercent - 100).toFixed(1)}%` : `${memoryUsagePercent.toFixed(1)}% of limit`}>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={Math.min(memoryUsagePercent, 100)} 
-                    className={classes.progressBar}
+                <TooltipTrigger>
+                  <Progress
+                    variant="determinate"
+                    value={Math.min(memoryUsagePercent, 100)}
+                    className={styles.progressBar}
                     color={memoryUsagePercent > 80 ? 'secondary' : 'primary'}
                   />
-                </Tooltip>
+                  <Tooltip>
+                    {memoryUsagePercent > 100
+                      ? `Exceeding limit by ${(memoryUsagePercent - 100).toFixed(1)}%`
+                      : `${memoryUsagePercent.toFixed(1)}% of limit`}
+                  </Tooltip>
+                </TooltipTrigger>
               )}
               {memoryUsagePercent > 100 && (
-                <Typography variant="caption" color="error" style={{ marginTop: 4 }}>
+                <Text variant="body-x-small" color="danger" style={{ display: 'block', marginTop: 'var(--bui-space-1)' }}>
                   ⚠️ Exceeding limit by {(memoryUsagePercent - 100).toFixed(1)}%
-                </Typography>
+                </Text>
               )}
             </Box>
           </Box>
 
-          <Divider className={classes.divider} />
+          <hr className={styles.divider} />
 
           {/* Cluster Profiles */}
           {profiles.length > 0 && (
-            <Box mt={2}>
-              <Typography variant="body2" className={classes.label} gutterBottom>
-                <LayersIcon fontSize="small" style={{ verticalAlign: 'middle', marginRight: 4 }} />
-                Cluster Profiles ({profiles.length})
-              </Typography>
-              <List dense className={classes.resourceList}>
+            <Box mt="2">
+              <Flex align="center" gap="2" mb="1">
+                <RiStackLine size={16} />
+                <Text variant="body-small" weight="bold" color="secondary">
+                  Cluster Profiles ({profiles.length})
+                </Text>
+              </Flex>
+              <Flex direction="column" gap="1">
                 {profiles.map((profile: Entity) => (
-                  <ListItem key={profile.metadata.uid} className={classes.resourceListItem}>
-                    <ListItemIcon className={classes.resourceIcon}>
-                      <LayersIcon fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText>
-                      <EntityRefLink
-                        entityRef={profile}
-                        title={profile.metadata.title || profile.metadata.name}
-                        className={classes.entityLink}
-                      />
-                    </ListItemText>
-                  </ListItem>
+                  <Flex key={profile.metadata.uid} align="center" gap="2">
+                    <RiStackLine size={16} style={{ color: 'var(--bui-accent-fg)' }} />
+                    <EntityRefLink
+                      entityRef={profile}
+                      title={profile.metadata.title || profile.metadata.name}
+                      className={styles.entityLink}
+                    />
+                  </Flex>
                 ))}
-              </List>
+              </Flex>
             </Box>
           )}
-        </Grid>
-      </Grid>
+        </Grid.Item>
+      </Grid.Root>
     </InfoCard>
   );
 };

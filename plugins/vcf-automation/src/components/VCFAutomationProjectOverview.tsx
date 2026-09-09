@@ -1,4 +1,3 @@
-import { Key, JSXElementConstructor, ReactElement, ReactNode, ReactPortal } from 'react';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { useApi } from '@backstage/core-plugin-api';
 import { vcfAutomationApiRef } from '../api/VcfAutomationClient';
@@ -7,7 +6,7 @@ import {
   Progress,
   ResponseErrorPanel,
 } from '@backstage/core-components';
-import { Grid, Typography, Chip } from '@material-ui/core';
+import { Badge, Flex, Grid, Text } from '@backstage/ui';
 import useAsync from 'react-use/lib/useAsync';
 import { usePermission } from '@backstage/plugin-permission-react';
 import { viewProjectDetailsPermission } from '@terasky/backstage-plugin-vcf-automation-common';
@@ -30,7 +29,7 @@ export const VCFAutomationProjectOverview = () => {
   if (!projectId) {
     return (
       <InfoCard title="VCF Automation Project">
-        <Typography>No project ID found for this entity.</Typography>
+        <Text>No project ID found for this entity.</Text>
       </InfoCard>
     );
   }
@@ -46,7 +45,7 @@ export const VCFAutomationProjectOverview = () => {
   if (!hasViewPermission) {
     return (
       <InfoCard title="VCF Automation Project">
-        <Typography>You don't have permission to view project details.</Typography>
+        <Text>You don't have permission to view project details.</Text>
       </InfoCard>
     );
   }
@@ -58,104 +57,99 @@ export const VCFAutomationProjectOverview = () => {
   if (!project) {
     return (
       <InfoCard title="VCF Automation Project">
-        <Typography>No project details available.</Typography>
+        <Text>No project details available.</Text>
       </InfoCard>
     );
   }
 
   return (
     <InfoCard title="VCF Automation Project">
-      <Grid container spacing={2}>
-        <Grid item xs={6}>
-          <Typography variant="subtitle2">Name</Typography>
-          <Typography>{project.name}</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography variant="subtitle2">Description</Typography>
-          <Typography>{project.description || 'No description'}</Typography>
-        </Grid>
-        <Grid item xs={12}>
-          <Typography variant="subtitle2">Administrators</Typography>
-          <Grid container spacing={1}>
+      <Grid.Root columns="12" gap="5">
+        <Grid.Item colSpan="6">
+          <Text variant="body-small" weight="bold" style={{ display: 'block' }}>Name</Text>
+          <Text>{project.name}</Text>
+        </Grid.Item>
+        <Grid.Item colSpan="6">
+          <Text variant="body-small" weight="bold" style={{ display: 'block' }}>Description</Text>
+          <Text>{project.description || 'No description'}</Text>
+        </Grid.Item>
+        <Grid.Item colSpan="12">
+          <Text variant="body-small" weight="bold" style={{ display: 'block' }}>Administrators</Text>
+          <Flex gap="1" style={{ flexWrap: 'wrap' }}>
             {project.administrators && project.administrators.length > 0 ? (
               project.administrators.map((admin: any, index: number) => (
-                <Grid item key={admin.email ? `${admin.email}-${admin.type}` : `admin-${index}`}>
-                  <Chip
-                    label={admin.email ? `${admin.email} (${admin.type || 'User'})` : admin.toString()}
-                    size="small"
-                  />
-                </Grid>
+                <Badge key={admin.email ? `${admin.email}-${admin.type}` : `admin-${index}`}>
+                  {admin.email ? `${admin.email} (${admin.type || 'User'})` : admin.toString()}
+                </Badge>
               ))
             ) : (
-              <Grid item>
-                <Typography variant="body2" color="textSecondary">
-                  No administrators configured
-                </Typography>
-              </Grid>
+              <Text variant="body-small" style={{ color: 'var(--bui-fg-secondary)' }}>
+                No administrators configured
+              </Text>
             )}
-          </Grid>
-        </Grid>
+          </Flex>
+        </Grid.Item>
         {project.zones && project.zones.length > 0 && (
-          <Grid item xs={12}>
-            <Typography variant="subtitle2">Resource Allocation</Typography>
-            {project.zones.map((zone: { id: Key | null | undefined; zoneId: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined; allocatedInstancesCount: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined; maxNumberInstances: any; allocatedMemoryMB: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined; memoryLimitMB: any; allocatedCpu: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined; cpuLimit: any; allocatedStorageGB: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined; storageLimitGB: any; }) => (
-              <Grid container spacing={2} key={zone.id}>
-                <Grid item xs={12}>
-                  <Typography variant="body2">Zone: {zone.zoneId}</Typography>
-                </Grid>
-                <Grid item xs={4}>
-                  <Typography variant="caption">Instances</Typography>
-                  <Typography>
+          <Grid.Item colSpan="12">
+            <Text variant="body-small" weight="bold" style={{ display: 'block' }}>Resource Allocation</Text>
+            {project.zones.map((zone: any) => (
+              <Grid.Root columns="12" gap="5" key={zone.id}>
+                <Grid.Item colSpan="12">
+                  <Text variant="body-small">Zone: {zone.zoneId}</Text>
+                </Grid.Item>
+                <Grid.Item colSpan="4">
+                  <Text variant="body-small" style={{ display: 'block' }}>Instances</Text>
+                  <Text>
                     {zone.allocatedInstancesCount} / {zone.maxNumberInstances || 'Unlimited'}
-                  </Typography>
-                </Grid>
-                <Grid item xs={4}>
-                  <Typography variant="caption">Memory (MB)</Typography>
-                  <Typography>
+                  </Text>
+                </Grid.Item>
+                <Grid.Item colSpan="4">
+                  <Text variant="body-small" style={{ display: 'block' }}>Memory (MB)</Text>
+                  <Text>
                     {zone.allocatedMemoryMB} / {zone.memoryLimitMB || 'Unlimited'}
-                  </Typography>
-                </Grid>
-                <Grid item xs={4}>
-                  <Typography variant="caption">CPU</Typography>
-                  <Typography>
+                  </Text>
+                </Grid.Item>
+                <Grid.Item colSpan="4">
+                  <Text variant="body-small" style={{ display: 'block' }}>CPU</Text>
+                  <Text>
                     {zone.allocatedCpu} / {zone.cpuLimit || 'Unlimited'}
-                  </Typography>
-                </Grid>
-                <Grid item xs={4}>
-                  <Typography variant="caption">Storage (GB)</Typography>
-                  <Typography>
+                  </Text>
+                </Grid.Item>
+                <Grid.Item colSpan="4">
+                  <Text variant="body-small" style={{ display: 'block' }}>Storage (GB)</Text>
+                  <Text>
                     {zone.allocatedStorageGB} / {zone.storageLimitGB || 'Unlimited'}
-                  </Typography>
-                </Grid>
-              </Grid>
+                  </Text>
+                </Grid.Item>
+              </Grid.Root>
             ))}
-          </Grid>
+          </Grid.Item>
         )}
         {project.sharedResources !== undefined && (
-          <Grid item xs={6}>
-            <Typography variant="subtitle2">Shared Resources</Typography>
-            <Typography>{project.sharedResources ? 'Yes' : 'No'}</Typography>
-          </Grid>
+          <Grid.Item colSpan="6">
+            <Text variant="body-small" weight="bold" style={{ display: 'block' }}>Shared Resources</Text>
+            <Text>{project.sharedResources ? 'Yes' : 'No'}</Text>
+          </Grid.Item>
         )}
         {project.placementPolicy && (
-          <Grid item xs={6}>
-            <Typography variant="subtitle2">Placement Policy</Typography>
-            <Typography>{project.placementPolicy}</Typography>
-          </Grid>
+          <Grid.Item colSpan="6">
+            <Text variant="body-small" weight="bold" style={{ display: 'block' }}>Placement Policy</Text>
+            <Text>{project.placementPolicy}</Text>
+          </Grid.Item>
         )}
         {project.orgId && (
-          <Grid item xs={6}>
-            <Typography variant="subtitle2">Organization ID</Typography>
-            <Typography>{project.orgId}</Typography>
-          </Grid>
+          <Grid.Item colSpan="6">
+            <Text variant="body-small" weight="bold" style={{ display: 'block' }}>Organization ID</Text>
+            <Text>{project.orgId}</Text>
+          </Grid.Item>
         )}
         {project.operationTimeout !== undefined && (
-          <Grid item xs={6}>
-            <Typography variant="subtitle2">Operation Timeout</Typography>
-            <Typography>{project.operationTimeout} minutes</Typography>
-          </Grid>
+          <Grid.Item colSpan="6">
+            <Text variant="body-small" weight="bold" style={{ display: 'block' }}>Operation Timeout</Text>
+            <Text>{project.operationTimeout} minutes</Text>
+          </Grid.Item>
         )}
-      </Grid>
+      </Grid.Root>
     </InfoCard>
   );
 }; 

@@ -1,31 +1,18 @@
 import { useState, useEffect } from 'react';
-import {
-    useTheme,
-    Drawer,
-    IconButton,
-    Box,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableRow,
-    Typography,
-    CircularProgress,
-    Tabs,
-    Tab,
-    Tooltip,
-    TableContainer,
-    Chip,
-    makeStyles
-} from '@material-ui/core';
+// BUI-EXCEPTION: `Drawer` has no BUI equivalent (see MUI_TO_BUI_MIGRATION.md exception list).
+// `useTheme` is kept narrowly to feed `react-syntax-highlighter` and `react-flow-renderer`
+// (including this file's `CustomNode`, which renders literal colors into a canvas-like
+// transform context for a third-party graph library), which need real JS color strings,
+// not CSS custom properties.
+import { useTheme, Drawer } from '@material-ui/core';
+import { Badge, Box, ButtonIcon, Flex, Tab, TabList, TabPanel, Tabs, Text, Tooltip, TooltipTrigger } from '@backstage/ui';
+import { Progress, Table, TableColumn, CopyTextButton } from '@backstage/core-components';
 import { useApi, configApiRef } from '@backstage/core-plugin-api';
 import { KubernetesObject } from '@backstage/plugin-kubernetes';
 import { kroApiRef } from '../api/KroApi';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import * as yaml from 'js-yaml';
-import CloseIcon from '@material-ui/icons/Close';
-import FileCopyIcon from '@material-ui/icons/FileCopy';
-import GetAppIcon from '@material-ui/icons/GetApp';
+import { RiCloseLine, RiDownloadLine } from '@remixicon/react';
 import { saveAs } from 'file-saver';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -34,45 +21,6 @@ import dagre from 'dagre';
 import { usePermission } from '@backstage/plugin-permission-react';
 import { showResourceGraph } from '@terasky/backstage-plugin-kro-common';
 import { getAnnotationPrefix, getKroAnnotation } from './annotationUtils';
-
-const useStyles = makeStyles((theme) => ({
-    drawer: {
-        width: '50vw',
-        flexShrink: 0,
-    },
-    drawerPaper: {
-        width: '50vw',
-        backgroundColor: theme.palette.background.default,
-    },
-    drawerHeader: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: theme.spacing(2),
-        borderBottom: `1px solid ${theme.palette.divider}`,
-    },
-    tabContent: {
-        padding: theme.spacing(2),
-        height: 'calc(100vh - 180px)',
-        overflow: 'auto',
-    },
-    yamlActions: {
-        display: 'flex',
-        justifyContent: 'flex-end',
-        marginBottom: theme.spacing(1),
-        gap: theme.spacing(1),
-    },
-    eventTable: {
-        '& th': {
-            fontWeight: 'bold',
-        },
-    },
-    eventRow: {
-        '&:hover': {
-            backgroundColor: theme.palette.action.hover,
-        },
-    },
-}));
 
 const removeManagedFields = (resource: KubernetesObject) => {
   const resourceCopy = JSON.parse(JSON.stringify(resource));
@@ -496,7 +444,6 @@ const getLayoutedElements = (nodes: any[], edges: any[]) => {
 const KroResourceGraph = () => {
     const { entity } = useEntity();
     const theme = useTheme();
-    const classes = useStyles();
     const kroApi = useApi(kroApiRef);
     const config = useApi(configApiRef);
   const enablePermissions = config.getOptionalBoolean('kro.enablePermissions') ?? false;
@@ -504,7 +451,7 @@ const KroResourceGraph = () => {
     const [resources, setResources] = useState<Array<KubernetesObject>>([]);
     const [selectedResource, setSelectedResource] = useState<KubernetesObject | null>(null);
     const [drawerOpen, setDrawerOpen] = useState(false);
-    const [selectedTab, setSelectedTab] = useState(0);
+    const [selectedTab, setSelectedTab] = useState('manifest');
     const [events, setEvents] = useState<Array<any>>([]);
     const [loadingEvents, setLoadingEvents] = useState(false);
     const [nodes, setNodes] = useState<Node[]>([]);
@@ -1013,7 +960,7 @@ const KroResourceGraph = () => {
         if (resource) {
             setSelectedResource(resource);
             setDrawerOpen(true);
-      setSelectedTab(0);
+      setSelectedTab('manifest');
       await handleGetEvents(resource);
         }
     };
@@ -1022,18 +969,7 @@ const KroResourceGraph = () => {
         setDrawerOpen(false);
         setSelectedResource(null);
         setEvents([]);
-        setSelectedTab(0);
-    };
-
-    const handleTabChange = (_event: React.ChangeEvent<{}>, newValue: number) => {
-        setSelectedTab(newValue);
-    };
-
-    const handleCopyYaml = () => {
-        if (selectedResource) {
-            const yamlContent = yaml.dump(removeManagedFields(selectedResource));
-            navigator.clipboard.writeText(yamlContent);
-        }
+        setSelectedTab('manifest');
     };
 
     const handleDownloadYaml = () => {
@@ -1047,12 +983,9 @@ const KroResourceGraph = () => {
 
     const getEventTypeChip = (type: string) => {
         return (
-            <Chip
-                label={type}
-                size="small"
-                color={type === 'Warning' ? 'secondary' : 'default'}
-                variant={type === 'Warning' ? 'default' : 'outlined'}
-            />
+            <Badge style={type === 'Warning' ? { color: 'var(--bui-fg-warning)' } : undefined}>
+                {type}
+            </Badge>
         );
     };
 
@@ -1073,16 +1006,25 @@ const KroResourceGraph = () => {
     };
 
     if (loading) {
-        return <CircularProgress />;
+        return <Progress />;
     }
 
     if (!canShowResourceGraph) {
-        return <Typography>You don't have permissions to view the resource graph</Typography>;
+        return <Text>You don't have permissions to view the resource graph</Text>;
     }
+
+    const eventColumns: TableColumn<any>[] = [
+        { title: 'Type', field: 'type', render: (row: any) => getEventTypeChip(row.type) },
+        { title: 'Reason', field: 'reason' },
+        { title: 'Age', field: 'lastTimestamp', render: (row: any) => getRelativeTime(row.lastTimestamp || row.firstTimestamp) },
+        { title: 'Message', field: 'message' },
+    ];
 
     return (
         <ReactFlowProvider>
-      <Typography variant="h6" gutterBottom>KRO Resource Graph</Typography>
+      <Box mb="4">
+        <Text variant="title-small" weight="bold">KRO Resource Graph</Text>
+      </Box>
             <div style={{ height: '80vh' }}>
                 <ReactFlow
                     nodes={nodes}
@@ -1123,106 +1065,67 @@ const KroResourceGraph = () => {
                 </ReactFlow>
             </div>
 
-            <Drawer
-                className={classes.drawer}
-                variant="temporary"
-                anchor="right"
-                open={drawerOpen}
-                onClose={handleCloseDrawer}
-        SlideProps={{
-          mountOnEnter: true,
-          unmountOnExit: true,
-        }}
-        ModalProps={{
-          container: document.body,
-          keepMounted: false,
-          disablePortal: false,
-          disableEnforceFocus: true,
-          disableAutoFocus: false,
-          disableRestoreFocus: false,
-          disableScrollLock: false,
-          BackdropProps: {
-            invisible: false,
-          },
-        }}
-                classes={{
-                    paper: classes.drawerPaper,
-                }}
-            >
-                <Box className={classes.drawerHeader}>
-                    <Typography variant="h6">
-                        {selectedResource?.metadata?.name || 'Resource Details'}
-                    </Typography>
-                    <IconButton onClick={handleCloseDrawer}>
-                        <CloseIcon />
-                    </IconButton>
-                </Box>
+            <Drawer anchor="right" open={drawerOpen} onClose={handleCloseDrawer}>
+                <Box style={{ width: '50vw', backgroundColor: theme.palette.background.default, color: theme.palette.text.primary, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                    <Flex align="center" justify="between" style={{ padding: 'var(--bui-space-4)', borderBottom: `1px solid ${theme.palette.divider}` }}>
+                        <Text variant="title-small" weight="bold">
+                            {selectedResource?.metadata?.name || 'Resource Details'}
+                        </Text>
+                        <ButtonIcon aria-label="Close" icon={<RiCloseLine />} onPress={handleCloseDrawer} />
+                    </Flex>
 
-                <Tabs value={selectedTab} onChange={handleTabChange}>
-                    <Tab label="Kubernetes Manifest" />
-                    <Tab label="Kubernetes Events" />
-                </Tabs>
+                    <Tabs selectedKey={selectedTab} onSelectionChange={key => setSelectedTab(String(key))}>
+                        <TabList>
+                            <Tab id="manifest">Kubernetes Manifest</Tab>
+                            <Tab id="events">Kubernetes Events</Tab>
+                        </TabList>
 
-                <Box className={classes.tabContent}>
-                    {selectedTab === 0 && selectedResource && (
-                        <>
-                            <Box className={classes.yamlActions}>
-                                <Tooltip title="Copy YAML">
-                                    <IconButton size="small" onClick={handleCopyYaml}>
-                                        <FileCopyIcon fontSize="small" />
-                                    </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Download YAML">
-                                    <IconButton size="small" onClick={handleDownloadYaml}>
-                                        <GetAppIcon fontSize="small" />
-                                    </IconButton>
-                                </Tooltip>
+                        <TabPanel id="manifest">
+                            <Box style={{ padding: 'var(--bui-space-4)', height: 'calc(100vh - 180px)', overflow: 'auto' }}>
+                                {selectedResource && (
+                                    <>
+                                        <Flex justify="end" gap="2" mb="2">
+                                            <CopyTextButton text={yaml.dump(removeManagedFields(selectedResource))} aria-label="Copy YAML to clipboard" />
+                                            <TooltipTrigger>
+                                                <ButtonIcon aria-label="Download YAML" icon={<RiDownloadLine />} onPress={handleDownloadYaml} />
+                                                <Tooltip>Download YAML</Tooltip>
+                                            </TooltipTrigger>
+                                        </Flex>
+                                        <SyntaxHighlighter
+                                            language="yaml"
+                                            style={tomorrow}
+                                            showLineNumbers
+                                        >
+                                            {yaml.dump(removeManagedFields(selectedResource))}
+                                        </SyntaxHighlighter>
+                                    </>
+                                )}
                             </Box>
-                            <SyntaxHighlighter
-                                language="yaml"
-                                style={tomorrow}
-                                showLineNumbers
-                            >
-                                {yaml.dump(removeManagedFields(selectedResource))}
-                            </SyntaxHighlighter>
-                        </>
-                    )}
+                        </TabPanel>
 
-                    {selectedTab === 1 && loadingEvents && (
-                        <Box display="flex" justifyContent="center" p={3}>
-                            <CircularProgress />
-                        </Box>
-                    )}
-                    {selectedTab === 1 && !loadingEvents && (
-                        events.length > 0 ? (
-                                <TableContainer>
-                                    <Table size="small" className={classes.eventTable}>
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell>Type</TableCell>
-                                                <TableCell>Reason</TableCell>
-                                                <TableCell>Age</TableCell>
-                                                <TableCell>Message</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {events.map((event, index) => (
-                                                <TableRow key={index} className={classes.eventRow}>
-                                                    <TableCell>{getEventTypeChip(event.type)}</TableCell>
-                                                    <TableCell>{event.reason}</TableCell>
-                                                    <TableCell>{getRelativeTime(event.lastTimestamp || event.firstTimestamp)}</TableCell>
-                                                    <TableCell>{event.message}</TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-                            ) : (
-                                <Typography align="center" color="textSecondary">
-                                    No events found for this resource
-                                </Typography>
-                            )
-                    )}
+                        <TabPanel id="events">
+                            <Box style={{ padding: 'var(--bui-space-4)', height: 'calc(100vh - 180px)', overflow: 'auto' }}>
+                                {loadingEvents && (
+                                    <Flex align="center" justify="center" p="4">
+                                        <Progress />
+                                    </Flex>
+                                )}
+                                {!loadingEvents && (
+                                    events.length > 0 ? (
+                                        <Table
+                                            columns={eventColumns}
+                                            data={events}
+                                            options={{ search: false, paging: false, padding: 'dense' }}
+                                        />
+                                    ) : (
+                                        <Text style={{ textAlign: 'center', color: 'var(--bui-fg-secondary)', display: 'block' }}>
+                                            No events found for this resource
+                                        </Text>
+                                    )
+                                )}
+                            </Box>
+                        </TabPanel>
+                    </Tabs>
                 </Box>
             </Drawer>
         </ReactFlowProvider>

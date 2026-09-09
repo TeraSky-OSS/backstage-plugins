@@ -2,31 +2,28 @@ import { useState, useCallback, useMemo } from 'react';
 import { useAiRules } from '../../hooks/useAiRules';
 import { InfoCard, Progress, EmptyState, MarkdownContent, CodeSnippet } from '@backstage/core-components';
 import {
-  Button,
-  makeStyles,
-  useTheme,
-  Typography,
-  Chip,
-  Card,
-  CardContent,
   Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  FormControlLabel,
+  AccordionPanel,
+  AccordionTrigger,
+  Badge,
+  Box,
+  Button,
+  ButtonIcon,
+  Card,
+  CardBody,
   Checkbox,
-  IconButton,
-  Tooltip,
+  Flex,
+  Text,
   TextField,
-  Snackbar,
-} from '@material-ui/core';
-import { ToggleButton, ToggleButtonGroup } from '@material-ui/lab';
+  ToggleButton,
+  ToggleButtonGroup,
+  Tooltip,
+  TooltipTrigger,
+} from '@backstage/ui';
 import { Entity } from '@backstage/catalog-model';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import CodeIcon from '@material-ui/icons/Code';
-import LaunchIcon from '@material-ui/icons/Launch';
-import FileCopyIcon from '@material-ui/icons/FileCopy';
-import GetAppIcon from '@material-ui/icons/GetApp';
+import { RiCodeLine, RiExternalLinkLine, RiFileCopyLine, RiCheckLine, RiDownloadLine } from '@remixicon/react';
 import { AIRuleType, AIRule, CursorRule, CopilotRule, ClineRule, ClaudeCodeRule } from '../../types';
+import styles from './AiRulesComponent.module.css';
 
 export interface AIRulesComponentProps {
   title?: string;
@@ -81,93 +78,6 @@ const RULE_TYPE_DISPLAY_ORDER: AIRuleType[] = [
   AIRuleType.AIDER,
 ];
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
-
-const useStyles = makeStyles((theme) => ({
-  root: {
-    '& .MuiAccordion-root': {
-      marginBottom: theme.spacing(1),
-      '&:before': { display: 'none' },
-    },
-  },
-  filterSection: {
-    marginBottom: theme.spacing(2),
-    padding: theme.spacing(2),
-    backgroundColor: theme.palette.background.default,
-    borderRadius: theme.shape.borderRadius,
-  },
-  searchBar: {
-    marginBottom: theme.spacing(2),
-    width: '100%',
-  },
-  ruleCard: {
-    marginBottom: theme.spacing(1),
-    border: `1px solid ${theme.palette.divider}`,
-  },
-  ruleHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(1),
-    width: '100%',
-  },
-  ruleHeaderContent: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(1),
-    flex: 1,
-    overflow: 'hidden',
-  },
-  ruleHeaderActions: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(0.5),
-    flexShrink: 0,
-  },
-  ruleType: {
-    textTransform: 'uppercase',
-    fontWeight: 'bold',
-    fontSize: '0.75rem',
-  },
-  ruleContent: {
-    padding: theme.spacing(1),
-    borderRadius: theme.shape.borderRadius,
-    overflow: 'auto',
-    maxHeight: '300px',
-    '& > *': { backgroundColor: 'transparent !important' },
-  },
-  ruleMetadata: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: theme.spacing(0.5),
-    marginBottom: theme.spacing(1),
-  },
-  statsContainer: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: theme.spacing(2),
-    marginBottom: theme.spacing(2),
-    alignItems: 'center',
-  },
-  statCard: {
-    minWidth: '100px',
-    textAlign: 'center',
-  },
-  filterContainer: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    '& > *': { marginRight: theme.spacing(1) },
-  },
-  applyFilterButton: {
-    marginTop: theme.spacing(1),
-  },
-  viewToggle: {
-    marginBottom: theme.spacing(1),
-  },
-  exportButton: {
-    marginLeft: 'auto',
-  },
-}));
-
 // ─── Helper functions ─────────────────────────────────────────────────────────
 
 const manualParseFrontmatter = (content: string) => {
@@ -214,34 +124,28 @@ const constructFileUrl = (gitUrl: string, filePath: string): string => {
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 const RuleTypeIcon = ({ type }: { type: AIRuleType }) => (
-  <CodeIcon style={{ color: RULE_TYPE_COLORS[type] ?? '#888', flexShrink: 0 }} />
+  <RiCodeLine style={{ color: RULE_TYPE_COLORS[type] ?? '#888', flexShrink: 0 }} />
 );
 
-const renderFrontmatter = (theme: any, frontmatter?: Record<string, any>) => {
+const renderFrontmatter = (frontmatter?: Record<string, any>) => {
   if (!frontmatter || Object.keys(frontmatter).length === 0) return null;
   const filteredEntries = Object.entries(frontmatter).filter(([key]) =>
     !['description', 'globs'].includes(key),
   );
   if (filteredEntries.length === 0) return null;
   return (
-    <div style={{
-      marginBottom: 16,
-      padding: 16,
-      backgroundColor: theme.palette.type === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-      borderRadius: 8,
-      border: `1px solid ${theme.palette.type === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)'}`,
-    }}>
-      <Typography variant="subtitle2" style={{ marginBottom: 12, fontWeight: 'bold', color: theme.palette.text.secondary, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+    <div className={styles.frontmatterBox}>
+      <Text variant="body-small" weight="bold" style={{ display: 'block', marginBottom: 'var(--bui-space-2)', color: 'var(--bui-fg-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
         Metadata
-      </Typography>
-      {filteredEntries.map(([key, value], index) => (
-        <div key={key} style={{ marginBottom: index < filteredEntries.length - 1 ? 12 : 0 }}>
-          <Typography variant="body2" style={{ fontWeight: 'bold', textTransform: 'capitalize', color: theme.palette.primary.main, marginBottom: 4 }}>
+      </Text>
+      {filteredEntries.map(([key, value]) => (
+        <div key={key} style={{ marginBottom: 'var(--bui-space-2)' }}>
+          <Text weight="bold" style={{ display: 'block', textTransform: 'capitalize' }}>
             {key}:
-          </Typography>
-          <Typography variant="body2" style={{ lineHeight: '1.5', marginLeft: 8, color: theme.palette.text.primary }}>
+          </Text>
+          <Text style={{ display: 'block', marginLeft: 'var(--bui-space-1)' }}>
             {Array.isArray(value) ? value.join(', ') : String(value)}
-          </Typography>
+          </Text>
         </div>
       ))}
     </div>
@@ -250,19 +154,21 @@ const renderFrontmatter = (theme: any, frontmatter?: Record<string, any>) => {
 
 // Content viewer with raw/rendered toggle
 const RuleContentViewer = ({ content }: { content: string }) => {
-  const styles = useStyles();
   const [view, setView] = useState<'rendered' | 'raw'>('rendered');
   return (
     <div>
       <ToggleButtonGroup
-        size="small"
-        value={view}
-        exclusive
-        onChange={(_e: any, v: any) => { if (v) setView(v); }}
         className={styles.viewToggle}
+        selectionMode="single"
+        disallowEmptySelection
+        selectedKeys={[view]}
+        onSelectionChange={keys => {
+          const [v] = Array.from(keys);
+          if (v) setView(v as 'rendered' | 'raw');
+        }}
       >
-        <ToggleButton value="rendered">Rendered</ToggleButton>
-        <ToggleButton value="raw">Raw</ToggleButton>
+        <ToggleButton id="rendered" size="small">Rendered</ToggleButton>
+        <ToggleButton id="raw" size="small">Raw</ToggleButton>
       </ToggleButtonGroup>
       {view === 'rendered' ? (
         <div className={styles.ruleContent}>
@@ -277,28 +183,84 @@ const RuleContentViewer = ({ content }: { content: string }) => {
 
 // Copy-to-clipboard button
 const CopyButton = ({ content }: { content: string }) => {
-  const [open, setOpen] = useState(false);
-  const handleCopy = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    navigator.clipboard.writeText(content).then(() => setOpen(true));
+  const [copied, setCopied] = useState(false);
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(content).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
   }, [content]);
   return (
-    <>
-      <Tooltip title="Copy content">
-        <IconButton size="small" onClick={handleCopy}>
-          <FileCopyIcon fontSize="small" />
-        </IconButton>
-      </Tooltip>
-      <Snackbar
-        open={open}
-        autoHideDuration={2000}
-        onClose={() => setOpen(false)}
-        message="Copied to clipboard"
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+    <TooltipTrigger>
+      <ButtonIcon
+        aria-label={copied ? 'Copied' : 'Copy content'}
+        size="small"
+        variant="tertiary"
+        icon={copied ? <RiCheckLine /> : <RiFileCopyLine />}
+        onPress={handleCopy}
       />
-    </>
+      <Tooltip>{copied ? 'Copied!' : 'Copy content'}</Tooltip>
+    </TooltipTrigger>
   );
 };
+
+const OpenInRepoButton = ({ gitUrl, filePath }: { gitUrl: string; filePath: string }) => (
+  <TooltipTrigger>
+    <ButtonIcon
+      aria-label="Open file in repository"
+      size="small"
+      variant="tertiary"
+      icon={<RiExternalLinkLine />}
+      onPress={() => window.open(constructFileUrl(gitUrl, filePath), '_blank')}
+    />
+    <Tooltip>Open file in repository</Tooltip>
+  </TooltipTrigger>
+);
+
+// Shared shell for a single rule accordion: header (icon/title/badges) + actions + details
+const RuleAccordionShell = ({
+  icon,
+  title,
+  badges,
+  gitUrl,
+  filePath,
+  frontmatter,
+  extraMetadata,
+  content,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  badges?: React.ReactNode;
+  gitUrl?: string;
+  filePath: string;
+  frontmatter?: Record<string, any>;
+  extraMetadata?: React.ReactNode;
+  content: string;
+}) => (
+  <Box className={styles.ruleCard} style={{ position: 'relative' }}>
+    <Accordion>
+      <AccordionTrigger>
+        <Flex align="center" gap="2" style={{ flexWrap: 'wrap', paddingRight: 'var(--bui-space-16)' }}>
+          {icon}
+          <Text variant="title-small" weight="bold">{title}</Text>
+          {badges}
+        </Flex>
+      </AccordionTrigger>
+      <AccordionPanel>
+        <div className={styles.ruleMetadata}>
+          <Badge>{`Path: ${filePath}`}</Badge>
+          {extraMetadata}
+        </div>
+        {renderFrontmatter(frontmatter)}
+        <RuleContentViewer content={content} />
+      </AccordionPanel>
+    </Accordion>
+    <Flex gap="1" style={{ position: 'absolute', top: 'var(--bui-space-2)', right: 'var(--bui-space-2)' }}>
+      <CopyButton content={content} />
+      {gitUrl && <OpenInRepoButton gitUrl={gitUrl} filePath={filePath} />}
+    </Flex>
+  </Box>
+);
 
 // Generic rule renderer for agents with simple markdown + title
 const GenericRuleAccordion = ({
@@ -307,192 +269,90 @@ const GenericRuleAccordion = ({
 }: {
   rule: AIRule & { title?: string; mode?: string; alwaysApply?: boolean; applyTo?: string; frontmatter?: Record<string, any> };
   label?: string;
-}) => {
-  const styles = useStyles();
-  const theme = useTheme();
-  return (
-    <Accordion className={styles.ruleCard}>
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <div className={styles.ruleHeader}>
-          <div className={styles.ruleHeaderContent}>
-            <RuleTypeIcon type={rule.type} />
-            <Typography variant="h6">{rule.title || rule.fileName}</Typography>
-            <Chip label={label ?? rule.type} size="small" className={styles.ruleType} />
-            {rule.mode && <Chip label={`Mode: ${rule.mode}`} size="small" variant="outlined" />}
-            {rule.alwaysApply !== undefined && (
-              <Chip label={rule.alwaysApply ? 'Always Apply' : 'On Demand'} size="small" variant="outlined" />
-            )}
-            {rule.applyTo && <Chip label={`Applies to: ${rule.applyTo}`} size="small" variant="outlined" />}
-          </div>
-          <div className={styles.ruleHeaderActions}>
-            <CopyButton content={rule.content} />
-            {rule.gitUrl && (
-              <Tooltip title="Open file in repository">
-                <IconButton size="small" onClick={(e) => { e.stopPropagation(); window.open(constructFileUrl(rule.gitUrl!, rule.filePath), '_blank'); }}>
-                  <LaunchIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            )}
-          </div>
-        </div>
-      </AccordionSummary>
-      <AccordionDetails>
-        <div>
-          <div className={styles.ruleMetadata}>
-            <Chip label={`Path: ${rule.filePath}`} size="small" variant="outlined" />
-          </div>
-          {rule.frontmatter && renderFrontmatter(theme, rule.frontmatter)}
-          <RuleContentViewer content={rule.content} />
-        </div>
-      </AccordionDetails>
-    </Accordion>
-  );
-};
+}) => (
+  <RuleAccordionShell
+    icon={<RuleTypeIcon type={rule.type} />}
+    title={rule.title || rule.fileName}
+    badges={
+      <>
+        <Badge>{label ?? rule.type}</Badge>
+        {rule.mode && <Badge>{`Mode: ${rule.mode}`}</Badge>}
+        {rule.alwaysApply !== undefined && (
+          <Badge>{rule.alwaysApply ? 'Always Apply' : 'On Demand'}</Badge>
+        )}
+        {rule.applyTo && <Badge>{`Applies to: ${rule.applyTo}`}</Badge>}
+      </>
+    }
+    gitUrl={rule.gitUrl}
+    filePath={rule.filePath}
+    frontmatter={rule.frontmatter}
+    content={rule.content}
+  />
+);
 
 const RuleComponent = ({ rule }: { rule: AIRule }) => {
-  const styles = useStyles();
-  const theme = useTheme();
-
   const renderCursorRule = (r: CursorRule) => {
     const { frontmatter, content } = parseCursorContent(r.content);
     return (
-      <Accordion className={styles.ruleCard}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <div className={styles.ruleHeader}>
-            <div className={styles.ruleHeaderContent}>
-              <RuleTypeIcon type={r.type} />
-              <Typography variant="h6">{r.fileName}</Typography>
-              <Chip label={r.type} size="small" className={styles.ruleType} />
-              {frontmatter?.description && (
-                <Typography variant="body2" style={{ marginLeft: 8, color: theme.palette.text.secondary }}>
-                  {frontmatter.description}
-                </Typography>
-              )}
-            </div>
-            <div className={styles.ruleHeaderActions}>
-              <CopyButton content={content} />
-              {r.gitUrl && (
-                <Tooltip title="Open file in repository">
-                  <IconButton size="small" onClick={(e) => { e.stopPropagation(); window.open(constructFileUrl(r.gitUrl!, r.filePath), '_blank'); }}>
-                    <LaunchIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>
-              )}
-            </div>
-          </div>
-        </AccordionSummary>
-        <AccordionDetails>
-          <div>
-            <div className={styles.ruleMetadata}>
-              <Chip label={`Path: ${r.filePath}`} size="small" variant="outlined" />
-              {frontmatter?.globs && (
-                <Chip label={`Globs: ${Array.isArray(frontmatter.globs) ? frontmatter.globs.join(', ') : frontmatter.globs}`} size="small" variant="outlined" />
-              )}
-            </div>
-            {renderFrontmatter(theme, frontmatter)}
-            <RuleContentViewer content={content} />
-          </div>
-        </AccordionDetails>
-      </Accordion>
+      <RuleAccordionShell
+        icon={<RuleTypeIcon type={r.type} />}
+        title={r.fileName}
+        badges={
+          <>
+            <Badge>{r.type}</Badge>
+            {frontmatter?.description && (
+              <Text style={{ color: 'var(--bui-fg-secondary)' }}>{frontmatter.description}</Text>
+            )}
+          </>
+        }
+        gitUrl={r.gitUrl}
+        filePath={r.filePath}
+        frontmatter={frontmatter}
+        extraMetadata={frontmatter?.globs && (
+          <Badge>{`Globs: ${Array.isArray(frontmatter.globs) ? frontmatter.globs.join(', ') : frontmatter.globs}`}</Badge>
+        )}
+        content={content}
+      />
     );
   };
 
   const renderCopilotRule = (r: CopilotRule) => (
-    <Accordion className={styles.ruleCard}>
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <div className={styles.ruleHeader}>
-          <div className={styles.ruleHeaderContent}>
-            <RuleTypeIcon type={r.type} />
-            <Typography variant="h6">{r.title || r.fileName}</Typography>
-            <Chip label={r.type} size="small" className={styles.ruleType} />
-            {r.applyTo && <Chip label={`Applies to: ${r.applyTo}`} size="small" variant="outlined" style={{ marginLeft: 8 }} />}
-          </div>
-          <div className={styles.ruleHeaderActions}>
-            <CopyButton content={r.content} />
-            {r.gitUrl && (
-              <Tooltip title="Open file in repository">
-                <IconButton size="small" onClick={(e) => { e.stopPropagation(); window.open(constructFileUrl(r.gitUrl!, r.filePath), '_blank'); }}>
-                  <LaunchIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            )}
-          </div>
-        </div>
-      </AccordionSummary>
-      <AccordionDetails>
-        <div>
-          <div className={styles.ruleMetadata}>
-            <Chip label={`Path: ${r.filePath}`} size="small" variant="outlined" />
-            {r.frontmatter && renderFrontmatter(theme, r.frontmatter)}
-          </div>
-          <RuleContentViewer content={r.content} />
-        </div>
-      </AccordionDetails>
-    </Accordion>
+    <RuleAccordionShell
+      icon={<RuleTypeIcon type={r.type} />}
+      title={r.title || r.fileName}
+      badges={
+        <>
+          <Badge>{r.type}</Badge>
+          {r.applyTo && <Badge>{`Applies to: ${r.applyTo}`}</Badge>}
+        </>
+      }
+      gitUrl={r.gitUrl}
+      filePath={r.filePath}
+      frontmatter={r.frontmatter}
+      content={r.content}
+    />
   );
 
   const renderClineRule = (r: ClineRule) => (
-    <Accordion className={styles.ruleCard}>
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <div className={styles.ruleHeader}>
-          <div className={styles.ruleHeaderContent}>
-            <RuleTypeIcon type={r.type} />
-            <Typography variant="h6">{r.title || r.fileName}</Typography>
-            <Chip label={r.type} size="small" className={styles.ruleType} />
-          </div>
-          <div className={styles.ruleHeaderActions}>
-            <CopyButton content={r.content} />
-            {r.gitUrl && (
-              <Tooltip title="Open file in repository">
-                <IconButton size="small" onClick={(e) => { e.stopPropagation(); window.open(constructFileUrl(r.gitUrl!, r.filePath), '_blank'); }}>
-                  <LaunchIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            )}
-          </div>
-        </div>
-      </AccordionSummary>
-      <AccordionDetails>
-        <div>
-          <div className={styles.ruleMetadata}>
-            <Chip label={`Path: ${r.filePath}`} size="small" variant="outlined" />
-          </div>
-          <RuleContentViewer content={r.content} />
-        </div>
-      </AccordionDetails>
-    </Accordion>
+    <RuleAccordionShell
+      icon={<RuleTypeIcon type={r.type} />}
+      title={r.title || r.fileName}
+      badges={<Badge>{r.type}</Badge>}
+      gitUrl={r.gitUrl}
+      filePath={r.filePath}
+      content={r.content}
+    />
   );
 
   const renderClaudeCodeRule = (r: ClaudeCodeRule) => (
-    <Accordion className={styles.ruleCard}>
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <div className={styles.ruleHeader}>
-          <div className={styles.ruleHeaderContent}>
-            <RuleTypeIcon type={r.type} />
-            <Typography variant="h6">{r.title || r.fileName}</Typography>
-            <Chip label="claude-code" size="small" className={styles.ruleType} />
-          </div>
-          <div className={styles.ruleHeaderActions}>
-            <CopyButton content={r.content} />
-            {r.gitUrl && (
-              <Tooltip title="Open file in repository">
-                <IconButton size="small" onClick={(e) => { e.stopPropagation(); window.open(constructFileUrl(r.gitUrl!, r.filePath), '_blank'); }}>
-                  <LaunchIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            )}
-          </div>
-        </div>
-      </AccordionSummary>
-      <AccordionDetails>
-        <div>
-          <div className={styles.ruleMetadata}>
-            <Chip label={`Path: ${r.filePath}`} size="small" variant="outlined" />
-          </div>
-          <RuleContentViewer content={r.content} />
-        </div>
-      </AccordionDetails>
-    </Accordion>
+    <RuleAccordionShell
+      icon={<RuleTypeIcon type={r.type} />}
+      title={r.title || r.fileName}
+      badges={<Badge>claude-code</Badge>}
+      gitUrl={r.gitUrl}
+      filePath={r.filePath}
+      content={r.content}
+    />
   );
 
   switch (rule.type) {
@@ -537,7 +397,6 @@ const exportRulesToMarkdown = (rules: AIRule[]) => {
 
 export const AIRulesComponent: React.FC<AIRulesComponentProps> = ({ title = 'AI Coding Rules' } = {}) => {
   const { rulesByType, rules, loading, error, hasGitUrl, totalRules, allowedRuleTypes, selectedRuleTypes, setSelectedRuleTypes, applyFilters, resetFilters, hasUnappliedChanges, hasSearched } = useAiRules();
-  const styles = useStyles();
 
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -600,45 +459,45 @@ export const AIRulesComponent: React.FC<AIRulesComponentProps> = ({ title = 'AI 
       {/* Search bar */}
       <TextField
         className={styles.searchBar}
-        variant="outlined"
         size="small"
         label="Search rules"
         placeholder="Search by name, title, or content…"
         value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
+        onChange={setSearchQuery}
       />
 
       {/* Stats + export */}
       <div className={styles.statsContainer}>
         <Card className={styles.statCard}>
-          <CardContent>
-            <Typography variant="h4">{searchQuery ? filteredTotal : totalRules}</Typography>
-            <Typography color="textSecondary">{searchQuery ? 'Matching' : 'Total Rules'}</Typography>
-          </CardContent>
+          <CardBody>
+            <Text variant="title-large" weight="bold" style={{ display: 'block' }}>{searchQuery ? filteredTotal : totalRules}</Text>
+            <Text style={{ color: 'var(--bui-fg-secondary)' }}>{searchQuery ? 'Matching' : 'Total Rules'}</Text>
+          </CardBody>
         </Card>
         {RULE_TYPE_DISPLAY_ORDER.map(type => {
           const typeRules = (searchQuery ? filteredRulesByType : rulesByType)[type] || [];
           if (typeRules.length === 0) return null;
           return (
             <Card key={type} className={styles.statCard}>
-              <CardContent>
-                <Typography variant="h4">{typeRules.length}</Typography>
-                <Typography color="textSecondary">{formatRuleTypeName(type)}</Typography>
-              </CardContent>
+              <CardBody>
+                <Text variant="title-large" weight="bold" style={{ display: 'block' }}>{typeRules.length}</Text>
+                <Text style={{ color: 'var(--bui-fg-secondary)' }}>{formatRuleTypeName(type)}</Text>
+              </CardBody>
             </Card>
           );
         })}
-        <Tooltip title="Download all rules as Markdown">
+        <TooltipTrigger>
           <Button
-            variant="outlined"
+            variant="secondary"
             size="small"
-            startIcon={<GetAppIcon />}
+            iconStart={<RiDownloadLine />}
             className={styles.exportButton}
-            onClick={() => exportRulesToMarkdown(rules)}
+            onPress={() => exportRulesToMarkdown(rules)}
           >
             Export
           </Button>
-        </Tooltip>
+          <Tooltip>Download all rules as Markdown</Tooltip>
+        </TooltipTrigger>
       </div>
 
       {/* Rules grouped by type */}
@@ -647,9 +506,9 @@ export const AIRulesComponent: React.FC<AIRulesComponentProps> = ({ title = 'AI 
         if (typeRules.length === 0) return null;
         return (
           <div key={type}>
-            <Typography variant="h5" gutterBottom style={{ marginTop: 16 }}>
+            <Text variant="title-medium" weight="bold" style={{ display: 'block', marginTop: 'var(--bui-space-4)', marginBottom: 'var(--bui-space-2)' }}>
               {formatRuleTypeName(type)} Rules ({typeRules.length})
-            </Typography>
+            </Text>
             {typeRules.map(rule => (
               <RuleComponent key={rule.id} rule={rule} />
             ))}
@@ -662,40 +521,42 @@ export const AIRulesComponent: React.FC<AIRulesComponentProps> = ({ title = 'AI 
       )}
     </>
   ) : (
-    <div style={{ marginTop: 16 }}>
-      <Typography variant="body1" color="textSecondary">
+    <div style={{ marginTop: 'var(--bui-space-4)' }}>
+      <Text style={{ color: 'var(--bui-fg-secondary)' }}>
         Select rule types above and click "Apply Filter" to search for AI coding rules in this repository.
-      </Typography>
+      </Text>
     </div>
   );
 
   return (
-    <InfoCard title={title} className={styles.root}>
+    <InfoCard title={title}>
       {/* Filter section */}
       <div className={styles.filterSection}>
-        <Typography variant="h6" gutterBottom>Filter Rule Types</Typography>
+        <Text variant="title-small" weight="bold" style={{ display: 'block', marginBottom: 'var(--bui-space-2)' }}>Filter Rule Types</Text>
         <div className={styles.filterContainer}>
           {allowedRuleTypes.map(type => (
-            <FormControlLabel
+            <Checkbox
               key={type}
-              control={<Checkbox checked={selectedRuleTypes.includes(type)} onChange={(e) => handleTypeToggle(type, e.target.checked)} />}
-              label={formatRuleTypeName(type)}
-            />
+              isSelected={selectedRuleTypes.includes(type)}
+              onChange={isSelected => handleTypeToggle(type, isSelected)}
+            >
+              {formatRuleTypeName(type)}
+            </Checkbox>
           ))}
         </div>
         <div className={styles.applyFilterButton}>
-          <Button variant="contained" color="primary" onClick={applyFilters} disabled={!hasUnappliedChanges}>
+          <Button variant="primary" onPress={applyFilters} isDisabled={!hasUnappliedChanges}>
             Apply Filter
           </Button>
           {hasUnappliedChanges && (
-            <Typography variant="body2" color="textSecondary" style={{ marginTop: 8 }}>
+            <Text style={{ color: 'var(--bui-fg-secondary)', display: 'block', marginTop: 'var(--bui-space-2)' }}>
               You have unsaved filter changes. Click "Apply Filter" to update the results.
-            </Typography>
+            </Text>
           )}
           {!hasUnappliedChanges && selectedRuleTypes.length === 0 && (
-            <Typography variant="body2" color="textSecondary" style={{ marginTop: 8 }}>
+            <Text style={{ color: 'var(--bui-fg-secondary)', display: 'block', marginTop: 'var(--bui-space-2)' }}>
               Select at least one rule type to search for AI rules.
-            </Typography>
+            </Text>
           )}
         </div>
       </div>
@@ -705,7 +566,7 @@ export const AIRulesComponent: React.FC<AIRulesComponentProps> = ({ title = 'AI 
           missing="content"
           title="No AI Rules Found"
           description="No AI rules were found in this repository for the selected rule types."
-          action={<Button variant="outlined" onClick={resetFilters}>Reset Filters</Button>}
+          action={<Button variant="secondary" onPress={resetFilters}>Reset Filters</Button>}
         />
       ) : rulesOrPromptContent}
     </InfoCard>

@@ -11,25 +11,10 @@ import {
   Progress,
   ResponseErrorPanel,
 } from '@backstage/core-components';
-import { Grid, Typography, Chip, Box } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
+import { Badge, Box, Flex, Grid, Text } from '@backstage/ui';
 import useAsync from 'react-use/lib/useAsync';
 
-const useStyles = makeStyles(theme => ({
-  statusChip: {
-    marginRight: theme.spacing(1),
-    marginBottom: theme.spacing(0.5),
-  },
-  sectionTitle: {
-    marginBottom: theme.spacing(2),
-  },
-  conditionChip: {
-    margin: theme.spacing(0.25),
-  },
-}));
-
 export const VCFAutomationCCINamespaceOverview = () => {
-  const classes = useStyles();
   const { entity } = useEntity();
   const api = useApi(vcfAutomationApiRef);
 
@@ -132,7 +117,7 @@ export const VCFAutomationCCINamespaceOverview = () => {
   if (!namespaceData) {
     return (
               <InfoCard title={`CCI Supervisor Namespace${annotationData.isStandalone ? ' (Standalone)' : ''}`}>
-        <Typography>No namespace data available.</Typography>
+        <Text>No namespace data available.</Text>
       </InfoCard>
     );
   }
@@ -161,88 +146,74 @@ export const VCFAutomationCCINamespaceOverview = () => {
 
   return (
             <InfoCard title={`CCI Supervisor Namespace Overview${annotationData.isStandalone ? ' (Standalone)' : ''}`}>
-      <Grid container spacing={3}>
-        <Grid item xs={12}>
-          <Typography variant="h6" className={classes.sectionTitle}>
-            Basic Information
-          </Typography>
+      <Grid.Root columns="12" gap="5">
+        <Grid.Item colSpan="12">
+          <Box mb="4">
+            <Text variant="title-small" weight="bold">Basic Information</Text>
+          </Box>
           <StructuredMetadataTable metadata={basicInfo} />
-        </Grid>
+        </Grid.Item>
 
         {status?.conditions && status.conditions.length > 0 && (
-          <Grid item xs={12}>
-            <Typography variant="h6" className={classes.sectionTitle}>
-              Conditions
-            </Typography>
+          <Grid.Item colSpan="12">
+            <Box mb="4">
+              <Text variant="title-small" weight="bold">Conditions</Text>
+            </Box>
             <Box>
               {status.conditions.map((condition: any, index: number) => (
-                <Box key={index} display="flex" alignItems="center" mb={1}>
+                <Flex key={index} align="center" gap="2" mb="2">
                   {renderStatusIcon(condition.status)}
-                  <Chip
-                    label={`${condition.type}: ${condition.status}`}
-                    size="small"
-                    className={classes.conditionChip}
-                    color={condition.status === 'True' ? 'primary' : 'default'}
-                  />
-                  <Typography variant="caption" style={{ marginLeft: 8 }}>
+                  <Badge style={condition.status === 'True' ? { color: 'var(--bui-fg-positive)' } : undefined}>
+                    {`${condition.type}: ${condition.status}`}
+                  </Badge>
+                  <Text variant="body-small">
                     {condition.lastTransitionTime}
-                  </Typography>
-                </Box>
+                  </Text>
+                </Flex>
               ))}
             </Box>
-          </Grid>
+          </Grid.Item>
         )}
 
         {status?.vmClasses && status.vmClasses.length > 0 && (
-          <Grid item xs={12} md={6}>
-            <Typography variant="h6" className={classes.sectionTitle}>
-              Available VM Classes
-            </Typography>
-            <Box>
-              {status.vmClasses.map((vmClass: any, index: number) => (
-                <Chip
-                  key={index}
-                  label={vmClass.name}
-                  size="small"
-                  className={classes.statusChip}
-                  variant="outlined"
-                />
-              ))}
+          <Grid.Item colSpan={{ xs: '12', md: '6' }}>
+            <Box mb="4">
+              <Text variant="title-small" weight="bold">Available VM Classes</Text>
             </Box>
-          </Grid>
+            <Flex gap="1" style={{ flexWrap: 'wrap' }}>
+              {status.vmClasses.map((vmClass: any, index: number) => (
+                <Badge key={index}>{vmClass.name}</Badge>
+              ))}
+            </Flex>
+          </Grid.Item>
         )}
 
         {status?.storageClasses && status.storageClasses.length > 0 && (
-          <Grid item xs={12} md={6}>
-            <Typography variant="h6" className={classes.sectionTitle}>
-              Storage Classes
-            </Typography>
+          <Grid.Item colSpan={{ xs: '12', md: '6' }}>
+            <Box mb="4">
+              <Text variant="title-small" weight="bold">Storage Classes</Text>
+            </Box>
             <Box>
               {status.storageClasses.map((storageClass: any, index: number) => (
-                <Box key={index} mb={1}>
-                  <Chip
-                    label={storageClass.name}
-                    size="small"
-                    className={classes.statusChip}
-                    color="secondary"
-                  />
-                  <Typography variant="caption" display="block">
+                <Box key={index} mb="2">
+                  <Badge>{storageClass.name}</Badge>
+                  <Text variant="body-small" style={{ display: 'block' }}>
                     Limit: {storageClass.limit}
-                  </Typography>
+                  </Text>
                 </Box>
               ))}
             </Box>
-          </Grid>
+          </Grid.Item>
         )}
 
         {status?.zones && status.zones.length > 0 && (
-          <Grid item xs={12}>
-            <Typography variant="h6" className={classes.sectionTitle}>
-              Resource Zones
-            </Typography>
-            <Grid container spacing={2}>
+          <Grid.Item colSpan="12">
+            <Box mb="4">
+              <Text variant="title-small" weight="bold">Resource Zones</Text>
+            </Box>
+            <Grid.Root columns="12" gap="5">
               {status.zones.map((zone: any, index: number) => (
-                <Grid item xs={12} md={6} key={index}>
+                <Grid.Item colSpan={{ xs: '12', md: '6' }} key={index}>
                   <InfoCard title={zone.name}>
                     <StructuredMetadataTable
                       metadata={{
@@ -253,12 +224,12 @@ export const VCFAutomationCCINamespaceOverview = () => {
                       }}
                     />
                   </InfoCard>
-                </Grid>
+                </Grid.Item>
               ))}
-            </Grid>
-          </Grid>
+            </Grid.Root>
+          </Grid.Item>
         )}
-      </Grid>
+      </Grid.Root>
     </InfoCard>
   );
 };

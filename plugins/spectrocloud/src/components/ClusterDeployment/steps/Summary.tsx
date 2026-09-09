@@ -1,57 +1,34 @@
 import { useState, useMemo } from 'react';
 import {
-  Box,
-  Typography,
-  Button,
-  Grid,
-  Paper,
-  Chip,
   Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  CircularProgress,
-  IconButton,
+  AccordionPanel,
+  AccordionTrigger,
+  Alert,
+  Badge,
+  Box,
+  Button,
+  ButtonIcon,
+  Card,
+  CardBody,
+  Flex,
+  Grid,
+  Text,
   Tooltip,
-} from '@material-ui/core';
-import { Alert } from '@material-ui/lab';
-import { makeStyles, useTheme } from '@material-ui/core/styles';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import CheckCircleIcon from '@material-ui/icons/CheckCircle';
-import GetAppIcon from '@material-ui/icons/GetApp';
-import FileCopyIcon from '@material-ui/icons/FileCopy';
+  TooltipTrigger,
+} from '@backstage/ui';
+import { CopyTextButton } from '@backstage/core-components';
+import { RiCheckboxCircleLine, RiDownloadLine } from '@remixicon/react';
+// BUI-EXCEPTION: `react-syntax-highlighter`'s `style` prop needs a literal JS style object
+// (light/dark theme constant), which cannot be derived from a CSS custom property. `useTheme`
+// is kept narrowly for this one boolean.
+import { useTheme } from '@material-ui/core/styles';
 import { useApi } from '@backstage/core-plugin-api';
 import { spectroCloudApiRef } from '../../../api';
 import { ClusterDeploymentState, CLOUD_TYPE_LABELS, CloudType } from '../types';
 import { ClusterCreationRequest } from '../../../api/SpectroCloudApi';
 import ReactSyntaxHighlighter from 'react-syntax-highlighter';
 import { docco, atomOneDark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    padding: theme.spacing(2),
-  },
-  section: {
-    marginBottom: theme.spacing(3),
-  },
-  summaryPaper: {
-    padding: theme.spacing(2),
-    marginBottom: theme.spacing(2),
-  },
-  label: {
-    fontWeight: 'bold',
-    marginRight: theme.spacing(1),
-  },
-  tfPreview: {
-    maxHeight: 400,
-    overflow: 'auto',
-  },
-  deployButton: {
-    marginTop: theme.spacing(2),
-  },
-  successMessage: {
-    marginTop: theme.spacing(2),
-  },
-}));
+import styles from './Summary.module.css';
 
 interface SummaryProps {
   state: ClusterDeploymentState;
@@ -467,14 +444,12 @@ const generateTerraformConfig = (state: ClusterDeploymentState): string => {
 };
 
 export const Summary = ({ state, onDeploy }: SummaryProps) => {
-  const classes = useStyles();
   const theme = useTheme();
   const spectroCloudApi = useApi(spectroCloudApiRef);
   const [deploying, setDeploying] = useState(false);
   const [deploySuccess, setDeploySuccess] = useState(false);
   const [deployedClusterUid, setDeployedClusterUid] = useState<string>();
   const [error, setError] = useState<string>();
-  const [tfCopied, setTfCopied] = useState(false);
 
   // Generate Terraform config on the client side
   const tfConfig = useMemo(() => {
@@ -492,17 +467,6 @@ export const Summary = ({ state, onDeploy }: SummaryProps) => {
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
-  };
-
-  const handleCopyTerraform = async () => {
-    try {
-      await navigator.clipboard.writeText(tfConfig);
-      setTfCopied(true);
-      setTimeout(() => setTfCopied(false), 2000);
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error('Failed to copy to clipboard:', err);
-    }
   };
 
   const buildClusterConfig = (): ClusterCreationRequest => {
@@ -724,200 +688,186 @@ export const Summary = ({ state, onDeploy }: SummaryProps) => {
 
   if (deploySuccess) {
     return (
-      <Box className={classes.root}>
+      <Box p="4">
         <Alert
-          severity="success"
-          icon={<CheckCircleIcon fontSize="inherit" />}
-          className={classes.successMessage}
-        >
-          <Typography variant="h6" gutterBottom>
-            Cluster Deployment Initiated!
-          </Typography>
-          <Typography variant="body2" paragraph>
-            Your cluster <strong>{state.clusterName}</strong> has been successfully submitted
-            for deployment.
-          </Typography>
-          {deployedClusterUid && (
-            <Typography variant="body2">
-              Cluster UID: <code>{deployedClusterUid}</code>
-            </Typography>
-          )}
-          <Typography variant="body2" style={{ marginTop: 16 }}>
-            The cluster is now being provisioned. You can monitor its progress in the Spectro
-            Cloud console or in the Backstage catalog once it's discovered.
-          </Typography>
-        </Alert>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={onDeploy}
-          style={{ marginTop: 16 }}
-        >
-          Deploy Another Cluster
-        </Button>
+          status="success"
+          icon={<RiCheckboxCircleLine />}
+          style={{ marginTop: 'var(--bui-space-4)' }}
+          title="Cluster Deployment Initiated!"
+          description={
+            <Flex direction="column" gap="2">
+              <Text variant="body-small">
+                Your cluster <strong>{state.clusterName}</strong> has been successfully submitted
+                for deployment.
+              </Text>
+              {deployedClusterUid && (
+                <Text variant="body-small">
+                  Cluster UID: <code>{deployedClusterUid}</code>
+                </Text>
+              )}
+              <Text variant="body-small">
+                The cluster is now being provisioned. You can monitor its progress in the Spectro
+                Cloud console or in the Backstage catalog once it's discovered.
+              </Text>
+            </Flex>
+          }
+        />
+        <Box style={{ marginTop: 'var(--bui-space-4)' }}>
+          <Button variant="primary" onPress={onDeploy}>
+            Deploy Another Cluster
+          </Button>
+        </Box>
       </Box>
     );
   }
 
   return (
-    <Box className={classes.root}>
-      <Typography variant="h5" gutterBottom>
+    <Box p="4">
+      <Text variant="title-small" style={{ display: 'block', marginBottom: 'var(--bui-space-2)' }}>
         Review & Deploy
-      </Typography>
-      <Typography variant="body2" color="textSecondary" paragraph>
+      </Text>
+      <Text variant="body-medium" color="secondary" style={{ display: 'block', marginBottom: 'var(--bui-space-4)' }}>
         Review your cluster configuration before deployment
-      </Typography>
+      </Text>
 
       {error && (
-        <Alert severity="error" style={{ marginBottom: 16 }}>
-          {error}
-        </Alert>
+        <Box style={{ marginBottom: 'var(--bui-space-4)' }}>
+          <Alert status="danger" description={error} />
+        </Box>
       )}
 
       {/* Cluster Overview */}
-      <Paper className={classes.summaryPaper}>
-        <Typography variant="h6" gutterBottom>
-          Cluster Overview
-        </Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
-            <Typography>
-              <span className={classes.label}>Cluster Name:</span>
-              {state.clusterName}
-            </Typography>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Typography>
-              <span className={classes.label}>Cloud Type:</span>
-              {state.cloudType && CLOUD_TYPE_LABELS[state.cloudType]}
-            </Typography>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Typography>
-              <span className={classes.label}>Project:</span>
-              {state.projectName}
-            </Typography>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Typography>
-              <span className={classes.label}>Cloud Account:</span>
-              {state.cloudAccountName}
-            </Typography>
-          </Grid>
-        </Grid>
-      </Paper>
+      <Card style={{ marginBottom: 'var(--bui-space-4)' }}>
+        <CardBody>
+          <Text variant="title-x-small" style={{ display: 'block', marginBottom: 'var(--bui-space-2)' }}>
+            Cluster Overview
+          </Text>
+          <Grid.Root columns="12" gap="4">
+            <Grid.Item colSpan={{ xs: '12', sm: '6' }}>
+              <Text>
+                <strong>Cluster Name:</strong> {state.clusterName}
+              </Text>
+            </Grid.Item>
+            <Grid.Item colSpan={{ xs: '12', sm: '6' }}>
+              <Text>
+                <strong>Cloud Type:</strong> {state.cloudType && CLOUD_TYPE_LABELS[state.cloudType]}
+              </Text>
+            </Grid.Item>
+            <Grid.Item colSpan={{ xs: '12', sm: '6' }}>
+              <Text>
+                <strong>Project:</strong> {state.projectName}
+              </Text>
+            </Grid.Item>
+            <Grid.Item colSpan={{ xs: '12', sm: '6' }}>
+              <Text>
+                <strong>Cloud Account:</strong> {state.cloudAccountName}
+              </Text>
+            </Grid.Item>
+          </Grid.Root>
+        </CardBody>
+      </Card>
 
       {/* Profiles */}
-      <Paper className={classes.summaryPaper}>
-        <Typography variant="h6" gutterBottom>
-          Cluster Profiles
-        </Typography>
-        <Box>
-          {state.profiles.map((profile, idx) => (
-            <Box key={idx} marginBottom={1}>
-              <Typography>
-                <span className={classes.label}>{profile.name}</span>
-                <Chip label={`v${profile.version}`} size="small" />
-                {' '}
-                <Chip label={profile.type} size="small" color="primary" />
-              </Typography>
-            </Box>
-          ))}
-        </Box>
-      </Paper>
+      <Card style={{ marginBottom: 'var(--bui-space-4)' }}>
+        <CardBody>
+          <Text variant="title-x-small" style={{ display: 'block', marginBottom: 'var(--bui-space-2)' }}>
+            Cluster Profiles
+          </Text>
+          <Flex direction="column" gap="2">
+            {state.profiles.map((profile, idx) => (
+              <Flex key={idx} align="center" gap="2">
+                <Text weight="bold">{profile.name}</Text>
+                <Badge>{`v${profile.version}`}</Badge>
+                <Badge>{profile.type}</Badge>
+              </Flex>
+            ))}
+          </Flex>
+        </CardBody>
+      </Card>
 
       {/* Infrastructure */}
-      <Paper className={classes.summaryPaper}>
-        <Typography variant="h6" gutterBottom>
-          Infrastructure
-        </Typography>
-        <Typography variant="subtitle2">Control Plane:</Typography>
-        <Typography variant="body2" gutterBottom>
-          {state.controlPlaneConfig.size || state.controlPlaneConfig.count || 1} node(s) -{' '}
-          {typeof state.controlPlaneConfig.instanceType === 'object'
-            ? `${state.controlPlaneConfig.instanceType.numCPUs || 4} CPUs, ${state.controlPlaneConfig.instanceType.memoryMiB || 8192} MiB RAM, ${state.controlPlaneConfig.instanceType.diskGiB || 60} GiB Disk`
-            : state.controlPlaneConfig.instanceType || 'default instance type'}
-        </Typography>
-        <Typography variant="subtitle2" style={{ marginTop: 8 }}>
-          Worker Pools:
-        </Typography>
-        {state.workerPools.map((pool, idx) => (
-          <Typography key={idx} variant="body2">
-            • {pool.name}:{' '}
-            {pool.useAutoscaler
-              ? `${pool.minSize}-${pool.maxSize} nodes (autoscaling)`
-              : `${pool.size} node(s)`}{' '}
-            -{' '}
-            {typeof pool.instanceType === 'object'
-              ? `${pool.instanceType.numCPUs || 4} CPUs, ${pool.instanceType.memoryMiB || 8192} MiB RAM, ${pool.instanceType.diskGiB || 60} GiB Disk`
-              : pool.instanceType || 'default'}
-          </Typography>
-        ))}
-      </Paper>
+      <Card style={{ marginBottom: 'var(--bui-space-4)' }}>
+        <CardBody>
+          <Text variant="title-x-small" style={{ display: 'block', marginBottom: 'var(--bui-space-2)' }}>
+            Infrastructure
+          </Text>
+          <Text variant="body-small" weight="bold" style={{ display: 'block' }}>Control Plane:</Text>
+          <Text variant="body-small" style={{ display: 'block', marginBottom: 'var(--bui-space-2)' }}>
+            {state.controlPlaneConfig.size || state.controlPlaneConfig.count || 1} node(s) -{' '}
+            {typeof state.controlPlaneConfig.instanceType === 'object'
+              ? `${state.controlPlaneConfig.instanceType.numCPUs || 4} CPUs, ${state.controlPlaneConfig.instanceType.memoryMiB || 8192} MiB RAM, ${state.controlPlaneConfig.instanceType.diskGiB || 60} GiB Disk`
+              : state.controlPlaneConfig.instanceType || 'default instance type'}
+          </Text>
+          <Text variant="body-small" weight="bold" style={{ display: 'block', marginTop: 'var(--bui-space-2)' }}>
+            Worker Pools:
+          </Text>
+          {state.workerPools.map((pool, idx) => (
+            <Text key={idx} variant="body-small" style={{ display: 'block' }}>
+              • {pool.name}:{' '}
+              {pool.useAutoscaler
+                ? `${pool.minSize}-${pool.maxSize} nodes (autoscaling)`
+                : `${pool.size} node(s)`}{' '}
+              -{' '}
+              {typeof pool.instanceType === 'object'
+                ? `${pool.instanceType.numCPUs || 4} CPUs, ${pool.instanceType.memoryMiB || 8192} MiB RAM, ${pool.instanceType.diskGiB || 60} GiB Disk`
+                : pool.instanceType || 'default'}
+            </Text>
+          ))}
+        </CardBody>
+      </Card>
 
       {/* Terraform Preview */}
       <Accordion defaultExpanded={false}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Box display="flex" alignItems="center" justifyContent="space-between" width="100%">
-            <Typography variant="h6">Terraform Configuration (Reference)</Typography>
-            <Box display="flex">
-              <Tooltip title={tfCopied ? "Copied!" : "Copy to clipboard"}>
-                <IconButton
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleCopyTerraform();
-                  }}
-                  color={tfCopied ? "primary" : "default"}
-                >
-                  <FileCopyIcon />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="Download as .tf file">
-                <IconButton
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDownloadTerraform();
-                  }}
-                >
-                  <GetAppIcon />
-                </IconButton>
-              </Tooltip>
-            </Box>
-          </Box>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Box width="100%">
-            <Typography variant="body2" color="textSecondary" paragraph>
-              Below is a basic Terraform configuration template based on your selections.
-              This is for reference only and may need adjustments for production use.
-            </Typography>
-            <Box className={classes.tfPreview}>
-              <ReactSyntaxHighlighter 
-                language="hcl" 
+        <AccordionTrigger>
+          <Flex align="center" justify="between" style={{ width: '100%', paddingRight: 'var(--bui-space-8)' }}>
+            <Text variant="title-x-small">Terraform Configuration (Reference)</Text>
+          </Flex>
+        </AccordionTrigger>
+        <AccordionPanel>
+          <Box style={{ width: '100%' }}>
+            <Flex align="center" justify="between" style={{ marginBottom: 'var(--bui-space-2)' }}>
+              <Text variant="body-small" color="secondary">
+                Below is a basic Terraform configuration template based on your selections.
+                This is for reference only and may need adjustments for production use.
+              </Text>
+              <Flex gap="1">
+                <CopyTextButton text={tfConfig} aria-label="Copy Terraform configuration" />
+                <TooltipTrigger>
+                  <ButtonIcon
+                    aria-label="Download as .tf file"
+                    icon={<RiDownloadLine />}
+                    size="small"
+                    variant="tertiary"
+                    onPress={handleDownloadTerraform}
+                  />
+                  <Tooltip>Download as .tf file</Tooltip>
+                </TooltipTrigger>
+              </Flex>
+            </Flex>
+            <Box className={styles.tfPreview}>
+              <ReactSyntaxHighlighter
+                language="hcl"
                 style={theme.palette.type === 'dark' ? atomOneDark : docco}
               >
                 {tfConfig}
               </ReactSyntaxHighlighter>
             </Box>
           </Box>
-        </AccordionDetails>
+        </AccordionPanel>
       </Accordion>
 
       {/* Deploy Button */}
-      <Box display="flex" justifyContent="center" className={classes.deployButton}>
+      <Flex justify="center" style={{ marginTop: 'var(--bui-space-4)' }}>
         <Button
-          variant="contained"
-          color="primary"
-          size="large"
-          onClick={handleDeploy}
-          disabled={deploying}
-          startIcon={deploying ? <CircularProgress size={20} /> : undefined}
+          variant="primary"
+          size="medium"
+          onPress={handleDeploy}
+          isDisabled={deploying}
+          isPending={deploying}
         >
           {deploying ? 'Deploying...' : 'Deploy Cluster'}
         </Button>
-      </Box>
+      </Flex>
     </Box>
   );
 };

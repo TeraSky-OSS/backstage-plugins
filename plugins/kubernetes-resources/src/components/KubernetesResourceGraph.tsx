@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react';
-import { useTheme, Drawer, IconButton, Box, Button, Table, TableBody, TableCell, TableHead, TableRow, Typography, CircularProgress } from '@material-ui/core';
+// BUI-EXCEPTION: `Drawer` has no BUI equivalent (see MUI_TO_BUI_MIGRATION.md exception list).
+// `useTheme` is kept narrowly to feed `react-syntax-highlighter` and `react-flow-renderer`,
+// third-party libraries that need real JS color strings, not CSS custom properties.
+import { useTheme, Drawer } from '@material-ui/core';
+import { Box, Button, ButtonIcon, Flex, Text } from '@backstage/ui';
+import { Progress, Table, TableColumn, CopyTextButton } from '@backstage/core-components';
 import { useApi, configApiRef, identityApiRef } from '@backstage/core-plugin-api';
 import { KubernetesObject } from '@backstage/plugin-kubernetes';
 import { kubernetesApiRef } from '@backstage/plugin-kubernetes-react';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import YAML from 'js-yaml';
-import CloseIcon from '@material-ui/icons/Close';
-import { CopyToClipboard } from 'react-copy-to-clipboard';
+import { RiCloseLine } from '@remixicon/react';
 import { saveAs } from 'file-saver';
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { docco, dark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
@@ -310,11 +314,19 @@ const KubernetesResourceGraph = () => {
     };
 
     if (loading) {
-        return <CircularProgress />;
+        return <Progress />;
     }
     if (!canShowResourceGraph) {
-        return <Typography>You don't have permissions to view the resource graph</Typography>;
+        return <Text>You don't have permissions to view the resource graph</Text>;
     }
+
+    const eventColumns: TableColumn<any>[] = [
+        { title: 'Type', field: 'type' },
+        { title: 'Reason', field: 'reason' },
+        { title: 'Message', field: 'message' },
+        { title: 'First Seen', field: 'firstTimestamp' },
+        { title: 'Last Seen', field: 'lastTimestamp' },
+    ];
 
     return (
         <ReactFlowProvider>
@@ -336,61 +348,34 @@ const KubernetesResourceGraph = () => {
                 </ReactFlow>
             </div>
             <Drawer anchor="right" open={drawerOpen} onClose={handleCloseDrawer}>
-                <div style={{ width: '50vw', padding: '16px', backgroundColor: theme.palette.background.default, color: theme.palette.text.primary }}>
-                    <IconButton onClick={handleCloseDrawer}>
-                        <CloseIcon />
-                    </IconButton>
+                <Box style={{ width: '50vw', padding: 'var(--bui-space-4)', backgroundColor: theme.palette.background.default, color: theme.palette.text.primary }}>
                     {selectedResource && (
                         <>
-                            <Typography variant="h4" gutterBottom>Kubernetes Manifest</Typography>
-                            <Box style={{ maxHeight: '40em', overflow: 'auto', border: '1px solid #ccc', padding: '8px' }}>
-                                <Box mb={2}>
-                                    <Typography variant="h4">Actions</Typography>
-                                    <Box display="flex" justifyContent="flex-start" mt={1}>
-                                        <CopyToClipboard text={YAML.dump(removeManagedFields(selectedResource))}>
-                                            <Button variant="contained" color="primary" style={{ marginRight: '8px' }}>Copy to Clipboard</Button>
-                                        </CopyToClipboard>
-                                        <Button
-                                            variant="contained"
-                                            color="primary"
-                                            onClick={() => handleDownloadYaml(selectedResource)}
-                                        >
+                            <Flex align="center" justify="between" style={{ marginBottom: 'var(--bui-space-4)' }}>
+                                <Text variant="title-small" weight="bold">Kubernetes Manifest</Text>
+                                <ButtonIcon aria-label="Close" icon={<RiCloseLine />} onPress={handleCloseDrawer} />
+                            </Flex>
+                            <Box style={{ maxHeight: '40em', overflow: 'auto', border: '1px solid var(--bui-border-1)', padding: 'var(--bui-space-2)' }}>
+                                <Box mb="4">
+                                    <Text variant="title-x-small" weight="bold">Actions</Text>
+                                    <Flex gap="2" mt="2">
+                                        <CopyTextButton text={YAML.dump(removeManagedFields(selectedResource))} aria-label="Copy manifest to clipboard" />
+                                        <Button variant="primary" onPress={() => handleDownloadYaml(selectedResource)}>
                                             Download YAML
                                         </Button>
-                                    </Box>
+                                    </Flex>
                                 </Box>
                                 <SyntaxHighlighter language="yaml" style={theme.palette.type === 'dark' ? dark : docco}>
                                     {YAML.dump(removeManagedFields(selectedResource))}
                                 </SyntaxHighlighter>
                             </Box>
-                            <Typography variant="h4" gutterBottom>Kubernetes Events</Typography>
-                            <Box style={{ maxHeight: '40em', overflow: 'auto', border: '1px solid #ccc', padding: '8px' }}>
-                                <Table>
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell>Type</TableCell>
-                                            <TableCell>Reason</TableCell>
-                                            <TableCell>Message</TableCell>
-                                            <TableCell>First Seen</TableCell>
-                                            <TableCell>Last Seen</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {events.map(event => (
-                                            <TableRow key={event.metadata?.uid}>
-                                                <TableCell>{event.type}</TableCell>
-                                                <TableCell>{event.reason}</TableCell>
-                                                <TableCell>{event.message}</TableCell>
-                                                <TableCell>{event.firstTimestamp}</TableCell>
-                                                <TableCell>{event.lastTimestamp}</TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
+                            <Text variant="title-small" weight="bold" style={{ marginBottom: 'var(--bui-space-4)', display: 'block', marginTop: 'var(--bui-space-4)' }}>Kubernetes Events</Text>
+                            <Box style={{ maxHeight: '40em', overflow: 'auto', border: '1px solid var(--bui-border-1)', padding: 'var(--bui-space-2)' }}>
+                                <Table options={{ search: false, paging: false }} columns={eventColumns} data={events} />
                             </Box>
                         </>
                     )}
-                </div>
+                </Box>
             </Drawer>
         </ReactFlowProvider>
     );

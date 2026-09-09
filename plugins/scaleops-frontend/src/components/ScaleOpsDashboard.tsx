@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useApi, configApiRef, identityApiRef } from '@backstage/core-plugin-api';
 import { Table, TableColumn } from '@backstage/core-components';
 import { useEntity } from '@backstage/plugin-catalog-react';
-import { useTheme, Card, CardContent, Typography, Grid, Box } from '@material-ui/core';
+import { Box, Card, CardBody, Flex, Grid, Text } from '@backstage/ui';
 // import './ScaleOpsDashboard.css';
 
 interface Workload {
@@ -92,78 +92,90 @@ const networkColumns: TableColumn<NetworkUsage>[] = [
 
 const AutomationConfigCard = ({ workload }: { workload: Workload }) => (
   <Card className="fixed-height-card">
-    <CardContent>
-      <Typography variant="h6">Automation Configuration</Typography>
-      <Typography><strong>Automated:</strong> {workload.auto ? 'Yes' : 'No'}</Typography>
-      <Typography><strong>Policy Name:</strong> {workload.policyName}</Typography>
-      <Typography><strong>Overridden:</strong> {workload.overridden ? 'Yes' : 'No'}</Typography>
-      <Typography><strong>Should Bin Pack:</strong> {workload.shouldBinPack ? 'Yes' : 'No'}</Typography>
-      <Typography><strong>Rollout Policy Value:</strong> {workload.rolloutPolicyValue}</Typography>
-    </CardContent>
+    <CardBody>
+      <Flex direction="column" gap="2">
+        <Text variant="title-small" weight="bold">Automation Configuration</Text>
+        <Text><strong>Automated:</strong> {workload.auto ? 'Yes' : 'No'}</Text>
+        <Text><strong>Policy Name:</strong> {workload.policyName}</Text>
+        <Text><strong>Overridden:</strong> {workload.overridden ? 'Yes' : 'No'}</Text>
+        <Text><strong>Should Bin Pack:</strong> {workload.shouldBinPack ? 'Yes' : 'No'}</Text>
+        <Text><strong>Rollout Policy Value:</strong> {workload.rolloutPolicyValue}</Text>
+      </Flex>
+    </CardBody>
   </Card>
 );
 
 const PotentialSavingsCard = ({ workload }: { workload: Workload }) => (
   <Card className="fixed-height-card">
-    <CardContent>
-      <Typography variant="h6">Potential Savings</Typography>
-      <Typography><strong>Savings Available:</strong> {formatCost(workload.savingsAvailable)}</Typography>
-      <Typography><strong>Active Savings:</strong> {formatCost(workload.activeSavings)}</Typography>
-      <Typography><strong>Overall Available Savings:</strong> {formatCost(workload.overallAvailableSavings)}</Typography>
-    </CardContent>
+    <CardBody>
+      <Flex direction="column" gap="2">
+        <Text variant="title-small" weight="bold">Potential Savings</Text>
+        <Text><strong>Savings Available:</strong> {formatCost(workload.savingsAvailable)}</Text>
+        <Text><strong>Active Savings:</strong> {formatCost(workload.activeSavings)}</Text>
+        <Text><strong>Overall Available Savings:</strong> {formatCost(workload.overallAvailableSavings)}</Text>
+      </Flex>
+    </CardBody>
   </Card>
 );
 
 const ResourceConfigCard = ({ workload }: { workload: Workload }) => (
   <Card className="fixed-height-card">
-    <CardContent>
-      <Typography variant="h6">Resource Configuration</Typography>
-      <Typography><strong>CPU Requests:</strong> {formatCpu(workload.cpuRequests)}</Typography>
-      <Typography><strong>Memory Requests:</strong> {formatBytes(workload.memRequests)}</Typography>
-      <Typography><strong>Priority Class Name:</strong> {workload.priorityClassName}</Typography>
-      <Typography><strong>Replicas:</strong> {workload.replicas}</Typography>
-      <Typography><strong>Has GPU:</strong> {workload.hasGPU ? 'Yes' : 'No'}</Typography>
-      <Typography><strong>Has HPA:</strong> {workload.hasHpa ? 'Yes' : 'No'}</Typography>
-    </CardContent>
+    <CardBody>
+      <Flex direction="column" gap="2">
+        <Text variant="title-small" weight="bold">Resource Configuration</Text>
+        <Text><strong>CPU Requests:</strong> {formatCpu(workload.cpuRequests)}</Text>
+        <Text><strong>Memory Requests:</strong> {formatBytes(workload.memRequests)}</Text>
+        <Text><strong>Priority Class Name:</strong> {workload.priorityClassName}</Text>
+        <Text><strong>Replicas:</strong> {workload.replicas}</Text>
+        <Text><strong>Has GPU:</strong> {workload.hasGPU ? 'Yes' : 'No'}</Text>
+        <Text><strong>Has HPA:</strong> {workload.hasHpa ? 'Yes' : 'No'}</Text>
+      </Flex>
+    </CardBody>
   </Card>
 );
 
 const ResourceRecommendationsCard = ({ workload }: { workload: Workload }) => (
   <Card className="fixed-height-card">
-    <CardContent>
-      <Typography variant="h6">Resource Recommendations</Typography>
-      <Typography><strong>CPU Recommended:</strong> {formatCpu(workload.cpuRecommended)}</Typography>
-      <Typography><strong>Memory Recommended:</strong> {formatBytes(workload.memRecommended)}</Typography>
-      <Typography><strong>Under Provisioned:</strong> {workload.isUnderProvisioned ? 'Yes' : 'No'}</Typography>
-      <Typography><strong>Over Provisioned:</strong> {workload.isOverProvisioned ? 'Yes' : 'No'}</Typography>
-    </CardContent>
+    <CardBody>
+      <Flex direction="column" gap="2">
+        <Text variant="title-small" weight="bold">Resource Recommendations</Text>
+        <Text><strong>CPU Recommended:</strong> {formatCpu(workload.cpuRecommended)}</Text>
+        <Text><strong>Memory Recommended:</strong> {formatBytes(workload.memRecommended)}</Text>
+        <Text><strong>Under Provisioned:</strong> {workload.isUnderProvisioned ? 'Yes' : 'No'}</Text>
+        <Text><strong>Over Provisioned:</strong> {workload.isOverProvisioned ? 'Yes' : 'No'}</Text>
+      </Flex>
+    </CardBody>
   </Card>
 );
 
 const CostAnalysisCard = ({ aggregatedWorkload }: { aggregatedWorkload: AggregatedWorkload }) => (
   <Card className="fixed-height-card">
-    <CardContent>
-      <Typography variant="h6">7 Day Cost Analysis</Typography>
-      <Typography><strong>Total Cost:</strong> {formatCost(aggregatedWorkload.totalCost)}</Typography>
-      <Typography><strong>Hourly Cost:</strong> {formatCost(aggregatedWorkload.hourlyCost)}</Typography>
-      <Typography><strong>Spot Hours:</strong> {aggregatedWorkload.spotHours}</Typography>
-      <Typography><strong>Spot Percent:</strong> {aggregatedWorkload.spotPercent}</Typography>
-      <Typography><strong>On-Demand Hours:</strong> {aggregatedWorkload.onDemandHours}</Typography>
-      <Typography><strong>On-Demand Percent:</strong> {aggregatedWorkload.onDemandPercent}</Typography>
-      <Typography><strong>Savings Available:</strong> {formatCost(aggregatedWorkload.savingsAvailable)}</Typography>
-    </CardContent>
+    <CardBody>
+      <Flex direction="column" gap="2">
+        <Text variant="title-small" weight="bold">7 Day Cost Analysis</Text>
+        <Text><strong>Total Cost:</strong> {formatCost(aggregatedWorkload.totalCost)}</Text>
+        <Text><strong>Hourly Cost:</strong> {formatCost(aggregatedWorkload.hourlyCost)}</Text>
+        <Text><strong>Spot Hours:</strong> {aggregatedWorkload.spotHours}</Text>
+        <Text><strong>Spot Percent:</strong> {aggregatedWorkload.spotPercent}</Text>
+        <Text><strong>On-Demand Hours:</strong> {aggregatedWorkload.onDemandHours}</Text>
+        <Text><strong>On-Demand Percent:</strong> {aggregatedWorkload.onDemandPercent}</Text>
+        <Text><strong>Savings Available:</strong> {formatCost(aggregatedWorkload.savingsAvailable)}</Text>
+      </Flex>
+    </CardBody>
   </Card>
 );
 
 const ResourceErrorsCard = ({ workload }: { workload: Workload }) => (
   <Card className="fixed-height-card">
-    <CardContent>
-      <Typography variant="h6">Resource Errors</Typography>
-      <Typography><strong>OOM Count Last 24h:</strong> {workload.oomCountLast24h}</Typography>
-      <Typography><strong>OOM Last Timestamp:</strong> {workload.oomLastTimestamp}</Typography>
-      <Typography><strong>Workload Errors:</strong> {workload.workloadErrors}</Typography>
-      <Typography><strong>HPA Status Warnings:</strong> {workload.hpaStatusWarnings}</Typography>
-    </CardContent>
+    <CardBody>
+      <Flex direction="column" gap="2">
+        <Text variant="title-small" weight="bold">Resource Errors</Text>
+        <Text><strong>OOM Count Last 24h:</strong> {workload.oomCountLast24h}</Text>
+        <Text><strong>OOM Last Timestamp:</strong> {workload.oomLastTimestamp}</Text>
+        <Text><strong>Workload Errors:</strong> {workload.workloadErrors}</Text>
+        <Text><strong>HPA Status Warnings:</strong> {workload.hpaStatusWarnings}</Text>
+      </Flex>
+    </CardBody>
   </Card>
 );
 
@@ -180,7 +192,6 @@ const NetworkUsageTable = ({ networkUsage }: { networkUsage: NetworkUsage[] }) =
 export const ScaleOpsDashboard = () => {
   const configApi = useApi(configApiRef);
   const identityApi = useApi(identityApiRef);
-  const theme = useTheme();
   const { entity } = useEntity();
   const [workloads, setWorkloads] = useState<Workload[]>([]);
   const [selectedWorkload, setSelectedWorkload] = useState<Workload | null>(null);
@@ -417,59 +428,47 @@ export const ScaleOpsDashboard = () => {
           search: false,
           paging: false,
           rowStyle: (rowData: Workload) => ({
-            backgroundColor: selectedWorkload && selectedWorkload.id === rowData.id ? theme.palette.action.selected : theme.palette.background.default,
-            color: theme.palette.text.primary,
+            backgroundColor: selectedWorkload && selectedWorkload.id === rowData.id ? 'var(--bui-bg-neutral-2)' : 'var(--bui-bg-app)',
+            color: 'var(--bui-fg-primary)',
           }),
           headerStyle: {
-            backgroundColor: theme.palette.background.default,
-            color: theme.palette.text.primary,
+            backgroundColor: 'var(--bui-bg-app)',
+            color: 'var(--bui-fg-primary)',
           },
         }}
         columns={columns}
         data={workloads}
         onRowClick={(_, rowData) => rowData && setSelectedWorkload(rowData)}
       />
-      <Box mt={3}>
+      <Box mt="5">
         {selectedWorkload && (
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <Box display="flex" flexDirection="column" height="100%">
-                <AutomationConfigCard workload={selectedWorkload} />
-              </Box>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Box display="flex" flexDirection="column" height="100%">
-                <ResourceConfigCard workload={selectedWorkload} />
-              </Box>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Box display="flex" flexDirection="column" height="100%">
-                <ResourceRecommendationsCard workload={selectedWorkload} />
-              </Box>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Box display="flex" flexDirection="column" height="100%">
-                <PotentialSavingsCard workload={selectedWorkload} />
-              </Box>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Box display="flex" flexDirection="column" height="100%">
-                <ResourceErrorsCard workload={selectedWorkload} />
-              </Box>
-            </Grid>
+          <Grid.Root columns="12" gap="5">
+            <Grid.Item colSpan={{ xs: '12', md: '6' }}>
+              <AutomationConfigCard workload={selectedWorkload} />
+            </Grid.Item>
+            <Grid.Item colSpan={{ xs: '12', md: '6' }}>
+              <ResourceConfigCard workload={selectedWorkload} />
+            </Grid.Item>
+            <Grid.Item colSpan={{ xs: '12', md: '6' }}>
+              <ResourceRecommendationsCard workload={selectedWorkload} />
+            </Grid.Item>
+            <Grid.Item colSpan={{ xs: '12', md: '6' }}>
+              <PotentialSavingsCard workload={selectedWorkload} />
+            </Grid.Item>
+            <Grid.Item colSpan={{ xs: '12', md: '6' }}>
+              <ResourceErrorsCard workload={selectedWorkload} />
+            </Grid.Item>
             {aggregatedWorkload && (
-              <Grid item xs={12} md={6}>
-                <Box display="flex" flexDirection="column" height="100%">
-                  <CostAnalysisCard aggregatedWorkload={aggregatedWorkload} />
-                </Box>
-              </Grid>
+              <Grid.Item colSpan={{ xs: '12', md: '6' }}>
+                <CostAnalysisCard aggregatedWorkload={aggregatedWorkload} />
+              </Grid.Item>
             )}
             {networkCostEnabled && networkUsage.length > 0 && (
-              <Grid item xs={12}>
+              <Grid.Item colSpan="12">
                 <NetworkUsageTable networkUsage={networkUsage} />
-              </Grid>
+              </Grid.Item>
             )}
-          </Grid>
+          </Grid.Root>
         )}
       </Box>
     </>

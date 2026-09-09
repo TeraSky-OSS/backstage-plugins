@@ -39,9 +39,7 @@
     "@backstage/plugin-scaffolder": "^1.38.2",
     "@backstage/plugin-scaffolder-react": "^2.0.3",
     "@backstage/theme": "^0.7.3",
-    "@material-ui/core": "4.12.4",
-    "@material-ui/icons": "4.11.3",
-    "@mui/material": "6.4.11",
+    "@backstage/ui": "^0.17.1",
     "react-use": "17.6.0",
     "zod": "3.25.76"
   },

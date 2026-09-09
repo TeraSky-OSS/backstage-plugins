@@ -1,129 +1,40 @@
 import { useEffect, useState } from 'react';
 import {
-  Box,
-  Typography,
-  IconButton,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  CircularProgress,
-  Chip,
   Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Tabs,
+  AccordionPanel,
+  AccordionTrigger,
+  Alert,
+  Badge,
+  Box,
+  Button,
+  ButtonIcon,
+  Combobox,
+  Dialog,
+  DialogBody,
+  DialogFooter,
+  DialogHeader,
+  Flex,
   Tab,
-} from '@material-ui/core';
-import { Alert, Autocomplete } from '@material-ui/lab';
-import { makeStyles, useTheme } from '@material-ui/core/styles';
-import AddIcon from '@material-ui/icons/Add';
-import DeleteIcon from '@material-ui/icons/Delete';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import CodeIcon from '@material-ui/icons/Code';
-import DescriptionIcon from '@material-ui/icons/Description';
-import LayersIcon from '@material-ui/icons/Layers';
+  TabList,
+  TabPanel,
+  Tabs,
+  Text,
+  Tooltip,
+  TooltipTrigger,
+} from '@backstage/ui';
+import { Progress } from '@backstage/core-components';
+import { RiAddLine, RiCodeLine, RiDeleteBinLine, RiFileTextLine, RiStackLine } from '@remixicon/react';
+// BUI-EXCEPTION: `react-syntax-highlighter`'s `style` prop needs a literal JS style object
+// (light/dark theme constant), which cannot be derived from a CSS custom property. `useTheme`
+// is kept narrowly for this one boolean.
+import { useTheme } from '@material-ui/core/styles';
 import { useApi } from '@backstage/core-plugin-api';
 import { spectroCloudApiRef } from '../../../api';
 import { SpectroCloudProfile } from '../../../api/SpectroCloudApi';
 import { CloudType, ProfileSelection as ProfileSelectionType } from '../types';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    padding: theme.spacing(2),
-  },
-  selectedList: {
-    marginTop: theme.spacing(2),
-    border: `1px solid ${theme.palette.divider}`,
-    borderRadius: theme.shape.borderRadius,
-  },
-  addButton: {
-    marginTop: theme.spacing(2),
-  },
-  dialogContent: {
-    minWidth: 500,
-  },
-  formControl: {
-    marginTop: theme.spacing(2),
-    minWidth: 300,
-    width: '100%',
-  },
-  packAccordion: {
-    marginTop: theme.spacing(1),
-    backgroundColor: theme.palette.type === 'dark' ? '#2a2a2a' : '#f9f9f9',
-  },
-  packValues: {
-    maxHeight: 400,
-    overflow: 'auto',
-  },
-  packExpandedContent: {
-    padding: theme.spacing(2),
-    backgroundColor: theme.palette.type === 'dark' ? '#1a1a1a' : '#fafafa',
-  },
-  codeContainer: {
-    maxHeight: 400,
-    overflow: 'auto',
-    borderRadius: 4,
-    '& pre': {
-      margin: '0 !important',
-      fontSize: '12px !important',
-    },
-  },
-  tabsContainer: {
-    marginBottom: theme.spacing(1),
-    borderBottom: `1px solid ${theme.palette.divider}`,
-  },
-  tab: {
-    minHeight: 36,
-    textTransform: 'none',
-  },
-  manifestTab: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(0.5),
-  },
-  loadingContainer: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: theme.spacing(2),
-  },
-  noContent: {
-    padding: theme.spacing(2),
-    textAlign: 'center',
-    color: theme.palette.text.secondary,
-  },
-  layerChip: {
-    fontSize: '0.7rem',
-    height: 20,
-    marginRight: theme.spacing(0.5),
-    textTransform: 'uppercase',
-  },
-  osLayer: {
-    backgroundColor: '#ff9800',
-    color: '#fff',
-  },
-  k8sLayer: {
-    backgroundColor: '#2196f3',
-    color: '#fff',
-  },
-  cniLayer: {
-    backgroundColor: '#9c27b0',
-    color: '#fff',
-  },
-  csiLayer: {
-    backgroundColor: '#4caf50',
-    color: '#fff',
-  },
-  addonLayer: {
-    backgroundColor: '#607d8b',
-    color: '#fff',
-  },
-}));
+import styles from './ProfileSelection.module.css';
 
 interface ProfileSelectionProps {
   cloudType: CloudType;
@@ -137,13 +48,21 @@ interface PackContent {
   manifests: Map<string, string>;
 }
 
+const getLayerChipClass = (layer: string): string => {
+  const lowerLayer = layer?.toLowerCase() || '';
+  if (lowerLayer === 'os') return styles.osLayer;
+  if (lowerLayer === 'k8s') return styles.k8sLayer;
+  if (lowerLayer === 'cni') return styles.cniLayer;
+  if (lowerLayer === 'csi') return styles.csiLayer;
+  return styles.addonLayer;
+};
+
 export const ProfileSelection = ({
   cloudType,
   projectUid,
   selectedProfiles,
   onUpdate,
 }: ProfileSelectionProps) => {
-  const classes = useStyles();
   const theme = useTheme();
   const spectroCloudApi = useApi(spectroCloudApiRef);
   const [profiles, setProfiles] = useState<SpectroCloudProfile[]>([]);
@@ -171,17 +90,17 @@ export const ProfileSelection = ({
     const fetchProfiles = async () => {
       try {
         setLoading(true);
-        
+
         // For addon profiles, don't filter by cloud type (they're cloud-agnostic)
         const cloudTypeFilter = profileTypeFilter === 'add-on' ? undefined : cloudType;
-        
+
         const result = await spectroCloudApi.getProjectProfiles(
           projectUid,
           cloudTypeFilter,
           profileTypeFilter
         );
         // Sort profiles alphabetically by name
-        const sortedProfiles = result.sort((a, b) => 
+        const sortedProfiles = result.sort((a, b) =>
           a.metadata.name.localeCompare(b.metadata.name)
         );
         setProfiles(sortedProfiles);
@@ -206,7 +125,7 @@ export const ProfileSelection = ({
 
   const handleVersionChange = async (versionUid: string) => {
     setSelectedVersionUid(versionUid);
-    
+
     if (!selectedProfile) return;
 
     try {
@@ -227,10 +146,10 @@ export const ProfileSelection = ({
 
   const handleProfileChange = async (profile: SpectroCloudProfile) => {
     setSelectedProfile(profile);
-    
+
     // Auto-select the latest version (first in the list)
     const latestVersion = profile.specSummary?.versions?.[0];
-    
+
     if (latestVersion) {
       setSelectedVersionUid(latestVersion.uid);
       // Auto-fetch details for the latest version
@@ -286,9 +205,9 @@ export const ProfileSelection = ({
       }
       return newSet;
     });
-    
+
     const profile = selectedProfiles[profileIndex];
-    
+
     if (!isExpanded || !profile) {
       return; // Closing accordion or no profile
     }
@@ -323,22 +242,13 @@ export const ProfileSelection = ({
     }
   };
 
-  const getLayerChipClass = (layer: string): string => {
-    const lowerLayer = layer?.toLowerCase() || '';
-    if (lowerLayer === 'os') return classes.osLayer;
-    if (lowerLayer === 'k8s') return classes.k8sLayer;
-    if (lowerLayer === 'cni') return classes.cniLayer;
-    if (lowerLayer === 'csi') return classes.csiLayer;
-    return classes.addonLayer;
-  };
-
   const handleTabChange = (packKey: string, newValue: number) => {
     setActivePackTabs(prev => new Map(prev).set(packKey, newValue));
   };
 
   const togglePackExpansion = async (packKey: string, pack: any) => {
     const isExpanding = !expandedPacks.has(packKey);
-    
+
     setExpandedPacks(prev => {
       const newSet = new Set(prev);
       if (newSet.has(packKey)) {
@@ -352,7 +262,7 @@ export const ProfileSelection = ({
     // If expanding and we don't have content yet, fetch it
     if (isExpanding && !packContents.has(packKey)) {
       setLoadingPacks(prev => new Set(prev).add(packKey));
-      
+
       try {
         const content: PackContent = {
           values: pack.values,
@@ -381,31 +291,25 @@ export const ProfileSelection = ({
 
     if (isLoading) {
       return (
-        <Box className={classes.loadingContainer}>
-          <CircularProgress size={24} />
-          <Typography variant="body2" style={{ marginLeft: 8 }}>
-            Loading pack content...
-          </Typography>
-        </Box>
+        <Flex align="center" justify="center" p="4">
+          <Progress />
+          <Text style={{ marginLeft: 8 }}>Loading pack content...</Text>
+        </Flex>
       );
     }
 
     if (!content) {
-      return (
-        <Typography className={classes.noContent}>
-          No content available
-        </Typography>
-      );
+      return <Text className={styles.noContent}>No content available</Text>;
     }
 
     // Build tabs based on available content
     const tabs: { label: string; content: string; icon?: React.ReactNode }[] = [];
-    
+
     if (content.values) {
       tabs.push({
         label: 'Values',
         content: content.values,
-        icon: <CodeIcon fontSize="small" />,
+        icon: <RiCodeLine size={14} />,
       });
     }
 
@@ -417,117 +321,121 @@ export const ProfileSelection = ({
           tabs.push({
             label: manifest.name,
             content: manifestContent,
-            icon: <DescriptionIcon fontSize="small" />,
+            icon: <RiFileTextLine size={14} />,
           });
         } else {
           // Show placeholder for manifest that will be available post-deployment
           tabs.push({
             label: `${manifest.name} (post-deploy)`,
             content: '# Manifest content will be available after cluster deployment',
-            icon: <DescriptionIcon fontSize="small" />,
+            icon: <RiFileTextLine size={14} />,
           });
         }
       });
     }
 
     if (tabs.length === 0) {
-      return (
-        <Typography className={classes.noContent}>
-          No values or manifests available for this pack
-        </Typography>
-      );
+      return <Text className={styles.noContent}>No values or manifests available for this pack</Text>;
     }
 
+    const activeIndex = Math.min(activeTab, tabs.length - 1);
+
     return (
-      <Box>
-        {tabs.length > 1 && (
+      <Box style={{ width: '100%' }}>
+        {tabs.length > 1 ? (
           <Tabs
-            value={Math.min(activeTab, tabs.length - 1)}
-            onChange={(_, newValue) => handleTabChange(packKey, newValue)}
-            className={classes.tabsContainer}
-            indicatorColor="primary"
-            textColor="primary"
-            variant="scrollable"
-            scrollButtons="auto"
+            selectedKey={String(activeIndex)}
+            onSelectionChange={key => handleTabChange(packKey, Number(key))}
           >
-            {tabs.map((tab, index) => (
-              <Tab
-                key={index}
-                className={classes.tab}
-                label={
-                  <Box className={classes.manifestTab}>
+            <TabList className={styles.tabsContainer}>
+              {tabs.map((tab, index) => (
+                <Tab key={index} id={String(index)}>
+                  <Flex align="center" gap="1">
                     {tab.icon}
                     {tab.label}
-                  </Box>
-                }
-              />
+                  </Flex>
+                </Tab>
+              ))}
+            </TabList>
+            {tabs.map((tab, index) => (
+              <TabPanel key={index} id={String(index)}>
+                <Box className={styles.codeContainer}>
+                  <SyntaxHighlighter
+                    language="yaml"
+                    style={syntaxStyle}
+                    showLineNumbers
+                    wrapLines
+                    customStyle={{ margin: 0, borderRadius: 4 }}
+                  >
+                    {tab.content}
+                  </SyntaxHighlighter>
+                </Box>
+              </TabPanel>
             ))}
           </Tabs>
+        ) : (
+          <Box className={styles.codeContainer}>
+            <SyntaxHighlighter
+              language="yaml"
+              style={syntaxStyle}
+              showLineNumbers
+              wrapLines
+              customStyle={{ margin: 0, borderRadius: 4 }}
+            >
+              {tabs[activeIndex]?.content || ''}
+            </SyntaxHighlighter>
+          </Box>
         )}
-        <Box className={classes.codeContainer}>
-          <SyntaxHighlighter
-            language="yaml"
-            style={syntaxStyle}
-            showLineNumbers
-            wrapLines
-            customStyle={{
-              margin: 0,
-              borderRadius: 4,
-            }}
-          >
-            {tabs[Math.min(activeTab, tabs.length - 1)]?.content || ''}
-          </SyntaxHighlighter>
-        </Box>
       </Box>
     );
   };
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
-        <CircularProgress />
-      </Box>
+      <Flex align="center" justify="center" style={{ minHeight: 200 }}>
+        <Progress />
+      </Flex>
     );
   }
 
   if (error) {
     return (
-      <Box className={classes.root}>
-        <Alert severity="error">{error}</Alert>
+      <Box p="4">
+        <Alert status="danger" description={error} />
       </Box>
     );
   }
 
   return (
-    <Box className={classes.root}>
-      <Typography variant="h5" gutterBottom>
+    <Box p="4">
+      <Text variant="title-small" style={{ display: 'block', marginBottom: 'var(--bui-space-2)' }}>
         Select Cluster Profiles
-      </Typography>
-      <Typography variant="body2" color="textSecondary" paragraph>
+      </Text>
+      <Text variant="body-medium" color="secondary" style={{ display: 'block', marginBottom: 'var(--bui-space-2)' }}>
         {!hasClusterOrInfraProfile
           ? 'First, select a full cluster profile or an infrastructure profile. Then you can add addon profiles.'
           : 'Add addon profiles to extend your cluster functionality.'}
-      </Typography>
+      </Text>
 
       {selectedProfiles.length > 0 && (
-        <Box className={classes.selectedList}>
+        <Box className={styles.selectedList}>
           {selectedProfiles.map((profile, index) => {
             const packsContent = profile.packs && profile.packs.length > 0 ? (
               <>
-                <Typography variant="subtitle2" gutterBottom>
-                  <LayersIcon fontSize="small" style={{ verticalAlign: 'middle', marginRight: 4 }} />
+                <Text variant="body-small" weight="bold" style={{ display: 'block', marginBottom: 'var(--bui-space-2)' }}>
+                  <RiStackLine size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
                   Packs in this profile ({profile.packs.length})
-                </Typography>
+                </Text>
                 {profile.packs.map((pack: any, idx: number) => {
                   const packKey = `${profile.uid}-${pack.uid || pack.name || idx}`;
                   const isPackExpanded = expandedPacks.has(packKey);
-                  
+
                   return (
-                    <Accordion 
+                    <Accordion
                       key={packKey}
-                      expanded={isPackExpanded}
-                      className={classes.packAccordion}
-                      onChange={(_, isExpanded) => {
+                      bg="neutral"
+                      isExpanded={isPackExpanded}
+                      onExpandedChange={isExpanded => {
                         if (isExpanded) {
                           togglePackExpansion(packKey, pack);
                         } else {
@@ -539,210 +447,185 @@ export const ProfileSelection = ({
                         }
                       }}
                     >
-                      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <Box display="flex" alignItems="center" width="100%">
-                          <Chip
-                            label={pack.layer || 'addon'}
-                            size="small"
-                            className={`${classes.layerChip} ${getLayerChipClass(pack.layer || '')}`}
-                          />
-                          <Typography variant="body2" style={{ marginLeft: 8 }}>
+                      <AccordionTrigger>
+                        <Flex align="center" gap="2" style={{ width: '100%' }}>
+                          <Badge className={`${styles.layerChip} ${getLayerChipClass(pack.layer || '')}`}>
+                            {pack.layer || 'addon'}
+                          </Badge>
+                          <Text variant="body-small">
                             <strong>{pack.name}</strong> - v{pack.tag || pack.version}
-                          </Typography>
+                          </Text>
                           {pack.type && (
-                            <Chip label={pack.type} size="small" variant="outlined" style={{ marginLeft: 'auto' }} />
+                            <Badge className={styles.typeBadge} style={{ marginLeft: 'auto' }}>
+                              {pack.type}
+                            </Badge>
                           )}
-                        </Box>
-                      </AccordionSummary>
-                      <AccordionDetails>
-                        <Box className={classes.packExpandedContent} width="100%">
+                        </Flex>
+                      </AccordionTrigger>
+                      <AccordionPanel>
+                        <Box bg="neutral" p="4" style={{ width: '100%' }}>
                           {isPackExpanded && renderPackContent(packKey, pack)}
                         </Box>
-                      </AccordionDetails>
+                      </AccordionPanel>
                     </Accordion>
                   );
                 })}
               </>
             ) : (
-              <Typography color="textSecondary" variant="body2">
+              <Text variant="body-small" color="secondary">
                 Expand to load pack details...
-              </Typography>
+              </Text>
             );
 
             return (
-              <Accordion 
-                key={profile.uid}
-                expanded={expandedProfiles.has(profile.uid)}
-                onChange={(_, isExpanded) => handleProfileExpand(profile.uid, index, isExpanded)}
-              >
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Box display="flex" alignItems="center" justifyContent="space-between" width="100%">
-                    <Box>
-                      <Typography variant="subtitle1">{profile.name}</Typography>
-                      <Box mt={0.5}>
-                        <Chip label={`v${profile.version}`} size="small" />
-                        {' '}
-                        <Chip label={profile.type} size="small" color="primary" />
-                      </Box>
+              <Box key={profile.uid} style={{ position: 'relative' }}>
+                <Accordion
+                  isExpanded={expandedProfiles.has(profile.uid)}
+                  onExpandedChange={isExpanded => handleProfileExpand(profile.uid, index, isExpanded)}
+                >
+                  <AccordionTrigger>
+                    <Flex direction="column" gap="1" style={{ paddingRight: 'var(--bui-space-8)' }}>
+                      <Text weight="bold">{profile.name}</Text>
+                      <Flex align="center" gap="1">
+                        <Badge>{`v${profile.version}`}</Badge>
+                        <Badge>{profile.type}</Badge>
+                      </Flex>
+                    </Flex>
+                  </AccordionTrigger>
+                  <AccordionPanel>
+                    <Box style={{ width: '100%' }}>
+                      {loadingProfilePacks[profile.uid] ? (
+                        <Flex align="center" justify="center" p="4">
+                          <Progress />
+                        </Flex>
+                      ) : packsContent}
                     </Box>
-                    <IconButton
-                      edge="end"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveProfile(index);
-                      }}
-                      size="small"
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Box>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Box width="100%">
-                    {loadingProfilePacks[profile.uid] ? (
-                      <Box display="flex" justifyContent="center" padding={2}>
-                        <CircularProgress size={24} />
-                      </Box>
-                    ) : packsContent}
-                  </Box>
-                </AccordionDetails>
-              </Accordion>
+                  </AccordionPanel>
+                </Accordion>
+                <TooltipTrigger>
+                  <ButtonIcon
+                    aria-label="Remove profile"
+                    icon={<RiDeleteBinLine />}
+                    size="small"
+                    variant="tertiary"
+                    style={{ position: 'absolute', top: 'var(--bui-space-2)', right: 'var(--bui-space-2)' }}
+                    onPress={() => handleRemoveProfile(index)}
+                  />
+                  <Tooltip>Remove profile</Tooltip>
+                </TooltipTrigger>
+              </Box>
             );
           })}
         </Box>
       )}
 
-      <Button
-        variant="contained"
-        color="primary"
-        startIcon={<AddIcon />}
-        onClick={handleAddProfile}
-        className={classes.addButton}
-      >
-        Add Profile
-      </Button>
+      <Box style={{ marginTop: 'var(--bui-space-4)' }}>
+        <Button variant="primary" iconStart={<RiAddLine />} onPress={handleAddProfile}>
+          Add Profile
+        </Button>
+      </Box>
 
-      <Dialog
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>
+      <Dialog isOpen={dialogOpen} onOpenChange={open => !open && setDialogOpen(false)} width="600px">
+        <DialogHeader>
           {hasClusterOrInfraProfile ? 'Add Addon Profile' : 'Add Base Profile (Cluster or Infrastructure)'}
-        </DialogTitle>
-        <DialogContent className={classes.dialogContent}>
-          <Autocomplete
-            options={profiles.filter(p => !selectedProfiles.some(sp => sp.uid === p.metadata.uid))}
-            getOptionLabel={(option) => option.metadata.name}
-            value={selectedProfile || null}
-            onChange={(_, newValue) => {
-              if (newValue) {
-                handleProfileChange(newValue);
-              }
-            }}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Profile *"
-                margin="normal"
-                required
-              />
-            )}
-            style={{ marginTop: 16 }}
-          />
-
-          {selectedProfile && selectedProfile.specSummary?.versions && (
-            <Autocomplete
-              options={selectedProfile.specSummary.versions}
-              getOptionLabel={(option) => option.version}
-              value={selectedProfile.specSummary.versions.find(v => v.uid === selectedVersionUid) || null}
-              onChange={(_, newValue) => {
-                if (newValue) {
-                  handleVersionChange(newValue.uid);
+        </DialogHeader>
+        <DialogBody>
+          <Flex direction="column" gap="4">
+            <Combobox
+              label="Profile *"
+              placeholder="Search profiles..."
+              options={profiles
+                .filter(p => !selectedProfiles.some(sp => sp.uid === p.metadata.uid))
+                .map(p => ({ id: p.metadata.uid, label: p.metadata.name }))}
+              selectedKey={selectedProfile?.metadata.uid ?? null}
+              onSelectionChange={key => {
+                if (key !== null) {
+                  const profile = profiles.find(p => p.metadata.uid === String(key));
+                  if (profile) {
+                    handleProfileChange(profile);
+                  }
                 }
               }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Version *"
-                  margin="normal"
-                  required
-                />
-              )}
-              style={{ marginTop: 16 }}
             />
-          )}
 
-          {loadingDetails && (
-            <Box display="flex" justifyContent="center" padding={2}>
-              <CircularProgress />
-            </Box>
-          )}
+            {selectedProfile && selectedProfile.specSummary?.versions && (
+              <Combobox
+                label="Version *"
+                placeholder="Search versions..."
+                options={selectedProfile.specSummary.versions.map(v => ({ id: v.uid, label: v.version }))}
+                selectedKey={selectedVersionUid || null}
+                onSelectionChange={key => {
+                  if (key !== null) {
+                    handleVersionChange(String(key));
+                  }
+                }}
+              />
+            )}
 
-          {profileDetails && (
-            <Box marginTop={2}>
-              <Typography variant="subtitle2" gutterBottom>
-                <LayersIcon fontSize="small" style={{ verticalAlign: 'middle', marginRight: 4 }} />
-                Packs in this profile ({profileDetails.spec?.published?.packs?.length || 0})
-              </Typography>
-              {profileDetails.spec?.published?.packs?.map((pack: any, idx: number) => (
-                <Accordion key={idx} className={classes.packAccordion}>
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Box display="flex" alignItems="center" width="100%">
-                      <Chip
-                        label={pack.layer || 'addon'}
-                        size="small"
-                        className={`${classes.layerChip} ${getLayerChipClass(pack.layer || '')}`}
-                      />
-                      <Typography style={{ marginLeft: 8 }}>
-                        <strong>{pack.name}</strong> - v{pack.tag || pack.version}
-                      </Typography>
-                      {pack.type && (
-                        <Chip label={pack.type} size="small" variant="outlined" style={{ marginLeft: 'auto' }} />
-                      )}
-                    </Box>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <Box className={classes.packExpandedContent} width="100%">
-                      {pack.values ? (
-                        <Box className={classes.codeContainer}>
-                          <SyntaxHighlighter
-                            language="yaml"
-                            style={theme.palette.type === 'dark' ? vscDarkPlus : vs}
-                            showLineNumbers
-                            wrapLines
-                            customStyle={{
-                              margin: 0,
-                              borderRadius: 4,
-                            }}
-                          >
-                            {pack.values}
-                          </SyntaxHighlighter>
-                        </Box>
-                      ) : (
-                        <Typography className={classes.noContent}>
-                          No custom values
-                        </Typography>
-                      )}
-                    </Box>
-                  </AccordionDetails>
-                </Accordion>
-              ))}
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
+            {loadingDetails && (
+              <Flex align="center" justify="center" p="4">
+                <Progress />
+              </Flex>
+            )}
+
+            {profileDetails && (
+              <Box>
+                <Text variant="body-small" weight="bold" style={{ display: 'block', marginBottom: 'var(--bui-space-2)' }}>
+                  <RiStackLine size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+                  Packs in this profile ({profileDetails.spec?.published?.packs?.length || 0})
+                </Text>
+                {profileDetails.spec?.published?.packs?.map((pack: any, idx: number) => (
+                  <Accordion key={idx} bg="neutral">
+                    <AccordionTrigger>
+                      <Flex align="center" gap="2" style={{ width: '100%' }}>
+                        <Badge className={`${styles.layerChip} ${getLayerChipClass(pack.layer || '')}`}>
+                          {pack.layer || 'addon'}
+                        </Badge>
+                        <Text>
+                          <strong>{pack.name}</strong> - v{pack.tag || pack.version}
+                        </Text>
+                        {pack.type && (
+                          <Badge className={styles.typeBadge} style={{ marginLeft: 'auto' }}>
+                            {pack.type}
+                          </Badge>
+                        )}
+                      </Flex>
+                    </AccordionTrigger>
+                    <AccordionPanel>
+                      <Box bg="neutral" p="4" style={{ width: '100%' }}>
+                        {pack.values ? (
+                          <Box className={styles.codeContainer}>
+                            <SyntaxHighlighter
+                              language="yaml"
+                              style={theme.palette.type === 'dark' ? vscDarkPlus : vs}
+                              showLineNumbers
+                              wrapLines
+                              customStyle={{ margin: 0, borderRadius: 4 }}
+                            >
+                              {pack.values}
+                            </SyntaxHighlighter>
+                          </Box>
+                        ) : (
+                          <Text className={styles.noContent}>No custom values</Text>
+                        )}
+                      </Box>
+                    </AccordionPanel>
+                  </Accordion>
+                ))}
+              </Box>
+            )}
+          </Flex>
+        </DialogBody>
+        <DialogFooter>
+          <Button variant="secondary" onPress={() => setDialogOpen(false)}>Cancel</Button>
           <Button
-            onClick={handleConfirmAdd}
-            color="primary"
-            variant="contained"
-            disabled={!selectedProfile || !selectedVersionUid}
+            variant="primary"
+            onPress={handleConfirmAdd}
+            isDisabled={!selectedProfile || !selectedVersionUid}
           >
             Add
           </Button>
-        </DialogActions>
+        </DialogFooter>
       </Dialog>
     </Box>
   );

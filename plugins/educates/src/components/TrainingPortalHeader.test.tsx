@@ -2,21 +2,6 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { TrainingPortalHeader } from './TrainingPortalHeader';
 import { TrainingPortalStatus } from '@terasky/backstage-plugin-educates-common';
 
-// Mock Material-UI styles
-jest.mock('@material-ui/core/styles', () => ({
-  ...jest.requireActual('@material-ui/core/styles'),
-  makeStyles: () => () => ({
-    labelContainer: 'labelContainer',
-    label: 'label',
-    headerContainer: 'headerContainer',
-    logo: 'logo',
-    titleSection: 'titleSection',
-    expandButton: 'expandButton',
-    workshopCount: 'workshopCount',
-    contentSection: 'contentSection',
-  }),
-}));
-
 const mockPortal: TrainingPortalStatus = {
   name: 'test-portal',
   title: 'Test Portal',

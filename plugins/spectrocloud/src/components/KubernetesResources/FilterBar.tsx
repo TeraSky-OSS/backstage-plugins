@@ -1,21 +1,14 @@
-import {
-  Box,
-  TextField,
-  Button,
-  InputAdornment,
-} from '@material-ui/core';
-import { Autocomplete } from '@material-ui/lab';
-import SearchIcon from '@material-ui/icons/Search';
-import ClearIcon from '@material-ui/icons/Clear';
+import { Box, Button, Select, TextField } from '@backstage/ui';
+import { RiSearchLine } from '@remixicon/react';
 import { Entity } from '@backstage/catalog-model';
 import { FilterState, CATEGORIES } from './types';
-import { 
-  extractUniqueKinds, 
-  extractUniqueNamespaces, 
+import {
+  extractUniqueKinds,
+  extractUniqueNamespaces,
   extractUniqueOwners,
   groupKindsByCategory,
 } from './utils';
-import { useKubernetesResourcesStyles } from './styles';
+import styles from './KubernetesResources.module.css';
 
 interface FilterBarProps {
   entities: Entity[];
@@ -24,18 +17,30 @@ interface FilterBarProps {
   annotationPrefix: string;
 }
 
+const ALL_OWNERS = '__all__';
+
 export const FilterBar: React.FC<FilterBarProps> = ({
   entities,
   filters,
   onFiltersChange,
   annotationPrefix,
 }) => {
-  const classes = useKubernetesResourcesStyles();
-
   const uniqueNamespaces = extractUniqueNamespaces(entities, annotationPrefix);
   const uniqueKinds = extractUniqueKinds(entities, annotationPrefix);
   const uniqueOwners = extractUniqueOwners(entities);
   const kindsByCategory = groupKindsByCategory(uniqueKinds, entities, annotationPrefix);
+
+  const categorizedKinds = new Set(Array.from(kindsByCategory.values()).flat());
+  const uncategorizedKinds = uniqueKinds.filter(kind => !categorizedKinds.has(kind));
+  const kindOptions = [
+    ...Array.from(kindsByCategory.entries()).map(([category, kinds]) => ({
+      title: category,
+      options: kinds.map(kind => ({ id: kind, label: kind })),
+    })),
+    ...(uncategorizedKinds.length > 0
+      ? [{ title: 'Other', options: uncategorizedKinds.map(kind => ({ id: kind, label: kind })) }]
+      : []),
+  ];
 
   const handleClearFilters = () => {
     onFiltersChange({
@@ -48,7 +53,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     });
   };
 
-  const hasActiveFilters = 
+  const hasActiveFilters =
     filters.namespaces.length > 0 ||
     filters.kubernetesKinds.length > 0 ||
     filters.categories.length > 0 ||
@@ -57,105 +62,81 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     filters.search;
 
   return (
-    <Box className={classes.filterBar}>
-      <Box className={classes.filterRow}>
+    <Box className={styles.filterBar}>
+      <Box className={styles.filterRow}>
         {/* Namespace Filter */}
-        <Autocomplete
-          multiple
-          className={classes.filterField}
-          options={uniqueNamespaces}
+        <Select<'multiple'>
+          className={styles.filterField}
+          size="small"
+          label="Namespace"
+          selectionMode="multiple"
+          options={uniqueNamespaces.map(ns => ({ id: ns, label: ns }))}
           value={filters.namespaces}
-          onChange={(_, newValue) => onFiltersChange({ ...filters, namespaces: newValue })}
-          renderInput={(params) => (
-            <TextField {...params} label="Namespace" variant="outlined" size="small" />
-          )}
-          ChipProps={{ size: 'small' }}
+          onChange={value => onFiltersChange({ ...filters, namespaces: value as string[] })}
         />
 
         {/* Kubernetes Kind Filter */}
-        <Autocomplete
-          multiple
-          className={classes.filterField}
-          options={uniqueKinds}
-          groupBy={(option) => {
-            // Find which category this kind belongs to
-            for (const [category, kinds] of kindsByCategory.entries()) {
-              if (kinds.includes(option)) {
-                return category;
-              }
-            }
-            return 'Other';
-          }}
+        <Select<'multiple'>
+          className={styles.filterField}
+          size="small"
+          label="Kubernetes Kind"
+          selectionMode="multiple"
+          options={kindOptions}
           value={filters.kubernetesKinds}
-          onChange={(_, newValue) => onFiltersChange({ ...filters, kubernetesKinds: newValue })}
-          renderInput={(params) => (
-            <TextField {...params} label="Kubernetes Kind" variant="outlined" size="small" />
-          )}
-          ChipProps={{ size: 'small' }}
+          onChange={value => onFiltersChange({ ...filters, kubernetesKinds: value as string[] })}
         />
 
         {/* Category Filter */}
-        <Autocomplete
-          multiple
-          className={classes.filterField}
-          options={Array.from(CATEGORIES)}
+        <Select<'multiple'>
+          className={styles.filterField}
+          size="small"
+          label="Category"
+          selectionMode="multiple"
+          options={Array.from(CATEGORIES).map(category => ({ id: category, label: category }))}
           value={filters.categories}
-          onChange={(_, newValue) => onFiltersChange({ ...filters, categories: newValue })}
-          renderInput={(params) => (
-            <TextField {...params} label="Category" variant="outlined" size="small" />
-          )}
-          ChipProps={{ size: 'small' }}
+          onChange={value => onFiltersChange({ ...filters, categories: value as string[] })}
         />
 
         {/* Entity Kind Filter */}
-        <Autocomplete
-          multiple
-          className={classes.filterField}
-          options={['Component', 'Resource', 'System']}
+        <Select<'multiple'>
+          className={styles.filterField}
+          size="small"
+          label="Entity Kind"
+          selectionMode="multiple"
+          options={['Component', 'Resource', 'System'].map(kind => ({ id: kind, label: kind }))}
           value={filters.entityKinds}
-          onChange={(_, newValue) => onFiltersChange({ ...filters, entityKinds: newValue })}
-          renderInput={(params) => (
-            <TextField {...params} label="Entity Kind" variant="outlined" size="small" />
-          )}
-          ChipProps={{ size: 'small' }}
+          onChange={value => onFiltersChange({ ...filters, entityKinds: value as string[] })}
         />
 
         {/* Owner Filter */}
-        <Autocomplete
-          className={classes.filterField}
-          options={uniqueOwners}
-          value={filters.owner || null}
-          onChange={(_, newValue) => onFiltersChange({ ...filters, owner: newValue || undefined })}
-          renderInput={(params) => (
-            <TextField {...params} label="Owner" variant="outlined" size="small" />
-          )}
+        <Select
+          className={styles.filterField}
+          size="small"
+          label="Owner"
+          selectedKey={filters.owner ?? ALL_OWNERS}
+          onSelectionChange={key => {
+            const value = String(key);
+            onFiltersChange({ ...filters, owner: value === ALL_OWNERS ? undefined : value });
+          }}
+          options={[
+            { id: ALL_OWNERS, label: 'All Owners' },
+            ...uniqueOwners.map(owner => ({ id: owner, label: owner })),
+          ]}
         />
 
         {/* Search Filter */}
         <TextField
-          className={classes.filterField}
-          label="Search"
-          variant="outlined"
+          className={styles.filterField}
           size="small"
+          label="Search"
+          icon={<RiSearchLine size={16} />}
           value={filters.search}
-          onChange={(e) => onFiltersChange({ ...filters, search: e.target.value })}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-          }}
+          onChange={value => onFiltersChange({ ...filters, search: value })}
         />
 
         {/* Clear Filters Button */}
         {hasActiveFilters && (
-          <Button
-            variant="outlined"
-            size="small"
-            startIcon={<ClearIcon />}
-            onClick={handleClearFilters}
-          >
+          <Button size="small" variant="secondary" onPress={handleClearFilters}>
             Clear Filters
           </Button>
         )}

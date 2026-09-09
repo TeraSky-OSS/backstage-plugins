@@ -1,53 +1,9 @@
-import { Typography, Box, Divider, makeStyles, IconButton } from '@material-ui/core';
+import { Box, ButtonIcon, Flex, Text } from '@backstage/ui';
 import { TrainingPortalStatus } from '@terasky/backstage-plugin-educates-common';
 import { InfoCard } from '@backstage/core-components';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import ExpandLessIcon from '@material-ui/icons/ExpandLess';
+import { RiArrowDownSLine, RiArrowUpSLine } from '@remixicon/react';
 import { useState } from 'react';
-
-const useStyles = makeStyles(theme => ({
-  labelContainer: {
-    display: 'flex',
-    flexWrap: 'wrap',
-  },
-  label: {
-    marginRight: theme.spacing(2),
-    marginBottom: theme.spacing(1),
-  },
-  headerContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(2),
-    cursor: 'pointer',
-    '&:hover': {
-      backgroundColor: theme.palette.background.default,
-    },
-    padding: theme.spacing(1),
-    borderRadius: theme.shape.borderRadius,
-  },
-  logo: {
-    width: '40px',
-    height: '40px',
-    objectFit: 'contain',
-  },
-  titleSection: {
-    flex: 1,
-  },
-  expandButton: {
-    marginLeft: 'auto',
-  },
-  workshopCount: {
-    marginLeft: theme.spacing(2),
-    color: theme.palette.text.secondary,
-  },
-  contentSection: {
-    marginTop: theme.spacing(2),
-    padding: theme.spacing(2),
-    backgroundColor: theme.palette.background.paper,
-    borderRadius: theme.shape.borderRadius,
-    border: `1px solid ${theme.palette.divider}`,
-  },
-}));
+import styles from './TrainingPortalHeader.module.css';
 
 interface TrainingPortalHeaderProps {
   portal: TrainingPortalStatus;
@@ -56,7 +12,6 @@ interface TrainingPortalHeaderProps {
 }
 
 export const TrainingPortalHeader = ({ portal, workshopCount, children }: TrainingPortalHeaderProps) => {
-  const classes = useStyles();
   const [isExpanded, setIsExpanded] = useState(false);
 
   const toggleExpanded = () => {
@@ -65,65 +20,58 @@ export const TrainingPortalHeader = ({ portal, workshopCount, children }: Traini
 
   return (
     <InfoCard>
-      <Box p={2}>
-        <Box 
-          className={classes.headerContainer}
+      <Box p="4">
+        <div
+          className={styles.headerContainer}
           onClick={toggleExpanded}
           role="button"
           tabIndex={0}
-          onKeyPress={(e) => {
+          onKeyDown={e => {
             if (e.key === 'Enter' || e.key === ' ') {
               toggleExpanded();
             }
           }}
         >
           {portal.logo && (
-            <img 
-              src={portal.logo} 
-              alt={`${portal.name} logo`} 
-              className={classes.logo}
+            <img
+              src={portal.logo}
+              alt={`${portal.name} logo`}
+              className={styles.logo}
             />
           )}
-          <Box className={classes.titleSection}>
-            <Typography variant="h5">
-              {portal.title || portal.name}
-              <Typography component="span" variant="body1" className={classes.workshopCount}>
+          <Box className={styles.titleSection}>
+            <Flex align="baseline" gap="2">
+              <Text variant="title-small" weight="bold">
+                {portal.title || portal.name}
+              </Text>
+              <Text style={{ color: 'var(--bui-fg-secondary)' }}>
                 ({workshopCount} workshop{workshopCount !== 1 ? 's' : ''})
-              </Typography>
-            </Typography>
-            <Typography variant="body2" color="textSecondary">
+              </Text>
+            </Flex>
+            <Text style={{ color: 'var(--bui-fg-secondary)', display: 'block' }}>
               Active Sessions: {portal.sessions.allocated} / {portal.sessions.maximum || 'Unlimited'}
-            </Typography>
+            </Text>
           </Box>
-          <IconButton 
-            className={classes.expandButton}
+          <ButtonIcon
             aria-label={isExpanded ? 'Collapse' : 'Expand'}
-            onClick={(e) => {
-              e.stopPropagation(); // Prevent double triggering from the container click
-              toggleExpanded();
-            }}
-          >
-            {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-          </IconButton>
-        </Box>
-        
+            variant="tertiary"
+            icon={isExpanded ? <RiArrowUpSLine /> : <RiArrowDownSLine />}
+            onPress={toggleExpanded}
+          />
+        </div>
+
         {isExpanded && (
-          <Box className={classes.contentSection}>
+          <Box className={styles.contentSection}>
             {Object.entries(portal.labels).length > 0 && (
               <>
-                <Box className={classes.labelContainer}>
+                <Box className={styles.labelContainer}>
                   {Object.entries(portal.labels).map(([key, value]) => (
-                    <Typography
-                      key={key}
-                      variant="body2"
-                      color="textSecondary"
-                      className={classes.label}
-                    >
+                    <Text key={key} style={{ color: 'var(--bui-fg-secondary)' }}>
                       {key}: {value}
-                    </Typography>
+                    </Text>
                   ))}
                 </Box>
-                <Divider style={{ margin: '16px 0' }} />
+                <hr style={{ margin: 'var(--bui-space-4) 0', border: 'none', borderTop: '1px solid var(--bui-border-1)' }} />
               </>
             )}
             {children}
@@ -132,4 +80,4 @@ export const TrainingPortalHeader = ({ portal, workshopCount, children }: Traini
       </Box>
     </InfoCard>
   );
-}; 
+};

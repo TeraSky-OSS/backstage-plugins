@@ -40,9 +40,7 @@
     "@backstage/plugin-scaffolder-common": "^2.2.3",
     "@backstage/plugin-scaffolder-react": "^2.0.3",
     "@backstage/theme": "^0.7.3",
-    "@material-ui/core": "^4.12.4",
-    "@material-ui/icons": "^4.11.3",
-    "@material-ui/lab": "4.0.0-alpha.61",
+    "@backstage/ui": "^0.17.1",
     "@terasky/backstage-plugin-gitops-manifest-updater": "^2.11.0",
     "react-use": "^17.6.0"
   },

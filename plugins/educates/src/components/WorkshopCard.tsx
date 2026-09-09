@@ -1,68 +1,23 @@
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardActions,
-  Button,
-  Typography,
+  Badge,
   Box,
-  Chip,
-  makeStyles,
+  Button,
+  Card,
+  CardBody,
+  CardFooter,
+  CardHeader,
+  Text,
   Tooltip,
-} from '@material-ui/core';
-import { 
-  Workshop, 
-  workshopStartPermission 
+  TooltipTrigger,
+} from '@backstage/ui';
+import {
+  Workshop,
+  workshopStartPermission,
 } from '@terasky/backstage-plugin-educates-common';
 import { Progress } from '@backstage/core-components';
 import { usePermission } from '@backstage/plugin-permission-react';
-import OpenInNewIcon from '@material-ui/icons/OpenInNew';
-import BusinessIcon from '@material-ui/icons/Business';
-import AccessTimeIcon from '@material-ui/icons/AccessTime';
-import SchoolIcon from '@material-ui/icons/School';
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    width: '100%',
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-    border: `1px solid ${theme.palette.divider}`,
-    boxShadow: theme.shadows[2],
-    '&:hover': {
-      boxShadow: theme.shadows[4],
-    },
-    transition: theme.transitions.create('box-shadow'),
-  },
-  chipContainer: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: theme.spacing(1),
-  },
-  infoChips: {
-    marginBottom: theme.spacing(1),
-  },
-  tagChips: {
-    marginTop: theme.spacing(1),
-  },
-  statsContainer: {
-    marginTop: theme.spacing(2),
-  },
-  startButton: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(1),
-  },
-  content: {
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  description: {
-    flex: 1,
-    marginBottom: theme.spacing(2),
-  },
-}));
+import { RiBriefcase4Line, RiTimeLine, RiGraduationCapLine, RiExternalLinkLine } from '@remixicon/react';
+import styles from './WorkshopCard.module.css';
 
 interface WorkshopCardProps {
   workshop: Workshop;
@@ -72,7 +27,6 @@ interface WorkshopCardProps {
 }
 
 export const WorkshopCard = ({ workshop, portalName, onStartWorkshop, enablePermissions }: WorkshopCardProps) => {
-  const classes = useStyles();
   const available = workshop.environment.capacity - workshop.environment.allocated;
   const hasCapacity = available > 0;
 
@@ -96,90 +50,76 @@ export const WorkshopCard = ({ workshop, portalName, onStartWorkshop, enablePerm
 
   if (permissionLoading) {
     return (
-      <Card className={classes.root}>
-        <CardContent>
+      <Card className={styles.card}>
+        <CardBody>
           <Progress />
-        </CardContent>
+        </CardBody>
       </Card>
     );
   }
 
+  const startButtonTooltip = getStartButtonTooltip();
+  const startButton = (
+    <Button
+      variant="primary"
+      isDisabled={!hasCapacity || !canStartWorkshop}
+      onPress={onStartWorkshop}
+      iconEnd={<RiExternalLinkLine />}
+    >
+      Start Workshop
+    </Button>
+  );
+
   return (
-    <Card className={classes.root}>
-      <CardHeader
-        title={workshop.title}
-        subheader={
-          <>
-            <Typography variant="body2" color="textSecondary" className={classes.description}>  
-              {workshop.name}
-            </Typography>
-            <Box className={`${classes.chipContainer} ${classes.infoChips}`}>
-              {workshop.vendor && (
-                <Chip
-                  size="small"
-                  icon={<BusinessIcon />}
-                  label={workshop.vendor}
-                />
-              )}
-              {workshop.difficulty && (
-                <Chip
-                  size="small"
-                  icon={<SchoolIcon />}
-                  label={workshop.difficulty}
-                />
-              )}
-              {workshop.duration && (
-                <Chip 
-                  size="small"
-                  icon={<AccessTimeIcon />}
-                  label={workshop.duration}
-                />
-              )}
-            </Box>
-            {workshop.tags.length > 0 && (
-              <Box className={`${classes.chipContainer} ${classes.tagChips}`}>
-                {workshop.tags.map((tag: string) => (
-                  <Chip 
-                    key={tag} 
-                    size="small" 
-                    label={tag}
-                  />
-                ))}
-              </Box>
-            )}
-          </>
-        }
-      />
-      <CardContent className={classes.content}>
-        <Typography variant="body2" color="textSecondary" className={classes.description}>
+    <Card className={styles.card}>
+      <CardHeader>
+        <Text weight="bold" variant="title-small">{workshop.title}</Text>
+        <Text style={{ color: 'var(--bui-fg-secondary)', display: 'block', marginBottom: 'var(--bui-space-2)' }}>
+          {workshop.name}
+        </Text>
+        <Box className={styles.chipContainer}>
+          {workshop.vendor && (
+            <Badge icon={<RiBriefcase4Line />}>{workshop.vendor}</Badge>
+          )}
+          {workshop.difficulty && (
+            <Badge icon={<RiGraduationCapLine />}>{workshop.difficulty}</Badge>
+          )}
+          {workshop.duration && (
+            <Badge icon={<RiTimeLine />}>{workshop.duration}</Badge>
+          )}
+        </Box>
+        {workshop.tags.length > 0 && (
+          <Box className={`${styles.chipContainer} ${styles.tagChips}`}>
+            {workshop.tags.map((tag: string) => (
+              <Badge key={tag}>{tag}</Badge>
+            ))}
+          </Box>
+        )}
+      </CardHeader>
+      <CardBody className={styles.content}>
+        <Text className={styles.description} style={{ color: 'var(--bui-fg-secondary)', display: 'block' }}>
           {workshop.description}
-        </Typography>
-        <Box className={classes.statsContainer}>
-          <Typography variant="body2">
+        </Text>
+        <Box>
+          <Text style={{ display: 'block', marginBottom: 'var(--bui-space-2)' }}>
             Available: {available} / {workshop.environment.capacity}
-          </Typography>
+          </Text>
           <Progress
             value={(workshop.environment.allocated / workshop.environment.capacity) * 100}
             variant="determinate"
           />
         </Box>
-      </CardContent>
-      <CardActions>
-        <Tooltip title={getStartButtonTooltip()}>
-          <span>
-            <Button
-              color="primary"
-              variant="contained"
-              disabled={!hasCapacity || !canStartWorkshop}
-              onClick={onStartWorkshop}
-              className={classes.startButton}
-              endIcon={<OpenInNewIcon />}
-            >
-              Start Workshop
-            </Button>
-          </span>
-        </Tooltip>
-      </CardActions>
+      </CardBody>
+      <CardFooter>
+        {startButtonTooltip ? (
+          <TooltipTrigger>
+            {startButton}
+            <Tooltip>{startButtonTooltip}</Tooltip>
+          </TooltipTrigger>
+        ) : (
+          startButton
+        )}
+      </CardFooter>
     </Card>
   );
 };

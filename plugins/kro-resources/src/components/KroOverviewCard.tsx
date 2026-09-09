@@ -1,27 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, Typography, Box, Grid, Tooltip, makeStyles, Chip } from '@material-ui/core';
+import { Badge, Box, Card, CardBody, Flex, Grid, Text, Tooltip, TooltipTrigger } from '@backstage/ui';
 import { useApi, configApiRef } from '@backstage/core-plugin-api';
 import { kroApiRef } from '../api/KroApi';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { usePermission } from '@backstage/plugin-permission-react';
 import { showOverview } from '@terasky/backstage-plugin-kro-common';
 import { getAnnotationPrefix, getKroAnnotation } from './annotationUtils';
-import CheckCircleIcon from '@material-ui/icons/CheckCircle';
-import CancelIcon from '@material-ui/icons/Cancel';
-import PauseCircleFilledIcon from '@material-ui/icons/PauseCircleFilled';
-import { green, red, orange } from '@material-ui/core/colors';
-
-const useStyles = makeStyles((theme) => ({
-  button: {
-    margin: theme.spacing(1),
-  },
-  customWidth: {
-    maxWidth: 500,
-  },
-  noMaxWidth: {
-    maxWidth: 'none',
-  },
-}));
+import { RiCheckboxCircleLine, RiCloseCircleLine, RiPauseCircleLine } from '@remixicon/react';
+import styles from './KroOverviewCard.module.css';
 
 const KroOverviewCard = () => {
   const { entity } = useEntity();
@@ -34,7 +20,6 @@ const KroOverviewCard = () => {
   const [rgd, setRgd] = useState<any | null>(null);
   const [instance, setInstance] = useState<any | null>(null);
   const [instanceRow, setInstanceRow] = useState<any | null>(null);
-  const classes = useStyles();
 
   useEffect(() => {
     if (!canShowOverview) {
@@ -86,117 +71,119 @@ const KroOverviewCard = () => {
 
   if (!canShowOverview) {
     return (
-      <Card style={{ width: '450px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)' }}>
-        <CardContent>
-          <Typography variant="h5" component="h1" align="center">
+      <Card style={{ width: '450px' }}>
+        <CardBody>
+          <Text variant="title-small" weight="bold" style={{ display: 'block', textAlign: 'center' }}>
             KRO Overview
-          </Typography>
-          <Box m={2}>
-            <Typography gutterBottom>
+          </Text>
+          <Box m="2">
+            <Text>
               You don't have permissions to view KRO resources
-            </Typography>
+            </Text>
           </Box>
-        </CardContent>
+        </CardBody>
       </Card>
     );
   }
 
   const renderStatusIcon = (status: string) => {
-    return status === 'True' ? <CheckCircleIcon style={{ color: green[500] }} /> : <CancelIcon style={{ color: red[500] }} />;
+    return status === 'True'
+      ? <RiCheckboxCircleLine style={{ color: 'var(--bui-fg-positive)' }} />
+      : <RiCloseCircleLine style={{ color: 'var(--bui-fg-negative)' }} />;
   };
 
   const isClusterScoped = instanceRow?.scope === 'Cluster';
   const reconcilePaused = instanceRow?.reconcilePaused === true;
 
   const renderConditionTooltip = (condition: any) => (
-    <Card style={{ width: '400px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)' }}>
-      <CardContent>
-        <Typography variant="subtitle1">Condition: {condition.type}</Typography>
-        <Typography variant="body2">Status: {condition.status}</Typography>
-        <Typography variant="body2">Reason: {condition.reason}</Typography>
-        <Typography variant="body2">Last Transition Time: {condition.lastTransitionTime}</Typography>
-        <Typography variant="body2" style={{ wordWrap: 'break-word', maxWidth: '380px', alignSelf: 'center', }}>Message: {condition.message}</Typography>
-      </CardContent>
-    </Card>
+    <Box style={{ width: '380px' }}>
+      <Text variant="body-small" weight="bold" style={{ display: 'block' }}>Condition: {condition.type}</Text>
+      <Text variant="body-small" style={{ display: 'block' }}>Status: {condition.status}</Text>
+      <Text variant="body-small" style={{ display: 'block' }}>Reason: {condition.reason}</Text>
+      <Text variant="body-small" style={{ display: 'block' }}>Last Transition Time: {condition.lastTransitionTime}</Text>
+      <Text variant="body-small" style={{ wordWrap: 'break-word', display: 'block' }}>Message: {condition.message}</Text>
+    </Box>
   );
 
   return (
     <Card>
-      <CardContent>
-        <Typography variant="h6" gutterBottom>KRO Overview</Typography>
+      <CardBody>
+        <Box mb="4">
+          <Text variant="title-small" weight="bold">KRO Overview</Text>
+        </Box>
         {rgd ? (
           <Box>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray' }}>RGD Name</Typography>
-                <Typography variant="body2">{rgd.metadata?.name}</Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray', width: '350px' }}>RGD State</Typography>
-                <Tooltip
-                  classes={{ tooltip: classes.customWidth }}
-                  title={renderConditionTooltip(rgd.status?.conditions?.find((condition: any) => condition.type === 'Ready') || {})}
-                >
-                  <Typography variant="body2">
+            <Grid.Root columns="12" gap="4">
+              <Grid.Item colSpan={{ xs: '12', sm: '6' }}>
+                <Text variant="body-small" weight="bold" style={{ display: 'block', color: 'var(--bui-fg-secondary)' }}>RGD Name</Text>
+                <Text variant="body-small">{rgd.metadata?.name}</Text>
+              </Grid.Item>
+              <Grid.Item colSpan={{ xs: '12', sm: '6' }}>
+                <Text variant="body-small" weight="bold" style={{ display: 'block', color: 'var(--bui-fg-secondary)' }}>RGD State</Text>
+                <TooltipTrigger>
+                  <Text variant="body-small" style={{ display: 'inline-block' }}>
                     {renderStatusIcon(rgd.status?.conditions?.find((condition: any) => condition.type === 'Ready')?.status || 'Unknown')}
-                  </Typography>
-                </Tooltip>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray' }}>Instance Name</Typography>
-                <Typography variant="body2">{getKroAnnotation(entity.metadata?.annotations, annotationPrefix, 'kro-instance-name')}</Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray' }}>Instance State</Typography>
-                <Tooltip
-                  classes={{ tooltip: classes.customWidth }}
-                  title={renderConditionTooltip(
-                    instance?.status?.conditions?.find((condition: any) => condition.type === 'Ready') ||
-                    instance?.status?.conditions?.find((condition: any) => condition.type === 'InstanceSynced') || 
-                    {}
-                  )}
-                >
-                  <Typography variant="body2">
+                  </Text>
+                  <Tooltip className={styles.wideTooltip}>
+                    {renderConditionTooltip(rgd.status?.conditions?.find((condition: any) => condition.type === 'Ready') || {})}
+                  </Tooltip>
+                </TooltipTrigger>
+              </Grid.Item>
+              <Grid.Item colSpan={{ xs: '12', sm: '6' }}>
+                <Text variant="body-small" weight="bold" style={{ display: 'block', color: 'var(--bui-fg-secondary)' }}>Instance Name</Text>
+                <Text variant="body-small">{getKroAnnotation(entity.metadata?.annotations, annotationPrefix, 'kro-instance-name')}</Text>
+              </Grid.Item>
+              <Grid.Item colSpan={{ xs: '12', sm: '6' }}>
+                <Text variant="body-small" weight="bold" style={{ display: 'block', color: 'var(--bui-fg-secondary)' }}>Instance State</Text>
+                <TooltipTrigger>
+                  <Text variant="body-small" style={{ display: 'inline-block' }}>
                     {renderStatusIcon(
                       (instance?.status?.conditions?.find((condition: any) => condition.type === 'Ready') ||
-                       instance?.status?.conditions?.find((condition: any) => condition.type === 'InstanceSynced'))?.status || 
+                       instance?.status?.conditions?.find((condition: any) => condition.type === 'InstanceSynced'))?.status ||
                       'Unknown'
                     )}
-                  </Typography>
-                </Tooltip>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray' }}>Namespace</Typography>
+                  </Text>
+                  <Tooltip className={styles.wideTooltip}>
+                    {renderConditionTooltip(
+                      instance?.status?.conditions?.find((condition: any) => condition.type === 'Ready') ||
+                      instance?.status?.conditions?.find((condition: any) => condition.type === 'InstanceSynced') ||
+                      {}
+                    )}
+                  </Tooltip>
+                </TooltipTrigger>
+              </Grid.Item>
+              <Grid.Item colSpan={{ xs: '12', sm: '6' }}>
+                <Text variant="body-small" weight="bold" style={{ display: 'block', color: 'var(--bui-fg-secondary)' }}>Namespace</Text>
                 {isClusterScoped ? (
-                  <Chip label="Cluster-Scoped" size="small" style={{ backgroundColor: '#e3f2fd', color: '#1565c0', fontWeight: 'bold' }} />
+                  <Badge style={{ color: 'var(--bui-fg-announcement)' }}>Cluster-Scoped</Badge>
                 ) : (
-                  <Typography variant="body2">{getKroAnnotation(entity.metadata?.annotations, annotationPrefix, 'kro-instance-namespace') || 'default'}</Typography>
+                  <Text variant="body-small">{getKroAnnotation(entity.metadata?.annotations, annotationPrefix, 'kro-instance-namespace') || 'default'}</Text>
                 )}
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray' }}>Cluster</Typography>
-                <Typography variant="body2">{entity.metadata?.annotations?.['backstage.io/managed-by-location']?.split(": ")[1] || "Unknown"}</Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle1" style={{ fontWeight: 'bold', color: 'gray' }}>RGD API Version</Typography>
-                <Typography variant="body2">{rgd.apiVersion}</Typography>
-              </Grid>
+              </Grid.Item>
+              <Grid.Item colSpan={{ xs: '12', sm: '6' }}>
+                <Text variant="body-small" weight="bold" style={{ display: 'block', color: 'var(--bui-fg-secondary)' }}>Cluster</Text>
+                <Text variant="body-small">{entity.metadata?.annotations?.['backstage.io/managed-by-location']?.split(": ")[1] || "Unknown"}</Text>
+              </Grid.Item>
+              <Grid.Item colSpan={{ xs: '12', sm: '6' }}>
+                <Text variant="body-small" weight="bold" style={{ display: 'block', color: 'var(--bui-fg-secondary)' }}>RGD API Version</Text>
+                <Text variant="body-small">{rgd.apiVersion}</Text>
+              </Grid.Item>
               {reconcilePaused && (
-                <Grid item xs={12}>
-                  <Box display="flex" alignItems="center" style={{ gap: 8, marginTop: 4 }}>
-                    <PauseCircleFilledIcon style={{ color: orange[700] }} />
-                    <Typography variant="body2" style={{ color: orange[700], fontWeight: 'bold' }}>
+                <Grid.Item colSpan="12">
+                  <Flex align="center" gap="2" mt="1">
+                    <RiPauseCircleLine style={{ color: 'var(--bui-fg-warning)' }} />
+                    <Text variant="body-small" weight="bold" style={{ color: 'var(--bui-fg-warning)' }}>
                       Reconciliation is paused for this instance
-                    </Typography>
-                  </Box>
-                </Grid>
+                    </Text>
+                  </Flex>
+                </Grid.Item>
               )}
-            </Grid>
+            </Grid.Root>
           </Box>
         ) : (
-          <Typography>Loading...</Typography>
+          <Text>Loading...</Text>
         )}
-      </CardContent>
+      </CardBody>
     </Card>
   );
 };

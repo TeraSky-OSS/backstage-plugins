@@ -1,15 +1,13 @@
 import { useState, useEffect } from 'react';
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  Typography,
   Box,
+  Card,
+  CardBody,
+  CardHeader,
   Grid,
-  CircularProgress,
-  Divider,
-  makeStyles,
-} from '@material-ui/core';
+  Text,
+} from '@backstage/ui';
+import { Progress } from '@backstage/core-components';
 import { useApi, configApiRef } from '@backstage/core-plugin-api';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { usePermission } from '@backstage/plugin-permission-react';
@@ -17,54 +15,7 @@ import { listManagedResourceDefinitionsPermission } from '@terasky/backstage-plu
 import { crossplaneApiRef } from '../api/CrossplaneApi';
 import { getAnnotationPrefix } from './annotationUtils';
 import { getProviderClusterName, getProviderName } from './isCrossplaneProviderEntity';
-
-const useStyles = makeStyles(theme => ({
-  card: {
-    minWidth: 300,
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-  },
-  statBox: {
-    textAlign: 'center',
-    padding: theme.spacing(1.5),
-  },
-  statValue: {
-    fontSize: '2rem',
-    fontWeight: 700,
-    lineHeight: 1.2,
-  },
-  statLabel: {
-    fontSize: '0.75rem',
-    color: theme.palette.text.secondary,
-    textTransform: 'uppercase',
-    letterSpacing: '0.05em',
-  },
-  dividerVertical: {
-    width: 1,
-    alignSelf: 'stretch',
-    margin: theme.spacing(0, 1),
-    backgroundColor: theme.palette.divider,
-  },
-  sectionTitle: {
-    fontWeight: 600,
-    fontSize: '0.8rem',
-    color: theme.palette.text.secondary,
-    textTransform: 'uppercase',
-    letterSpacing: '0.07em',
-    marginBottom: theme.spacing(0.5),
-  },
-  activeColor: {
-    color: '#4caf50',
-  },
-  inactiveColor: {
-    color: '#f44336',
-  },
-  namespacedColor: {
-    color: '#2196f3',
-  },
-  clusterColor: {
-    color: '#ff9800',
-  },
-}));
+import styles from './CrossplaneMrdCard.module.css';
 
 const CrossplaneMrdCard = () => {
   const { entity } = useEntity();
@@ -76,7 +27,6 @@ const CrossplaneMrdCard = () => {
     permission: listManagedResourceDefinitionsPermission,
   });
   const canList = enablePermissions ? canListTemp : true;
-  const classes = useStyles();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -118,99 +68,84 @@ const CrossplaneMrdCard = () => {
 
   if (!canList) {
     return (
-      <Card className={classes.card}>
-        <CardContent>
-          <Typography variant="body2" color="textSecondary">
+      <Card style={{ minWidth: '300px' }}>
+        <CardBody>
+          <Text variant="body-small" style={{ color: 'var(--bui-fg-secondary)' }}>
             You do not have permission to view Managed Resource Definitions.
-          </Typography>
-        </CardContent>
+          </Text>
+        </CardBody>
       </Card>
     );
   }
 
   return (
-    <Card className={classes.card}>
-      <CardHeader
-        title="Managed Resource Definitions"
-        titleTypographyProps={{ variant: 'h6' }}
-      />
-      <Divider />
-      <CardContent>
+    <Card style={{ minWidth: '300px' }}>
+      <CardHeader title="Managed Resource Definitions" />
+      <hr className={styles.divider} />
+      <CardBody>
         {loading && (
-          <Box display="flex" justifyContent="center" py={2}>
-            <CircularProgress size={32} />
+          <Box style={{ display: 'flex', justifyContent: 'center', padding: 'var(--bui-space-4) 0' }}>
+            <Progress />
           </Box>
         )}
         {error && (
-          <Typography variant="body2" color="error">
+          <Text variant="body-small" style={{ color: 'var(--bui-fg-negative)' }}>
             {error}
-          </Typography>
+          </Text>
         )}
         {!loading && !error && summary !== null && (
           <>
-            <Box mb={2} textAlign="center">
-              <Typography className={classes.statValue}>{summary.total}</Typography>
-              <Typography className={classes.statLabel}>Total MRDs</Typography>
+            <Box mb="4" style={{ textAlign: 'center' }}>
+              <Text className={styles.statValue}>{summary.total}</Text>
+              <Text className={styles.statLabel}>Total MRDs</Text>
             </Box>
-            <Divider />
-            <Box mt={2} mb={1}>
-              <Typography className={classes.sectionTitle}>By Scope</Typography>
-              <Grid container>
-                <Grid item xs={6}>
-                  <Box className={classes.statBox}>
-                    <Typography
-                      className={classes.statValue}
-                      style={{ color: '#2196f3' }}
-                    >
+            <hr className={styles.divider} />
+            <Box mt="4" mb="2">
+              <Text className={styles.sectionTitle}>By Scope</Text>
+              <Grid.Root columns="12" gap="2">
+                <Grid.Item colSpan="6">
+                  <Box className={styles.statBox}>
+                    <Text className={styles.statValue} style={{ color: 'var(--bui-fg-announcement)' }}>
                       {summary.namespacedCount}
-                    </Typography>
-                    <Typography className={classes.statLabel}>Namespaced</Typography>
+                    </Text>
+                    <Text className={styles.statLabel}>Namespaced</Text>
                   </Box>
-                </Grid>
-                <Grid item xs={6}>
-                  <Box className={classes.statBox}>
-                    <Typography
-                      className={classes.statValue}
-                      style={{ color: '#ff9800' }}
-                    >
+                </Grid.Item>
+                <Grid.Item colSpan="6">
+                  <Box className={styles.statBox}>
+                    <Text className={styles.statValue} style={{ color: 'var(--bui-fg-warning)' }}>
                       {summary.clusterScopedCount}
-                    </Typography>
-                    <Typography className={classes.statLabel}>Cluster Scoped</Typography>
+                    </Text>
+                    <Text className={styles.statLabel}>Cluster Scoped</Text>
                   </Box>
-                </Grid>
-              </Grid>
+                </Grid.Item>
+              </Grid.Root>
             </Box>
-            <Divider />
-            <Box mt={2}>
-              <Typography className={classes.sectionTitle}>By State</Typography>
-              <Grid container>
-                <Grid item xs={6}>
-                  <Box className={classes.statBox}>
-                    <Typography
-                      className={classes.statValue}
-                      style={{ color: '#4caf50' }}
-                    >
+            <hr className={styles.divider} />
+            <Box mt="4">
+              <Text className={styles.sectionTitle}>By State</Text>
+              <Grid.Root columns="12" gap="2">
+                <Grid.Item colSpan="6">
+                  <Box className={styles.statBox}>
+                    <Text className={styles.statValue} style={{ color: 'var(--bui-fg-positive)' }}>
                       {summary.activeCount}
-                    </Typography>
-                    <Typography className={classes.statLabel}>Active</Typography>
+                    </Text>
+                    <Text className={styles.statLabel}>Active</Text>
                   </Box>
-                </Grid>
-                <Grid item xs={6}>
-                  <Box className={classes.statBox}>
-                    <Typography
-                      className={classes.statValue}
-                      style={{ color: '#f44336' }}
-                    >
+                </Grid.Item>
+                <Grid.Item colSpan="6">
+                  <Box className={styles.statBox}>
+                    <Text className={styles.statValue} style={{ color: 'var(--bui-fg-negative)' }}>
                       {summary.inactiveCount}
-                    </Typography>
-                    <Typography className={classes.statLabel}>Inactive</Typography>
+                    </Text>
+                    <Text className={styles.statLabel}>Inactive</Text>
                   </Box>
-                </Grid>
-              </Grid>
+                </Grid.Item>
+              </Grid.Root>
             </Box>
           </>
         )}
-      </CardContent>
+      </CardBody>
     </Card>
   );
 };

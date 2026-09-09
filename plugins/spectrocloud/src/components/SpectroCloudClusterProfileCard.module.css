@@ -1,0 +1,43 @@
+.divider {
+  margin: var(--bui-space-4) 0;
+  border: none;
+  border-top: 1px solid var(--bui-border-1);
+}
+
+.entityLink {
+  color: var(--bui-accent-fg);
+  text-decoration: none;
+}
+
+.entityLink:hover {
+  text-decoration: underline;
+}
+
+.noClusterText {
+  display: block;
+  padding: var(--bui-space-2) var(--bui-space-4);
+  color: var(--bui-fg-secondary);
+  font-style: italic;
+}
+
+.accentBadge {
+  background-color: var(--bui-accent-bg);
+  color: var(--bui-accent-fg);
+}
+
+.countBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--bui-space-6);
+  padding: var(--bui-space-0.5) var(--bui-space-2);
+  border-radius: 50%;
+  background-color: var(--bui-accent-bg);
+  color: var(--bui-accent-fg);
+  font-weight: bold;
+  text-align: center;
+}
+
+.detailPanel {
+  padding: var(--bui-space-4);
+}

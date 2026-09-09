@@ -1,40 +1,39 @@
 import { useState, useMemo } from 'react';
+import { Badge, Box, Button, ButtonIcon, Flex, Text } from '@backstage/ui';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  IconButton,
-  Chip,
-  Typography,
-  Box,
-  Button,
-} from '@material-ui/core';
-import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
-import KeyboardArrowRightIcon from '@material-ui/icons/KeyboardArrowRight';
-import OpenInNewIcon from '@material-ui/icons/OpenInNew';
-import { Link } from '@backstage/core-components';
-import { StatusOK, StatusError, StatusWarning, StatusPending } from '@backstage/core-components';
+  Link,
+  StatusOK,
+  StatusError,
+  StatusWarning,
+  StatusPending,
+} from '@backstage/core-components';
+import { RiArrowDownSLine, RiArrowRightSLine, RiExternalLinkLine } from '@remixicon/react';
 import { Entity } from '@backstage/catalog-model';
-import { 
-  buildHierarchy, 
+import {
+  buildHierarchy,
   hierarchyToTableRows,
 } from './utils';
-import { useKubernetesResourcesStyles } from './styles';
+import styles from './KubernetesResources.module.css';
 
 interface HierarchicalTableViewProps {
   entities: Entity[];
   annotationPrefix: string;
 }
 
+const CATEGORY_COLORS: Record<string, string> = {
+  Workload: 'var(--bui-fg-positive)',
+  'Crossplane Claim': 'var(--bui-fg-announcement)',
+  'Crossplane XR': 'var(--bui-fg-announcement)',
+  'KRO Instance': 'var(--bui-fg-warning)',
+  Namespace: 'var(--bui-accent-fg)',
+};
+
+const getCategoryColor = (category: string) => CATEGORY_COLORS[category] ?? 'var(--bui-fg-secondary)';
+
 export const HierarchicalTableView: React.FC<HierarchicalTableViewProps> = ({
   entities,
   annotationPrefix,
 }) => {
-  const classes = useKubernetesResourcesStyles();
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   // Build hierarchy and convert to table rows
@@ -55,26 +54,9 @@ export const HierarchicalTableView: React.FC<HierarchicalTableViewProps> = ({
     });
   };
 
-  const getCategoryBadgeClass = (category: string) => {
-    switch (category) {
-      case 'Workload':
-        return classes.workloadBadge;
-      case 'Crossplane Claim':
-        return classes.crossplaneClaimBadge;
-      case 'Crossplane XR':
-        return classes.crossplaneXRBadge;
-      case 'KRO Instance':
-        return classes.kroBadge;
-      case 'Namespace':
-        return classes.namespaceBadge;
-      default:
-        return classes.crdBadge;
-    }
-  };
-
   const getStatusComponent = (status?: string) => {
     if (!status) return null;
-    
+
     const lowerStatus = status.toLowerCase();
     if (lowerStatus.includes('running') || lowerStatus.includes('ready') || lowerStatus.includes('synced')) {
       return <StatusOK />;
@@ -90,33 +72,33 @@ export const HierarchicalTableView: React.FC<HierarchicalTableViewProps> = ({
 
   if (tableRows.length === 0) {
     return (
-      <Box className={classes.emptyState}>
-        <Typography variant="h6" gutterBottom>
+      <Box className={styles.emptyState}>
+        <Text variant="title-small" weight="bold">
           No resources found
-        </Typography>
-        <Typography variant="body2" color="textSecondary">
+        </Text>
+        <Text color="secondary">
           No Kubernetes resources are associated with this cluster.
-        </Typography>
+        </Text>
       </Box>
     );
   }
 
   return (
-    <TableContainer component={Paper} className={classes.tableContainer}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell className={classes.tableHeaderCell} style={{ width: 48 }} />
-            <TableCell className={classes.tableHeaderCell}>Name</TableCell>
-            <TableCell className={classes.tableHeaderCell} align="center">Kubernetes Kind</TableCell>
-            <TableCell className={classes.tableHeaderCell} align="center">Category</TableCell>
-            <TableCell className={classes.tableHeaderCell} align="center">Entity Kind</TableCell>
-            <TableCell className={classes.tableHeaderCell} align="center">Owner</TableCell>
-            <TableCell className={classes.tableHeaderCell} align="center">Status</TableCell>
-            <TableCell className={classes.tableHeaderCell} align="center">Actions</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
+    <div className={styles.tableContainer}>
+      <table className={styles.table}>
+        <thead>
+          <tr>
+            <th className={`${styles.tableHeaderCell} ${styles.expandCell}`} />
+            <th className={styles.tableHeaderCell}>Name</th>
+            <th className={`${styles.tableHeaderCell} ${styles.tableCellCenter}`}>Kubernetes Kind</th>
+            <th className={`${styles.tableHeaderCell} ${styles.tableCellCenter}`}>Category</th>
+            <th className={`${styles.tableHeaderCell} ${styles.tableCellCenter}`}>Entity Kind</th>
+            <th className={`${styles.tableHeaderCell} ${styles.tableCellCenter}`}>Owner</th>
+            <th className={`${styles.tableHeaderCell} ${styles.tableCellCenter}`}>Status</th>
+            <th className={`${styles.tableHeaderCell} ${styles.tableCellCenter}`}>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
           {tableRows.map(row => {
             const isExpanded = expandedRows.has(row.id);
             const isVisible = row.level === 0 || expandedRows.has(row.parentId || '');
@@ -126,86 +108,81 @@ export const HierarchicalTableView: React.FC<HierarchicalTableViewProps> = ({
             }
 
             return (
-              <TableRow key={row.id} className={classes.tableRow}>
+              <tr key={row.id} className={styles.tableRow}>
                 {/* Expand/Collapse */}
-                <TableCell className={`${classes.tableCell} ${classes.expandCell}`}>
+                <td className={`${styles.tableCell} ${styles.expandCell}`}>
                   {row.hasChildren && (
-                    <IconButton size="small" onClick={() => toggleRowExpansion(row.id)}>
-                      {isExpanded ? <KeyboardArrowDownIcon /> : <KeyboardArrowRightIcon />}
-                    </IconButton>
+                    <ButtonIcon
+                      size="small"
+                      variant="tertiary"
+                      aria-label={isExpanded ? 'Collapse row' : 'Expand row'}
+                      icon={isExpanded ? <RiArrowDownSLine /> : <RiArrowRightSLine />}
+                      onPress={() => toggleRowExpansion(row.id)}
+                    />
                   )}
-                </TableCell>
+                </td>
 
                 {/* Name */}
-                <TableCell 
-                  className={classes.tableCell}
+                <td
+                  className={styles.tableCell}
                   style={{ paddingLeft: row.level * 32 + 16 }}
                 >
                   <Link
                     to={`/catalog/${row.entity.metadata.namespace || 'default'}/${row.entityKind.toLowerCase()}/${row.entity.metadata.name}`}
                     onClick={(e: React.MouseEvent) => e.stopPropagation()}
                   >
-                    <Typography variant="body2" style={{ fontWeight: row.level === 0 ? 600 : 400 }}>
+                    <Text weight={row.level === 0 ? 'bold' : 'regular'}>
                       {row.name}
-                    </Typography>
+                    </Text>
                   </Link>
-                </TableCell>
+                </td>
 
                 {/* Kubernetes Kind */}
-                <TableCell className={classes.tableCell} align="center">
-                  <Typography variant="body2">{row.kubernetesKind}</Typography>
-                </TableCell>
+                <td className={`${styles.tableCell} ${styles.tableCellCenter}`}>
+                  <Text>{row.kubernetesKind}</Text>
+                </td>
 
                 {/* Category */}
-                <TableCell className={classes.tableCell} align="center">
-                  <Chip
-                    label={row.category}
-                    size="small"
-                    className={getCategoryBadgeClass(row.category)}
-                  />
-                </TableCell>
+                <td className={`${styles.tableCell} ${styles.tableCellCenter}`}>
+                  <Badge size="small" style={{ color: getCategoryColor(row.category) }}>
+                    {row.category}
+                  </Badge>
+                </td>
 
                 {/* Entity Kind */}
-                <TableCell className={classes.tableCell} align="center">
-                  <Chip label={row.entityKind} size="small" />
-                </TableCell>
+                <td className={`${styles.tableCell} ${styles.tableCellCenter}`}>
+                  <Badge size="small">{row.entityKind}</Badge>
+                </td>
 
                 {/* Owner */}
-                <TableCell className={classes.tableCell} align="center">
-                  <Typography variant="body2">{row.owner}</Typography>
-                </TableCell>
+                <td className={`${styles.tableCell} ${styles.tableCellCenter}`}>
+                  <Text>{row.owner}</Text>
+                </td>
 
                 {/* Status */}
-                <TableCell className={classes.tableCell} align="center">
-                  <Box display="flex" alignItems="center" justifyContent="center" style={{ gap: 8 }}>
+                <td className={`${styles.tableCell} ${styles.tableCellCenter}`}>
+                  <Flex align="center" justify="center" gap="2">
                     {getStatusComponent(row.status)}
-                    {row.status && (
-                      <Typography variant="body2">{row.status}</Typography>
-                    )}
-                  </Box>
-                </TableCell>
+                    {row.status && <Text>{row.status}</Text>}
+                  </Flex>
+                </td>
 
                 {/* Actions */}
-                <TableCell className={classes.tableCell} align="center">
+                <td className={`${styles.tableCell} ${styles.tableCellCenter}`}>
                   <Link
                     to={`/catalog/${row.entity.metadata.namespace || 'default'}/${row.entityKind.toLowerCase()}/${row.entity.metadata.name}`}
                     onClick={(e: React.MouseEvent) => e.stopPropagation()}
                   >
-                    <Button
-                      size="small"
-                      variant="text"
-                      color="primary"
-                      endIcon={<OpenInNewIcon />}
-                    >
+                    <Button size="small" variant="tertiary" iconEnd={<RiExternalLinkLine />}>
                       View
                     </Button>
                   </Link>
-                </TableCell>
-              </TableRow>
+                </td>
+              </tr>
             );
           })}
-        </TableBody>
-      </Table>
-    </TableContainer>
+        </tbody>
+      </table>
+    </div>
   );
 };

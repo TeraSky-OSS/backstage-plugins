@@ -1,6 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
-import { Box, Typography, Button, Paper } from '@material-ui/core';
-import ErrorIcon from '@material-ui/icons/Error';
+import { Button, Card, CardBody, Flex, Text } from '@backstage/ui';
+import { RiErrorWarningLine } from '@remixicon/react';
 
 interface Props {
   children: ReactNode;
@@ -32,30 +32,32 @@ export class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <Box
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          minHeight="400px"
-          p={3}
+        <Flex
+          align="center"
+          justify="center"
+          style={{ minHeight: 400, padding: 'var(--bui-space-4)' }}
         >
-          <Paper style={{ padding: 32, maxWidth: 600, textAlign: 'center' }}>
-            <ErrorIcon style={{ fontSize: 64, color: '#f44336', marginBottom: 16 }} />
-            <Typography variant="h5" gutterBottom>
-              Something went wrong
-            </Typography>
-            <Typography variant="body1" color="textSecondary" paragraph>
-              {this.state.error?.message || 'An unexpected error occurred'}
-            </Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={this.handleReset}
-            >
-              Try Again
-            </Button>
-          </Paper>
-        </Box>
+          <Card style={{ maxWidth: 600 }}>
+            <CardBody>
+              <Flex direction="column" align="center" style={{ textAlign: 'center' }}>
+                <RiErrorWarningLine
+                  size={64}
+                  color="var(--bui-fg-negative)"
+                  style={{ marginBottom: 'var(--bui-space-2)' }}
+                />
+                <Text as="p" variant="title-small" weight="bold">
+                  Something went wrong
+                </Text>
+                <Text as="p" variant="body-medium" color="secondary" style={{ marginTop: 'var(--bui-space-1)', marginBottom: 'var(--bui-space-2)' }}>
+                  {this.state.error?.message || 'An unexpected error occurred'}
+                </Text>
+                <Button variant="primary" onPress={this.handleReset}>
+                  Try Again
+                </Button>
+              </Flex>
+            </CardBody>
+          </Card>
+        </Flex>
       );
     }
 

@@ -1,98 +1,40 @@
 import { useEntity, useRelatedEntities, EntityRefLink } from '@backstage/plugin-catalog-react';
 import { useApi, configApiRef } from '@backstage/core-plugin-api';
 import { Entity } from '@backstage/catalog-model';
-import {
-  InfoCard,
-} from '@backstage/core-components';
-import {
-  Grid,
-  Typography,
-  Chip,
-  makeStyles,
-  Box,
-  Divider,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-} from '@material-ui/core';
-import GroupWorkIcon from '@material-ui/icons/GroupWork';
-import ComputerIcon from '@material-ui/icons/Computer';
-import LayersIcon from '@material-ui/icons/Layers';
-
-const useStyles = makeStyles(theme => ({
-  chip: {
-    margin: theme.spacing(0.5),
-  },
-  infoRow: {
-    marginBottom: theme.spacing(1),
-  },
-  label: {
-    fontWeight: 600,
-    color: theme.palette.text.secondary,
-    marginBottom: theme.spacing(0.5),
-  },
-  value: {
-    color: theme.palette.text.primary,
-  },
-  divider: {
-    margin: theme.spacing(2, 0),
-  },
-  clusterList: {
-    paddingTop: 0,
-  },
-  clusterListItem: {
-    paddingTop: theme.spacing(0.5),
-    paddingBottom: theme.spacing(0.5),
-  },
-  clusterIcon: {
-    minWidth: 36,
-    color: theme.palette.primary.main,
-  },
-  noResourceText: {
-    padding: theme.spacing(1, 0),
-    color: theme.palette.text.secondary,
-    fontStyle: 'italic',
-  },
-  entityLink: {
-    color: theme.palette.primary.main,
-    textDecoration: 'none',
-    '&:hover': {
-      textDecoration: 'underline',
-    },
-  },
-}));
+import { InfoCard } from '@backstage/core-components';
+import { Badge, Box, Flex, Grid, Text } from '@backstage/ui';
+import { RiGroupLine, RiComputerLine, RiStackLine } from '@remixicon/react';
+import styles from './SpectroCloudClusterGroupCard.module.css';
 
 export const SpectroCloudClusterGroupCard = () => {
-  const classes = useStyles();
   const { entity } = useEntity();
   const configApi = useApi(configApiRef);
-  
+
   const annotationPrefix = configApi.getOptionalConfig('spectrocloud')?.getOptionalString('annotationPrefix') ?? 'terasky.backstage.io';
-  
+
   const annotations = entity.metadata.annotations || {};
   const clusterGroupId = annotations[`${annotationPrefix}/cluster-group-id`];
   const scope = annotations[`${annotationPrefix}/scope`] || 'tenant';
   const projectName = annotations[`${annotationPrefix}/project-name`];
   const endpointType = annotations[`${annotationPrefix}/endpoint-type`] || 'N/A';
-  
+
   // Get all dependent resources (clusters and profiles)
   const { entities: dependentEntities } = useRelatedEntities(entity, {
     type: 'dependsOn',
     kind: 'resource',
   });
-  
+
   // Filter to get actual clusters (not profiles)
-  const clusters = dependentEntities?.filter((e: Entity) => 
-    e.spec?.type === 'spectrocloud-cluster' || 
+  const clusters = dependentEntities?.filter((e: Entity) =>
+    e.spec?.type === 'spectrocloud-cluster' ||
     e.spec?.type === 'spectrocloud-virtual-cluster'
   ) || [];
-  
+
   // Filter to get profile entities
-  const profileEntities = dependentEntities?.filter((e: Entity) => 
+  const profileEntities = dependentEntities?.filter((e: Entity) =>
     e.spec?.type === 'spectrocloud-cluster-profile'
   ) || [];
-  
+
   // Get attached profiles from annotations (for display names and UIDs)
   const profileRefs = annotations[`${annotationPrefix}/cluster-profile-refs`];
   let profiles: Array<{name: string; uid: string}> = [];
@@ -106,141 +48,123 @@ export const SpectroCloudClusterGroupCard = () => {
 
   return (
     <InfoCard title="Cluster Group Overview">
-      <Grid container spacing={2}>
-        <Grid item xs={12} md={6}>
-          <Box className={classes.infoRow}>
-            <Typography variant="body2" className={classes.label}>
+      <Grid.Root columns="12" gap="4">
+        <Grid.Item colSpan={{ xs: '12', md: '6' }}>
+          <Box mb="2">
+            <Text variant="body-small" weight="bold" color="secondary" style={{ display: 'block' }}>
               Cluster Group ID:
-            </Typography>
-            <Typography variant="body2" className={classes.value}>
-              {clusterGroupId || 'N/A'}
-            </Typography>
+            </Text>
+            <Text variant="body-small">{clusterGroupId || 'N/A'}</Text>
           </Box>
 
-          <Box className={classes.infoRow}>
-            <Typography variant="body2" className={classes.label}>
+          <Box mb="2">
+            <Text variant="body-small" weight="bold" color="secondary" style={{ display: 'block' }}>
               Scope:
-            </Typography>
-            <Chip 
-              label={scope} 
-              size="small"
-              className={classes.chip}
-              color={scope === 'tenant' ? 'secondary' : 'default'}
-            />
+            </Text>
+            <Badge
+              style={
+                scope === 'tenant'
+                  ? { backgroundColor: 'var(--bui-accent-bg)', color: 'var(--bui-accent-fg)' }
+                  : undefined
+              }
+            >
+              {scope}
+            </Badge>
           </Box>
 
           {scope === 'project' && projectName && (
-            <Box className={classes.infoRow}>
-              <Typography variant="body2" className={classes.label}>
+            <Box mb="2">
+              <Text variant="body-small" weight="bold" color="secondary" style={{ display: 'block' }}>
                 Project:
-              </Typography>
-              <Typography variant="body2" className={classes.value}>
-                {projectName}
-              </Typography>
+              </Text>
+              <Text variant="body-small">{projectName}</Text>
             </Box>
           )}
 
-          <Box className={classes.infoRow}>
-            <Typography variant="body2" className={classes.label}>
+          <Box mb="2">
+            <Text variant="body-small" weight="bold" color="secondary" style={{ display: 'block' }}>
               Endpoint Type:
-            </Typography>
-            <Typography variant="body2" className={classes.value}>
-              {endpointType}
-            </Typography>
+            </Text>
+            <Text variant="body-small">{endpointType}</Text>
           </Box>
-        </Grid>
+        </Grid.Item>
 
-        <Grid item xs={12} md={6}>
-            <Box className={classes.infoRow}>
-              <Typography variant="body2" className={classes.label}>
-                <Box display="flex" alignItems="center" style={{ gap: 8 }}>
-                  <ComputerIcon fontSize="small" />
-                  Member Clusters ({clusters.length}):
-                </Box>
-              </Typography>
+        <Grid.Item colSpan={{ xs: '12', md: '6' }}>
+          <Box mb="2">
+            <Flex align="center" gap="2" mb="1">
+              <RiComputerLine size={16} />
+              <Text variant="body-small" weight="bold" color="secondary">
+                Member Clusters ({clusters.length}):
+              </Text>
+            </Flex>
             {clusters.length > 0 ? (
-              <List dense className={classes.clusterList}>
+              <Flex direction="column" gap="1">
                 {clusters.map((cluster: Entity) => (
-                  <ListItem key={cluster.metadata.uid} className={classes.clusterListItem}>
-                    <ListItemIcon className={classes.clusterIcon}>
-                      <ComputerIcon fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText>
-                      <EntityRefLink
-                        entityRef={cluster}
-                        title={cluster.metadata.title || cluster.metadata.name}
-                        className={classes.entityLink}
-                      />
-                      <Chip 
-                        label={cluster.spec?.type === 'spectrocloud-virtual-cluster' ? 'Virtual' : 'Physical'}
-                        size="small"
-                        className={classes.chip}
-                        style={{ marginLeft: 8 }}
-                      />
-                    </ListItemText>
-                  </ListItem>
+                  <Flex key={cluster.metadata.uid} align="center" gap="2">
+                    <RiComputerLine size={16} style={{ color: 'var(--bui-accent-fg)' }} />
+                    <EntityRefLink
+                      entityRef={cluster}
+                      title={cluster.metadata.title || cluster.metadata.name}
+                      className={styles.entityLink}
+                    />
+                    <Badge>
+                      {cluster.spec?.type === 'spectrocloud-virtual-cluster' ? 'Virtual' : 'Physical'}
+                    </Badge>
+                  </Flex>
                 ))}
-              </List>
+              </Flex>
             ) : (
-              <Typography variant="body2" className={classes.noResourceText}>
+              <Text variant="body-small" className={styles.noResourceText}>
                 No member clusters
-              </Typography>
+              </Text>
             )}
           </Box>
 
           {profiles.length > 0 && (
-            <Box className={classes.infoRow} mt={2}>
-              <Typography variant="body2" className={classes.label}>
-                <Box display="flex" alignItems="center" style={{ gap: 8 }}>
-                  <LayersIcon fontSize="small" />
+            <Box mt="2">
+              <Flex align="center" gap="2" mb="1">
+                <RiStackLine size={16} />
+                <Text variant="body-small" weight="bold" color="secondary">
                   Add-on Profiles ({profiles.length}):
-                </Box>
-              </Typography>
-              <List dense className={classes.clusterList}>
+                </Text>
+              </Flex>
+              <Flex direction="column" gap="1">
                 {profiles.map((profile) => {
                   // Find the matching profile entity by UID in annotations
-                  const profileEntity = profileEntities.find((e: Entity) => 
+                  const profileEntity = profileEntities.find((e: Entity) =>
                     e.metadata.annotations?.[`${annotationPrefix}/profile-id`] === profile.uid
                   );
-                  
+
                   return (
-                    <ListItem key={profile.uid} className={classes.clusterListItem}>
-                      <ListItemIcon className={classes.clusterIcon}>
-                        <LayersIcon fontSize="small" />
-                      </ListItemIcon>
-                      <ListItemText>
-                        {profileEntity ? (
-                          <EntityRefLink
-                            entityRef={profileEntity}
-                            defaultKind="resource"
-                            className={classes.entityLink}
-                          />
-                        ) : (
-                          <Typography variant="body2" className={classes.value}>
-                            {profile.name}
-                          </Typography>
-                        )}
-                      </ListItemText>
-                    </ListItem>
+                    <Flex key={profile.uid} align="center" gap="2">
+                      <RiStackLine size={16} style={{ color: 'var(--bui-accent-fg)' }} />
+                      {profileEntity ? (
+                        <EntityRefLink
+                          entityRef={profileEntity}
+                          defaultKind="resource"
+                          className={styles.entityLink}
+                        />
+                      ) : (
+                        <Text variant="body-small">{profile.name}</Text>
+                      )}
+                    </Flex>
                   );
                 })}
-              </List>
+              </Flex>
             </Box>
           )}
-        </Grid>
-      </Grid>
+        </Grid.Item>
+      </Grid.Root>
 
-      <Divider className={classes.divider} />
+      <hr className={styles.divider} />
 
-      <Box>
-        <Typography variant="body2" color="textSecondary">
-          <Box component="span" fontWeight={600}>
-            <GroupWorkIcon fontSize="small" style={{ verticalAlign: 'middle', marginRight: 4 }} />
-            Cluster Group
-          </Box>
-          : A logical grouping of clusters that can share configuration and policies
-        </Typography>
-      </Box>
+      <Text variant="body-small" color="secondary">
+        <strong>
+          <RiGroupLine size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+          Cluster Group
+        </strong>
+        : A logical grouping of clusters that can share configuration and policies
+      </Text>
     </InfoCard>
   );
 };

@@ -1,0 +1,120 @@
+/* Shared CSS module for the KubernetesResources view (FilterBar, KubernetesResourcesPage,
+ * HierarchicalTableView, FlatGroupedView, GraphView). Tier 2 (co-located CSS module) per
+ * MUI_TO_BUI_MIGRATION.md, used for static component-specific styling that has no BUI
+ * layout-primitive equivalent (borders, table chrome, fixed-size graph container). */
+
+/* Filter bar */
+.filterBar {
+  margin-bottom: var(--bui-space-4);
+  padding: var(--bui-space-3);
+  background-color: var(--bui-bg-neutral-1);
+  border-radius: var(--bui-radius-2);
+  border: 1px solid var(--bui-border-1);
+}
+
+.filterRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bui-space-3);
+  align-items: flex-end;
+}
+
+.filterField {
+  min-width: 200px;
+}
+
+/* Empty state */
+.emptyState {
+  text-align: center;
+  padding: var(--bui-space-8);
+}
+
+/* Plain-table chrome (hierarchical / grouped views use a plain <table>, not
+ * @backstage/core-components' Table, since they need nested expand/collapse rows and
+ * colSpan-based group headers that Table doesn't support). */
+.tableContainer {
+  border: 1px solid var(--bui-border-1);
+  border-radius: var(--bui-radius-2);
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tableRow {
+  cursor: pointer;
+}
+
+.tableRow:hover {
+  background-color: var(--bui-bg-neutral-2);
+}
+
+.tableCell {
+  border: 1px solid var(--bui-border-1);
+  padding: var(--bui-space-2);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.tableCellCenter {
+  text-align: center;
+}
+
+.tableHeaderCell {
+  border: 1px solid var(--bui-border-1);
+  border-bottom: 2px solid var(--bui-border-1);
+  font-weight: 700;
+  font-size: var(--bui-font-size-1);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background-color: var(--bui-bg-neutral-2);
+  padding: var(--bui-space-2);
+  white-space: nowrap;
+  text-align: left;
+}
+
+.expandCell {
+  width: 48px;
+  padding: var(--bui-space-1);
+}
+
+/* Grouped view headers */
+.groupHeader {
+  background-color: var(--bui-bg-neutral-2);
+  cursor: pointer;
+}
+
+.groupHeader:hover {
+  background-color: var(--bui-bg-neutral-3);
+}
+
+.kindGroupHeader {
+  background-color: var(--bui-bg-neutral-1);
+  cursor: pointer;
+}
+
+.kindGroupHeader:hover {
+  background-color: var(--bui-bg-neutral-2);
+}
+
+/* Graph view */
+.graphContainer {
+  height: 600px;
+  border: 1px solid var(--bui-border-1);
+  border-radius: var(--bui-radius-2);
+  background-color: var(--bui-bg-neutral-1);
+}
+
+.drawerBody {
+  width: 400px;
+  max-width: 92vw;
+  padding: var(--bui-space-4);
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--bui-border-1);
+  margin: var(--bui-space-4) 0;
+}

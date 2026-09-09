@@ -1,0 +1,63 @@
+.selectedList {
+  margin-top: var(--bui-space-4);
+  border: 1px solid var(--bui-border-1);
+  border-radius: var(--bui-radius-3);
+}
+
+.codeContainer {
+  max-height: 400px;
+  overflow: auto;
+  border-radius: var(--bui-radius-2);
+}
+
+.codeContainer pre {
+  margin: 0 !important;
+  font-size: 12px !important;
+}
+
+.tabsContainer {
+  margin-bottom: var(--bui-space-2);
+  border-bottom: 1px solid var(--bui-border-1);
+}
+
+.noContent {
+  padding: var(--bui-space-4);
+  text-align: center;
+  display: block;
+}
+
+.layerChip {
+  font-size: 0.7rem;
+  height: 20px;
+  text-transform: uppercase;
+}
+
+.osLayer {
+  background-color: #ff9800;
+  color: #fff;
+}
+
+.k8sLayer {
+  background-color: #2196f3;
+  color: #fff;
+}
+
+.cniLayer {
+  background-color: #9c27b0;
+  color: #fff;
+}
+
+.csiLayer {
+  background-color: #4caf50;
+  color: #fff;
+}
+
+.addonLayer {
+  background-color: #607d8b;
+  color: #fff;
+}
+
+.typeBadge {
+  background: transparent;
+  border: 1px solid var(--bui-border-1);
+}
