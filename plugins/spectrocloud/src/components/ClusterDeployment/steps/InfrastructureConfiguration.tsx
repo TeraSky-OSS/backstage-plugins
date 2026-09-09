@@ -1,37 +1,19 @@
 // React import not needed for JSX in React 17+
 import {
   Box,
-  Typography,
-  TextField,
   Button,
-  IconButton,
-  Paper,
+  ButtonIcon,
+  Card,
+  CardBody,
+  Flex,
   Grid,
-  Divider,
-} from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
-import AddIcon from '@material-ui/icons/Add';
-import DeleteIcon from '@material-ui/icons/Delete';
+  NumberField,
+  Text,
+  TextField,
+} from '@backstage/ui';
+import { RiAddLine, RiDeleteBinLine } from '@remixicon/react';
 import { CloudType, WorkerPoolConfig } from '../types';
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    padding: theme.spacing(2),
-  },
-  section: {
-    marginTop: theme.spacing(3),
-  },
-  poolPaper: {
-    padding: theme.spacing(2),
-    marginBottom: theme.spacing(2),
-  },
-  poolHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: theme.spacing(2),
-  },
-}));
+import styles from './InfrastructureConfiguration.module.css';
 
 interface InfrastructureConfigurationProps {
   cloudType: CloudType;
@@ -50,8 +32,6 @@ export const InfrastructureConfiguration = ({
   workerPools,
   onUpdate,
 }: InfrastructureConfigurationProps) => {
-  const classes = useStyles();
-
   const handleAddWorkerPool = () => {
     const newPool: WorkerPoolConfig = {
       name: `worker-pool-${workerPools.length + 1}`,
@@ -89,147 +69,130 @@ export const InfrastructureConfiguration = ({
   };
 
   return (
-    <Box className={classes.root}>
-      <Typography variant="h5" gutterBottom>
+    <Box p="4">
+      <Text variant="title-medium" weight="bold" as="div">
         Infrastructure Configuration
-      </Typography>
-      <Typography variant="body2" color="textSecondary" paragraph>
-        Configure control plane and worker node pools for your cluster
-      </Typography>
+      </Text>
+      <Box mt="1" mb="4">
+        <Text variant="body-small" color="secondary">
+          Configure control plane and worker node pools for your cluster
+        </Text>
+      </Box>
 
       {/* Control Plane */}
-      <Box className={classes.section}>
-        <Typography variant="h6" gutterBottom>
-          Control Plane
-        </Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={4}>
+      <Box mt="6">
+        <Box mb="2">
+          <Text variant="title-small" weight="bold" as="div">
+            Control Plane
+          </Text>
+        </Box>
+        <Grid.Root columns="12" gap="4">
+          <Grid.Item colSpan={{ initial: '12', md: '4' }}>
             <TextField
               label="Instance Type"
               value={controlPlaneConfig.instanceType || ''}
-              onChange={e => handleControlPlaneChange('instanceType', e.target.value)}
-              fullWidth
+              onChange={value => handleControlPlaneChange('instanceType', value)}
               placeholder="e.g., t3.medium"
-              helperText="Instance type for control plane nodes"
+              description="Instance type for control plane nodes"
             />
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <TextField
+          </Grid.Item>
+          <Grid.Item colSpan={{ initial: '12', md: '4' }}>
+            <NumberField
               label="Node Count"
-              type="number"
               value={controlPlaneConfig.count || 1}
-              onChange={e =>
-                handleControlPlaneChange('count', parseInt(e.target.value, 10))
-              }
-              fullWidth
-              inputProps={{ min: 1, max: 10 }}
+              onChange={value => handleControlPlaneChange('count', value)}
+              minValue={1}
+              maxValue={10}
             />
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <TextField
+          </Grid.Item>
+          <Grid.Item colSpan={{ initial: '12', md: '4' }}>
+            <NumberField
               label="Disk Size (GB)"
-              type="number"
               value={controlPlaneConfig.diskSize || 60}
-              onChange={e =>
-                handleControlPlaneChange('diskSize', parseInt(e.target.value, 10))
-              }
-              fullWidth
-              inputProps={{ min: 20 }}
+              onChange={value => handleControlPlaneChange('diskSize', value)}
+              minValue={20}
             />
-          </Grid>
-        </Grid>
+          </Grid.Item>
+        </Grid.Root>
       </Box>
 
-      <Divider style={{ margin: '24px 0' }} />
+      <hr className={styles.divider} />
 
       {/* Worker Pools */}
-      <Box className={classes.section}>
-        <Typography variant="h6" gutterBottom>
+      <Box mt="6">
+        <Text variant="title-small" weight="bold" as="div">
           Worker Pools
-        </Typography>
-        <Typography variant="body2" color="textSecondary" paragraph>
-          Define one or more worker node pools
-        </Typography>
+        </Text>
+        <Box mt="1" mb="4">
+          <Text variant="body-small" color="secondary">
+            Define one or more worker node pools
+          </Text>
+        </Box>
 
         {workerPools.map((pool, index) => (
-          <Paper key={index} className={classes.poolPaper}>
-            <Box className={classes.poolHeader}>
-              <Typography variant="subtitle1">Worker Pool {index + 1}</Typography>
-              <IconButton
-                onClick={() => handleRemoveWorkerPool(index)}
-                size="small"
-              >
-                <DeleteIcon />
-              </IconButton>
-            </Box>
+          <Card key={index} className={styles.poolCard}>
+            <CardBody>
+              <Flex justify="between" align="center" mb="4">
+                <Text variant="body-medium" weight="bold">
+                  Worker Pool {index + 1}
+                </Text>
+                <ButtonIcon
+                  icon={<RiDeleteBinLine />}
+                  onPress={() => handleRemoveWorkerPool(index)}
+                  size="small"
+                  aria-label="Remove worker pool"
+                />
+              </Flex>
 
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  label="Pool Name"
-                  value={pool.name}
-                  onChange={e => handleWorkerPoolChange(index, 'name', e.target.value)}
-                  fullWidth
-                  required
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  label="Instance Type"
-                  value={pool.instanceType || ''}
-                  onChange={e =>
-                    handleWorkerPoolChange(index, 'instanceType', e.target.value)
-                  }
-                  fullWidth
-                  placeholder="e.g., t3.large"
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  label="Size"
-                  type="number"
-                  value={pool.size}
-                  onChange={e =>
-                    handleWorkerPoolChange(index, 'size', parseInt(e.target.value, 10))
-                  }
-                  fullWidth
-                  inputProps={{ min: 0 }}
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  label="Min Size"
-                  type="number"
-                  value={pool.minSize || 0}
-                  onChange={e =>
-                    handleWorkerPoolChange(index, 'minSize', parseInt(e.target.value, 10))
-                  }
-                  fullWidth
-                  inputProps={{ min: 0 }}
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  label="Max Size"
-                  type="number"
-                  value={pool.maxSize || 10}
-                  onChange={e =>
-                    handleWorkerPoolChange(index, 'maxSize', parseInt(e.target.value, 10))
-                  }
-                  fullWidth
-                  inputProps={{ min: 1 }}
-                />
-              </Grid>
-            </Grid>
-          </Paper>
+              <Grid.Root columns="12" gap="4">
+                <Grid.Item colSpan={{ initial: '12', md: '6' }}>
+                  <TextField
+                    label="Pool Name"
+                    value={pool.name}
+                    onChange={value => handleWorkerPoolChange(index, 'name', value)}
+                    isRequired
+                  />
+                </Grid.Item>
+                <Grid.Item colSpan={{ initial: '12', md: '6' }}>
+                  <TextField
+                    label="Instance Type"
+                    value={typeof pool.instanceType === 'string' ? pool.instanceType : ''}
+                    onChange={value =>
+                      handleWorkerPoolChange(index, 'instanceType', value)
+                    }
+                    placeholder="e.g., t3.large"
+                  />
+                </Grid.Item>
+                <Grid.Item colSpan={{ initial: '12', md: '4' }}>
+                  <NumberField
+                    label="Size"
+                    value={pool.size}
+                    onChange={value => handleWorkerPoolChange(index, 'size', value)}
+                    minValue={0}
+                  />
+                </Grid.Item>
+                <Grid.Item colSpan={{ initial: '12', md: '4' }}>
+                  <NumberField
+                    label="Min Size"
+                    value={pool.minSize || 0}
+                    onChange={value => handleWorkerPoolChange(index, 'minSize', value)}
+                    minValue={0}
+                  />
+                </Grid.Item>
+                <Grid.Item colSpan={{ initial: '12', md: '4' }}>
+                  <NumberField
+                    label="Max Size"
+                    value={pool.maxSize || 10}
+                    onChange={value => handleWorkerPoolChange(index, 'maxSize', value)}
+                    minValue={1}
+                  />
+                </Grid.Item>
+              </Grid.Root>
+            </CardBody>
+          </Card>
         ))}
 
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={handleAddWorkerPool}
-        >
+        <Button variant="primary" iconStart={<RiAddLine />} onPress={handleAddWorkerPool}>
           Add Worker Pool
         </Button>
       </Box>

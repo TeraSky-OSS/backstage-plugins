@@ -1,50 +1,8 @@
 // React import not needed for JSX in React 17+
-import {
-  Grid,
-  Card,
-  CardActionArea,
-  CardContent,
-  Typography,
-  Box,
-} from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
+import { Box, Card, Grid, Text } from '@backstage/ui';
+import { RiCloudLine } from '@remixicon/react';
 import { CloudType, CLOUD_TYPE_LABELS, CLOUD_TYPE_DESCRIPTIONS } from '../types';
-import CloudIcon from '@material-ui/icons/Cloud';
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    padding: theme.spacing(2),
-  },
-  card: {
-    height: '100%',
-    transition: 'all 0.2s',
-    '&:hover': {
-      transform: 'translateY(-4px)',
-      boxShadow: theme.shadows[8],
-    },
-  },
-  selectedCard: {
-    borderColor: theme.palette.primary.main,
-    borderWidth: 2,
-    borderStyle: 'solid',
-  },
-  cardContent: {
-    textAlign: 'center',
-    padding: theme.spacing(3),
-  },
-  icon: {
-    fontSize: 64,
-    color: theme.palette.primary.main,
-    marginBottom: theme.spacing(2),
-  },
-  title: {
-    fontWeight: 'bold',
-    marginBottom: theme.spacing(1),
-  },
-  description: {
-    color: theme.palette.text.secondary,
-  },
-}));
+import styles from './CloudTypeSelection.module.css';
 
 interface CloudTypeSelectionProps {
   selectedCloudType?: CloudType;
@@ -58,40 +16,40 @@ export const CloudTypeSelection = ({
   selectedCloudType,
   onSelect,
 }: CloudTypeSelectionProps) => {
-  const classes = useStyles();
-
   return (
-    <Box className={classes.root}>
-      <Typography variant="h5" gutterBottom>
+    <Box p="4">
+      <Text variant="title-medium" weight="bold" as="div">
         Select Cloud Platform
-      </Typography>
-      <Typography variant="body2" color="textSecondary" paragraph>
-        Choose the cloud platform where you want to deploy your Kubernetes cluster
-      </Typography>
+      </Text>
+      <Box mt="1" mb="4">
+        <Text variant="body-small" color="secondary">
+          Choose the cloud platform where you want to deploy your Kubernetes cluster
+        </Text>
+      </Box>
 
-      <Grid container spacing={3}>
+      <Grid.Root columns="12" gap="6">
         {CLOUD_TYPES.map(cloudType => (
-          <Grid item xs={12} sm={6} md={4} key={cloudType}>
+          <Grid.Item colSpan={{ initial: '12', sm: '6', md: '4' }} key={cloudType}>
             <Card
-              className={`${classes.card} ${
-                selectedCloudType === cloudType ? classes.selectedCard : ''
+              onPress={() => onSelect(cloudType)}
+              label={CLOUD_TYPE_LABELS[cloudType]}
+              className={`${styles.card} ${
+                selectedCloudType === cloudType ? styles.selectedCard : ''
               }`}
             >
-              <CardActionArea onClick={() => onSelect(cloudType)}>
-                <CardContent className={classes.cardContent}>
-                  <CloudIcon className={classes.icon} />
-                  <Typography variant="h6" className={classes.title}>
-                    {CLOUD_TYPE_LABELS[cloudType]}
-                  </Typography>
-                  <Typography variant="body2" className={classes.description}>
-                    {CLOUD_TYPE_DESCRIPTIONS[cloudType]}
-                  </Typography>
-                </CardContent>
-              </CardActionArea>
+              <Box className={styles.cardContent}>
+                <RiCloudLine size={64} className={styles.icon} />
+                <Text variant="title-small" weight="bold" as="div">
+                  {CLOUD_TYPE_LABELS[cloudType]}
+                </Text>
+                <Text variant="body-small" color="secondary" as="div">
+                  {CLOUD_TYPE_DESCRIPTIONS[cloudType]}
+                </Text>
+              </Box>
             </Card>
-          </Grid>
+          </Grid.Item>
         ))}
-      </Grid>
+      </Grid.Root>
     </Box>
   );
 };

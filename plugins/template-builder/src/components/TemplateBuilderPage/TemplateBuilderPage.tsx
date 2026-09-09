@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Progress } from '@backstage/core-components';
 import { useApi } from '@backstage/core-plugin-api';
-import { Box, Typography } from '@material-ui/core';
-import { Alert } from '@material-ui/lab';
+import { Alert, Box } from '@backstage/ui';
 import { templateBuilderApiRef } from '../../api';
 import { EditorLayout } from './EditorLayout';
 import { useTemplateState } from './useTemplateState';
@@ -63,17 +62,14 @@ export function TemplateBuilderPage() {
 
   if (error || extensionsError) {
     return (
-      <Box p={3}>
-        <Alert severity="error">
-          <Typography variant="h6">Error</Typography>
-          <Typography variant="body2">{error || extensionsError}</Typography>
-        </Alert>
+      <Box p="6">
+        <Alert status="danger" title="Error" description={error || extensionsError} />
         {extensionsError && (
-          <Alert severity="warning" style={{ marginTop: 16 }}>
-            <Typography variant="body2">
-              Field extensions discovery failed. You can still add custom field types manually.
-            </Typography>
-          </Alert>
+          <Alert
+            status="warning"
+            description="Field extensions discovery failed. You can still add custom field types manually."
+            style={{ marginTop: 'var(--bui-space-4)' }}
+          />
         )}
       </Box>
     );

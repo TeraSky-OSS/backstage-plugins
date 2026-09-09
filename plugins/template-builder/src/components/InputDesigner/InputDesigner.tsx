@@ -1,58 +1,22 @@
 import { useState } from 'react';
 import {
   Box,
-  Tabs,
-  Tab,
   Button,
-  Typography,
+  ButtonIcon,
   Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-} from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
-import AddIcon from '@material-ui/icons/Add';
-import DeleteIcon from '@material-ui/icons/Delete';
+  DialogBody,
+  DialogFooter,
+  DialogHeader,
+  Flex,
+  Tab,
+  TabList,
+  Tabs,
+  Text,
+} from '@backstage/ui';
+import { RiAddLine, RiDeleteBinLine } from '@remixicon/react';
 import type { ParameterStep, FieldDefinition } from '../../types';
 import { ParameterList } from './ParameterList';
 import { FieldPropertiesForm } from './FieldPropertiesForm';
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-    overflow: 'hidden',
-  },
-  header: {
-    padding: theme.spacing(2),
-    borderBottom: `1px solid ${theme.palette.divider}`,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  tabs: {
-    borderBottom: `1px solid ${theme.palette.divider}`,
-    flexShrink: 0,
-  },
-  content: {
-    flex: 1,
-    overflow: 'hidden',
-    minHeight: 0,
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  contentInner: {
-    flex: 1,
-    overflow: 'auto',
-    minHeight: 0,
-  },
-  emptyState: {
-    textAlign: 'center',
-    padding: theme.spacing(4),
-    color: theme.palette.text.secondary,
-  },
-}));
 
 export interface InputDesignerProps {
   parameters: ParameterStep[];
@@ -78,14 +42,13 @@ export function InputDesigner(props: InputDesignerProps) {
     onUpdateField,
     onDeleteField,
   } = props;
-  
-  const classes = useStyles();
+
   const [currentStep, setCurrentStep] = useState(0);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editingField, setEditingField] = useState<{ 
-    stepIndex: number; 
-    fieldName: string; 
-    field: FieldDefinition 
+  const [editingField, setEditingField] = useState<{
+    stepIndex: number;
+    fieldName: string;
+    field: FieldDefinition
   } | null>(null);
 
   const handleAddStep = () => {
@@ -113,7 +76,7 @@ export function InputDesigner(props: InputDesignerProps) {
       type: 'string',
     };
     onAddField(currentStep, fieldName, newField);
-    
+
     // Open edit dialog
     setEditingField({ stepIndex: currentStep, fieldName, field: newField });
     setEditDialogOpen(true);
@@ -136,67 +99,59 @@ export function InputDesigner(props: InputDesignerProps) {
   const currentStepData = parameters[currentStep];
 
   return (
-    <Box className={classes.root}>
+    <Box style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       {parameters.length > 0 ? (
         <>
           <Tabs
-            value={currentStep}
-            onChange={(_, newValue) => setCurrentStep(newValue)}
-            variant="scrollable"
-            scrollButtons="auto"
-            className={classes.tabs}
+            selectedKey={String(currentStep)}
+            onSelectionChange={key => setCurrentStep(Number(key))}
           >
-            {parameters.map((step, index) => (
-              <Tab
-                key={step.id}
-                label={
-                  <Box display="flex" alignItems="center">
-                    {step.title}
-                    {parameters.length > 1 && (
-                      <Box
-                        component="span"
-                        onClick={e => {
-                          e.stopPropagation();
-                          handleDeleteStep(index);
-                        }}
-                        style={{ 
-                          marginLeft: 8, 
-                          cursor: 'pointer', 
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                        }}
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </Box>
-                    )}
-                  </Box>
-                }
-              />
-            ))}
+            <TabList>
+              {parameters.map((step, index) => (
+                <Tab key={step.id} id={String(index)}>
+                  {step.title}
+                </Tab>
+              ))}
+            </TabList>
           </Tabs>
 
-          <Box className={classes.content}>
-            <Box p={2} display="flex" justifyContent="space-between" borderBottom="1px solid rgba(0, 0, 0, 0.12)">
-              <Button
-                size="small"
-                startIcon={<AddIcon />}
-                onClick={handleAddField}
-                variant="outlined"
-                color="primary"
-              >
-                Add Field
-              </Button>
-              <Button
-                size="small"
-                startIcon={<AddIcon />}
-                onClick={handleAddStep}
-                variant="outlined"
-              >
-                Add Step
-              </Button>
-            </Box>
+          <Box style={{ flex: 1, overflow: 'hidden', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+            <Flex
+              justify="between"
+              align="center"
+              p="2"
+              style={{ borderBottom: '1px solid var(--bui-border-1)' }}
+            >
+              <Flex gap="2">
+                <Button
+                  size="small"
+                  iconStart={<RiAddLine />}
+                  onPress={handleAddField}
+                  variant="secondary"
+                >
+                  Add Field
+                </Button>
+                <Button
+                  size="small"
+                  iconStart={<RiAddLine />}
+                  onPress={handleAddStep}
+                  variant="secondary"
+                >
+                  Add Step
+                </Button>
+              </Flex>
+              {parameters.length > 1 && (
+                <ButtonIcon
+                  aria-label={`Delete step ${currentStepData.title}`}
+                  icon={<RiDeleteBinLine />}
+                  size="small"
+                  variant="tertiary"
+                  onPress={() => handleDeleteStep(currentStep)}
+                />
+              )}
+            </Flex>
 
-            <Box className={classes.contentInner}>
+            <Box style={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
               <ParameterList
                 step={currentStepData}
                 stepIndex={currentStep}
@@ -209,25 +164,24 @@ export function InputDesigner(props: InputDesignerProps) {
           </Box>
         </>
       ) : (
-        <Box className={classes.emptyState}>
-          <Typography variant="body1" gutterBottom>
+        <Box style={{ textAlign: 'center', padding: 'var(--bui-space-4)' }}>
+          <Text as="div" variant="body-medium" color="secondary">
             No parameter steps defined
-          </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={handleAddStep}
-          >
-            Add First Step
-          </Button>
+          </Text>
+          <Box mt="2">
+            <Button variant="primary" iconStart={<RiAddLine />} onPress={handleAddStep}>
+              Add First Step
+            </Button>
+          </Box>
         </Box>
       )}
 
       {/* Field Edit Dialog */}
-      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Edit Field Properties</DialogTitle>
-        <DialogContent>
+      <Dialog isOpen={editDialogOpen} onOpenChange={open => !open && setEditDialogOpen(false)}>
+        <DialogHeader>
+          <Text variant="title-small" weight="bold">Edit Field Properties</Text>
+        </DialogHeader>
+        <DialogBody>
           {editingField && (
             <FieldPropertiesForm
               field={editingField.field}
@@ -241,13 +195,13 @@ export function InputDesigner(props: InputDesignerProps) {
               }}
             />
           )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleSaveField} color="primary" variant="contained">
+        </DialogBody>
+        <DialogFooter>
+          <Button variant="secondary" onPress={() => setEditDialogOpen(false)}>Cancel</Button>
+          <Button onPress={handleSaveField} variant="primary">
             Save
           </Button>
-        </DialogActions>
+        </DialogFooter>
       </Dialog>
     </Box>
   );

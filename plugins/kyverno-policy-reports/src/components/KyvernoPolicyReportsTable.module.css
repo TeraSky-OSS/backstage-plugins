@@ -1,0 +1,27 @@
+.detailPanel {
+  padding: var(--bui-space-4);
+}
+
+.detailTable {
+  border-collapse: collapse;
+  width: 100%;
+}
+.detailTable th,
+.detailTable td {
+  padding: var(--bui-space-1) var(--bui-space-2);
+  white-space: nowrap;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--bui-border-1);
+}
+.messageCol {
+  white-space: normal !important;
+  max-width: 300px;
+  word-break: break-word;
+}
+
+.policyCell {
+  display: flex;
+  align-items: center;
+  gap: var(--bui-space-1);
+}

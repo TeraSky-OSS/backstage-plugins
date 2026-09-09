@@ -1,16 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { NotImplementedMessage } from './NotImplementedMessage';
 
-jest.mock('@material-ui/core/styles', () => ({
-  ...jest.requireActual('@material-ui/core/styles'),
-  makeStyles: () => () => ({
-    root: 'root',
-    card: 'card',
-    icon: 'icon',
-    comingSoonChip: 'comingSoonChip',
-  }),
-}));
-
 describe('NotImplementedMessage', () => {
   it('should render the component with entity type', () => {
     render(

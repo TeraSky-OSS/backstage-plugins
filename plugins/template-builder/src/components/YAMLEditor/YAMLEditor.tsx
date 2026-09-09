@@ -1,49 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Editor from '@monaco-editor/react';
-import { Box, Paper, Typography, Chip, useTheme } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
-import { Alert } from '@material-ui/lab';
+import { Alert, Badge, Box, Flex, Text } from '@backstage/ui';
+// BUI-EXCEPTION: Monaco's `theme` prop requires a literal JS string ('vs-dark'/'vs-light'), which
+// cannot be derived from a CSS custom property. `useTheme` is kept narrowly for this one boolean.
+import { useTheme } from '@material-ui/core';
 import { parseYAML, isValidTemplateYAML } from '../../utils/yamlParser';
 import type { AvailableAction } from '../../types';
 import { MonacoErrorBoundary } from './MonacoErrorBoundary';
 import './YAMLEditor.css';
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-    position: 'relative',
-    zIndex: 5000,
-    backgroundColor: theme.palette.background.paper,
-  },
-  header: {
-    padding: theme.spacing(2),
-    borderBottom: `1px solid ${theme.palette.divider}`,
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  editorContainer: {
-    flex: 1,
-    position: 'relative',
-    minHeight: 400,
-    backgroundColor: theme.palette.background.default,
-  },
-  statusBar: {
-    padding: theme.spacing(1, 2),
-    borderTop: `1px solid ${theme.palette.divider}`,
-    display: 'flex',
-    gap: theme.spacing(1),
-    alignItems: 'center',
-    backgroundColor: theme.palette.background.default,
-  },
-  errorList: {
-    maxHeight: 200,
-    overflow: 'auto',
-    padding: theme.spacing(1),
-  },
-}));
+import styles from './YAMLEditor.module.css';
 
 export interface YAMLEditorProps {
   value: string;
@@ -56,7 +21,6 @@ export interface YAMLEditorProps {
 
 export function YAMLEditor(props: YAMLEditorProps) {
   const { value, onChange, onValidationChange, readOnly = false, availableActions = [], fieldExtensions = [] } = props;
-  const classes = useStyles();
   const theme = useTheme();
   const editorRef = useRef<any>(null);
   const monacoRef = useRef<any>(null);
@@ -754,39 +718,23 @@ export function YAMLEditor(props: YAMLEditorProps) {
   }, [value, onValidationChange]);
 
   return (
-    <Paper className={classes.root}>
-      <Box className={classes.header}>
-        <Typography variant="h6">YAML Editor</Typography>
-        <Box display="flex" style={{ gap: 8 }}>
+    <Box className={styles.root}>
+      <Box className={styles.header}>
+        <Text variant="title-small">YAML Editor</Text>
+        <Flex gap="2" align="center">
           {isValid ? (
-            <Chip
-              label="Valid"
-              size="small"
-              style={{ backgroundColor: '#4caf50', color: 'white' }}
-            />
+            <Badge style={{ color: 'var(--bui-fg-positive)' }}>Valid</Badge>
           ) : (
-            <Chip
-              label="Invalid"
-              size="small"
-              style={{ backgroundColor: '#f44336', color: 'white' }}
-            />
+            <Badge style={{ color: 'var(--bui-fg-negative)' }}>Invalid</Badge>
           )}
-          {readOnly && (
-            <Chip label="Read-only" size="small" variant="outlined" />
-          )}
-        </Box>
+          {readOnly && <Badge>Read-only</Badge>}
+        </Flex>
       </Box>
 
-      <Box className={classes.editorContainer} style={{ isolation: 'isolate', contain: 'layout style paint' }}>
+      <Box className={styles.editorContainer}>
         {value !== undefined && value !== null ? (
           <MonacoErrorBoundary>
-            <Box style={{ 
-              height: '100%', 
-              width: '100%',
-              overflow: 'hidden',
-              position: 'relative',
-              padding: '0 10px',
-            }}>
+            <Box className={styles.editorWrapper}>
               <Editor
                 height="100%"
                 defaultLanguage="yaml"
@@ -818,33 +766,31 @@ export function YAMLEditor(props: YAMLEditorProps) {
             </Box>
           </MonacoErrorBoundary>
         ) : (
-          <Box p={2}>
-            <Typography color="error">Editor value is undefined or null</Typography>
+          <Box p="4">
+            <Text color="danger">Editor value is undefined or null</Text>
           </Box>
         )}
       </Box>
 
       {errors.length > 0 && (
-        <Box className={classes.errorList}>
+        <Box className={styles.errorList}>
           {errors.map((error, index) => (
-            <Alert key={index} severity="error" variant="outlined">
-              {error}
-            </Alert>
+            <Alert key={index} status="danger" description={error} />
           ))}
         </Box>
       )}
 
-      <Box className={classes.statusBar}>
-        <Typography variant="caption" color="textSecondary">
+      <Box className={styles.statusBar}>
+        <Text variant="body-small" color="secondary">
           Lines: {value.split('\n').length}
-        </Typography>
-        <Typography variant="caption" color="textSecondary">
+        </Text>
+        <Text variant="body-small" color="secondary">
           •
-        </Typography>
-        <Typography variant="caption" color="textSecondary">
+        </Text>
+        <Text variant="body-small" color="secondary">
           Changes sync automatically
-        </Typography>
+        </Text>
       </Box>
-    </Paper>
+    </Box>
   );
 }

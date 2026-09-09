@@ -16,87 +16,28 @@ import {
   Progress,
   ResponseErrorPanel,
 } from '@backstage/core-components';
-import { 
-  Grid, 
-  Typography, 
-  Chip, 
-  Box, 
-  Accordion, 
-  AccordionSummary, 
-  AccordionDetails,
+import {
+  Alert,
+  Badge,
+  Box,
   Button,
   Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Snackbar
-} from '@material-ui/core';
-import { Alert } from '@material-ui/lab';
-import { makeStyles } from '@material-ui/core/styles';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import EditIcon from '@material-ui/icons/Edit';
+  DialogBody,
+  DialogFooter,
+  DialogHeader,
+  Accordion,
+  AccordionTrigger,
+  AccordionPanel,
+  Flex,
+  Grid,
+  Text,
+} from '@backstage/ui';
+import { RiEditLine } from '@remixicon/react';
 import yaml from 'js-yaml';
 import useAsync from 'react-use/lib/useAsync';
 import { VCFAutomationVMPowerManagement } from './VCFAutomationVMPowerManagement';
 
-const useStyles = makeStyles(theme => ({
-  statusChip: {
-    marginRight: theme.spacing(1),
-    marginBottom: theme.spacing(0.5),
-  },
-  sectionTitle: {
-    marginBottom: theme.spacing(2),
-  },
-  conditionChip: {
-    margin: theme.spacing(0.25),
-  },
-  yamlContainer: {
-    '& .MuiAccordionSummary-root': {
-      minHeight: 48,
-    },
-  },
-  dependencyChip: {
-    margin: theme.spacing(0.25),
-    cursor: 'pointer',
-  },
-  editButton: {
-    marginTop: theme.spacing(1),
-  },
-  monacoEditor: {
-    flex: 1,
-    minHeight: '500px',
-    border: `1px solid ${theme.palette.divider}`,
-    borderRadius: theme.shape.borderRadius,
-  },
-  validationStatus: {
-    padding: theme.spacing(1),
-    borderTop: `1px solid ${theme.palette.divider}`,
-    backgroundColor: theme.palette.background.paper,
-    flexShrink: 0,
-  },
-  dialogContent: {
-    padding: theme.spacing(2),
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-    overflow: 'hidden',
-  },
-  editorContainer: {
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    minHeight: 0,
-    overflow: 'hidden',
-  },
-  yamlValidationError: {
-    color: theme.palette.error.main,
-    marginTop: theme.spacing(1),
-    fontSize: '0.875rem',
-  },
-}));
-
 export const VCFAutomationCCIResourceOverview = () => {
-  const classes = useStyles();
   const { entity } = useEntity();
   const api = useApi(vcfAutomationApiRef);
   const catalogApi = useApi(catalogApiRef);
@@ -436,7 +377,7 @@ export const VCFAutomationCCIResourceOverview = () => {
   if (!resourceData) {
     return (
       <InfoCard title="CCI Supervisor Resource">
-        <Typography>No resource data available.</Typography>
+        <Text>No resource data available.</Text>
       </InfoCard>
     );
   }
@@ -523,32 +464,27 @@ export const VCFAutomationCCIResourceOverview = () => {
 
   return (
     <InfoCard title="CCI Supervisor Resource Overview">
-      <Grid container spacing={3}>
+      <Grid.Root columns="12" gap="5">
         {isStandalone && (
-          <Grid item xs={12}>
-            <Box mb={2}>
-              <Chip
-                label="Standalone Resource"
-                color="secondary"
-                variant="outlined"
-                size="small"
-              />
+          <Grid.Item colSpan="12">
+            <Box mb="4">
+              <Badge>Standalone Resource</Badge>
             </Box>
-          </Grid>
+          </Grid.Item>
         )}
-        <Grid item xs={12}>
-          <Typography variant="h6" className={classes.sectionTitle}>
-            Basic Information
-          </Typography>
+        <Grid.Item colSpan="12">
+          <Box mb="4">
+            <Text variant="title-small" weight="bold">Basic Information</Text>
+          </Box>
           <StructuredMetadataTable metadata={basicInfo} />
-        </Grid>
+        </Grid.Item>
 
         {/* VM Power Management for VirtualMachine resources in all-apps organizations */}
         {vmOrganizationType === 'all-apps' && resourceKind === 'VirtualMachine' && (
-          <Grid item xs={12}>
-            <Typography variant="h6" className={classes.sectionTitle}>
-              Power Management
-            </Typography>
+          <Grid.Item colSpan="12">
+            <Box mb="4">
+              <Text variant="title-small" weight="bold">Power Management</Text>
+            </Box>
             <VCFAutomationVMPowerManagement
               entity={entity}
               resourceId={resourceId}
@@ -558,215 +494,179 @@ export const VCFAutomationCCIResourceOverview = () => {
               namespaceName={isStandalone ? namespaceName : undefined}
               namespaceUrnId={isStandalone ? namespaceUrnId : undefined}
             />
-          </Grid>
+          </Grid.Item>
         )}
 
         {/* Edit Resource Manifest for VirtualMachine resources with permission */}
         {canEditResource && vmOrganizationType === 'all-apps' && resourceKind === 'VirtualMachine' && resourceName && namespaceName && namespaceUrnId && apiVersion && (
-          <Grid item xs={12}>
-            <Box mt={vmOrganizationType === 'all-apps' ? 0 : 2}>
+          <Grid.Item colSpan="12">
+            <Box mt={vmOrganizationType === 'all-apps' ? undefined : '4'}>
               {vmOrganizationType !== 'all-apps' && (
-                <Typography variant="h6" className={classes.sectionTitle}>
-                  Resource Management
-                </Typography>
+                <Box mb="4">
+                  <Text variant="title-small" weight="bold">Resource Management</Text>
+                </Box>
               )}
               <Button
-                variant="outlined"
-                color="primary"
-                startIcon={<EditIcon />}
-                onClick={handleEditResource}
-                className={classes.editButton}
-                disabled={isLoadingManifest}
+                variant="secondary"
+                iconStart={<RiEditLine />}
+                onPress={handleEditResource}
+                isDisabled={isLoadingManifest}
               >
                 Edit Resource Manifest
               </Button>
             </Box>
-          </Grid>
+          </Grid.Item>
         )}
 
         {/* Edit Resource Manifest for non-VirtualMachine resources with permission */}
         {canEditResource && (resourceKind !== 'VirtualMachine' || vmOrganizationType !== 'all-apps') && resourceName && namespaceName && namespaceUrnId && apiVersion && (
-          <Grid item xs={12}>
-            <Typography variant="h6" className={classes.sectionTitle}>
-              Resource Management
-            </Typography>
+          <Grid.Item colSpan="12">
+            <Box mb="4">
+              <Text variant="title-small" weight="bold">Resource Management</Text>
+            </Box>
             <Button
-              variant="outlined"
-              color="primary"
-              startIcon={<EditIcon />}
-              onClick={handleEditResource}
-              className={classes.editButton}
-              disabled={isLoadingManifest}
+              variant="secondary"
+              iconStart={<RiEditLine />}
+              onPress={handleEditResource}
+              isDisabled={isLoadingManifest}
             >
               Edit Resource Manifest
             </Button>
-          </Grid>
+          </Grid.Item>
         )}
 
         {entity.spec?.dependsOn && Array.isArray(entity.spec.dependsOn) && entity.spec.dependsOn.length > 0 && (
-          <Grid item xs={12}>
-            <Typography variant="h6" className={classes.sectionTitle}>
-              Dependencies
-            </Typography>
-            <Box>
+          <Grid.Item colSpan="12">
+            <Box mb="4">
+              <Text variant="title-small" weight="bold">Dependencies</Text>
+            </Box>
+            <Flex gap="1" style={{ flexWrap: 'wrap' }}>
               {entity.spec.dependsOn
                 .filter((dep): dep is string => typeof dep === 'string')
                 .map((dep: string, index: number) => (
-                  <Chip
-                    key={index}
-                    label={dep}
-                    size="small"
-                    className={classes.dependencyChip}
-                    color="primary"
-                    variant="outlined"
-                  />
+                  <Badge key={index}>{dep}</Badge>
                 ))}
-            </Box>
-          </Grid>
+            </Flex>
+          </Grid.Item>
         )}
 
         {resourceData.wait?.conditions && resourceData.wait.conditions.length > 0 && (
-          <Grid item xs={12}>
-            <Typography variant="h6" className={classes.sectionTitle}>
-              Wait Conditions
-            </Typography>
+          <Grid.Item colSpan="12">
+            <Box mb="4">
+              <Text variant="title-small" weight="bold">Wait Conditions</Text>
+            </Box>
             <Box>
               {resourceData.wait.conditions.map((condition: any, index: number) => (
-                <Box key={index} display="flex" alignItems="center" mb={1}>
+                <Flex key={index} align="center" gap="2" mb="2">
                   {renderStatusIcon(condition.status)}
-                  <Chip
-                    label={`${condition.type}: ${condition.status}`}
-                    size="small"
-                    className={classes.conditionChip}
-                    color={condition.status === 'True' ? 'primary' : 'default'}
-                  />
-                </Box>
+                  <Badge style={condition.status === 'True' ? { color: 'var(--bui-fg-positive)' } : undefined}>
+                    {`${condition.type}: ${condition.status}`}
+                  </Badge>
+                </Flex>
               ))}
             </Box>
-          </Grid>
+          </Grid.Item>
         )}
 
         {objectData?.status?.conditions && objectData.status.conditions.length > 0 && (
-          <Grid item xs={12}>
-            <Typography variant="h6" className={classes.sectionTitle}>
-              Resource Conditions
-            </Typography>
+          <Grid.Item colSpan="12">
+            <Box mb="4">
+              <Text variant="title-small" weight="bold">Resource Conditions</Text>
+            </Box>
             <Box>
               {objectData.status.conditions.map((condition: any, index: number) => (
-                <Box key={index} display="flex" alignItems="center" mb={1}>
+                <Flex key={index} align="center" gap="2" mb="2">
                   {renderStatusIcon(condition.status)}
-                  <Chip
-                    label={`${condition.type}: ${condition.status}`}
-                    size="small"
-                    className={classes.conditionChip}
-                    color={condition.status === 'True' ? 'primary' : 'default'}
-                  />
-                  <Typography variant="caption" style={{ marginLeft: 8 }}>
+                  <Badge style={condition.status === 'True' ? { color: 'var(--bui-fg-positive)' } : undefined}>
+                    {`${condition.type}: ${condition.status}`}
+                  </Badge>
+                  <Text variant="body-small">
                     {condition.lastTransitionTime}
-                  </Typography>
-                </Box>
+                  </Text>
+                </Flex>
               ))}
             </Box>
-          </Grid>
+          </Grid.Item>
         )}
 
         {objectStatus && (
-          <Grid item xs={12}>
-            <Typography variant="h6" className={classes.sectionTitle}>
-              Resource Status
-            </Typography>
+          <Grid.Item colSpan="12">
+            <Box mb="4">
+              <Text variant="title-small" weight="bold">Resource Status</Text>
+            </Box>
             <StructuredMetadataTable metadata={objectStatus} />
-          </Grid>
+          </Grid.Item>
         )}
 
         {manifest && (
-          <Grid item xs={12}>
-            <Accordion className={classes.yamlContainer}>
-              <AccordionSummary
-                expandIcon={<ExpandMoreIcon />}
-                aria-controls="manifest-content"
-                id="manifest-header"
-              >
-                <Typography variant="h6">Resource Manifest</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Box width="100%">
+          <Grid.Item colSpan="12">
+            <Accordion>
+              <AccordionTrigger>
+                <Text variant="title-small" weight="bold">Resource Manifest</Text>
+              </AccordionTrigger>
+              <AccordionPanel>
+                <Box style={{ width: '100%' }}>
                   <CodeSnippet
                     text={formatYaml(manifest)}
                     language="yaml"
                     showLineNumbers
-                    customStyle={{ 
+                    customStyle={{
                       fontSize: '12px',
                       maxHeight: '500px',
                       overflow: 'auto'
                     }}
                   />
                 </Box>
-              </AccordionDetails>
+              </AccordionPanel>
             </Accordion>
-          </Grid>
+          </Grid.Item>
         )}
 
         {objectData && (
-          <Grid item xs={12}>
-            <Accordion className={classes.yamlContainer}>
-              <AccordionSummary
-                expandIcon={<ExpandMoreIcon />}
-                aria-controls="object-content"
-                id="object-header"
-              >
-                <Typography variant="h6">Kubernetes Object</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Box width="100%">
+          <Grid.Item colSpan="12">
+            <Accordion>
+              <AccordionTrigger>
+                <Text variant="title-small" weight="bold">Kubernetes Object</Text>
+              </AccordionTrigger>
+              <AccordionPanel>
+                <Box style={{ width: '100%' }}>
                   <CodeSnippet
                     text={formatYaml(objectData)}
                     language="yaml"
                     showLineNumbers
-                    customStyle={{ 
+                    customStyle={{
                       fontSize: '12px',
                       maxHeight: '500px',
                       overflow: 'auto'
                     }}
                   />
                 </Box>
-              </AccordionDetails>
+              </AccordionPanel>
             </Accordion>
-          </Grid>
+          </Grid.Item>
         )}
-      </Grid>
+      </Grid.Root>
 
       {/* YAML Editor Modal */}
-      <Dialog
-        open={editModalOpen}
-        onClose={() => setEditModalOpen(false)}
-        maxWidth="xl"
-        fullWidth
-        PaperProps={{
-          style: {
-            height: '90vh',
-            maxHeight: '90vh',
-          },
-        }}
-      >
-        <DialogTitle>
-          <Typography variant="h6">Edit Resource Manifest</Typography>
-          <Typography variant="body2" color="textSecondary">
+      <Dialog isOpen={editModalOpen} onOpenChange={open => !open && setEditModalOpen(false)} width="90vw" height="90vh">
+        <DialogHeader>
+          <Text variant="title-small" weight="bold" style={{ display: 'block' }}>Edit Resource Manifest</Text>
+          <Text variant="body-small" style={{ color: 'var(--bui-fg-secondary)' }}>
             {resourceName} ({resourceKind})
-          </Typography>
-        </DialogTitle>
-        <DialogContent className={classes.dialogContent} dividers>
+          </Text>
+        </DialogHeader>
+        <DialogBody style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           {isLoadingManifest ? (
-            <Box display="flex" justifyContent="center" alignItems="center" flex={1}>
+            <Flex align="center" justify="center" style={{ flex: 1 }}>
               <Progress />
-            </Box>
+            </Flex>
           ) : (
-            <Box className={classes.editorContainer}>
-              <Typography variant="subtitle2" gutterBottom>
+            <Flex direction="column" style={{ flex: 1, minHeight: 0, overflow: 'hidden' }} gap="2">
+              <Text variant="body-small" weight="bold" style={{ display: 'block' }}>
                 YAML Editor
-              </Typography>
-              
-              <Box className={classes.monacoEditor}>
+              </Text>
+
+              <Box style={{ flex: 1, minHeight: '500px', border: '1px solid var(--bui-border-1)', borderRadius: 'var(--bui-radius-2)' }}>
                 <Editor
                   height="100%"
                   defaultLanguage="yaml"
@@ -787,83 +687,80 @@ export const VCFAutomationCCIResourceOverview = () => {
                   }}
                 />
               </Box>
-              
+
               {/* Fixed Validation Status Bar */}
-              <Box className={classes.validationStatus}>
+              <Box style={{ padding: 'var(--bui-space-2)', borderTop: '1px solid var(--bui-border-1)', backgroundColor: 'var(--bui-bg-neutral-1)', flexShrink: 0 }}>
                 {yamlValidationError && (
-                  <Typography className={classes.yamlValidationError}>
+                  <Text style={{ color: 'var(--bui-fg-negative)', display: 'block' }}>
                     ⚠️ YAML Validation Error: {yamlValidationError}
-                  </Typography>
+                  </Text>
                 )}
                 {!yamlValidationError && editingYaml.trim() && (
-                  <Typography variant="caption" color="textSecondary">
+                  <Text variant="body-small" style={{ color: 'var(--bui-fg-secondary)' }}>
                     ✅ YAML syntax is valid
-                  </Typography>
+                  </Text>
                 )}
                 {!yamlValidationError && !editingYaml.trim() && (
-                  <Typography variant="caption" color="textSecondary">
+                  <Text variant="body-small" style={{ color: 'var(--bui-fg-secondary)' }}>
                     Enter YAML content above
-                  </Typography>
+                  </Text>
                 )}
               </Box>
-            </Box>
+            </Flex>
           )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditModalOpen(false)} color="primary">
+        </DialogBody>
+        <DialogFooter>
+          <Button variant="secondary" onPress={() => setEditModalOpen(false)}>
             Cancel
           </Button>
           <Button
-            onClick={() => setConfirmDialogOpen(true)}
-            color="primary"
-            variant="contained"
-            disabled={isLoadingManifest || !editingYaml.trim() || !!yamlValidationError}
+            variant="primary"
+            onPress={() => setConfirmDialogOpen(true)}
+            isDisabled={isLoadingManifest || !editingYaml.trim() || !!yamlValidationError}
           >
             Save Changes
           </Button>
-        </DialogActions>
+        </DialogFooter>
       </Dialog>
 
       {/* Confirmation Dialog */}
-      <Dialog
-        open={confirmDialogOpen}
-        onClose={() => setConfirmDialogOpen(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>Confirm Changes</DialogTitle>
-        <DialogContent>
-          <Typography>
-            Are you sure you want to apply these changes to the resource? 
+      <Dialog isOpen={confirmDialogOpen} onOpenChange={open => !open && setConfirmDialogOpen(false)}>
+        <DialogHeader>Confirm Changes</DialogHeader>
+        <DialogBody>
+          <Text>
+            Are you sure you want to apply these changes to the resource?
             This action will update the Kubernetes resource based on your modifications.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setConfirmDialogOpen(false)} color="primary">
+          </Text>
+        </DialogBody>
+        <DialogFooter>
+          <Button variant="secondary" onPress={() => setConfirmDialogOpen(false)}>
             Cancel
           </Button>
           <Button
-            onClick={handleSaveResource}
-            color="primary"
-            variant="contained"
-            disabled={isSaving}
+            variant="primary"
+            onPress={handleSaveResource}
+            isDisabled={isSaving}
           >
             {isSaving ? 'Applying...' : 'Apply Changes'}
           </Button>
-        </DialogActions>
+        </DialogFooter>
       </Dialog>
 
-      {/* Snackbar for notifications */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-      >
-        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      {/* Notification banner */}
+      {snackbar.open && (
+        <Box style={{ position: 'fixed', bottom: 'var(--bui-space-4)', left: 'var(--bui-space-4)', zIndex: 1300, maxWidth: '400px' }}>
+          <Alert
+            status={snackbar.severity === 'success' ? 'success' : 'danger'}
+            icon
+            description={snackbar.message}
+            customActions={
+              <Button size="small" variant="tertiary" onPress={handleCloseSnackbar}>
+                Dismiss
+              </Button>
+            }
+          />
+        </Box>
+      )}
     </InfoCard>
   );
 };

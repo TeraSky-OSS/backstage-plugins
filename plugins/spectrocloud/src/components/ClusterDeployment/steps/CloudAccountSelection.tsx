@@ -1,26 +1,11 @@
 import { useEffect, useState } from 'react';
-import {
-  Box,
-  Typography,
-  TextField,
-  CircularProgress,
-} from '@material-ui/core';
-import { Alert, Autocomplete } from '@material-ui/lab';
-import { makeStyles } from '@material-ui/core/styles';
+import type { Key } from 'react';
+import { Alert, Box, Combobox, Text } from '@backstage/ui';
+import { Progress } from '@backstage/core-components';
 import { useApi } from '@backstage/core-plugin-api';
 import { spectroCloudApiRef } from '../../../api';
 import { SpectroCloudAccount } from '../../../api/SpectroCloudApi';
 import { CloudType } from '../types';
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    padding: theme.spacing(2),
-  },
-  formControl: {
-    marginTop: theme.spacing(2),
-    width: '100%',
-  },
-}));
 
 interface CloudAccountSelectionProps {
   cloudType: CloudType;
@@ -35,7 +20,6 @@ export const CloudAccountSelection = ({
   selectedAccountUid,
   onSelect,
 }: CloudAccountSelectionProps) => {
-  const classes = useStyles();
   const spectroCloudApi = useApi(spectroCloudApiRef);
   const [accounts, setAccounts] = useState<SpectroCloudAccount[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,7 +31,7 @@ export const CloudAccountSelection = ({
         setLoading(true);
         const result = await spectroCloudApi.getCloudAccounts(cloudType, projectUid);
         // Sort accounts alphabetically
-        const sortedAccounts = result.sort((a, b) => 
+        const sortedAccounts = result.sort((a, b) =>
           a.metadata.name.localeCompare(b.metadata.name)
         );
         setAccounts(sortedAccounts);
@@ -64,57 +48,61 @@ export const CloudAccountSelection = ({
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
-        <CircularProgress />
+      <Box display="flex" style={{ justifyContent: 'center', alignItems: 'center' }} minHeight="200px">
+        <Progress />
       </Box>
     );
   }
 
   if (error) {
     return (
-      <Box className={classes.root}>
-        <Alert severity="error">{error}</Alert>
+      <Box p="4">
+        <Alert status="danger" description={error} />
       </Box>
     );
   }
 
   if (accounts.length === 0) {
     return (
-      <Box className={classes.root}>
-        <Alert severity="warning">
-          No cloud accounts found for this cloud type and project. Please create a cloud
-          account in Spectro Cloud first.
-        </Alert>
+      <Box p="4">
+        <Alert
+          status="warning"
+          description="No cloud accounts found for this cloud type and project. Please create a cloud account in Spectro Cloud first."
+        />
       </Box>
     );
   }
 
   return (
-    <Box className={classes.root}>
-      <Typography variant="h5" gutterBottom>
+    <Box p="4">
+      <Text variant="title-medium" weight="bold" as="div">
         Select Cloud Account
-      </Typography>
-      <Typography variant="body2" color="textSecondary" paragraph>
-        Choose the cloud account to use for deploying the cluster
-      </Typography>
+      </Text>
+      <Box mt="1" mb="4">
+        <Text variant="body-small" color="secondary">
+          Choose the cloud account to use for deploying the cluster
+        </Text>
+      </Box>
 
-      <Autocomplete
-        options={accounts}
-        getOptionLabel={(option) => option.metadata.name}
-        value={accounts.find(a => a.metadata.uid === selectedAccountUid) || null}
-        onChange={(_, newValue) => {
-          if (newValue) {
-            onSelect(newValue.metadata.uid, newValue.metadata.name);
+      <Combobox
+        options={accounts.map(a => ({
+          id: a.metadata.uid,
+          label: a.metadata.name,
+        }))}
+        label="Cloud Account *"
+        isRequired
+        description={`${accounts.length} cloud account${
+          accounts.length !== 1 ? 's' : ''
+        } available for ${cloudType}`}
+        selectedKey={selectedAccountUid ?? null}
+        onSelectionChange={(key: Key | null) => {
+          if (key !== null) {
+            const account = accounts.find(a => a.metadata.uid === key);
+            if (account) {
+              onSelect(account.metadata.uid, account.metadata.name);
+            }
           }
         }}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            label="Cloud Account *"
-            required
-            helperText={`${accounts.length} cloud account${accounts.length !== 1 ? 's' : ''} available for ${cloudType}`}
-          />
-        )}
       />
     </Box>
   );

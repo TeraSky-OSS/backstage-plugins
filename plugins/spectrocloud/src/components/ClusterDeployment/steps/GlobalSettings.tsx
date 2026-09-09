@@ -1,29 +1,16 @@
 // React import not needed for JSX in React 17+
 import {
-  Box,
-  Typography,
-  TextField,
-  FormControlLabel,
-  Checkbox,
-  Grid,
   Accordion,
-  AccordionSummary,
-  AccordionDetails,
-} from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    padding: theme.spacing(2),
-  },
-  section: {
-    marginTop: theme.spacing(2),
-  },
-  accordion: {
-    marginBottom: theme.spacing(2),
-  },
-}));
+  AccordionPanel,
+  AccordionTrigger,
+  Box,
+  Checkbox,
+  Flex,
+  Grid,
+  NumberField,
+  Text,
+  TextField,
+} from '@backstage/ui';
 
 interface GlobalSettingsProps {
   policies: {
@@ -65,8 +52,6 @@ interface GlobalSettingsProps {
 }
 
 export const GlobalSettings = ({ policies, onUpdate }: GlobalSettingsProps) => {
-  const classes = useStyles();
-
   const updateScanPolicy = (
     scanType: 'configurationScanning' | 'penetrationScanning' | 'conformanceScanning',
     field: string,
@@ -98,236 +83,179 @@ export const GlobalSettings = ({ policies, onUpdate }: GlobalSettingsProps) => {
   };
 
   return (
-    <Box className={classes.root}>
-      <Typography variant="h5" gutterBottom>
+    <Box p="4">
+      <Text variant="title-medium" weight="bold" as="div">
         Global Settings
-      </Typography>
-      <Typography variant="body2" color="textSecondary" paragraph>
-        Configure scanning policies and backup settings (all optional)
-      </Typography>
+      </Text>
+      <Box mt="1" mb="4">
+        <Text variant="body-small" color="secondary">
+          Configure scanning policies and backup settings (all optional)
+        </Text>
+      </Box>
 
       {/* Scanning Policies */}
-      <Accordion className={classes.accordion}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h6">Scanning Policies</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Grid container spacing={3}>
-            {/* Configuration Scanning */}
-            <Grid item xs={12}>
-              <Typography variant="subtitle2" gutterBottom>
-                Configuration Scanning
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    label="Scan Interval (hours)"
-                    type="number"
-                    value={
-                      policies.scanPolicy?.configurationScanning?.interval || ''
-                    }
-                    onChange={e =>
-                      updateScanPolicy(
-                        'configurationScanning',
-                        'interval',
-                        parseInt(e.target.value, 10),
-                      )
-                    }
-                    fullWidth
-                    inputProps={{ min: 1 }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    label="Deploy After"
-                    value={
-                      policies.scanPolicy?.configurationScanning?.deployAfter || ''
-                    }
-                    onChange={e =>
-                      updateScanPolicy(
-                        'configurationScanning',
-                        'deployAfter',
-                        e.target.value,
-                      )
-                    }
-                    fullWidth
-                    placeholder="e.g., 1h, 30m"
-                  />
-                </Grid>
-              </Grid>
-            </Grid>
+      <Box mb="4">
+        <Accordion>
+          <AccordionTrigger>Scanning Policies</AccordionTrigger>
+          <AccordionPanel>
+            <Flex direction="column" gap="6">
+              {/* Configuration Scanning */}
+              <Box>
+                <Box mb="2">
+                  <Text variant="body-medium" weight="bold" as="div">
+                    Configuration Scanning
+                  </Text>
+                </Box>
+                <Grid.Root columns="12" gap="4">
+                  <Grid.Item colSpan={{ initial: '12', md: '6' }}>
+                    <NumberField
+                      label="Scan Interval (hours)"
+                      value={policies.scanPolicy?.configurationScanning?.interval}
+                      onChange={value =>
+                        updateScanPolicy('configurationScanning', 'interval', value)
+                      }
+                      minValue={1}
+                    />
+                  </Grid.Item>
+                  <Grid.Item colSpan={{ initial: '12', md: '6' }}>
+                    <TextField
+                      label="Deploy After"
+                      value={policies.scanPolicy?.configurationScanning?.deployAfter || ''}
+                      onChange={value =>
+                        updateScanPolicy('configurationScanning', 'deployAfter', value)
+                      }
+                      placeholder="e.g., 1h, 30m"
+                    />
+                  </Grid.Item>
+                </Grid.Root>
+              </Box>
 
-            {/* Penetration Scanning */}
-            <Grid item xs={12}>
-              <Typography variant="subtitle2" gutterBottom>
-                Penetration Scanning
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    label="Scan Interval (hours)"
-                    type="number"
-                    value={
-                      policies.scanPolicy?.penetrationScanning?.interval || ''
-                    }
-                    onChange={e =>
-                      updateScanPolicy(
-                        'penetrationScanning',
-                        'interval',
-                        parseInt(e.target.value, 10),
-                      )
-                    }
-                    fullWidth
-                    inputProps={{ min: 1 }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    label="Deploy After"
-                    value={
-                      policies.scanPolicy?.penetrationScanning?.deployAfter || ''
-                    }
-                    onChange={e =>
-                      updateScanPolicy(
-                        'penetrationScanning',
-                        'deployAfter',
-                        e.target.value,
-                      )
-                    }
-                    fullWidth
-                    placeholder="e.g., 1h, 30m"
-                  />
-                </Grid>
-              </Grid>
-            </Grid>
+              {/* Penetration Scanning */}
+              <Box>
+                <Box mb="2">
+                  <Text variant="body-medium" weight="bold" as="div">
+                    Penetration Scanning
+                  </Text>
+                </Box>
+                <Grid.Root columns="12" gap="4">
+                  <Grid.Item colSpan={{ initial: '12', md: '6' }}>
+                    <NumberField
+                      label="Scan Interval (hours)"
+                      value={policies.scanPolicy?.penetrationScanning?.interval}
+                      onChange={value =>
+                        updateScanPolicy('penetrationScanning', 'interval', value)
+                      }
+                      minValue={1}
+                    />
+                  </Grid.Item>
+                  <Grid.Item colSpan={{ initial: '12', md: '6' }}>
+                    <TextField
+                      label="Deploy After"
+                      value={policies.scanPolicy?.penetrationScanning?.deployAfter || ''}
+                      onChange={value =>
+                        updateScanPolicy('penetrationScanning', 'deployAfter', value)
+                      }
+                      placeholder="e.g., 1h, 30m"
+                    />
+                  </Grid.Item>
+                </Grid.Root>
+              </Box>
 
-            {/* Conformance Scanning */}
-            <Grid item xs={12}>
-              <Typography variant="subtitle2" gutterBottom>
-                Conformance Scanning
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    label="Scan Interval (hours)"
-                    type="number"
-                    value={
-                      policies.scanPolicy?.conformanceScanning?.interval || ''
-                    }
-                    onChange={e =>
-                      updateScanPolicy(
-                        'conformanceScanning',
-                        'interval',
-                        parseInt(e.target.value, 10),
-                      )
-                    }
-                    fullWidth
-                    inputProps={{ min: 1 }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    label="Deploy After"
-                    value={
-                      policies.scanPolicy?.conformanceScanning?.deployAfter || ''
-                    }
-                    onChange={e =>
-                      updateScanPolicy(
-                        'conformanceScanning',
-                        'deployAfter',
-                        e.target.value,
-                      )
-                    }
-                    fullWidth
-                    placeholder="e.g., 1h, 30m"
-                  />
-                </Grid>
-              </Grid>
-            </Grid>
-          </Grid>
-        </AccordionDetails>
-      </Accordion>
+              {/* Conformance Scanning */}
+              <Box>
+                <Box mb="2">
+                  <Text variant="body-medium" weight="bold" as="div">
+                    Conformance Scanning
+                  </Text>
+                </Box>
+                <Grid.Root columns="12" gap="4">
+                  <Grid.Item colSpan={{ initial: '12', md: '6' }}>
+                    <NumberField
+                      label="Scan Interval (hours)"
+                      value={policies.scanPolicy?.conformanceScanning?.interval}
+                      onChange={value =>
+                        updateScanPolicy('conformanceScanning', 'interval', value)
+                      }
+                      minValue={1}
+                    />
+                  </Grid.Item>
+                  <Grid.Item colSpan={{ initial: '12', md: '6' }}>
+                    <TextField
+                      label="Deploy After"
+                      value={policies.scanPolicy?.conformanceScanning?.deployAfter || ''}
+                      onChange={value =>
+                        updateScanPolicy('conformanceScanning', 'deployAfter', value)
+                      }
+                      placeholder="e.g., 1h, 30m"
+                    />
+                  </Grid.Item>
+                </Grid.Root>
+              </Box>
+            </Flex>
+          </AccordionPanel>
+        </Accordion>
+      </Box>
 
       {/* Backup Policy */}
-      <Accordion className={classes.accordion}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h6">Backup Policy</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Backup Name"
-                value={policies.backupPolicy?.backupConfig?.backupName || ''}
-                onChange={e => updateBackupPolicy('backupName', e.target.value)}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Backup Prefix"
-                value={policies.backupPolicy?.backupConfig?.backupPrefix || ''}
-                onChange={e => updateBackupPolicy('backupPrefix', e.target.value)}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Duration (hours)"
-                type="number"
-                value={policies.backupPolicy?.backupConfig?.durationInHours || ''}
-                onChange={e =>
-                  updateBackupPolicy('durationInHours', parseInt(e.target.value, 10))
-                }
-                fullWidth
-                inputProps={{ min: 1 }}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Location Type"
-                value={policies.backupPolicy?.backupConfig?.locationType || ''}
-                onChange={e => updateBackupPolicy('locationType', e.target.value)}
-                fullWidth
-                placeholder="e.g., s3, azure"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={
-                      policies.backupPolicy?.backupConfig?.includeAllDisks || false
-                    }
-                    onChange={e =>
-                      updateBackupPolicy('includeAllDisks', e.target.checked)
-                    }
-                    color="primary"
-                  />
-                }
-                label="Include All Disks"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={
-                      policies.backupPolicy?.backupConfig?.includeClusterResources ||
-                      false
-                    }
-                    onChange={e =>
-                      updateBackupPolicy('includeClusterResources', e.target.checked)
-                    }
-                    color="primary"
-                  />
-                }
-                label="Include Cluster Resources"
-              />
-            </Grid>
-          </Grid>
-        </AccordionDetails>
-      </Accordion>
+      <Box mb="4">
+        <Accordion>
+          <AccordionTrigger>Backup Policy</AccordionTrigger>
+          <AccordionPanel>
+            <Grid.Root columns="12" gap="4">
+              <Grid.Item colSpan={{ initial: '12', md: '6' }}>
+                <TextField
+                  label="Backup Name"
+                  value={policies.backupPolicy?.backupConfig?.backupName || ''}
+                  onChange={value => updateBackupPolicy('backupName', value)}
+                />
+              </Grid.Item>
+              <Grid.Item colSpan={{ initial: '12', md: '6' }}>
+                <TextField
+                  label="Backup Prefix"
+                  value={policies.backupPolicy?.backupConfig?.backupPrefix || ''}
+                  onChange={value => updateBackupPolicy('backupPrefix', value)}
+                />
+              </Grid.Item>
+              <Grid.Item colSpan={{ initial: '12', md: '6' }}>
+                <NumberField
+                  label="Duration (hours)"
+                  value={policies.backupPolicy?.backupConfig?.durationInHours}
+                  onChange={value => updateBackupPolicy('durationInHours', value)}
+                  minValue={1}
+                />
+              </Grid.Item>
+              <Grid.Item colSpan={{ initial: '12', md: '6' }}>
+                <TextField
+                  label="Location Type"
+                  value={policies.backupPolicy?.backupConfig?.locationType || ''}
+                  onChange={value => updateBackupPolicy('locationType', value)}
+                  placeholder="e.g., s3, azure"
+                />
+              </Grid.Item>
+              <Grid.Item colSpan="12">
+                <Checkbox
+                  isSelected={policies.backupPolicy?.backupConfig?.includeAllDisks || false}
+                  onChange={isSelected => updateBackupPolicy('includeAllDisks', isSelected)}
+                >
+                  Include All Disks
+                </Checkbox>
+              </Grid.Item>
+              <Grid.Item colSpan="12">
+                <Checkbox
+                  isSelected={
+                    policies.backupPolicy?.backupConfig?.includeClusterResources || false
+                  }
+                  onChange={isSelected =>
+                    updateBackupPolicy('includeClusterResources', isSelected)
+                  }
+                >
+                  Include Cluster Resources
+                </Checkbox>
+              </Grid.Item>
+            </Grid.Root>
+          </AccordionPanel>
+        </Accordion>
+      </Box>
     </Box>
   );
 };

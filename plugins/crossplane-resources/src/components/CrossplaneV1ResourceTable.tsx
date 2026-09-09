@@ -1,30 +1,29 @@
 import { useState, useEffect } from 'react';
+import { default as React } from 'react';
+import { useNavigate } from 'react-router-dom';
+// BUI-EXCEPTION: `Drawer` has no BUI equivalent (see MUI_TO_BUI_MIGRATION.md exception list).
+import { Drawer } from '@material-ui/core';
 import {
-  Card,
-  CardContent,
-  Typography,
   Box,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Tooltip,
-  makeStyles,
-  CircularProgress,
-  IconButton,
-  Drawer,
-  Tabs,
-  Tab,
-  Chip,
+  ButtonIcon,
+  Card,
+  CardBody,
+  Checkbox,
+  DialogTrigger,
+  Flex,
   Link,
-  useTheme,
   Popover,
+  Tab,
+  TabList,
+  TabPanel,
+  Tabs,
+  Text,
   TextField,
-} from '@material-ui/core';
-import { useApi } from '@backstage/core-plugin-api';
+  Tooltip,
+  TooltipTrigger,
+} from '@backstage/ui';
+import { CopyTextButton, Progress } from '@backstage/core-components';
+import { useApi, configApiRef } from '@backstage/core-plugin-api';
 import { KubernetesObject } from '@backstage/plugin-kubernetes';
 import { crossplaneApiRef } from '../api/CrossplaneApi';
 import { useEntity } from '@backstage/plugin-catalog-react';
@@ -35,31 +34,26 @@ import {
   listManagedResourcesPermission,
   listAdditionalResourcesPermission
 } from '@terasky/backstage-plugin-crossplane-common';
-import { configApiRef } from '@backstage/core-plugin-api';
-import { useNavigate } from 'react-router-dom';
 import pluralize from 'pluralize';
 import { getAnnotation, getAnnotationPrefix } from './annotationUtils';
-import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
-import KeyboardArrowRightIcon from '@material-ui/icons/KeyboardArrowRight';
-import DescriptionIcon from '@material-ui/icons/Description';
-import CloseIcon from '@material-ui/icons/Close';
-import FileCopyIcon from '@material-ui/icons/FileCopy';
-import GetAppIcon from '@material-ui/icons/GetApp';
-import FilterListIcon from '@material-ui/icons/FilterList';
-import SvgIcon from '@material-ui/core/SvgIcon';
+import {
+  RiArrowDownSLine,
+  RiArrowRightSLine,
+  RiCloseLine,
+  RiDownloadLine,
+  RiFileTextLine,
+  RiFilterLine,
+  RiSearchLine,
+} from '@remixicon/react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import yaml from 'js-yaml';
-import SearchIcon from '@material-ui/icons/Search';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
-import Checkbox from '@material-ui/core/Checkbox';
-import { default as React } from 'react';
+import styles from './CrossplaneV1ResourceTable.module.css';
+
 // Function to remove managed fields and other sensitive data from resources
 const removeManagedFields = (resource: KubernetesObject) => {
     const resourceCopy = JSON.parse(JSON.stringify(resource)); // Deep copy the resource
-    
+
     // Create a new object with the desired field order
     const orderedResource: any = {
         apiVersion: resourceCopy.apiVersion,
@@ -110,11 +104,11 @@ const removeManagedFields = (resource: KubernetesObject) => {
     return orderedResource;
 };
 
-// Custom Sitemap Icon Component
-const SitemapIcon = (props: any) => (
-    <SvgIcon {...props} viewBox="0 0 576 512">
+// Custom Sitemap Icon Component (repo-specific icon, not in the RemixIcon set)
+const SitemapIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg width="1em" height="1em" fill="currentColor" viewBox="0 0 576 512" {...props}>
         <path d="M208 80c0-26.5 21.5-48 48-48l64 0c26.5 0 48 21.5 48 48l0 64c0 26.5-21.5 48-48 48l-8 0 0 40 152 0c30.9 0 56 25.1 56 56l0 32 8 0c26.5 0 48 21.5 48 48l0 64c0 26.5-21.5 48-48 48l-64 0c-26.5 0-48-21.5-48-48l0-64c0-26.5 21.5-48 48-48l8 0 0-32c0-4.4-3.6-8-8-8l-152 0 0 40 8 0c26.5 0 48 21.5 48 48l0 64c0 26.5-21.5 48-48 48l-64 0c-26.5 0-48-21.5-48-48l0-64c0-26.5 21.5-48 48-48l8 0 0-32c0-30.9 25.1-56 56-56l152 0 0-40-8 0c-26.5 0-48-21.5-48-48l0-64z" />
-    </SvgIcon>
+    </svg>
 );
 
 interface ExtendedKubernetesObject extends KubernetesObject {
@@ -180,209 +174,11 @@ interface K8sEvent {
     count?: number;
 }
 
-const useStyles = makeStyles((theme) => ({
-    table: {
-        minWidth: 650,
-    },
-    tableContainer: {
-        backgroundColor: theme.palette.type === 'dark' ? theme.palette.background.paper : '#ffffff',
-        border: `1px solid ${theme.palette.type === 'dark' ? theme.palette.grey[700] : theme.palette.grey[400]}`,
-        borderRadius: '4px',
-        boxShadow: theme.palette.type === 'dark' ? '0 1px 3px rgba(0,0,0,0.4)' : '0 1px 3px rgba(0,0,0,0.1)',
-    },
-    tableCell: {
-        padding: theme.spacing(1, 2),
-        borderBottom: `1px solid ${theme.palette.type === 'dark' ? theme.palette.grey[700] : theme.palette.grey[300]}`,
-        color: theme.palette.text.primary,
-    },
-    headerCell: {
-        fontWeight: 'bold',
-        backgroundColor: theme.palette.type === 'dark' ? theme.palette.background.paper : '#ffffff',
-        borderBottom: `1px solid ${theme.palette.type === 'dark' ? theme.palette.grey[700] : theme.palette.grey[400]}`,
-        color: theme.palette.text.primary,
-    },
-    clickableRow: {
-        '&:hover': {
-            backgroundColor: theme.palette.action.hover,
-        },
-    },
-    nestedRow: {
-        backgroundColor: theme.palette.type === 'dark' ? theme.palette.background.default : theme.palette.grey[50],
-    },
-    statusBadge: {
-        padding: '2px 8px',
-        borderRadius: '3px',
-        fontSize: '10px',
-        fontWeight: 'bold',
-        display: 'inline-block',
-        marginRight: '8px',
-    },
-    syncedSuccess: {
-        backgroundColor: theme.palette.type === 'dark' ? 'rgba(76, 175, 80, 0.2)' : 'rgba(76, 175, 80, 0.1)',
-        color: theme.palette.type === 'dark' ? '#81c784' : '#2e7d32',
-    },
-    syncedError: {
-        backgroundColor: theme.palette.type === 'dark' ? 'rgba(244, 67, 54, 0.2)' : 'rgba(244, 67, 54, 0.1)',
-        color: theme.palette.type === 'dark' ? '#e57373' : '#c62828',
-    },
-    readySuccess: {
-        backgroundColor: theme.palette.type === 'dark' ? 'rgba(76, 175, 80, 0.2)' : 'rgba(76, 175, 80, 0.1)',
-        color: theme.palette.type === 'dark' ? '#81c784' : '#2e7d32',
-    },
-    readyError: {
-        backgroundColor: theme.palette.type === 'dark' ? 'rgba(244, 67, 54, 0.2)' : 'rgba(244, 67, 54, 0.1)',
-        color: theme.palette.type === 'dark' ? '#e57373' : '#c62828',
-    },
-    tooltip: {
-        backgroundColor: theme.palette.type === 'dark' ? theme.palette.grey[900] : '#000000',
-        color: theme.palette.type === 'dark' ? theme.palette.common.white : '#ffffff',
-        fontSize: '12px',
-        padding: theme.spacing(1.5),
-        maxWidth: 400,
-        '& .MuiTooltip-arrow': {
-            color: theme.palette.type === 'dark' ? theme.palette.grey[900] : '#000000',
-        },
-    },
-    tooltipContent: {
-        maxWidth: 400,
-        '& strong': {
-            color: theme.palette.type === 'dark' ? theme.palette.common.white : '#ffffff',
-        },
-    },
-    typeBadge: {
-        padding: '4px 12px',
-        borderRadius: '4px',
-        fontSize: '11px',
-        fontWeight: 'bold',
-        textAlign: 'center',
-        minWidth: '50px',
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '4px',
-    },
-    claimType: {
-        backgroundColor: theme.palette.type === 'dark' ? '#1a237e' : '#e3f2fd',
-        color: theme.palette.type === 'dark' ? '#90caf9' : '#1976d2',
-    },
-    xrType: {
-        backgroundColor: theme.palette.type === 'dark' ? '#4a148c' : '#f3e5f5',
-        color: theme.palette.type === 'dark' ? '#e1bee7' : '#7b1fa2',
-    },
-    mrType: {
-        backgroundColor: theme.palette.type === 'dark' ? '#1b5e20' : '#e8f5e9',
-        color: theme.palette.type === 'dark' ? '#a5d6a7' : '#388e3c',
-    },
-    k8sType: {
-        backgroundColor: theme.palette.type === 'dark' ? '#1976d2' : '#e3f2fd',
-        color: theme.palette.type === 'dark' ? '#90caf9' : '#1976d2',
-    },
-    expandIcon: {
-        padding: 4,
-        marginRight: theme.spacing(1),
-        color: theme.palette.text.primary,
-    },
-    resourceName: {
-        display: 'flex',
-        alignItems: 'center',
-        color: theme.palette.text.primary,
-    },
-    indent: {
-        width: theme.spacing(4),
-        flexShrink: 0,
-    },
-    resourceNameContent: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: theme.spacing(1),
-    },
-    treePrefix: {
-        fontFamily: 'monospace',
-        color: theme.palette.text.primary,
-        fontSize: '12px',
-        opacity: 0.7,
-    },
-    actionButtons: {
-        display: 'flex',
-        gap: theme.spacing(0.5),
-    },
-    iconButton: {
-        padding: theme.spacing(0.5),
-        color: theme.palette.text.primary,
-        '&:hover': {
-            backgroundColor: theme.palette.action.hover,
-        },
-    },
-    drawer: {
-        width: 800,
-        flexShrink: 0,
-    },
-    drawerPaper: {
-        width: 800,
-        padding: theme.spacing(2),
-        backgroundColor: theme.palette.background.paper,
-        color: theme.palette.text.primary,
-    },
-    drawerHeader: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: theme.spacing(2),
-        color: theme.palette.text.primary,
-    },
-    tabContent: {
-        marginTop: theme.spacing(2),
-        height: 'calc(100vh - 200px)',
-        overflow: 'auto',
-        position: 'relative',
-    },
-    yamlActions: {
-        position: 'sticky',
-        top: 0,
-        right: 0,
-        display: 'flex',
-        justifyContent: 'flex-end',
-        gap: theme.spacing(1),
-        padding: theme.spacing(1),
-        backgroundColor: theme.palette.background.paper,
-        zIndex: 1,
-        borderBottom: `1px solid ${theme.palette.divider}`,
-    },
-    eventTable: {
-        '& th': {
-            fontWeight: 'bold',
-            color: theme.palette.text.primary,
-        },
-    },
-    eventRow: {
-        '&:hover': {
-            backgroundColor: theme.palette.action.hover,
-        },
-    },
-    normalEvent: {
-        backgroundColor: theme.palette.type === 'dark' ? theme.palette.info.dark : theme.palette.info.light,
-        color: theme.palette.type === 'dark' ? theme.palette.info.contrastText : theme.palette.info.contrastText,
-    },
-    warningEvent: {
-        backgroundColor: theme.palette.type === 'dark' ? theme.palette.warning.dark : theme.palette.warning.light,
-        color: theme.palette.type === 'dark' ? theme.palette.warning.contrastText : theme.palette.warning.contrastText,
-    },
-    errorEvent: {
-        backgroundColor: theme.palette.type === 'dark' ? theme.palette.error.dark : theme.palette.error.light,
-        color: theme.palette.type === 'dark' ? theme.palette.error.contrastText : theme.palette.error.contrastText,
-    },
-    supportingType: {
-        backgroundColor: theme.palette.type === 'dark' ? '#4a148c' : '#f3e5f5',
-        color: theme.palette.type === 'dark' ? '#e1bee7' : '#7b1fa2',
-    },
-}));
-
 const CrossplaneV1ResourcesTable = () => {
     const { entity } = useEntity();
     const crossplaneApi = useApi(crossplaneApiRef);
     const config = useApi(configApiRef);
     const navigate = useNavigate();
-    const theme = useTheme();
     const enablePermissions = config.getOptionalBoolean('crossplane.enablePermissions') ?? false;
     const annotationPrefix = getAnnotationPrefix(config);
 
@@ -404,7 +200,7 @@ const CrossplaneV1ResourcesTable = () => {
     const [nestedResources, setNestedResources] = useState<Record<string, ResourceTableRow[]>>({});
     const [initialExpansionDone, setInitialExpansionDone] = useState<boolean>(false);
     const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
-    const [selectedTab, setSelectedTab] = useState<number>(0);
+    const [selectedTab, setSelectedTab] = useState<string>('manifest');
     const [selectedResource, setSelectedResource] = useState<ExtendedKubernetesObject | null>(null);
     const [events, setEvents] = useState<K8sEvent[]>([]);
     const [loadingEvents, setLoadingEvents] = useState<boolean>(false);
@@ -422,23 +218,18 @@ const CrossplaneV1ResourcesTable = () => {
         status: [] as string[],
         artifact: [] as string[]
     });
-    const [filterAnchorEl, setFilterAnchorEl] = useState<{ [key: string]: HTMLElement | null }>({});
-    const [supportingFilterAnchorEl, setSupportingFilterAnchorEl] = useState<{ [key: string]: HTMLElement | null }>({});
-    const [filterSearch, setFilterSearch] = useState<{ [key: string]: string }>({});
-    const [supportingFilterSearch, setSupportingFilterSearch] = useState<{ [key: string]: string }>({});
-    const classes = useStyles();
 
     // Helper function to extract API group from apiVersion
     const getApiGroup = (apiVersion?: string): string => {
         if (!apiVersion) return 'Unknown';
-        
+
         if (apiVersion.includes('/')) {
             const [group, _version] = apiVersion.split('/');
             return group;
-        } 
+        }
             // For core Kubernetes resources (v1), return 'core' instead of 'v1'
             return apiVersion === 'v1' ? 'core' : apiVersion;
-        
+
     };
 
     const fetchNestedResources = async (parentResource: ExtendedKubernetesObject, parentId: string, level: number) => {
@@ -579,12 +370,12 @@ const CrossplaneV1ResourcesTable = () => {
         }
     };
 
-    const handleOpenDrawer = (resource: ExtendedKubernetesObject, tab: number) => {
+    const handleOpenDrawer = (resource: ExtendedKubernetesObject, tab: 'manifest' | 'events') => {
         setSelectedResource(resource);
         setSelectedTab(tab);
         setDrawerOpen(true);
 
-        if (tab === 1) {
+        if (tab === 'events') {
             fetchEvents(resource);
         }
     };
@@ -595,23 +386,10 @@ const CrossplaneV1ResourcesTable = () => {
         setEvents([]);
     };
 
-    const handleTabChange = (_: React.ChangeEvent<{}>, newValue: number) => {
+    const handleTabChange = (newValue: string) => {
         setSelectedTab(newValue);
-        if (newValue === 1 && selectedResource) {
+        if (newValue === 'events' && selectedResource) {
             fetchEvents(selectedResource);
-        }
-    };
-
-    const handleCopyYaml = () => {
-        if (selectedResource) {
-            try {
-                const yamlStr = yaml.dump(removeManagedFields(selectedResource));
-                navigator.clipboard.writeText(yamlStr);
-                // You could add a snackbar notification here
-            } catch (error) {
-                // eslint-disable-next-line no-console
-                console.error('Failed to copy YAML:', error);
-            }
         }
     };
 
@@ -803,7 +581,7 @@ const CrossplaneV1ResourcesTable = () => {
                         console.error(`Error fetching CRD for ${kindPlural}.${apiGroup}:`, error);
                         return [];
                     }
-                    
+
                     if (!crd) {
                         // eslint-disable-next-line no-console
                         console.warn(`No CRD found for ${kindPlural}.${apiGroup}`);
@@ -931,7 +709,7 @@ const CrossplaneV1ResourcesTable = () => {
                         // Helper to convert resource to table row
                         const toTableRow = (resource: ExtendedKubernetesObject, level: number, parentId?: string): ResourceTableRow => {
                             const resourceType = determineResourceType(resource);
-                            
+
                             // Handle status differently based on resource type
                             const status = {
                                 synced: false,
@@ -973,13 +751,13 @@ const CrossplaneV1ResourcesTable = () => {
 
                         // Recursively build table rows starting from root (no parent)
                         const nestedResourcesMap: { [key: string]: ResourceTableRow[] } = {};
-                        
+
                         const buildTableRows = (parentUid: string | undefined, level: number): ResourceTableRow[] => {
                             const children = childrenByParent.get(parentUid) || [];
                             return children.map(child => {
                                 const childUid = child.metadata?.uid;
                                 const tableRow = toTableRow(child, level, parentUid);
-                                
+
                                 // Recursively process this child's children
                                 if (childUid && childrenByParent.has(childUid)) {
                                     const grandchildren = buildTableRows(childUid, level + 1);
@@ -987,7 +765,7 @@ const CrossplaneV1ResourcesTable = () => {
                                         nestedResourcesMap[childUid] = grandchildren;
                                     }
                                 }
-                                
+
                                 return tableRow;
                             });
                         };
@@ -1038,16 +816,16 @@ const CrossplaneV1ResourcesTable = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [crossplaneApi, entity, canListAdditional]);
 
-      // --- Add state for auto-expanded rows ---
-  const [autoExpandedRows, setAutoExpandedRows] = useState<Set<string>>(new Set());
-  const hasActiveFilters = Object.values(filters).some(arr => arr.length > 0);
+    // --- Add state for auto-expanded rows ---
+    const [autoExpandedRows, setAutoExpandedRows] = useState<Set<string>>(new Set());
+    const hasActiveFilters = Object.values(filters).some(arr => arr.length > 0);
 
-      // --- Update auto-expanded rows when filters change ---
-  useEffect(() => {
-    if (!hasActiveFilters) {
-      setAutoExpandedRows(new Set());
-      return;
-    }
+    // --- Update auto-expanded rows when filters change ---
+    useEffect(() => {
+        if (!hasActiveFilters) {
+            setAutoExpandedRows(new Set());
+            return;
+        }
         // Recalculate auto-expanded ancestors for current filter
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
         const allResourcesFlattened = getAllResourcesFlattened();
@@ -1099,42 +877,31 @@ const CrossplaneV1ResourcesTable = () => {
         const { status, condition } = getConditionStatus(conditions, conditionType);
         const isSuccess = status === 'True';
 
-        const syncedClass = isSuccess ? classes.syncedSuccess : classes.syncedError;
-        const readyClass = isSuccess ? classes.readySuccess : classes.readyError;
-        const badgeClass = conditionType === 'Synced' ? syncedClass : readyClass;
-
         return (
-            <Tooltip
-                classes={{
-                    tooltip: classes.tooltip,
-                }}
-                title={
-                    <Box className={classes.tooltipContent}>
-                        <Typography variant="subtitle2" gutterBottom>
-                            <strong>Condition: {condition.type}</strong>
-                        </Typography>
-                        <Typography variant="body2">Status: {condition.status}</Typography>
-                        {condition.reason && (
-                            <Typography variant="body2">Reason: {condition.reason}</Typography>
-                        )}
-                        {condition.lastTransitionTime && (
-                            <Typography variant="body2">
-                                Last Transition: {new Date(condition.lastTransitionTime).toLocaleString()}
-                            </Typography>
-                        )}
-                        {condition.message && (
-                            <Typography variant="body2" style={{ wordWrap: 'break-word' }}>
-                                Message: {condition.message}
-                            </Typography>
-                        )}
-                    </Box>
-                }
-                arrow
-            >
-                <span className={`${classes.statusBadge} ${badgeClass}`}>
+            <TooltipTrigger key={conditionType}>
+                <span className={`${styles.statusBadge} ${isSuccess ? styles.badgePositive : styles.badgeNegative}`}>
                     {conditionType}
                 </span>
-            </Tooltip>
+                <Tooltip>
+                    <Box style={{ maxWidth: '380px' }}>
+                        <Text variant="body-small" weight="bold" style={{ display: 'block' }}>Condition: {condition.type}</Text>
+                        <Text variant="body-small" style={{ display: 'block' }}>Status: {condition.status}</Text>
+                        {condition.reason && (
+                            <Text variant="body-small" style={{ display: 'block' }}>Reason: {condition.reason}</Text>
+                        )}
+                        {condition.lastTransitionTime && (
+                            <Text variant="body-small" style={{ display: 'block' }}>
+                                Last Transition: {new Date(condition.lastTransitionTime).toLocaleString()}
+                            </Text>
+                        )}
+                        {condition.message && (
+                            <Text variant="body-small" style={{ wordWrap: 'break-word', display: 'block' }}>
+                                Message: {condition.message}
+                            </Text>
+                        )}
+                    </Box>
+                </Tooltip>
+            </TooltipTrigger>
         );
     };
 
@@ -1182,13 +949,13 @@ const CrossplaneV1ResourcesTable = () => {
     const getTypeBadgeClass = (type: string) => {
         switch (type) {
             case 'Claim':
-                return classes.claimType;
+                return styles.badgeAnnouncement;
             case 'XR':
-                return classes.xrType;
+                return styles.badgeAccent;
             case 'MR':
-                return classes.mrType;
+                return styles.badgePositive;
             case 'K8s':
-                return classes.k8sType;
+                return styles.badgeAnnouncement;
             default:
                 return '';
         }
@@ -1197,11 +964,11 @@ const CrossplaneV1ResourcesTable = () => {
     const getEventTypeChip = (type?: string) => {
         switch (type) {
             case 'Warning':
-                return <Chip size="small" label={type} className={classes.warningEvent} />;
+                return <span className={`${styles.statusBadge} ${styles.badgeWarning}`}>{type}</span>;
             case 'Error':
-                return <Chip size="small" label={type} className={classes.errorEvent} />;
+                return <span className={`${styles.statusBadge} ${styles.badgeNegative}`}>{type}</span>;
             default:
-                return <Chip size="small" label={type || 'Normal'} className={classes.normalEvent} />;
+                return <span className={`${styles.statusBadge} ${styles.badgeAccent}`}>{type || 'Normal'}</span>;
         }
     };
 
@@ -1253,15 +1020,15 @@ const CrossplaneV1ResourcesTable = () => {
                 allValues.name.add(resource.name);
                 allValues.group.add(resource.group);
                 allValues.kind.add(resource.kind);
-                
+
                 // Add status values
                 if (resource.status.synced === true) allValues.status.add('Synced');
                 if (resource.status.ready === true) allValues.status.add('Ready');
                 if (resource.status.synced === false) allValues.status.add('Not Synced');
                 if (resource.status.ready === false) allValues.status.add('Not Ready');
-                
+
                 allValues.created.add(getRelativeTime(resource.createdAt));
-                
+
                 // Recursively collect from nested resources
                 const resourceId = resource.resource.metadata?.uid || `${resource.kind}-${resource.name}`;
                 if (nestedResources[resourceId]) {
@@ -1271,7 +1038,7 @@ const CrossplaneV1ResourcesTable = () => {
         };
 
         collectValues(allResources.filter(r => !r.parentId));
-        
+
         return {
             type: Array.from(allValues.type).sort(),
             name: Array.from(allValues.name).sort(),
@@ -1294,12 +1061,12 @@ const CrossplaneV1ResourcesTable = () => {
         supportingResources.forEach(resource => {
             allValues.type.add(resource.kind || 'Unknown');
             allValues.name.add(resource.metadata?.name || 'Unknown');
-            
+
             resource.status?.conditions?.forEach((condition: any) => {
                 allValues.status.add(condition.type);
                 allValues.status.add(condition.status);
             });
-            
+
             // eslint-disable-next-line @typescript-eslint/no-use-before-define
             const artifact = getArtifact(resource);
             if (typeof artifact === 'string') {
@@ -1328,7 +1095,7 @@ const CrossplaneV1ResourcesTable = () => {
         const nameMatch = filters.name.length === 0 || filters.name.some(filter => resource.name.toLowerCase().includes(filter.toLowerCase()));
         const groupMatch = filters.group.length === 0 || filters.group.some(filter => resource.group.toLowerCase().includes(filter.toLowerCase()));
         const kindMatch = filters.kind.length === 0 || filters.kind.some(filter => resource.kind.toLowerCase().includes(filter.toLowerCase()));
-        
+
         // Status matching logic
         let statusMatch = filters.status.length === 0;
         if (!statusMatch) {
@@ -1340,13 +1107,13 @@ const CrossplaneV1ResourcesTable = () => {
                        (!resource.status.ready && filterLower.includes('not ready'));
             });
         }
-        
-        const createdMatch = filters.created.length === 0 || 
-            filters.created.some(filter => 
+
+        const createdMatch = filters.created.length === 0 ||
+            filters.created.some(filter =>
                 getRelativeTime(resource.createdAt).toLowerCase().includes(filter.toLowerCase()) ||
                 formatDate(resource.createdAt).toLowerCase().includes(filter.toLowerCase())
             );
-        
+
         return typeMatch && nameMatch && groupMatch && kindMatch && statusMatch && createdMatch;
     };
 
@@ -1354,78 +1121,78 @@ const CrossplaneV1ResourcesTable = () => {
     const getAllResourcesFlattened = (): ResourceTableRow[] => {
         const allFlattened: ResourceTableRow[] = [];
         const seenResourceIds = new Set<string>();
-        
+
         const addResourcesRecursively = (resources: ResourceTableRow[]) => {
             resources.forEach(resource => {
                 const resourceId = resource.resource.metadata?.uid || `${resource.kind}-${resource.name}`;
-                
+
                 // Only add if we haven't seen this resource before
                 if (!seenResourceIds.has(resourceId)) {
                     seenResourceIds.add(resourceId);
                     allFlattened.push(resource);
                 }
-                
+
                 // Add nested resources recursively
                 if (nestedResources[resourceId]) {
                     addResourcesRecursively(nestedResources[resourceId]);
                 }
             });
         };
-        
+
         addResourcesRecursively(allResources.filter(r => !r.parentId));
         return allFlattened;
     };
 
-  // Filter resources based on current filters (strict hierarchical filtering)
-  const getFilteredResources = (): ResourceTableRow[] => {
-    const allResourcesFlattened = getAllResourcesFlattened();
-    const filteredResources = allResourcesFlattened.filter(resource => resourceMatchesFilters(resource));
+    // Filter resources based on current filters (strict hierarchical filtering)
+    const getFilteredResources = (): ResourceTableRow[] => {
+        const allResourcesFlattened = getAllResourcesFlattened();
+        const filteredResources = allResourcesFlattened.filter(resource => resourceMatchesFilters(resource));
 
-    // Build a set of all resources to show: matching + ancestors
-    const resourcesToShow = new Set<string>();
-    const resourceMap = new Map<string, ResourceTableRow>();
-    allResourcesFlattened.forEach(resource => {
-      const resourceId = resource.resource.metadata?.uid || `${resource.kind}-${resource.name}`;
-      resourceMap.set(resourceId, resource);
-    });
+        // Build a set of all resources to show: matching + ancestors
+        const resourcesToShow = new Set<string>();
+        const resourceMap = new Map<string, ResourceTableRow>();
+        allResourcesFlattened.forEach(resource => {
+            const resourceId = resource.resource.metadata?.uid || `${resource.kind}-${resource.name}`;
+            resourceMap.set(resourceId, resource);
+        });
 
-    // For each matching resource, add it and all ancestors
-    filteredResources.forEach(resource => {
-      let current = resource;
-      while (current) {
-        const resourceId = current.resource.metadata?.uid || `${current.kind}-${current.name}`;
-        resourcesToShow.add(resourceId);
-        if (current.parentId) {
-          current = resourceMap.get(current.parentId)!;
-        } else {
-          break;
+        // For each matching resource, add it and all ancestors
+        filteredResources.forEach(resource => {
+            let current = resource;
+            while (current) {
+                const resourceId = current.resource.metadata?.uid || `${current.kind}-${current.name}`;
+                resourcesToShow.add(resourceId);
+                if (current.parentId) {
+                    current = resourceMap.get(current.parentId)!;
+                } else {
+                    break;
+                }
+            }
+        });
+
+        // Auto-expand ancestor rows
+        // (merge with user-expanded rows, so user can still collapse manually after filtering)
+        const mergedExpandedRows = new Set([...expandedRows, ...autoExpandedRows]);
+
+        // Render only resources in resourcesToShow, and only children if parent is expanded
+        const visibleResources: ResourceTableRow[] = [];
+        const processedIds = new Set<string>();
+        function addVisible(resources: ResourceTableRow[], parentExpanded: boolean) {
+            resources.forEach(resource => {
+                const resourceId = resource.resource.metadata?.uid || `${resource.kind}-${resource.name}`;
+                if (processedIds.has(resourceId)) return;
+                if (!resourcesToShow.has(resourceId)) return;
+                if (!parentExpanded && resource.parentId) return;
+                processedIds.add(resourceId);
+                visibleResources.push(resource);
+                if (mergedExpandedRows.has(resourceId) && nestedResources[resourceId]) {
+                    addVisible(nestedResources[resourceId], true);
+                }
+            });
         }
-      }
-    });
-
-    // Auto-expand ancestor rows
-    // (merge with user-expanded rows, so user can still collapse manually after filtering)
-    const mergedExpandedRows = new Set([...expandedRows, ...autoExpandedRows]);
-
-    // Render only resources in resourcesToShow, and only children if parent is expanded
-    const visibleResources: ResourceTableRow[] = [];
-    const processedIds = new Set<string>();
-    function addVisible(resources: ResourceTableRow[], parentExpanded: boolean) {
-      resources.forEach(resource => {
-        const resourceId = resource.resource.metadata?.uid || `${resource.kind}-${resource.name}`;
-        if (processedIds.has(resourceId)) return;
-        if (!resourcesToShow.has(resourceId)) return;
-        if (!parentExpanded && resource.parentId) return;
-        processedIds.add(resourceId);
-        visibleResources.push(resource);
-        if (mergedExpandedRows.has(resourceId) && nestedResources[resourceId]) {
-          addVisible(nestedResources[resourceId], true);
-        }
-      });
-    }
-    addVisible(allResources.filter(r => !r.parentId), true);
-    return visibleResources;
-  };
+        addVisible(allResources.filter(r => !r.parentId), true);
+        return visibleResources;
+    };
 
     const handleFilterChange = (field: string, values: string[]) => {
         setFilters(prev => ({ ...prev, [field]: values }));
@@ -1435,44 +1202,20 @@ const CrossplaneV1ResourcesTable = () => {
         setSupportingFilters(prev => ({ ...prev, [field]: values }));
     };
 
-    const handleFilterClick = (event: React.MouseEvent<HTMLElement>, field: string) => {
-        setFilterAnchorEl(prev => ({ ...prev, [field]: event.currentTarget }));
-    };
-
-    const handleSupportingFilterClick = (event: React.MouseEvent<HTMLElement>, field: string) => {
-        setSupportingFilterAnchorEl(prev => ({ ...prev, [field]: event.currentTarget }));
-    };
-
-    const handleFilterClose = (field: string) => {
-        setFilterAnchorEl(prev => ({ ...prev, [field]: null }));
-    };
-
-    const handleSupportingFilterClose = (field: string) => {
-        setSupportingFilterAnchorEl(prev => ({ ...prev, [field]: null }));
-    };
-
-      const isFieldFilterActive = (field: string) => {
-    return filters[field as keyof typeof filters].length > 0;
-  };
-
-    const isSupportingFilterActive = (field: string) => {
-        return supportingFilters[field as keyof typeof supportingFilters].length > 0;
-    };
-
     const getFilteredSupportingResources = (): ExtendedKubernetesObject[] => {
         return supportingResources.filter(resource => {
-            const typeMatch = supportingFilters.type.length === 0 || 
+            const typeMatch = supportingFilters.type.length === 0 ||
                 supportingFilters.type.some(filter => resource.kind?.toLowerCase().includes(filter.toLowerCase()));
-            const nameMatch = supportingFilters.name.length === 0 || 
+            const nameMatch = supportingFilters.name.length === 0 ||
                 supportingFilters.name.some(filter => resource.metadata?.name?.toLowerCase().includes(filter.toLowerCase()));
-            const statusMatch = supportingFilters.status.length === 0 || 
-                resource.status?.conditions?.some((condition: any) => 
-                    supportingFilters.status.some(filter => 
+            const statusMatch = supportingFilters.status.length === 0 ||
+                resource.status?.conditions?.some((condition: any) =>
+                    supportingFilters.status.some(filter =>
                         condition.type?.toLowerCase().includes(filter.toLowerCase()) ||
                         condition.status?.toLowerCase().includes(filter.toLowerCase())
                     )
                 );
-            const artifactMatch = supportingFilters.artifact.length === 0 || 
+            const artifactMatch = supportingFilters.artifact.length === 0 ||
                 supportingFilters.artifact.some(filter => {
                     // eslint-disable-next-line @typescript-eslint/no-use-before-define
                     const artifact = getArtifact(resource);
@@ -1486,12 +1229,12 @@ const CrossplaneV1ResourcesTable = () => {
                     }
                     return false; // Skip filtering for other React elements
                 });
-            
+
             return typeMatch && nameMatch && statusMatch && artifactMatch;
         });
     };
 
-    const renderResourceRows = (resources: ResourceTableRow[], _?: string): JSX.Element[] => {
+    const renderResourceRows = (resources: ResourceTableRow[]): JSX.Element[] => {
         const rows: JSX.Element[] = [];
 
         resources.forEach((row, index) => {
@@ -1501,135 +1244,103 @@ const CrossplaneV1ResourcesTable = () => {
             const isExpanded = expandedRows.has(resourceId);
 
             rows.push(
-                <TableRow
-                    key={resourceId}
-                    className={`${classes.clickableRow} ${row.level > 0 ? classes.nestedRow : ''}`}
-                >
-                    <TableCell className={classes.tableCell}>
-                        <span className={`${classes.typeBadge} ${getTypeBadgeClass(row.type)}`}>
+                <tr key={resourceId} className={`${styles.clickableRow} ${row.level > 0 ? styles.nestedRow : ''}`}>
+                    <td className={styles.tableCell}>
+                        <span className={`${styles.typeBadge} ${getTypeBadgeClass(row.type)}`}>
                             {row.type}
                         </span>
-                    </TableCell>
-                    <TableCell className={classes.tableCell}>
-                        <Box className={classes.resourceName}>
+                    </td>
+                    <td className={styles.tableCell}>
+                        <div className={styles.resourceName}>
                             {Array.from({ length: row.level }).map((_item, levelIndex) => (
-                                <div key={levelIndex} className={classes.indent} />
+                                <div key={levelIndex} className={styles.indent} />
                             ))}
-                            <Box className={classes.resourceNameContent}>
-                                                {hasNestedResourcesToShow && (
-                  <IconButton
-                    className={classes.expandIcon}
-                    size="small"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRowExpand(row);
-                    }}
-                  >
-                    {isExpanded ? <KeyboardArrowDownIcon /> : <KeyboardArrowRightIcon />}
-                  </IconButton>
-                )}
+                            <div className={styles.resourceNameContent}>
+                                {hasNestedResourcesToShow && (
+                                    <ButtonIcon
+                                        aria-label={isExpanded ? 'Collapse' : 'Expand'}
+                                        icon={isExpanded ? <RiArrowDownSLine /> : <RiArrowRightSLine />}
+                                        size="small"
+                                        onPress={() => handleRowExpand(row)}
+                                    />
+                                )}
                                 {row.name}
-                            </Box>
-                        </Box>
-                    </TableCell>
-                    <TableCell className={classes.tableCell}>
-                        {row.group}
-                    </TableCell>
-                    <TableCell className={classes.tableCell}>
-                        {row.kind}
-                    </TableCell>
-                    <TableCell className={classes.tableCell}>
-                        <Box display="flex">
+                            </div>
+                        </div>
+                    </td>
+                    <td className={styles.tableCell}>{row.group}</td>
+                    <td className={styles.tableCell}>{row.kind}</td>
+                    <td className={styles.tableCell}>
+                        <Flex style={{ flexWrap: 'wrap' }}>
                             {row.type === 'K8s' && row.status.conditions.length > 0 && (
                                 row.status.conditions.map((condition: any, idx: number) => (
-                                    <Tooltip
-                                        key={idx}
-                                        classes={{
-                                            tooltip: classes.tooltip,
-                                        }}
-                                        title={
-                                            <Box className={classes.tooltipContent}>
-                                                <Typography variant="subtitle2" gutterBottom>
-                                                    <strong>Condition: {condition.type}</strong>
-                                                </Typography>
-                                                <Typography variant="body2">Status: {condition.status}</Typography>
-                                                {condition.reason && (
-                                                    <Typography variant="body2">Reason: {condition.reason}</Typography>
-                                                )}
-                                                {condition.lastTransitionTime && (
-                                                    <Typography variant="body2">
-                                                        Last Transition: {new Date(condition.lastTransitionTime).toLocaleString()}
-                                                    </Typography>
-                                                )}
-                                                {condition.message && (
-                                                    <Typography variant="body2" style={{ wordWrap: 'break-word' }}>
-                                                        Message: {condition.message}
-                                                    </Typography>
-                                                )}
-                                            </Box>
-                                        }
-                                        arrow
-                                    >
-                                        <span className={`${classes.statusBadge} ${condition.status === 'True' ? classes.readySuccess : classes.readyError}`}>
+                                    <TooltipTrigger key={idx}>
+                                        <span className={`${styles.statusBadge} ${condition.status === 'True' ? styles.badgePositive : styles.badgeNegative}`}>
                                             {condition.type}
                                         </span>
-                                    </Tooltip>
+                                        <Tooltip>
+                                            <Box style={{ maxWidth: '380px' }}>
+                                                <Text variant="body-small" weight="bold" style={{ display: 'block' }}>Condition: {condition.type}</Text>
+                                                <Text variant="body-small" style={{ display: 'block' }}>Status: {condition.status}</Text>
+                                                {condition.reason && (
+                                                    <Text variant="body-small" style={{ display: 'block' }}>Reason: {condition.reason}</Text>
+                                                )}
+                                                {condition.lastTransitionTime && (
+                                                    <Text variant="body-small" style={{ display: 'block' }}>
+                                                        Last Transition: {new Date(condition.lastTransitionTime).toLocaleString()}
+                                                    </Text>
+                                                )}
+                                                {condition.message && (
+                                                    <Text variant="body-small" style={{ wordWrap: 'break-word', display: 'block' }}>
+                                                        Message: {condition.message}
+                                                    </Text>
+                                                )}
+                                            </Box>
+                                        </Tooltip>
+                                    </TooltipTrigger>
                                 ))
                             )}
                             {row.type === 'K8s' && row.status.conditions.length === 0 && (
-                                <span className={`${classes.statusBadge} ${classes.readySuccess}`}>No Conditions</span>
+                                <span className={`${styles.statusBadge} ${styles.badgePositive}`}>No Conditions</span>
                             )}
                             {row.type !== 'K8s' && (
-                                // For XR and MR resources, show Synced and Ready
+                                // For Claim, XR and MR resources, show Synced and Ready
                                 <>
                                     {renderStatusBadge(row.status.conditions, 'Synced')}
                                     {renderStatusBadge(row.status.conditions, 'Ready')}
                                 </>
                             )}
-                        </Box>
-                    </TableCell>
-                    <TableCell className={classes.tableCell}>
-                        <Tooltip
-                            classes={{
-                                tooltip: classes.tooltip,
-                            }}
-                            title={formatDate(row.createdAt)}
-                            arrow
-                        >
-                            <span style={{ cursor: 'help' }}>
-                                {getRelativeTime(row.createdAt)}
-                            </span>
-                        </Tooltip>
-                    </TableCell>
-                    <TableCell className={classes.tableCell}>
-                        <Box className={classes.actionButtons}>
-                            <Tooltip title="View Graph">
-                                <IconButton
-                                    className={classes.iconButton}
+                        </Flex>
+                    </td>
+                    <td className={styles.tableCell}>
+                        <TooltipTrigger>
+                            <span style={{ cursor: 'help' }}>{getRelativeTime(row.createdAt)}</span>
+                            <Tooltip>{formatDate(row.createdAt)}</Tooltip>
+                        </TooltipTrigger>
+                    </td>
+                    <td className={styles.tableCell}>
+                        <Flex className={styles.actionButtons}>
+                            <TooltipTrigger>
+                                <ButtonIcon
+                                    aria-label="View Graph"
+                                    icon={<SitemapIcon />}
                                     size="small"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        navigate(`/catalog/${entity.metadata.namespace}/component/${entity.metadata.name}/crossplane-graph`);
-                                    }}
-                                >
-                                    <SitemapIcon fontSize="small" />
-                                </IconButton>
-                            </Tooltip>
-                            <Tooltip title="View YAML & Events">
-                                <IconButton
-                                    className={classes.iconButton}
+                                    onPress={() => navigate(`/catalog/${entity.metadata.namespace}/component/${entity.metadata.name}/crossplane-graph`)}
+                                />
+                                <Tooltip>View Graph</Tooltip>
+                            </TooltipTrigger>
+                            <TooltipTrigger>
+                                <ButtonIcon
+                                    aria-label="View YAML & Events"
+                                    icon={<RiFileTextLine />}
                                     size="small"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleOpenDrawer(row.resource, 0);
-                                    }}
-                                >
-                                    <DescriptionIcon fontSize="small" />
-                                </IconButton>
-                            </Tooltip>
-                        </Box>
-                    </TableCell>
-                </TableRow>
+                                    onPress={() => handleOpenDrawer(row.resource, 'manifest')}
+                                />
+                                <Tooltip>View YAML & Events</Tooltip>
+                            </TooltipTrigger>
+                        </Flex>
+                    </td>
+                </tr>
             );
 
             // Don't recursively render here - getFilteredResources() already handles the flattening
@@ -1644,22 +1355,22 @@ const CrossplaneV1ResourcesTable = () => {
             return 'N/A';
         }
         const packageName = resource.spec?.package || 'N/A';
-        
+
         if ((resource.kind === 'Function' || resource.kind === 'Provider') && packageName.startsWith('xpkg.upbound.io/')) {
             const [_, path] = packageName.split('xpkg.upbound.io/');
             const [org, nameWithVersion] = path.split('/');
             const [name, version] = nameWithVersion.split(':');
-            
+
             const resourceType = resource.kind === 'Function' ? 'functions' : 'providers';
             const versionPath = /^v\d$/.test(version) ? '' : `/${version}`;
             const marketplaceUrl = `https://marketplace.upbound.io/${resourceType}/${org}/${name}${versionPath}`;
-            
+
             return (
                 <Link
                     href={marketplaceUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ color: theme.palette.text.primary, textDecoration: 'underline' }}
+                    style={{ color: 'var(--bui-fg-primary)', textDecoration: 'underline' }}
                 >
                     {packageName}
                 </Link>
@@ -1671,86 +1382,101 @@ const CrossplaneV1ResourcesTable = () => {
             const versionPath = /^v\d$/.test(version) ? '' : `/${version}`;
             const marketplaceUrl = `https://github.com/crossplane-contrib/${name}/tree/${versionPath}`;
             return (
-              <Link href={marketplaceUrl} target="_blank" rel="noopener noreferrer" style={{ color: theme.palette.text.primary, textDecoration: 'underline' }}>
+              <Link href={marketplaceUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--bui-fg-primary)', textDecoration: 'underline' }}>
                 {packageName}
               </Link>
             );
           }
-        
+
         return packageName;
     };
 
     const renderSupportingResourceRows = () => {
         if (!canListAdditional) {
             return (
-                <TableRow>
-                    <TableCell colSpan={5}>
-                        <Typography align="center">
+                <tr>
+                    <td className={styles.tableCell} colSpan={5}>
+                        <Text style={{ textAlign: 'center', display: 'block' }}>
                             You don't have permissions to view supporting resources
-                        </Typography>
-                    </TableCell>
-                </TableRow>
+                        </Text>
+                    </td>
+                </tr>
             );
         }
 
         if (loadingSupportingResources) {
             return (
-                <TableRow>
-                    <TableCell colSpan={5}>
-                        <Box display="flex" justifyContent="center" p={2}>
-                            <CircularProgress />
-                        </Box>
-                    </TableCell>
-                </TableRow>
+                <tr>
+                    <td className={styles.tableCell} colSpan={5}>
+                        <Flex align="center" justify="center" p="4">
+                            <Progress />
+                        </Flex>
+                    </td>
+                </tr>
             );
         }
 
         const filteredSupportingResources = getFilteredSupportingResources();
         if (filteredSupportingResources.length === 0) {
             return (
-                <TableRow>
-                    <TableCell colSpan={5}>
-                        <Typography align="center">No supporting resources found</Typography>
-                    </TableCell>
-                </TableRow>
+                <tr>
+                    <td className={styles.tableCell} colSpan={5}>
+                        <Text style={{ textAlign: 'center', display: 'block' }}>No supporting resources found</Text>
+                    </td>
+                </tr>
             );
         }
 
         return filteredSupportingResources.map((resource) => (
-            <TableRow key={resource.metadata?.uid || `${resource.kind}-${resource.metadata?.name}`}>
-                <TableCell className={classes.tableCell}>
-                    <span className={`${classes.typeBadge} ${classes.supportingType}`}>
+            <tr key={resource.metadata?.uid || `${resource.kind}-${resource.metadata?.name}`}>
+                <td className={styles.tableCell}>
+                    <span className={`${styles.typeBadge} ${styles.badgeAccent}`}>
                         {resource.kind}
                     </span>
-                </TableCell>
-                <TableCell className={classes.tableCell}>{resource.metadata?.name}</TableCell>
-                <TableCell className={classes.tableCell}>
-                    <Box display="flex">
-                        {resource.status?.conditions?.map((condition: any) => 
-                            renderStatusBadge([condition], condition.type)
-                        )}
-                    </Box>
-                </TableCell>
-                <TableCell className={classes.tableCell}>{getArtifact(resource)}</TableCell>
-                <TableCell className={classes.tableCell}>
-                    <Box className={classes.actionButtons}>
-                        <Tooltip title="View YAML & Events">
-                            <IconButton
-                                className={classes.iconButton}
+                </td>
+                <td className={styles.tableCell}>{resource.metadata?.name}</td>
+                <td className={styles.tableCell}>
+                    <Flex style={{ flexWrap: 'wrap' }}>
+                        {resource.status?.conditions?.map((condition: any, idx: number) => (
+                            <React.Fragment key={`${condition.type}-${idx}`}>
+                                {renderStatusBadge([condition], condition.type)}
+                            </React.Fragment>
+                        ))}
+                    </Flex>
+                </td>
+                <td className={styles.tableCell}>{getArtifact(resource)}</td>
+                <td className={styles.tableCell}>
+                    <Flex className={styles.actionButtons}>
+                        <TooltipTrigger>
+                            <ButtonIcon
+                                aria-label="View YAML & Events"
+                                icon={<RiFileTextLine />}
                                 size="small"
-                                onClick={() => handleOpenDrawer(resource, 0)}
-                            >
-                                <DescriptionIcon fontSize="small" />
-                            </IconButton>
-                        </Tooltip>
-                    </Box>
-                </TableCell>
-            </TableRow>
+                                onPress={() => handleOpenDrawer(resource, 'manifest')}
+                            />
+                            <Tooltip>View YAML & Events</Tooltip>
+                        </TooltipTrigger>
+                    </Flex>
+                </td>
+            </tr>
         ));
     };
 
-    // Custom Filter Popover
-    const renderFilterPopover = (anchorEl: HTMLElement | null, onClose: () => void, options: string[], selected: string[], onChange: (values: string[]) => void, searchValue: string, setSearchValue: (v: string) => void) => {
+    // Reusable filterable column header: owns its own popover open state via DialogTrigger,
+    // so no anchor-element/open-state bookkeeping is needed in the parent component.
+    const ColumnFilterHeader = ({
+        label,
+        options,
+        selected,
+        onChange,
+    }: {
+        label: string;
+        options: string[];
+        selected: string[];
+        onChange: (values: string[]) => void;
+    }) => {
+        const [searchValue, setSearchValue] = useState('');
+        const isActive = selected.length > 0;
         const filteredOptions = options.filter(option => option.toLowerCase().includes(searchValue.toLowerCase()));
         const allSelected = selected.length === options.length || (selected.length > 0 && filteredOptions.every(opt => selected.includes(opt)));
         const handleToggle = (option: string) => {
@@ -1768,52 +1494,56 @@ const CrossplaneV1ResourcesTable = () => {
             }
         };
         return (
-            <Popover
-                open={Boolean(anchorEl)}
-                anchorEl={anchorEl}
-                onClose={onClose}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-                transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-            >
-                <Box p={2} minWidth={250} maxHeight={400} display="flex" flexDirection="column">
-                    <TextField
+            <Flex align="center" justify="between" gap="2">
+                <span>{label}</span>
+                <DialogTrigger>
+                    <ButtonIcon
+                        aria-label={`Filter ${label}`}
+                        icon={<RiFilterLine />}
                         size="small"
-                        placeholder="Search..."
-                        value={searchValue}
-                        onChange={e => setSearchValue(e.target.value)}
-                        InputProps={{ endAdornment: <SearchIcon fontSize="small" /> }}
-                        style={{ marginBottom: 8 }}
+                        style={isActive ? { color: 'var(--bui-accent-bg)' } : undefined}
                     />
-                    <List style={{ maxHeight: 300, overflow: 'auto', background: 'rgba(0,0,0,0.02)' }}>
-                        <ListItem button onClick={handleSelectAll} dense>
-                            <Checkbox checked={allSelected} indeterminate={selected.length > 0 && !allSelected} tabIndex={-1} disableRipple />
-                            <ListItemText primary="All" style={{ fontWeight: 600 }} />
-                        </ListItem>
-                        {filteredOptions.map(option => (
-                            <ListItem button key={option} onClick={() => handleToggle(option)} dense>
-                                <Checkbox checked={selected.includes(option)} tabIndex={-1} disableRipple />
-                                <ListItemText primary={option} style={{ fontWeight: 600 }} />
-                            </ListItem>
-                        ))}
-                    </List>
-                </Box>
-            </Popover>
+                    <Popover>
+                        <Box className={styles.filterPopoverBody}>
+                            <TextField
+                                size="small"
+                                placeholder="Search..."
+                                icon={<RiSearchLine />}
+                                value={searchValue}
+                                onChange={setSearchValue}
+                            />
+                            <Box className={styles.filterList}>
+                                <Checkbox
+                                    isSelected={allSelected}
+                                    isIndeterminate={selected.length > 0 && !allSelected}
+                                    onChange={handleSelectAll}
+                                >
+                                    All
+                                </Checkbox>
+                                {filteredOptions.map(option => (
+                                    <Checkbox key={option} isSelected={selected.includes(option)} onChange={() => handleToggle(option)}>
+                                        {option}
+                                    </Checkbox>
+                                ))}
+                            </Box>
+                        </Box>
+                    </Popover>
+                </DialogTrigger>
+            </Flex>
         );
     };
 
     if (!canListClaims && !canListComposite && !canListManaged) {
         return (
             <Card>
-                <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                        Resources ({getTotalResourceCount()})
-                    </Typography>
-                    <Box m={2}>
-                        <Typography gutterBottom>
-                            You don't have permissions to view Crossplane resources
-                        </Typography>
+                <CardBody>
+                    <Box mb="4">
+                        <Text variant="title-small" weight="bold">Resources ({getTotalResourceCount()})</Text>
                     </Box>
-                </CardContent>
+                    <Box m="2">
+                        <Text>You don't have permissions to view Crossplane resources</Text>
+                    </Box>
+                </CardBody>
             </Card>
         );
     }
@@ -1821,308 +1551,172 @@ const CrossplaneV1ResourcesTable = () => {
     return (
         <>
             <Card>
-                <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                        Resources ({getTotalResourceCount()})
-                    </Typography>
+                <CardBody>
+                    <Box mb="4">
+                        <Text variant="title-small" weight="bold">Resources ({getTotalResourceCount()})</Text>
+                    </Box>
 
                     {loading && (
-                        <Box display="flex" justifyContent="center" alignItems="center" height="200px">
-                            <CircularProgress />
-                        </Box>
+                        <Flex align="center" justify="center" style={{ height: '200px' }}>
+                            <Progress />
+                        </Flex>
                     )}
                     {!loading && allResources.length > 0 && (
-                        <TableContainer component={Paper} className={classes.tableContainer}>
-                            <Table className={classes.table} size="small">
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell className={`${classes.tableCell} ${classes.headerCell}`}>
-                                            <Box display="flex" alignItems="center" justifyContent="space-between">
-                                                Type
-                                                <IconButton
-                                                    size="small"
-                                                    onClick={(e) => handleFilterClick(e, 'type')}
-                                                    style={{ color: isFieldFilterActive('type') ? theme.palette.primary.main : theme.palette.text.secondary }}
-                                                >
-                                                    <FilterListIcon fontSize="small" />
-                                                </IconButton>
-                                            </Box>
-                                        </TableCell>
-                                        <TableCell className={`${classes.tableCell} ${classes.headerCell}`}>
-                                            <Box display="flex" alignItems="center" justifyContent="space-between">
-                                                Name
-                                                <IconButton
-                                                    size="small"
-                                                    onClick={(e) => handleFilterClick(e, 'name')}
-                                                    style={{ color: isFieldFilterActive('name') ? theme.palette.primary.main : theme.palette.text.secondary }}
-                                                >
-                                                    <FilterListIcon fontSize="small" />
-                                                </IconButton>
-                                            </Box>
-                                        </TableCell>
-                                        <TableCell className={`${classes.tableCell} ${classes.headerCell}`}>
-                                            <Box display="flex" alignItems="center" justifyContent="space-between">
-                                                Group
-                                                <IconButton
-                                                    size="small"
-                                                    onClick={(e) => handleFilterClick(e, 'group')}
-                                                    style={{ color: isFieldFilterActive('group') ? theme.palette.primary.main : theme.palette.text.secondary }}
-                                                >
-                                                    <FilterListIcon fontSize="small" />
-                                                </IconButton>
-                                            </Box>
-                                        </TableCell>
-                                        <TableCell className={`${classes.tableCell} ${classes.headerCell}`}>
-                                            <Box display="flex" alignItems="center" justifyContent="space-between">
-                                                Kind
-                                                <IconButton
-                                                    size="small"
-                                                    onClick={(e) => handleFilterClick(e, 'kind')}
-                                                    style={{ color: isFieldFilterActive('kind') ? theme.palette.primary.main : theme.palette.text.secondary }}
-                                                >
-                                                    <FilterListIcon fontSize="small" />
-                                                </IconButton>
-                                            </Box>
-                                        </TableCell>
-                                        <TableCell className={`${classes.tableCell} ${classes.headerCell}`}>
-                                            <Box display="flex" alignItems="center" justifyContent="space-between">
-                                                Status
-                                                <IconButton
-                                                    size="small"
-                                                    onClick={(e) => handleFilterClick(e, 'status')}
-                                                    style={{ color: isFieldFilterActive('status') ? theme.palette.primary.main : theme.palette.text.secondary }}
-                                                >
-                                                    <FilterListIcon fontSize="small" />
-                                                </IconButton>
-                                            </Box>
-                                        </TableCell>
-                                        <TableCell className={`${classes.tableCell} ${classes.headerCell}`}>
-                                            <Box display="flex" alignItems="center" justifyContent="space-between">
-                                                Created
-                                                <IconButton
-                                                    size="small"
-                                                    onClick={(e) => handleFilterClick(e, 'created')}
-                                                    style={{ color: isFieldFilterActive('created') ? theme.palette.primary.main : theme.palette.text.secondary }}
-                                                >
-                                                    <FilterListIcon fontSize="small" />
-                                                </IconButton>
-                                            </Box>
-                                        </TableCell>
-                                        <TableCell className={`${classes.tableCell} ${classes.headerCell}`}>Actions</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
+                        <div className={styles.tableContainer}>
+                            <table className={styles.table}>
+                                <thead>
+                                    <tr>
+                                        <th className={`${styles.tableCell} ${styles.headerCell}`}>
+                                            <ColumnFilterHeader label="Type" options={getAllResourceValues().type} selected={filters.type} onChange={(v) => handleFilterChange('type', v)} />
+                                        </th>
+                                        <th className={`${styles.tableCell} ${styles.headerCell}`}>
+                                            <ColumnFilterHeader label="Name" options={getAllResourceValues().name} selected={filters.name} onChange={(v) => handleFilterChange('name', v)} />
+                                        </th>
+                                        <th className={`${styles.tableCell} ${styles.headerCell}`}>
+                                            <ColumnFilterHeader label="Group" options={getAllResourceValues().group} selected={filters.group} onChange={(v) => handleFilterChange('group', v)} />
+                                        </th>
+                                        <th className={`${styles.tableCell} ${styles.headerCell}`}>
+                                            <ColumnFilterHeader label="Kind" options={getAllResourceValues().kind} selected={filters.kind} onChange={(v) => handleFilterChange('kind', v)} />
+                                        </th>
+                                        <th className={`${styles.tableCell} ${styles.headerCell}`}>
+                                            <ColumnFilterHeader label="Status" options={getAllResourceValues().status} selected={filters.status} onChange={(v) => handleFilterChange('status', v)} />
+                                        </th>
+                                        <th className={`${styles.tableCell} ${styles.headerCell}`}>
+                                            <ColumnFilterHeader label="Created" options={getAllResourceValues().created} selected={filters.created} onChange={(v) => handleFilterChange('created', v)} />
+                                        </th>
+                                        <th className={`${styles.tableCell} ${styles.headerCell}`}>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
                                     {renderResourceRows(getFilteredResources())}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
+                                </tbody>
+                            </table>
+                        </div>
                     )}
                     {!loading && allResources.length === 0 && (
-                        <Typography>No resources found</Typography>
+                        <Text>No resources found</Text>
                     )}
-                </CardContent>
+                </CardBody>
             </Card>
 
             {/* Used Resources Section */}
-            <Card style={{ marginTop: theme.spacing(3) }}>
-                <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                        Supporting Resources
-                    </Typography>
+            <Card style={{ marginTop: 'var(--bui-space-6)' }}>
+                <CardBody>
+                    <Box mb="4">
+                        <Text variant="title-small" weight="bold">Supporting Resources</Text>
+                    </Box>
                     {loadingSupportingResources ? (
-                        <Box display="flex" justifyContent="center" alignItems="center" height="200px">
-                            <CircularProgress />
-                        </Box>
+                        <Flex align="center" justify="center" style={{ height: '200px' }}>
+                            <Progress />
+                        </Flex>
                     ) : (
-                        <TableContainer component={Paper} className={classes.tableContainer}>
-                            <Table className={classes.table} size="small">
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell className={`${classes.tableCell} ${classes.headerCell}`}>
-                                            <Box display="flex" alignItems="center" justifyContent="space-between">
-                                                Type
-                                                <IconButton
-                                                    size="small"
-                                                    onClick={(e) => handleSupportingFilterClick(e, 'type')}
-                                                    style={{ color: isSupportingFilterActive('type') ? theme.palette.primary.main : theme.palette.text.secondary }}
-                                                >
-                                                    <FilterListIcon fontSize="small" />
-                                                </IconButton>
-                                            </Box>
-                                        </TableCell>
-                                        <TableCell className={`${classes.tableCell} ${classes.headerCell}`}>
-                                            <Box display="flex" alignItems="center" justifyContent="space-between">
-                                                Name
-                                                <IconButton
-                                                    size="small"
-                                                    onClick={(e) => handleSupportingFilterClick(e, 'name')}
-                                                    style={{ color: isSupportingFilterActive('name') ? theme.palette.primary.main : theme.palette.text.secondary }}
-                                                >
-                                                    <FilterListIcon fontSize="small" />
-                                                </IconButton>
-                                            </Box>
-                                        </TableCell>
-                                        <TableCell className={`${classes.tableCell} ${classes.headerCell}`}>
-                                            <Box display="flex" alignItems="center" justifyContent="space-between">
-                                                Status
-                                                <IconButton
-                                                    size="small"
-                                                    onClick={(e) => handleSupportingFilterClick(e, 'status')}
-                                                    style={{ color: isSupportingFilterActive('status') ? theme.palette.primary.main : theme.palette.text.secondary }}
-                                                >
-                                                    <FilterListIcon fontSize="small" />
-                                                </IconButton>
-                                            </Box>
-                                        </TableCell>
-                                        <TableCell className={`${classes.tableCell} ${classes.headerCell}`}>
-                                            <Box display="flex" alignItems="center" justifyContent="space-between">
-                                                Artifact
-                                                <IconButton
-                                                    size="small"
-                                                    onClick={(e) => handleSupportingFilterClick(e, 'artifact')}
-                                                    style={{ color: isSupportingFilterActive('artifact') ? theme.palette.primary.main : theme.palette.text.secondary }}
-                                                >
-                                                    <FilterListIcon fontSize="small" />
-                                                </IconButton>
-                                            </Box>
-                                        </TableCell>
-                                        <TableCell className={`${classes.tableCell} ${classes.headerCell}`}>Actions</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
+                        <div className={styles.tableContainer}>
+                            <table className={styles.table}>
+                                <thead>
+                                    <tr>
+                                        <th className={`${styles.tableCell} ${styles.headerCell}`}>
+                                            <ColumnFilterHeader label="Type" options={getSupportingResourceValues().type} selected={supportingFilters.type} onChange={(v) => handleSupportingFilterChange('type', v)} />
+                                        </th>
+                                        <th className={`${styles.tableCell} ${styles.headerCell}`}>
+                                            <ColumnFilterHeader label="Name" options={getSupportingResourceValues().name} selected={supportingFilters.name} onChange={(v) => handleSupportingFilterChange('name', v)} />
+                                        </th>
+                                        <th className={`${styles.tableCell} ${styles.headerCell}`}>
+                                            <ColumnFilterHeader label="Status" options={getSupportingResourceValues().status} selected={supportingFilters.status} onChange={(v) => handleSupportingFilterChange('status', v)} />
+                                        </th>
+                                        <th className={`${styles.tableCell} ${styles.headerCell}`}>
+                                            <ColumnFilterHeader label="Artifact" options={getSupportingResourceValues().artifact} selected={supportingFilters.artifact} onChange={(v) => handleSupportingFilterChange('artifact', v)} />
+                                        </th>
+                                        <th className={`${styles.tableCell} ${styles.headerCell}`}>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
                                     {renderSupportingResourceRows()}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
+                                </tbody>
+                            </table>
+                        </div>
                     )}
-                </CardContent>
+                </CardBody>
             </Card>
 
-            <Drawer
-                className={classes.drawer}
-                variant="temporary"
-                anchor="right"
-                open={drawerOpen}
-                onClose={handleCloseDrawer}
-                classes={{
-                    paper: classes.drawerPaper,
-                }}
-            >
-                <Box className={classes.drawerHeader}>
-                    <Typography variant="h6">
-                        {selectedResource?.metadata?.name || 'Resource Details'}
-                    </Typography>
-                    <IconButton onClick={handleCloseDrawer}>
-                        <CloseIcon />
-                    </IconButton>
-                </Box>
+            <Drawer anchor="right" open={drawerOpen} onClose={handleCloseDrawer}>
+                <Box style={{ width: '800px' }}>
+                    <Flex align="center" justify="between" className={styles.drawerHeader}>
+                        <Text variant="title-small" weight="bold">
+                            {selectedResource?.metadata?.name || 'Resource Details'}
+                        </Text>
+                        <ButtonIcon aria-label="Close" icon={<RiCloseLine />} onPress={handleCloseDrawer} />
+                    </Flex>
 
-                <Tabs value={selectedTab} onChange={handleTabChange}>
-                    <Tab label="Kubernetes Manifest" />
-                    <Tab label="Kubernetes Events" />
-                </Tabs>
+                    <Tabs selectedKey={selectedTab} onSelectionChange={key => handleTabChange(String(key))}>
+                        <TabList>
+                            <Tab id="manifest">Kubernetes Manifest</Tab>
+                            <Tab id="events">Kubernetes Events</Tab>
+                        </TabList>
 
-                <Box className={classes.tabContent}>
-                    {selectedTab === 0 && selectedResource && (
-                        <>
-                            <Box className={classes.yamlActions}>
-                                <Tooltip title="Copy YAML">
-                                    <IconButton size="small" onClick={handleCopyYaml}>
-                                        <FileCopyIcon fontSize="small" />
-                                    </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Download YAML">
-                                    <IconButton size="small" onClick={handleDownloadYaml}>
-                                        <GetAppIcon fontSize="small" />
-                                    </IconButton>
-                                </Tooltip>
+                        <TabPanel id="manifest">
+                            <Box className={styles.tabContent}>
+                                {selectedResource && (
+                                    <>
+                                        <Flex className={styles.yamlActions}>
+                                            <CopyTextButton text={yaml.dump(removeManagedFields(selectedResource))} aria-label="Copy YAML to clipboard" />
+                                            <TooltipTrigger>
+                                                <ButtonIcon aria-label="Download YAML" icon={<RiDownloadLine />} size="small" onPress={handleDownloadYaml} />
+                                                <Tooltip>Download YAML</Tooltip>
+                                            </TooltipTrigger>
+                                        </Flex>
+                                        <SyntaxHighlighter
+                                            language="yaml"
+                                            style={tomorrow}
+                                            showLineNumbers
+                                        >
+                                            {yaml.dump(removeManagedFields(selectedResource))}
+                                        </SyntaxHighlighter>
+                                    </>
+                                )}
                             </Box>
-                            <SyntaxHighlighter
-                                language="yaml"
-                                style={tomorrow}
-                                showLineNumbers
-                            >
-                                {yaml.dump(removeManagedFields(selectedResource))}
-                            </SyntaxHighlighter>
-                        </>
-                    )}
+                        </TabPanel>
 
-                    {selectedTab === 1 && (
-                        <>
-                            {loadingEvents && (
-                                <Box display="flex" justifyContent="center" p={3}>
-                                    <CircularProgress />
-                                </Box>
-                            )}
-                            {!loadingEvents && events.length > 0 && (
-                                <TableContainer>
-                                    <Table size="small" className={classes.eventTable}>
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell>Type</TableCell>
-                                                <TableCell>Reason</TableCell>
-                                                <TableCell>Age</TableCell>
-                                                <TableCell>Message</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {events.map((event, index) => (
-                                                <TableRow key={index} className={classes.eventRow}>
-                                                    <TableCell>{getEventTypeChip(event.type)}</TableCell>
-                                                    <TableCell>{event.reason}</TableCell>
-                                                    <TableCell>{getRelativeTime(event.lastTimestamp || event.firstTimestamp)}</TableCell>
-                                                    <TableCell>{event.message}</TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-                            )}
-                            {!loadingEvents && events.length === 0 && (
-                                <Typography align="center" color="textSecondary">
-                                    No events found for this resource
-                                </Typography>
-                            )}
-                        </>
-                    )}
+                        <TabPanel id="events">
+                            <Box className={styles.tabContent}>
+                                {loadingEvents && (
+                                    <Flex align="center" justify="center" p="4">
+                                        <Progress />
+                                    </Flex>
+                                )}
+                                {!loadingEvents && events.length > 0 && (
+                                    <div className={styles.tableContainer}>
+                                        <table className={styles.table}>
+                                            <thead>
+                                                <tr>
+                                                    <th className={styles.tableCell}>Type</th>
+                                                    <th className={styles.tableCell}>Reason</th>
+                                                    <th className={styles.tableCell}>Age</th>
+                                                    <th className={styles.tableCell}>Message</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {events.map((event, index) => (
+                                                    <tr key={index} className={styles.clickableRow}>
+                                                        <td className={styles.tableCell}>{getEventTypeChip(event.type)}</td>
+                                                        <td className={styles.tableCell}>{event.reason}</td>
+                                                        <td className={styles.tableCell}>{getRelativeTime(event.lastTimestamp || event.firstTimestamp)}</td>
+                                                        <td className={styles.tableCell}>{event.message}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                                {!loadingEvents && events.length === 0 && (
+                                    <Text style={{ textAlign: 'center', color: 'var(--bui-fg-secondary)', display: 'block' }}>
+                                        No events found for this resource
+                                    </Text>
+                                )}
+                            </Box>
+                        </TabPanel>
+                    </Tabs>
                 </Box>
             </Drawer>
-
-            {/* Filter Popovers */}
-            {Object.keys(filters).map((field) => {
-                const availableValues = getAllResourceValues()[field as keyof ReturnType<typeof getAllResourceValues>] || [];
-                return (
-                    <React.Fragment key={field}>
-                        {renderFilterPopover(
-                            filterAnchorEl[field],
-                            () => handleFilterClose(field),
-                            availableValues,
-                            filters[field as keyof typeof filters],
-                            (values) => handleFilterChange(field, values),
-                            filterSearch[field] || '',
-                            (v) => setFilterSearch(prev => ({ ...prev, [field]: v }))
-                        )}
-                    </React.Fragment>
-                );
-            })}
-
-            {/* Supporting Resources Filter Popovers */}
-            {Object.keys(supportingFilters).map((field) => {
-                const availableValues = getSupportingResourceValues()[field as keyof ReturnType<typeof getSupportingResourceValues>] || [];
-                return (
-                    <React.Fragment key={`supporting-${field}`}>
-                        {renderFilterPopover(
-                            supportingFilterAnchorEl[field],
-                            () => handleSupportingFilterClose(field),
-                            availableValues,
-                            supportingFilters[field as keyof typeof supportingFilters],
-                            (values) => handleSupportingFilterChange(field, values),
-                            supportingFilterSearch[field] || '',
-                            (v) => setSupportingFilterSearch(prev => ({ ...prev, [field]: v }))
-                        )}
-                    </React.Fragment>
-                );
-            })}
         </>
     );
 };

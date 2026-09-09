@@ -1,0 +1,7 @@
+.fileAccordion {
+  margin-bottom: var(--bui-space-2);
+}
+
+.codeContainer pre {
+  margin: 0;
+}

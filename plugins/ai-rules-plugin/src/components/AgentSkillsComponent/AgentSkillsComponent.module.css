@@ -1,0 +1,64 @@
+.statsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bui-space-4);
+  margin-bottom: var(--bui-space-4);
+}
+
+.statCard {
+  flex: 1 1 120px;
+  text-align: center;
+}
+
+.sourceAccordion {
+  margin-bottom: var(--bui-space-4);
+}
+
+.skillAccordion {
+  margin-bottom: var(--bui-space-2);
+}
+
+.summaryRow {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: var(--bui-space-2);
+  flex-wrap: wrap;
+  padding-right: var(--bui-space-8);
+}
+
+.skillContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bui-space-4);
+  width: 100%;
+}
+
+.viewToggle {
+  margin-bottom: var(--bui-space-2);
+}
+
+.resourcesSection {
+  background-color: var(--bui-bg-neutral-2);
+  border-radius: var(--bui-radius-2);
+  padding: var(--bui-space-4);
+}
+
+.resourceGroup {
+  margin-bottom: var(--bui-space-2);
+}
+.resourceGroup:last-child {
+  margin-bottom: 0;
+}
+
+.resourceList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bui-space-1);
+  margin-top: var(--bui-space-1);
+}
+
+.contentViewer {
+  max-height: 400px;
+  overflow: auto;
+}

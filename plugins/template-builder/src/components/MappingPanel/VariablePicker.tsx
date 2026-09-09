@@ -1,8 +1,5 @@
-import {
-  TextField,
-  ListSubheader,
-} from '@material-ui/core';
-import Autocomplete from '@material-ui/lab/Autocomplete';
+import { Combobox } from '@backstage/ui';
+import type { Key } from 'react';
 
 export interface Variable {
   label: string;
@@ -27,34 +24,28 @@ export function VariablePicker(props: VariablePickerProps) {
     placeholder = 'Choose a variable...',
   } = props;
 
-  const selectedVariable = variables.find(v => v.value === value);
+  const groups = new Map<string, Variable[]>();
+  for (const variable of variables) {
+    const group = groups.get(variable.group) ?? [];
+    group.push(variable);
+    groups.set(variable.group, group);
+  }
+  const options = Array.from(groups.entries()).map(([title, groupVariables]) => ({
+    title,
+    options: groupVariables.map(v => ({ id: v.value, label: v.label })),
+  }));
 
   return (
-    <Autocomplete
-      options={variables}
-      groupBy={option => option.group}
-      getOptionLabel={option => option.label}
-      value={selectedVariable || null}
-      onChange={(_event, newValue) => {
-        if (newValue) {
-          onChange(newValue.value);
+    <Combobox
+      options={options}
+      label={label}
+      placeholder={placeholder}
+      selectedKey={value ?? null}
+      onSelectionChange={(key: Key | null) => {
+        if (key !== null) {
+          onChange(String(key));
         }
       }}
-      renderInput={params => (
-        <TextField
-          {...params}
-          label={label}
-          placeholder={placeholder}
-          variant="outlined"
-          size="small"
-        />
-      )}
-      renderGroup={params => (
-        <li key={params.key}>
-          <ListSubheader component="div">{params.group}</ListSubheader>
-          {params.children}
-        </li>
-      )}
     />
   );
 }

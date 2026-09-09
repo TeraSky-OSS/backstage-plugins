@@ -7,21 +7,6 @@ jest.mock('@backstage/plugin-permission-react', () => ({
   usePermission: jest.fn().mockReturnValue({ allowed: true, loading: false }),
 }));
 
-// Mock Material-UI components to prevent style issues
-jest.mock('@material-ui/core/styles', () => ({
-  ...jest.requireActual('@material-ui/core/styles'),
-  makeStyles: () => () => ({
-    root: 'root',
-    chipContainer: 'chipContainer',
-    infoChips: 'infoChips',
-    tagChips: 'tagChips',
-    statsContainer: 'statsContainer',
-    startButton: 'startButton',
-    content: 'content',
-    description: 'description',
-  }),
-}));
-
 const mockWorkshop: Workshop = {
   name: 'test-workshop',
   title: 'Test Workshop',

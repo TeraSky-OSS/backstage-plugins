@@ -1,0 +1,26 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.description {
+  flex: 1;
+  margin-bottom: var(--bui-space-4);
+}
+
+.chipContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bui-space-2);
+}
+
+.tagChips {
+  margin-top: var(--bui-space-2);
+}

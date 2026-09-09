@@ -9,7 +9,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { Box, Typography } from '@material-ui/core';
+import { Flex, Text } from '@backstage/ui';
 import { MetricData } from '../api/VcfOperationsClient';
 
 interface MetricChartProps {
@@ -75,21 +75,16 @@ export const MetricChart: FC<MetricChartProps> = ({
 
   if (chartData.length === 0) {
     return (
-      <Box 
-        height={height} 
-        display="flex" 
-        alignItems="center" 
-        justifyContent="center"
-      >
-        <Typography variant="body2" color="textSecondary">
+      <Flex align="center" justify="center" style={{ height }}>
+        <Text style={{ color: 'var(--bui-fg-secondary)' }}>
           No data available
-        </Typography>
-      </Box>
+        </Text>
+      </Flex>
     );
   }
 
   return (
-    <Box height={height}>
+    <div style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
         <LineChart
           data={chartData}
@@ -133,6 +128,6 @@ export const MetricChart: FC<MetricChartProps> = ({
           />
         </LineChart>
       </ResponsiveContainer>
-    </Box>
+    </div>
   );
 };

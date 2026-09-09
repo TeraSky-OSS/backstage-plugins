@@ -38,6 +38,7 @@ export interface PolicyReport {
 
 export interface GetPolicyReportsRequest {
   entity: {
+    kind: string;
     metadata: EntityMeta;
   };
 }
@@ -130,6 +131,22 @@ export function getPolicyPathsForSource(
       return namespace
         ? [{ path: `/apis/policies.kyverno.io/v1/namespaces/${namespace}/namespacedimagevalidatingpolicies/${policyName}` }]
         : null;
+    // Native Kubernetes admission policies (not Kyverno CRDs) can also appear as a
+    // PolicyReport result `source` when reported via the built-in ValidatingAdmissionPolicy
+    // controller or a policy-reporter integration. Both are cluster-scoped; the API graduated
+    // through multiple versions (v1alpha1 -> v1beta1 -> v1), so try all of them.
+    case 'ValidatingAdmissionPolicy':
+      return [
+        { path: `/apis/admissionregistration.k8s.io/v1/validatingadmissionpolicies/${policyName}` },
+        { path: `/apis/admissionregistration.k8s.io/v1beta1/validatingadmissionpolicies/${policyName}` },
+        { path: `/apis/admissionregistration.k8s.io/v1alpha1/validatingadmissionpolicies/${policyName}` },
+      ];
+    case 'MutatingAdmissionPolicy':
+      return [
+        { path: `/apis/admissionregistration.k8s.io/v1/mutatingadmissionpolicies/${policyName}` },
+        { path: `/apis/admissionregistration.k8s.io/v1beta1/mutatingadmissionpolicies/${policyName}` },
+        { path: `/apis/admissionregistration.k8s.io/v1alpha1/mutatingadmissionpolicies/${policyName}` },
+      ];
     default:
       return null;
   }
@@ -153,6 +170,12 @@ export function getAllPolicyFallbackPaths(
     { path: `/apis/policies.kyverno.io/v1/imagevalidatingpolicies/${policyName}` },
     { path: `/apis/policies.kyverno.io/v1/mutatingpolicies/${policyName}` },
     { path: `/apis/policies.kyverno.io/v1/validatingpolicies/${policyName}` },
+    { path: `/apis/admissionregistration.k8s.io/v1/validatingadmissionpolicies/${policyName}` },
+    { path: `/apis/admissionregistration.k8s.io/v1beta1/validatingadmissionpolicies/${policyName}` },
+    { path: `/apis/admissionregistration.k8s.io/v1alpha1/validatingadmissionpolicies/${policyName}` },
+    { path: `/apis/admissionregistration.k8s.io/v1/mutatingadmissionpolicies/${policyName}` },
+    { path: `/apis/admissionregistration.k8s.io/v1beta1/mutatingadmissionpolicies/${policyName}` },
+    { path: `/apis/admissionregistration.k8s.io/v1alpha1/mutatingadmissionpolicies/${policyName}` },
   );
   if (namespace) {
     paths.push(

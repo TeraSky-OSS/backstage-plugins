@@ -1,0 +1,161 @@
+.tableContainer {
+  background-color: var(--bui-bg-neutral-1);
+  border: 1px solid var(--bui-border-1);
+  border-radius: var(--bui-radius-2);
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  min-width: 650px;
+  border-collapse: collapse;
+  font-size: var(--bui-font-size-3);
+}
+
+.tableCell {
+  padding: var(--bui-space-2) var(--bui-space-4);
+  border-bottom: 1px solid var(--bui-border-1);
+  color: var(--bui-fg-primary);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.headerCell {
+  font-weight: bold;
+  background-color: var(--bui-bg-neutral-1);
+}
+
+.clickableRow:hover {
+  background-color: var(--bui-bg-neutral-2);
+}
+
+.nestedRow {
+  background-color: var(--bui-bg-neutral-2);
+}
+
+.statusBadge {
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: bold;
+  display: inline-block;
+  margin-right: var(--bui-space-2);
+  white-space: nowrap;
+}
+
+.typeBadge {
+  padding: 4px 12px;
+  border-radius: var(--bui-radius-1);
+  font-size: 11px;
+  font-weight: bold;
+  text-align: center;
+  min-width: 50px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.badgePositive {
+  background-color: var(--bui-positive-bg-subdued);
+  color: var(--bui-fg-positive);
+}
+
+.badgeNegative {
+  background-color: var(--bui-negative-bg-subdued);
+  color: var(--bui-fg-negative);
+}
+
+.badgeWarning {
+  background-color: var(--bui-warning-bg-subdued);
+  color: var(--bui-fg-warning);
+}
+
+.badgeAnnouncement {
+  background-color: var(--bui-announcement-bg-subdued);
+  color: var(--bui-fg-announcement);
+}
+
+.badgeAccent {
+  background-color: var(--bui-accent-bg);
+  color: var(--bui-accent-fg);
+}
+
+.externalBadge {
+  margin-left: var(--bui-space-2);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: bold;
+  display: inline-block;
+  background-color: var(--bui-warning-bg-subdued);
+  color: var(--bui-fg-warning);
+}
+
+.resourceName {
+  display: flex;
+  align-items: center;
+  color: var(--bui-fg-primary);
+}
+
+.indent {
+  width: var(--bui-space-8);
+  flex-shrink: 0;
+}
+
+.resourceNameContent {
+  display: flex;
+  align-items: center;
+  gap: var(--bui-space-2);
+  flex-wrap: wrap;
+}
+
+.actionButtons {
+  display: flex;
+  gap: var(--bui-space-1);
+}
+
+.drawerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--bui-space-4);
+  border-bottom: 1px solid var(--bui-border-1);
+}
+
+.tabContent {
+  padding: var(--bui-space-4);
+  height: calc(100vh - 200px);
+  overflow: auto;
+  position: relative;
+}
+
+.yamlActions {
+  position: sticky;
+  top: 0;
+  right: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--bui-space-2);
+  padding: var(--bui-space-2);
+  background-color: var(--bui-bg-neutral-1);
+  z-index: 1;
+  border-bottom: 1px solid var(--bui-border-1);
+  margin-bottom: var(--bui-space-2);
+}
+
+.filterPopoverBody {
+  padding: var(--bui-space-2);
+  min-width: 250px;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bui-space-2);
+}
+
+.filterList {
+  max-height: 300px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bui-space-1);
+}

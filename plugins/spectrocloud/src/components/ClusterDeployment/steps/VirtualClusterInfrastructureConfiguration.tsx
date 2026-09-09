@@ -1,37 +1,10 @@
 import { useEffect, useState } from 'react';
-import {
-  Box,
-  Typography,
-  TextField,
-  CircularProgress,
-  Grid,
-  InputAdornment,
-  Chip,
-} from '@material-ui/core';
-import { Alert, Autocomplete } from '@material-ui/lab';
-import { makeStyles } from '@material-ui/core/styles';
+import type { Key } from 'react';
+import { Alert, Box, Combobox, Grid, NumberField, Text, TextField } from '@backstage/ui';
+import { Progress } from '@backstage/core-components';
 import { useApi } from '@backstage/core-plugin-api';
 import { spectroCloudApiRef } from '../../../api';
 import { ClusterDeploymentState } from '../types';
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    padding: theme.spacing(2),
-  },
-  section: {
-    marginTop: theme.spacing(4),
-  },
-  sectionHeader: {
-    marginBottom: theme.spacing(2),
-  },
-  formField: {
-    marginBottom: theme.spacing(2),
-  },
-  projectChip: {
-    marginLeft: theme.spacing(1),
-    fontSize: '0.75rem',
-  },
-}));
 
 interface ClusterGroup {
   metadata: {
@@ -62,7 +35,6 @@ export const VirtualClusterInfrastructureConfiguration = ({
   state,
   onChange,
 }: VirtualClusterInfrastructureConfigurationProps) => {
-  const classes = useStyles();
   const spectroCloudApi = useApi(spectroCloudApiRef);
   const [clusterGroups, setClusterGroups] = useState<ClusterGroup[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,16 +63,16 @@ export const VirtualClusterInfrastructureConfiguration = ({
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
-        <CircularProgress />
+      <Box display="flex" style={{ justifyContent: 'center', alignItems: 'center' }} minHeight="400px">
+        <Progress />
       </Box>
     );
   }
 
   if (error) {
     return (
-      <Box className={classes.root}>
-        <Alert severity="error">{error}</Alert>
+      <Box p="4">
+        <Alert status="danger" description={error} />
       </Box>
     );
   }
@@ -118,164 +90,149 @@ export const VirtualClusterInfrastructureConfiguration = ({
   const clusterName = state.clusterName || '';
 
   return (
-    <Box className={classes.root}>
-      <Typography variant="h5" gutterBottom>
+    <Box p="4">
+      <Text variant="title-medium" weight="bold" as="div">
         Virtual Cluster Configuration
-      </Typography>
-      <Typography variant="body2" color="textSecondary" paragraph>
-        Configure your virtual cluster settings
-      </Typography>
+      </Text>
+      <Box mt="1" mb="4">
+        <Text variant="body-small" color="secondary">
+          Configure your virtual cluster settings
+        </Text>
+      </Box>
 
       {/* Virtual Cluster Name */}
-      <Box className={classes.formField}>
+      <Box mb="4">
         <TextField
-          fullWidth
           label="Virtual cluster name *"
           value={clusterName}
-          onChange={(e) => onChange({ clusterName: e.target.value })}
-          required
-          helperText="Enter a unique name for your virtual cluster (lowercase alphanumeric and hyphens only)"
-          error={clusterName !== '' && !/^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/.test(clusterName)}
+          onChange={value => onChange({ clusterName: value })}
+          isRequired
+          description="Enter a unique name for your virtual cluster (lowercase alphanumeric and hyphens only)"
+          isInvalid={clusterName !== '' && !/^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/.test(clusterName)}
         />
       </Box>
 
       {/* Cluster Group Selection */}
-      <Box className={classes.formField}>
-        <Autocomplete
-          options={clusterGroups}
-          getOptionLabel={(option) => option.metadata.name}
-          value={selectedGroup || null}
-          onChange={(_, newValue) => {
-            if (newValue) {
-              onChange({
-                cloudConfig: {
-                  ...state.cloudConfig,
-                  clusterGroupUid: newValue.metadata.uid,
-                  clusterGroupName: newValue.metadata.name,
-                  endpointType: newValue.spec?.clustersConfig?.endpointType || 'LoadBalancer',
-                },
-              });
+      <Box mb="4">
+        <Combobox
+          options={clusterGroups.map(g => ({
+            id: g.metadata.uid,
+            label: g.metadata.name,
+            description:
+              g.metadata.annotations?.['scope.name'] ||
+              g.metadata.annotations?.projectName ||
+              'PROJECT',
+          }))}
+          label="Select cluster group *"
+          isRequired
+          description={`${clusterGroups.length} cluster group${
+            clusterGroups.length !== 1 ? 's' : ''
+          } available`}
+          selectedKey={state.cloudConfig.clusterGroupUid ?? null}
+          onSelectionChange={(key: Key | null) => {
+            if (key !== null) {
+              const newValue = clusterGroups.find(g => g.metadata.uid === key);
+              if (newValue) {
+                onChange({
+                  cloudConfig: {
+                    ...state.cloudConfig,
+                    clusterGroupUid: newValue.metadata.uid,
+                    clusterGroupName: newValue.metadata.name,
+                    endpointType:
+                      newValue.spec?.clustersConfig?.endpointType || 'LoadBalancer',
+                  },
+                });
+              }
             }
           }}
-          renderOption={(option) => (
-            <Box display="flex" alignItems="center">
-              {option.metadata.name}
-              <Chip
-                label={
-                  option.metadata.annotations?.['scope.name'] ||
-                  option.metadata.annotations?.projectName ||
-                  'PROJECT'
-                }
-                size="small"
-                className={classes.projectChip}
-                color="primary"
-              />
-            </Box>
-          )}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Select cluster group *"
-              required
-              helperText={`${clusterGroups.length} cluster group${
-                clusterGroups.length !== 1 ? 's' : ''
-              } available`}
-            />
-          )}
         />
       </Box>
 
       {/* Quotas Section */}
-      <Box className={classes.section}>
-        <Typography variant="h6" className={classes.sectionHeader}>
-          Resource Quotas
-        </Typography>
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={4}>
-            <TextField
-              fullWidth
-              type="number"
-              label="CPU *"
+      <Box mt="8">
+        <Box mb="2">
+          <Text variant="title-small" weight="bold" as="div">
+            Resource Quotas
+          </Text>
+        </Box>
+        <Grid.Root columns="12" gap="6">
+          <Grid.Item colSpan={{ initial: '12', sm: '4' }}>
+            <NumberField
+              label="CPU (cores) *"
               value={cpuCores}
-              onChange={(e) =>
+              onChange={value =>
                 onChange({
                   cloudConfig: {
                     ...state.cloudConfig,
-                    cpuCores: parseInt(e.target.value, 10) || 0,
+                    cpuCores: value || 0,
                   },
                 })
               }
-              required
-              InputProps={{
-                endAdornment: <InputAdornment position="end">CPU</InputAdornment>,
-                inputProps: { min: 1, step: 1 },
-              }}
-              helperText="Number of CPU cores"
-              error={cpuCores !== undefined && cpuCores <= 0}
+              isRequired
+              minValue={1}
+              step={1}
+              description="Number of CPU cores"
+              isInvalid={cpuCores !== undefined && cpuCores <= 0}
             />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <TextField
-              fullWidth
-              type="number"
-              label="Memory *"
+          </Grid.Item>
+          <Grid.Item colSpan={{ initial: '12', sm: '4' }}>
+            <NumberField
+              label="Memory (GiB) *"
               value={memoryGiB}
-              onChange={(e) =>
+              onChange={value =>
                 onChange({
                   cloudConfig: {
                     ...state.cloudConfig,
-                    memoryGiB: parseInt(e.target.value, 10) || 0,
+                    memoryGiB: value || 0,
                   },
                 })
               }
-              required
-              InputProps={{
-                endAdornment: <InputAdornment position="end">GiB</InputAdornment>,
-                inputProps: { min: 1, step: 1 },
-              }}
-              helperText="Memory in GiB"
-              error={memoryGiB !== undefined && memoryGiB <= 0}
+              isRequired
+              minValue={1}
+              step={1}
+              description="Memory in GiB"
+              isInvalid={memoryGiB !== undefined && memoryGiB <= 0}
             />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <TextField
-              fullWidth
-              type="number"
-              label="Storage *"
+          </Grid.Item>
+          <Grid.Item colSpan={{ initial: '12', sm: '4' }}>
+            <NumberField
+              label="Storage (GiB) *"
               value={storageGiB}
-              onChange={(e) =>
+              onChange={value =>
                 onChange({
                   cloudConfig: {
                     ...state.cloudConfig,
-                    storageGiB: parseInt(e.target.value, 10) || 0,
+                    storageGiB: value || 0,
                   },
                 })
               }
-              required
-              InputProps={{
-                endAdornment: <InputAdornment position="end">GiB</InputAdornment>,
-                inputProps: { min: 1, step: 1 },
-              }}
-              helperText="Storage in GiB"
-              error={storageGiB !== undefined && storageGiB <= 0}
+              isRequired
+              minValue={1}
+              step={1}
+              description="Storage in GiB"
+              isInvalid={storageGiB !== undefined && storageGiB <= 0}
             />
-          </Grid>
-        </Grid>
+          </Grid.Item>
+        </Grid.Root>
 
         {selectedGroup?.status?.limitConfig && (
-          <Box mt={2}>
-            <Alert severity="info">
-              Cluster Group Limits:{' '}
-              CPU:{' '}
-              {selectedGroup.status.limitConfig.cpuMilliCore
-                ? Math.floor(selectedGroup.status.limitConfig.cpuMilliCore / 1000)
-                : 'N/A'}{' '}
-              cores, Memory:{' '}
-              {selectedGroup.status.limitConfig.memoryMiB
-                ? Math.floor(selectedGroup.status.limitConfig.memoryMiB / 1024)
-                : 'N/A'}{' '}
-              GiB, Storage: {selectedGroup.status.limitConfig.storageGiB || 'N/A'} GiB
-            </Alert>
+          <Box mt="4">
+            <Alert
+              status="info"
+              description={
+                <>
+                  Cluster Group Limits: CPU:{' '}
+                  {selectedGroup.status.limitConfig.cpuMilliCore
+                    ? Math.floor(selectedGroup.status.limitConfig.cpuMilliCore / 1000)
+                    : 'N/A'}{' '}
+                  cores, Memory:{' '}
+                  {selectedGroup.status.limitConfig.memoryMiB
+                    ? Math.floor(selectedGroup.status.limitConfig.memoryMiB / 1024)
+                    : 'N/A'}{' '}
+                  GiB, Storage: {selectedGroup.status.limitConfig.storageGiB || 'N/A'} GiB
+                </>
+              }
+            />
           </Box>
         )}
       </Box>

@@ -1,33 +1,20 @@
 import {
+  Badge,
   Box,
-  TextField,
   Button,
-  IconButton,
-  Toolbar as MuiToolbar,
+  ButtonIcon,
+  Flex,
+  TextField,
   Tooltip,
-  Chip,
-} from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
-import DownloadIcon from '@material-ui/icons/GetApp';
-import CheckCircleIcon from '@material-ui/icons/CheckCircle';
-import HelpIcon from '@material-ui/icons/Help';
-import UndoIcon from '@material-ui/icons/Undo';
-import RedoIcon from '@material-ui/icons/Redo';
-
-const useStyles = makeStyles(theme => ({
-  toolbar: {
-    backgroundColor: theme.palette.background.paper,
-    borderBottom: `1px solid ${theme.palette.divider}`,
-    gap: theme.spacing(2),
-    padding: theme.spacing(1, 2),
-  },
-  nameField: {
-    minWidth: 250,
-  },
-  spacer: {
-    flex: 1,
-  },
-}));
+  TooltipTrigger,
+} from '@backstage/ui';
+import {
+  RiCheckboxCircleLine,
+  RiDownloadLine,
+  RiQuestionLine,
+  RiArrowGoBackLine,
+  RiArrowGoForwardLine,
+} from '@remixicon/react';
 
 export interface ToolbarProps {
   templateName: string;
@@ -56,77 +43,80 @@ export function Toolbar(props: ToolbarProps) {
     onHelp,
   } = props;
 
-  const classes = useStyles();
-
   return (
-    <MuiToolbar className={classes.toolbar} variant="dense">
-      <TextField
-        className={classes.nameField}
-        label="Template Name"
-        value={templateName}
-        onChange={e => onNameChange(e.target.value)}
-        variant="outlined"
-        size="small"
-      />
+    <Flex
+      align="center"
+      gap="4"
+      style={{
+        backgroundColor: 'var(--bui-bg-neutral-1)',
+        borderBottom: '1px solid var(--bui-border-1)',
+        padding: 'var(--bui-space-2) var(--bui-space-4)',
+      }}
+    >
+      <Box style={{ minWidth: 250 }}>
+        <TextField
+          label="Template Name"
+          value={templateName}
+          onChange={onNameChange}
+          size="small"
+        />
+      </Box>
 
       {hasUnsavedChanges && (
-        <Chip
-          label="Unsaved Changes"
-          size="small"
-          color="secondary"
-        />
+        <Badge style={{ color: 'var(--bui-fg-warning)' }}>Unsaved Changes</Badge>
       )}
 
-      <Box className={classes.spacer} />
+      <div style={{ flexGrow: 1 }} />
 
-      <Tooltip title="Undo">
-        <span>
-          <IconButton
-            size="small"
-            onClick={onUndo}
-            disabled={!canUndo}
-          >
-            <UndoIcon />
-          </IconButton>
-        </span>
-      </Tooltip>
+      <TooltipTrigger>
+        <ButtonIcon
+          aria-label="Undo"
+          icon={<RiArrowGoBackLine />}
+          size="small"
+          onPress={onUndo}
+          isDisabled={!canUndo}
+        />
+        <Tooltip>Undo</Tooltip>
+      </TooltipTrigger>
 
-      <Tooltip title="Redo">
-        <span>
-          <IconButton
-            size="small"
-            onClick={onRedo}
-            disabled={!canRedo}
-          >
-            <RedoIcon />
-          </IconButton>
-        </span>
-      </Tooltip>
+      <TooltipTrigger>
+        <ButtonIcon
+          aria-label="Redo"
+          icon={<RiArrowGoForwardLine />}
+          size="small"
+          onPress={onRedo}
+          isDisabled={!canRedo}
+        />
+        <Tooltip>Redo</Tooltip>
+      </TooltipTrigger>
 
       <Button
-        variant="outlined"
-        startIcon={<CheckCircleIcon />}
-        onClick={onValidate}
+        variant="secondary"
+        iconStart={<RiCheckboxCircleLine />}
+        onPress={onValidate}
         size="small"
       >
         Validate
       </Button>
 
       <Button
-        variant="contained"
-        color="primary"
-        startIcon={<DownloadIcon />}
-        onClick={onDownload}
+        variant="primary"
+        iconStart={<RiDownloadLine />}
+        onPress={onDownload}
         size="small"
       >
         Download YAML
       </Button>
 
-      <Tooltip title="Help">
-        <IconButton size="small" onClick={onHelp}>
-          <HelpIcon />
-        </IconButton>
-      </Tooltip>
-    </MuiToolbar>
+      <TooltipTrigger>
+        <ButtonIcon
+          aria-label="Help"
+          icon={<RiQuestionLine />}
+          size="small"
+          onPress={onHelp}
+        />
+        <Tooltip>Help</Tooltip>
+      </TooltipTrigger>
+    </Flex>
   );
 }

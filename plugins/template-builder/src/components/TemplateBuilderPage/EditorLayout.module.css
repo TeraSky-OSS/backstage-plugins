@@ -1,0 +1,265 @@
+.root {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  height: 100%;
+}
+
+/* Left panel - Inputs & Outputs */
+
+.leftPanel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+  border-right: 1px solid var(--bui-border-1);
+  transition: width 0.3s ease;
+  position: relative;
+}
+
+.leftPanelExpanded {
+  flex: 0 0 auto;
+}
+
+.leftPanelCollapsed {
+  width: 0;
+  flex: 0 0 0;
+  border-right: none;
+}
+
+.resizeHandle {
+  position: absolute;
+  right: -5px;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  cursor: col-resize;
+  z-index: 10003; /* Above everything */
+  pointer-events: auto;
+  background-color: transparent;
+  border-right: 2px solid transparent;
+  transition: background-color 0.2s, opacity 0.2s, border-color 0.2s;
+}
+
+.resizeHandle:hover {
+  background-color: var(--bui-bg-neutral-3);
+  border-right-color: var(--bui-accent-fg);
+  opacity: 1;
+}
+
+.resizeHandle:active {
+  background-color: var(--bui-bg-neutral-4);
+  border-right-color: var(--bui-accent-fg);
+  opacity: 1;
+}
+
+.resizeOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10002; /* Above resize handles to capture all events */
+  cursor: col-resize;
+  background-color: rgba(0, 0, 0, 0.01); /* Nearly invisible but blocks events */
+}
+
+.leftCollapseButton {
+  position: absolute;
+  right: -16px; /* Position on the right edge of the left panel */
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1200;
+  background-color: var(--bui-bg-neutral-1);
+  border: 2px solid var(--bui-border-1);
+  box-shadow: var(--bui-shadow);
+  width: 32px;
+  height: 32px;
+}
+
+.leftCollapseButton:hover {
+  background-color: var(--bui-bg-neutral-2);
+  border-color: var(--bui-accent-fg);
+}
+
+.leftCollapseButtonCollapsed {
+  position: fixed;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1200;
+  background-color: var(--bui-bg-neutral-1);
+  border: 2px solid var(--bui-border-1);
+  border-left: none;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  box-shadow: var(--bui-shadow);
+  width: 32px;
+  height: 64px;
+}
+
+.leftCollapseButtonCollapsed:hover {
+  background-color: var(--bui-bg-neutral-2);
+  border-color: var(--bui-accent-fg);
+}
+
+.rightCollapseButton {
+  position: absolute;
+  left: -16px; /* Position on the left edge of the right panel */
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1000;
+  background-color: var(--bui-bg-neutral-1);
+  border: 2px solid var(--bui-border-1);
+  box-shadow: var(--bui-shadow);
+  width: 32px;
+  height: 32px;
+}
+
+.rightCollapseButton:hover {
+  background-color: var(--bui-bg-neutral-2);
+  border-color: var(--bui-accent-fg);
+}
+
+.rightCollapseButtonCollapsed {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1000;
+  background-color: var(--bui-bg-neutral-1);
+  border: 2px solid var(--bui-border-1);
+  border-right: none;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  box-shadow: var(--bui-shadow);
+  width: 32px;
+  height: 64px;
+}
+
+.rightCollapseButtonCollapsed:hover {
+  background-color: var(--bui-bg-neutral-2);
+  border-color: var(--bui-accent-fg);
+}
+
+.sidePanelAccordionPanel {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+
+/* Center panel - Workflow Canvas */
+
+.centerPanel {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+  min-width: 0; /* Allow flex item to shrink below content size */
+  position: relative;
+}
+
+.workflowAccordion {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.workflowAccordionPanel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.canvasContainer {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  min-height: 400px;
+  height: 100%;
+  width: 100%;
+}
+
+.actionConfigPanel {
+  border-top: 1px solid var(--bui-border-1);
+  max-height: 50%;
+  overflow: auto;
+}
+
+.centerPanelRightResizeHandle {
+  position: absolute;
+  right: -8px;
+  top: 0;
+  bottom: 0;
+  width: 16px;
+  cursor: col-resize;
+  z-index: 10003; /* Above everything including the overlay */
+  pointer-events: auto;
+  background-color: transparent;
+  border-left: 2px solid transparent;
+  transition: background-color 0.2s, opacity 0.2s, border-color 0.2s;
+}
+
+.centerPanelRightResizeHandle:hover {
+  background-color: var(--bui-bg-neutral-3);
+  border-left-color: var(--bui-accent-fg);
+  opacity: 1;
+}
+
+.centerPanelRightResizeHandle:active {
+  background-color: var(--bui-bg-neutral-4);
+  border-left-color: var(--bui-accent-fg);
+  opacity: 1;
+}
+
+/* Right panel - YAML Editor */
+
+.rightPanel {
+  display: flex;
+  flex-direction: column;
+  overflow: visible; /* MUST be visible for Monaco autocomplete popup */
+  border-left: 1px solid var(--bui-border-1);
+  position: relative;
+  z-index: 1000; /* High enough to be above canvas */
+  flex: 0 0 auto;
+}
+
+.yamlEditorContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: visible;
+  position: relative;
+  z-index: 1000;
+}
+
+.yamlEditorHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--bui-space-2);
+  border-bottom: 1px solid var(--bui-border-1);
+}
+
+.yamlEditorBody {
+  flex: 1;
+  min-height: 0;
+  overflow: visible;
+  position: relative;
+  isolation: isolate;
+  contain: layout;
+}

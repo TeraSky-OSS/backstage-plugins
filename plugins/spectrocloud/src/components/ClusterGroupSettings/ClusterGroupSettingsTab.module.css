@@ -1,0 +1,18 @@
+/*
+ * Tier 2 co-located CSS module (see MUI_TO_BUI_MIGRATION.md styling ladder).
+ * Only genuinely component-specific static CSS lives here: the fixed-height
+ * scroll container for the raw-YAML syntax highlighter (no BUI primitive
+ * equivalent) and a plain <hr> divider (BUI has no Divider component).
+ */
+
+.codeContainer {
+  max-height: 600px;
+  overflow: auto;
+  border-radius: var(--bui-radius-2);
+}
+
+.hr {
+  border: none;
+  border-top: 1px solid var(--bui-border-1);
+  margin: 0;
+}

@@ -1,17 +1,14 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { 
-  Box, 
-  Accordion, 
-  AccordionSummary, 
-  AccordionDetails,
-  Typography,
-  IconButton,
+import {
+  Accordion,
+  AccordionPanel,
+  AccordionTrigger,
+  ButtonIcon,
+  Text,
   Tooltip,
-} from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import KeyboardArrowLeftIcon from '@material-ui/icons/KeyboardArrowLeft';
-import KeyboardArrowRightIcon from '@material-ui/icons/KeyboardArrowRight';
+  TooltipTrigger,
+} from '@backstage/ui';
+import { RiArrowLeftSLine, RiArrowRightSLine } from '@remixicon/react';
 import { ReactFlowProvider } from '@xyflow/react';
 import { InputDesigner } from '../InputDesigner';
 import { WorkflowCanvas } from '../WorkflowCanvas';
@@ -25,213 +22,7 @@ import { stateToYAML, yamlToState } from '../../utils/templateSerializer';
 import { validateTemplate } from '../../utils/templateValidator';
 import { autoLayoutNodes } from '../WorkflowCanvas/ConnectionValidator';
 import { createParameterGroupNode, createOutputGroupNode, detectEdgesFromInputs, layoutNodes } from '../../utils/layoutEngine';
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    height: '100vh',
-    display: 'flex',
-    flexDirection: 'column',
-    overflow: 'hidden',
-  },
-  content: {
-    flex: 1,
-    overflow: 'hidden',
-    display: 'flex',
-    height: '100%',
-  },
-  leftPanel: {
-    display: 'flex',
-    flexDirection: 'column',
-    overflow: 'hidden',
-    height: '100%',
-    borderRight: `1px solid ${theme.palette.divider}`,
-    transition: 'width 0.3s ease',
-    position: 'relative',
-  },
-  leftPanelExpanded: {
-    flex: '0 0 auto',
-  },
-  leftPanelCollapsed: {
-    width: 0,
-    flex: '0 0 0',
-    borderRight: 'none',
-  },
-  resizeHandle: {
-    position: 'absolute',
-    right: -5,
-    top: 0,
-    bottom: 0,
-    width: 10,
-    cursor: 'col-resize',
-    zIndex: 10003, // Above everything
-    pointerEvents: 'auto',
-    backgroundColor: 'transparent',
-    borderRight: `2px solid transparent`,
-    transition: 'background-color 0.2s, opacity 0.2s, border-color 0.2s',
-    '&:hover': {
-      backgroundColor: 'rgba(25, 118, 210, 0.2)',
-      borderRightColor: theme.palette.primary.main,
-      opacity: 1,
-    },
-    '&:active': {
-      backgroundColor: 'rgba(25, 118, 210, 0.4)',
-      borderRightColor: theme.palette.primary.main,
-      opacity: 1,
-    },
-  },
-  resizeOverlay: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 10002, // Above resize handles to capture all events
-    cursor: 'col-resize',
-    backgroundColor: 'rgba(0, 0, 0, 0.01)', // Nearly invisible but blocks events
-  },
-  leftCollapseButton: {
-    position: 'absolute',
-    right: -16, // Position on the right edge of the left panel
-    top: '50%',
-    transform: 'translateY(-50%)',
-    zIndex: 1200,
-    backgroundColor: theme.palette.background.paper,
-    border: `2px solid ${theme.palette.divider}`,
-    boxShadow: theme.shadows[3],
-    width: 32,
-    height: 32,
-    '&:hover': {
-      backgroundColor: theme.palette.action.hover,
-      borderColor: theme.palette.primary.main,
-    },
-  },
-  leftCollapseButtonCollapsed: {
-    position: 'fixed',
-    left: 0,
-    top: '50%',
-    transform: 'translateY(-50%)',
-    zIndex: 1200,
-    backgroundColor: theme.palette.background.paper,
-    border: `2px solid ${theme.palette.divider}`,
-    borderLeft: 'none',
-    borderTopLeftRadius: 0,
-    borderBottomLeftRadius: 0,
-    boxShadow: theme.shadows[3],
-    width: 32,
-    height: 64,
-    '&:hover': {
-      backgroundColor: theme.palette.action.hover,
-      borderColor: theme.palette.primary.main,
-    },
-  },
-  rightCollapseButton: {
-    position: 'absolute',
-    left: -16, // Position on the left edge of the right panel
-    top: '50%',
-    transform: 'translateY(-50%)',
-    zIndex: 1000,
-    backgroundColor: theme.palette.background.paper,
-    border: `2px solid ${theme.palette.divider}`,
-    boxShadow: theme.shadows[3],
-    width: 32,
-    height: 32,
-    '&:hover': {
-      backgroundColor: theme.palette.action.hover,
-      borderColor: theme.palette.primary.main,
-    },
-  },
-  rightCollapseButtonCollapsed: {
-    position: 'fixed',
-    right: 0,
-    top: '50%',
-    transform: 'translateY(-50%)',
-    zIndex: 1000,
-    backgroundColor: theme.palette.background.paper,
-    border: `2px solid ${theme.palette.divider}`,
-    borderRight: 'none',
-    borderTopRightRadius: 0,
-    borderBottomRightRadius: 0,
-    boxShadow: theme.shadows[3],
-    width: 32,
-    height: 64,
-    '&:hover': {
-      backgroundColor: theme.palette.action.hover,
-      borderColor: theme.palette.primary.main,
-    },
-  },
-  centerPanel: {
-    flex: 2,
-    display: 'flex',
-    flexDirection: 'column',
-    overflow: 'hidden',
-    height: '100%',
-    minWidth: 0, // Allow flex item to shrink below content size
-    position: 'relative',
-  },
-  centerPanelRightResizeHandle: {
-    position: 'absolute',
-    right: -8,
-    top: 0,
-    bottom: 0,
-    width: 16,
-    cursor: 'col-resize',
-    zIndex: 10003, // Above everything including the overlay
-    pointerEvents: 'auto',
-    backgroundColor: 'transparent',
-    borderLeft: `2px solid transparent`,
-    transition: 'background-color 0.2s, opacity 0.2s, border-color 0.2s',
-    '&:hover': {
-      backgroundColor: 'rgba(25, 118, 210, 0.2)',
-      borderLeftColor: theme.palette.primary.main,
-      opacity: 1,
-    },
-    '&:active': {
-      backgroundColor: 'rgba(25, 118, 210, 0.4)',
-      borderLeftColor: theme.palette.primary.main,
-      opacity: 1,
-    },
-  },
-  rightPanel: {
-    display: 'flex',
-    flexDirection: 'column',
-    overflow: 'visible', // MUST be visible for Monaco autocomplete popup
-    borderLeft: `1px solid ${theme.palette.divider}`,
-    position: 'relative',
-    zIndex: 1000, // High enough to be above canvas
-    flex: '0 0 auto',
-  },
-  accordion: {
-    '&:before': {
-      display: 'none',
-    },
-    boxShadow: 'none',
-    borderBottom: `1px solid ${theme.palette.divider}`,
-  },
-  accordionExpanded: {
-    margin: '0 !important',
-  },
-  accordionSummary: {
-    minHeight: 48,
-    '&.Mui-expanded': {
-      minHeight: 48,
-    },
-  },
-  accordionDetails: {
-    padding: 0,
-    display: 'flex',
-    flexDirection: 'column',
-    overflow: 'auto',
-    height: '100%',
-  },
-  canvasContainer: {
-    flex: 1,
-    overflow: 'hidden',
-    position: 'relative',
-    minHeight: 400,
-    height: '100%',
-    width: '100%',
-  },
-}));
+import styles from './EditorLayout.module.css';
 
 export interface EditorLayoutProps {
   state: TemplateBuilderState;
@@ -244,7 +35,6 @@ export interface EditorLayoutProps {
 
 export function EditorLayout(props: EditorLayoutProps) {
   const { state, actions, canUndo, canRedo, availableActions, fieldExtensions } = props;
-  const classes = useStyles();
 
   const [selectedField, setSelectedField] = useState<{ stepIndex: number; fieldName: string }>();
   const [selectedNode, setSelectedNode] = useState<string>();
@@ -294,6 +84,24 @@ export function EditorLayout(props: EditorLayoutProps) {
     e.preventDefault();
     e.stopPropagation();
     setIsResizing(panel);
+  };
+
+  const handleResizeKeyDown = (panel: 'left' | 'right') => (e: React.KeyboardEvent) => {
+    const step = 20;
+    const maxWidth = Math.floor(window.innerWidth * 0.8);
+    if (panel === 'left') {
+      if (e.key === 'ArrowLeft') {
+        setLeftPanelWidth(w => Math.max(200, w - step));
+      } else if (e.key === 'ArrowRight') {
+        setLeftPanelWidth(w => Math.min(maxWidth, w + step));
+      }
+    } else if (panel === 'right') {
+      if (e.key === 'ArrowLeft') {
+        setRightPanelWidth(w => Math.min(maxWidth, w + step));
+      } else if (e.key === 'ArrowRight') {
+        setRightPanelWidth(w => Math.max(300, w - step));
+      }
+    }
   };
 
   useEffect(() => {
@@ -502,12 +310,12 @@ export function EditorLayout(props: EditorLayoutProps) {
   };
 
   return (
-    <Box className={classes.root}>
+    <div className={styles.root}>
       {/* Overlay to block all events during resize */}
       {isResizing && (
-        <Box className={classes.resizeOverlay} />
+        <div className={styles.resizeOverlay} />
       )}
-      
+
       <Toolbar
         templateName={state.metadata.name}
         hasUnsavedChanges={hasUnsavedChanges}
@@ -521,155 +329,131 @@ export function EditorLayout(props: EditorLayoutProps) {
         onHelp={() => window.open('https://backstage.io/docs/features/software-templates/', '_blank')}
       />
 
-      <Box className={classes.content}>
+      <div className={styles.content}>
         {/* Left Panel - Inputs & Outputs */}
-        <Box 
-          className={`${classes.leftPanel} ${leftSidebarCollapsed ? classes.leftPanelCollapsed : classes.leftPanelExpanded}`} 
-          style={{ 
+        <div
+          className={`${styles.leftPanel} ${leftSidebarCollapsed ? styles.leftPanelCollapsed : styles.leftPanelExpanded}`}
+          style={{
             position: 'relative',
             width: leftSidebarCollapsed ? 0 : leftPanelWidth,
             transition: leftSidebarCollapsed ? 'width 0.3s ease' : 'none',
           }}
         >
           {/* Left Panel Collapse Button */}
-          <Tooltip title={leftSidebarCollapsed ? "Expand Input / Output Sidebar" : "Collapse Left Sidebar"} placement="right">
-            <IconButton
-              className={leftSidebarCollapsed ? classes.leftCollapseButtonCollapsed : classes.leftCollapseButton}
+          <TooltipTrigger>
+            <ButtonIcon
+              aria-label={leftSidebarCollapsed ? 'Expand Input / Output Sidebar' : 'Collapse Left Sidebar'}
+              className={leftSidebarCollapsed ? styles.leftCollapseButtonCollapsed : styles.leftCollapseButton}
               size="small"
-              onClick={() => setLeftSidebarCollapsed(!leftSidebarCollapsed)}
-            >
-              {leftSidebarCollapsed ? <KeyboardArrowRightIcon /> : <KeyboardArrowLeftIcon />}
-            </IconButton>
-          </Tooltip>
+              icon={leftSidebarCollapsed ? <RiArrowRightSLine /> : <RiArrowLeftSLine />}
+              onPress={() => setLeftSidebarCollapsed(!leftSidebarCollapsed)}
+            />
+            <Tooltip placement="right">
+              {leftSidebarCollapsed ? 'Expand Input / Output Sidebar' : 'Collapse Left Sidebar'}
+            </Tooltip>
+          </TooltipTrigger>
 
           {!leftSidebarCollapsed && (
             <>
               {/* Resize Handle */}
-              <Box 
-                className={classes.resizeHandle}
+              <div
+                className={styles.resizeHandle}
+                role="slider"
+                aria-orientation="vertical"
+                aria-label="Resize left sidebar"
+                aria-valuenow={leftPanelWidth}
+                aria-valuemin={200}
+                aria-valuemax={Math.floor(window.innerWidth * 0.8)}
+                tabIndex={0}
                 onMouseDown={handleResizeStart('left')}
+                onKeyDown={handleResizeKeyDown('left')}
                 onDoubleClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                 }}
-                style={{ 
-                  backgroundColor: isResizing === 'left' ? 'rgba(25, 118, 210, 0.8)' : undefined,
+                style={{
+                  backgroundColor: isResizing === 'left' ? 'var(--bui-accent-fg)' : undefined,
                 }}
               />
-          <Accordion 
-            expanded={expandedPanels.inputs}
-            onChange={() => handlePanelChange('inputs')}
-            className={classes.accordion}
-            classes={{ expanded: classes.accordionExpanded }}
-          >
-            <AccordionSummary 
-              expandIcon={<ExpandMoreIcon />}
-              className={classes.accordionSummary}
-            >
-              <Typography variant="h6">Input Parameters</Typography>
-            </AccordionSummary>
-            <AccordionDetails className={classes.accordionDetails}>
-              <Box flex={1} overflow="auto">
-                <InputDesigner
-                  parameters={state.parameters}
-                  selectedField={selectedField}
-                  fieldExtensions={fieldExtensions}
-                  onAddStep={actions.addParameterStep}
-                  onUpdateStep={actions.updateParameterStep}
-                  onDeleteStep={actions.deleteParameterStep}
-                  onAddField={actions.addParameterField}
-                  onUpdateField={actions.updateParameterField}
-                  onDeleteField={actions.deleteParameterField}
-                  onSelectField={(stepIndex, fieldName) => setSelectedField({ stepIndex, fieldName })}
-                />
-              </Box>
-            </AccordionDetails>
-          </Accordion>
+              <Accordion
+                isExpanded={expandedPanels.inputs}
+                onExpandedChange={() => handlePanelChange('inputs')}
+              >
+                <AccordionTrigger>Input Parameters</AccordionTrigger>
+                <AccordionPanel className={styles.sidePanelAccordionPanel}>
+                  <InputDesigner
+                    parameters={state.parameters}
+                    selectedField={selectedField}
+                    fieldExtensions={fieldExtensions}
+                    onAddStep={actions.addParameterStep}
+                    onUpdateStep={actions.updateParameterStep}
+                    onDeleteStep={actions.deleteParameterStep}
+                    onAddField={actions.addParameterField}
+                    onUpdateField={actions.updateParameterField}
+                    onDeleteField={actions.deleteParameterField}
+                    onSelectField={(stepIndex, fieldName) => setSelectedField({ stepIndex, fieldName })}
+                  />
+                </AccordionPanel>
+              </Accordion>
 
-          <Accordion 
-            expanded={expandedPanels.outputs}
-            onChange={() => handlePanelChange('outputs')}
-            className={classes.accordion}
-            classes={{ expanded: classes.accordionExpanded }}
-          >
-            <AccordionSummary 
-              expandIcon={<ExpandMoreIcon />}
-              className={classes.accordionSummary}
-            >
-              <Typography variant="h6">Template Outputs</Typography>
-            </AccordionSummary>
-            <AccordionDetails className={classes.accordionDetails}>
-              <OutputConfig
-                links={state.output.links}
-                onUpdateLinks={links => actions.updateOutput({ links })}
-              />
-            </AccordionDetails>
-          </Accordion>
-          </>
+              <Accordion
+                isExpanded={expandedPanels.outputs}
+                onExpandedChange={() => handlePanelChange('outputs')}
+              >
+                <AccordionTrigger>Template Outputs</AccordionTrigger>
+                <AccordionPanel className={styles.sidePanelAccordionPanel}>
+                  <OutputConfig
+                    links={state.output.links}
+                    onUpdateLinks={links => actions.updateOutput({ links })}
+                  />
+                </AccordionPanel>
+              </Accordion>
+            </>
           )}
-        </Box>
+        </div>
 
         {/* Center Panel - Workflow Canvas */}
-        <Box className={classes.centerPanel}>
-          {expandedPanels.workflow ? (
-            <Box style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
-              <Box 
-                style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  padding: '12px 16px',
-                  borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
-                  cursor: 'pointer'
-                }}
-                onClick={() => handlePanelChange('workflow')}
-              >
-                <ExpandMoreIcon />
-                <Typography variant="h6" style={{ marginLeft: 8 }}>Workflow Steps</Typography>
-              </Box>
-              <Box style={{ flex: 1, minHeight: 0, position: 'relative' }}>
-                <ReactFlowProvider>
-                  <WorkflowCanvas
-                    nodes={displayNodes}
-                    edges={displayEdges}
-                    selectedNode={selectedNode}
-                    onNodesChange={nodes => {
-                      // Only save action nodes (filter out parameter-group and output-group nodes)
-                      const actionNodes = nodes.filter((n: any) => n.type === 'action');
-                      actions.setWorkflowNodes(actionNodes);
-                    }}
-                    onEdgesChange={actions.setWorkflowEdges}
-                    onNodeClick={nodeId => {
-                      // Close panel if clicking empty space or same node
-                      if (!nodeId || nodeId === selectedNode) {
-                        setSelectedNode(undefined);
-                      } else {
-                        setSelectedNode(nodeId);
-                      }
-                    }}
-                    onNodeDelete={actions.deleteWorkflowNode}
-                    onAddActionClick={() => setAddActionDialogOpen(true)}
-                  />
-                </ReactFlowProvider>
-              </Box>
-            </Box>
-          ) : (
-            <Accordion 
-              expanded={false}
-              onChange={() => handlePanelChange('workflow')}
-              className={classes.accordion}
-            >
-              <AccordionSummary 
-                expandIcon={<ExpandMoreIcon />}
-                className={classes.accordionSummary}
-              >
-                <Typography variant="h6">Workflow Steps</Typography>
-              </AccordionSummary>
-            </Accordion>
-          )}
+        <div className={styles.centerPanel}>
+          <Accordion
+            className={styles.workflowAccordion}
+            isExpanded={expandedPanels.workflow}
+            onExpandedChange={() => handlePanelChange('workflow')}
+          >
+            <AccordionTrigger>Workflow Steps</AccordionTrigger>
+            {expandedPanels.workflow && (
+              <AccordionPanel className={styles.workflowAccordionPanel}>
+                <div className={styles.canvasContainer}>
+                  <ReactFlowProvider>
+                    <WorkflowCanvas
+                      nodes={displayNodes}
+                      edges={displayEdges}
+                      selectedNode={selectedNode}
+                      onNodesChange={nodes => {
+                        // Only save action nodes (filter out parameter-group and output-group nodes)
+                        const actionNodes = nodes.filter((n: any) => n.type === 'action');
+                        actions.setWorkflowNodes(actionNodes);
+                      }}
+                      onEdgesChange={actions.setWorkflowEdges}
+                      onNodeClick={nodeId => {
+                        // Close panel if clicking empty space or same node
+                        if (!nodeId || nodeId === selectedNode) {
+                          setSelectedNode(undefined);
+                        } else {
+                          setSelectedNode(nodeId);
+                        }
+                      }}
+                      onNodeDelete={actions.deleteWorkflowNode}
+                      onAddActionClick={() => setAddActionDialogOpen(true)}
+                    />
+                  </ReactFlowProvider>
+                </div>
+              </AccordionPanel>
+            )}
+          </Accordion>
 
           {/* Action Configuration Panel */}
           {selectedNodeData && (
-            <Box borderTop="1px solid rgba(0, 0, 0, 0.12)" maxHeight="50%" overflow="auto">
+            <div className={styles.actionConfigPanel}>
               <ActionConfigPanel
                 action={selectedNodeData}
                 nodeId={selectedNode!}
@@ -693,7 +477,7 @@ export function EditorLayout(props: EditorLayoutProps) {
                       // Create new node with updated ID
                       const newNode = { ...node, id: newId };
                       const newNodes = state.workflow.nodes.map(n => n.id === selectedNode ? newNode : n);
-                      
+
                       // Update edges to reference new ID
                       const oldId = selectedNode;
                       const newEdges = state.workflow.edges.map(edge => ({
@@ -702,7 +486,7 @@ export function EditorLayout(props: EditorLayoutProps) {
                         target: edge.target === oldId ? newId : edge.target,
                         id: edge.id.replace(oldId, newId),
                       }));
-                      
+
                       actions.setWorkflowNodes(newNodes);
                       actions.setWorkflowEdges(newEdges);
                       setSelectedNode(newId);
@@ -711,82 +495,83 @@ export function EditorLayout(props: EditorLayoutProps) {
                 }}
                 onClose={() => setSelectedNode(undefined)}
               />
-            </Box>
+            </div>
           )}
-          
+
           {/* Right Panel Resize Handle - Attached to center panel to avoid Monaco interference */}
           {showYamlEditor && (
-            <Box 
-              className={classes.centerPanelRightResizeHandle}
+            <div
+              className={styles.centerPanelRightResizeHandle}
+              role="slider"
+              aria-orientation="vertical"
+              aria-label="Resize YAML editor panel"
+              aria-valuenow={rightPanelWidth}
+              aria-valuemin={300}
+              aria-valuemax={Math.floor(window.innerWidth * 0.8)}
+              tabIndex={0}
               onMouseDown={handleResizeStart('right')}
+              onKeyDown={handleResizeKeyDown('right')}
               onDoubleClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
               }}
               style={{
-                backgroundColor: isResizing === 'right' ? 'rgba(25, 118, 210, 0.8)' : undefined,
+                backgroundColor: isResizing === 'right' ? 'var(--bui-accent-fg)' : undefined,
               }}
             />
           )}
-        </Box>
+        </div>
 
         {/* Right Panel - YAML Editor */}
-        <Box 
-          className={classes.rightPanel} 
-          style={{ 
-            position: 'relative', 
+        <div
+          className={styles.rightPanel}
+          style={{
+            position: 'relative',
             display: showYamlEditor ? 'flex' : 'none',
             width: rightPanelWidth,
           }}
         >
           {/* Right Panel Collapse Button */}
-          <Tooltip title="Collapse YAML Editor" placement="left">
-            <IconButton
-              className={classes.rightCollapseButton}
+          <TooltipTrigger>
+            <ButtonIcon
+              aria-label="Collapse YAML Editor"
+              className={styles.rightCollapseButton}
               size="small"
-              onClick={() => setShowYamlEditor(false)}
-            >
-              <KeyboardArrowRightIcon />
-            </IconButton>
-          </Tooltip>
+              icon={<RiArrowRightSLine />}
+              onPress={() => setShowYamlEditor(false)}
+            />
+            <Tooltip placement="left">Collapse YAML Editor</Tooltip>
+          </TooltipTrigger>
 
-          <Box flex={1} display="flex" flexDirection="column" style={{ height: '100%', overflow: 'visible', position: 'relative', zIndex: 1000 }}>
-            <Box display="flex" alignItems="center" justifyContent="space-between" p={1} borderBottom="1px solid rgba(0, 0, 0, 0.12)">
-              <Typography variant="subtitle2">YAML Editor</Typography>
-            </Box>
-            <Box 
-              flex={1} 
-              style={{ 
-                minHeight: 0, 
-                overflow: 'visible', 
-                position: 'relative',
-                isolation: 'isolate',
-                contain: 'layout',
-              }}
-            >
+          <div className={styles.yamlEditorContainer}>
+            <div className={styles.yamlEditorHeader}>
+              <Text variant="body-small" weight="bold">YAML Editor</Text>
+            </div>
+            <div className={styles.yamlEditorBody}>
               <YAMLEditor
                 value={yamlValue}
                 onChange={handleYAMLChange}
                 availableActions={availableActions}
                 fieldExtensions={fieldExtensions}
               />
-            </Box>
-          </Box>
-        </Box>
+            </div>
+          </div>
+        </div>
 
         {/* Show YAML Editor Button - When collapsed */}
         {!showYamlEditor && (
-          <Tooltip title="Expand YAML Editor" placement="left">
-            <IconButton
-              className={classes.rightCollapseButtonCollapsed}
+          <TooltipTrigger>
+            <ButtonIcon
+              aria-label="Expand YAML Editor"
+              className={styles.rightCollapseButtonCollapsed}
               size="small"
-              onClick={() => setShowYamlEditor(true)}
-            >
-              <KeyboardArrowLeftIcon />
-            </IconButton>
-          </Tooltip>
+              icon={<RiArrowLeftSLine />}
+              onPress={() => setShowYamlEditor(true)}
+            />
+            <Tooltip placement="left">Expand YAML Editor</Tooltip>
+          </TooltipTrigger>
         )}
-      </Box>
+      </div>
 
       {/* Add Action Dialog */}
       <AddActionDialog
@@ -795,6 +580,6 @@ export function EditorLayout(props: EditorLayoutProps) {
         onClose={() => setAddActionDialogOpen(false)}
         onSelectAction={handleAddAction}
       />
-    </Box>
+    </div>
   );
 }

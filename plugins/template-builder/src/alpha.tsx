@@ -7,7 +7,7 @@ import {
 } from '@backstage/frontend-plugin-api';
 import { catalogApiRef } from '@backstage/plugin-catalog-react';
 import { EntityCardBlueprint } from '@backstage/plugin-catalog-react/alpha';
-import BuildIcon from '@material-ui/icons/Build';
+import { RiHammerLine } from '@remixicon/react';
 import { rootRouteRef, editTemplateRouteRef } from './routes';
 import { templateBuilderApiRef, DefaultTemplateBuilderApi } from './api';
 import './index.css'; // Global styles for Monaco widgets - MUST load first!
@@ -42,7 +42,7 @@ export const templateBuilderEditPage = PageBlueprint.make({
   name: 'template-builder-edit-page',
   params: {
     title: 'Template Builder',
-    icon: <BuildIcon />,
+    icon: <RiHammerLine />,
     path: '/template-builder/edit/:namespace/:kind/:name',
     routeRef: editTemplateRouteRef,
     loader: () =>
