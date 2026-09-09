@@ -1,36 +1,17 @@
 import { Handle, Position } from '@xyflow/react';
-import { Box, Typography } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
-import PlayArrowIcon from '@material-ui/icons/PlayArrow';
-
-const useStyles = makeStyles(theme => ({
-  node: {
-    padding: theme.spacing(2),
-    borderRadius: theme.shape.borderRadius,
-    backgroundColor: theme.palette.success.main,
-    color: theme.palette.success.contrastText,
-    minWidth: 120,
-    textAlign: 'center',
-    boxShadow: theme.shadows[2],
-  },
-  icon: {
-    display: 'flex',
-    justifyContent: 'center',
-    marginBottom: theme.spacing(0.5),
-  },
-}));
+import { Box, Text } from '@backstage/ui';
+import { RiPlayLine } from '@remixicon/react';
+import styles from './nodes.module.css';
 
 export function StartNode() {
-  const classes = useStyles();
-
   return (
-    <Box className={classes.node}>
-      <Box className={classes.icon}>
-        <PlayArrowIcon />
+    <Box className={styles.startNode}>
+      <Box className={styles.startNodeIcon}>
+        <RiPlayLine />
       </Box>
-      <Typography variant="body2" style={{ fontWeight: 600 }}>
+      <Text variant="body-small" weight="bold">
         Start
-      </Typography>
+      </Text>
       <Handle
         type="source"
         position={Position.Right}

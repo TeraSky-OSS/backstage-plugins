@@ -1,0 +1,9 @@
+.divider {
+  margin: var(--bui-space-6) 0;
+  border: none;
+  border-top: 1px solid var(--bui-border-1);
+}
+
+.poolCard {
+  margin-bottom: var(--bui-space-4);
+}

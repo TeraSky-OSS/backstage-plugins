@@ -13,11 +13,8 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import './WorkflowCanvas.css';
-import { Box, Button, Tooltip, ButtonGroup, Paper, Typography } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
-import AddIcon from '@material-ui/icons/Add';
-import SwapHorizIcon from '@material-ui/icons/SwapHoriz';
-import SwapVertIcon from '@material-ui/icons/SwapVert';
+import { Box, Button, Card, Text, ToggleButton, ToggleButtonGroup, Tooltip, TooltipTrigger } from '@backstage/ui';
+import { RiAddLine, RiArrowLeftRightLine, RiArrowUpDownLine } from '@remixicon/react';
 import StartNode from './nodes/StartNode';
 import ActionNode from './nodes/ActionNode';
 import ParameterNode from './nodes/ParameterNode';
@@ -26,53 +23,7 @@ import OutputNode from './nodes/OutputNode';
 import OutputGroupNode from './nodes/OutputGroupNode';
 import type { WorkflowNode, WorkflowEdge } from '../../types';
 import { layoutNodes, detectEdgesFromInputs, type LayoutDirection } from '../../utils/layoutEngine';
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    width: '100%',
-    height: '100%',
-    zIndex: 1, // Keep workflow canvas below editor panels
-  },
-  reactFlow: {
-    backgroundColor: theme.palette.background.default,
-    width: '100%',
-    height: '100%',
-  },
-  legend: {
-    position: 'absolute',
-    bottom: 16,
-    left: 16,
-    padding: theme.spacing(1.5),
-    backgroundColor: theme.palette.background.paper,
-    border: `1px solid ${theme.palette.divider}`,
-    zIndex: 10,
-    minWidth: 200,
-  },
-  legendItem: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(1),
-    marginBottom: theme.spacing(0.75),
-    fontSize: '0.8rem',
-    '&:last-child': {
-      marginBottom: 0,
-    },
-  },
-  legendLine: {
-    width: 30,
-    height: 2,
-  },
-  legendDashedLine: {
-    width: 30,
-    height: 2,
-    backgroundImage: 'repeating-linear-gradient(to right, currentColor 0, currentColor 5px, transparent 5px, transparent 10px)',
-  },
-}));
+import styles from './WorkflowCanvas.module.css';
 
 const nodeTypes: NodeTypes = {
   start: StartNode as any,
@@ -110,7 +61,6 @@ export function WorkflowCanvas(props: WorkflowCanvasProps) {
     onAddActionClick,
   } = props;
 
-  const classes = useStyles();
   const [layoutDirection, setLayoutDirection] = useState<LayoutDirection>('vertical');
   const [legendExpanded, setLegendExpanded] = useState(false);
 
@@ -230,7 +180,7 @@ export function WorkflowCanvas(props: WorkflowCanvasProps) {
   );
 
   return (
-    <Box className={classes.root} onKeyDown={handleKeyDown} tabIndex={0}>
+    <Box className={styles.root} onKeyDown={handleKeyDown} tabIndex={0}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -248,7 +198,7 @@ export function WorkflowCanvas(props: WorkflowCanvasProps) {
           animated: false,
           type: 'straight',
         }}
-        className={classes.reactFlow}
+        className={styles.reactFlow}
         minZoom={0.1}
         maxZoom={2}
         nodesDraggable
@@ -262,85 +212,68 @@ export function WorkflowCanvas(props: WorkflowCanvasProps) {
         <Controls />
         <Panel position="top-left">
           <Box display="flex" style={{ gap: 8 }}>
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<AddIcon />}
-              onClick={onAddActionClick}
-              size="small"
-            >
+            <Button variant="primary" size="small" iconStart={<RiAddLine />} onPress={onAddActionClick}>
               Add Action
             </Button>
-            <ButtonGroup size="small" variant="outlined">
-              <Tooltip title="Horizontal Layout (Left to Right)">
-                <Button
-                  onClick={() => setLayoutDirection('horizontal')}
-                  variant={layoutDirection === 'horizontal' ? 'contained' : 'outlined'}
-                  color={layoutDirection === 'horizontal' ? 'primary' : 'default'}
-                >
-                  <SwapHorizIcon fontSize="small" />
-                </Button>
-              </Tooltip>
-              <Tooltip title="Vertical Layout (Top to Bottom)">
-                <Button
-                  onClick={() => setLayoutDirection('vertical')}
-                  variant={layoutDirection === 'vertical' ? 'contained' : 'outlined'}
-                  color={layoutDirection === 'vertical' ? 'primary' : 'default'}
-                >
-                  <SwapVertIcon fontSize="small" />
-                </Button>
-              </Tooltip>
-            </ButtonGroup>
+            <ToggleButtonGroup
+              selectionMode="single"
+              disallowEmptySelection
+              selectedKeys={[layoutDirection]}
+              onSelectionChange={keys => {
+                const [value] = Array.from(keys);
+                if (value) setLayoutDirection(value as LayoutDirection);
+              }}
+            >
+              <TooltipTrigger>
+                <ToggleButton id="horizontal" aria-label="Horizontal Layout (Left to Right)" size="small">
+                  <RiArrowLeftRightLine size={16} />
+                </ToggleButton>
+                <Tooltip>Horizontal Layout (Left to Right)</Tooltip>
+              </TooltipTrigger>
+              <TooltipTrigger>
+                <ToggleButton id="vertical" aria-label="Vertical Layout (Top to Bottom)" size="small">
+                  <RiArrowUpDownLine size={16} />
+                </ToggleButton>
+                <Tooltip>Vertical Layout (Top to Bottom)</Tooltip>
+              </TooltipTrigger>
+            </ToggleButtonGroup>
           </Box>
         </Panel>
       </ReactFlow>
 
       {/* Collapsible Legend */}
-      <Box
-        style={{
-          position: 'absolute',
-          bottom: 16,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 10,
-        }}
-      >
-        <Paper elevation={3} style={{ overflow: 'hidden' }}>
+      <Box className={styles.legendWrapper}>
+        <Card className={styles.legendCard}>
           <Button
+            variant="tertiary"
             size="small"
-            onClick={() => setLegendExpanded(!legendExpanded)}
-            style={{
-              minWidth: 100,
-              padding: '4px 12px',
-              textTransform: 'none',
-              fontSize: '0.75rem',
-            }}
+            onPress={() => setLegendExpanded(!legendExpanded)}
           >
             {legendExpanded ? '▼ Hide Legend' : '▲ Legend'}
           </Button>
           {legendExpanded && (
-            <Box style={{ padding: 12, maxWidth: 500 }}>
-              <Box style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center' }}>
-                <Box style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Box style={{ width: 20, height: 3, backgroundColor: '#9c27b0' }} />
-                  <Typography variant="caption">Parameter</Typography>
+            <Box className={styles.legendContent}>
+              <Box className={styles.legendItems}>
+                <Box className={styles.legendItem}>
+                  <span className={styles.legendLine} style={{ backgroundColor: '#9c27b0' }} />
+                  <Text variant="body-x-small">Parameter</Text>
                 </Box>
-                <Box style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Box style={{ width: 20, height: 3, backgroundColor: '#9c27b0', borderTop: '2px dashed #9c27b0' }} />
-                  <Typography variant="caption">All Params</Typography>
+                <Box className={styles.legendItem}>
+                  <span className={styles.legendDashedLine} style={{ backgroundColor: '#9c27b0', color: '#9c27b0' }} />
+                  <Text variant="body-x-small">All Params</Text>
                 </Box>
-                <Box style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Box style={{ width: 20, height: 3, backgroundColor: '#2196f3' }} />
-                  <Typography variant="caption">Step Flow</Typography>
+                <Box className={styles.legendItem}>
+                  <span className={styles.legendLine} style={{ backgroundColor: '#2196f3' }} />
+                  <Text variant="body-x-small">Step Flow</Text>
                 </Box>
-                <Box style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Box style={{ width: 20, height: 3, backgroundColor: '#4caf50' }} />
-                  <Typography variant="caption">To Output</Typography>
+                <Box className={styles.legendItem}>
+                  <span className={styles.legendLine} style={{ backgroundColor: '#4caf50' }} />
+                  <Text variant="body-x-small">To Output</Text>
                 </Box>
               </Box>
             </Box>
           )}
-        </Paper>
+        </Card>
       </Box>
     </Box>
   );

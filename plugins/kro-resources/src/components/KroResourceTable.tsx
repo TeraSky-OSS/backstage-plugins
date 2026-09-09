@@ -1,9 +1,31 @@
 // KroResourceTable.tsx
 import { useState, useEffect } from 'react';
+import { default as React } from 'react';
+import { useNavigate } from 'react-router-dom';
+// BUI-EXCEPTION: `Drawer` has no BUI equivalent (see MUI_TO_BUI_MIGRATION.md exception list).
+import { Drawer } from '@material-ui/core';
 import {
-  Card, CardContent, Typography, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Tooltip, makeStyles, CircularProgress, IconButton, Drawer, Tabs, Tab, Chip, Link, useTheme, Popover, TextField
-} from '@material-ui/core';
-import { useApi } from '@backstage/core-plugin-api';
+  Badge,
+  Box,
+  ButtonIcon,
+  Card,
+  CardBody,
+  Checkbox,
+  DialogTrigger,
+  Flex,
+  Link,
+  Popover,
+  Tab,
+  TabList,
+  TabPanel,
+  Tabs,
+  Text,
+  TextField,
+  Tooltip,
+  TooltipTrigger,
+} from '@backstage/ui';
+import { CopyTextButton, Progress } from '@backstage/core-components';
+import { useApi, configApiRef } from '@backstage/core-plugin-api';
 import { kroApiRef } from '../api/KroApi';
 import { KroResource } from '@terasky/backstage-plugin-kro-common';
 import { useEntity } from '@backstage/plugin-catalog-react';
@@ -19,175 +41,27 @@ import {
   viewYamlRGDsPermission,
   viewYamlResourcesPermission
 } from '@terasky/backstage-plugin-kro-common';
-import { configApiRef } from '@backstage/core-plugin-api';
 import { getAnnotationPrefix, getKroAnnotation } from './annotationUtils';
-import { useNavigate } from 'react-router-dom';
-import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
-import KeyboardArrowRightIcon from '@material-ui/icons/KeyboardArrowRight';
-import DescriptionIcon from '@material-ui/icons/Description';
-import CloseIcon from '@material-ui/icons/Close';
-import FileCopyIcon from '@material-ui/icons/FileCopy';
-import GetAppIcon from '@material-ui/icons/GetApp';
-import FilterListIcon from '@material-ui/icons/FilterList';
-import SvgIcon from '@material-ui/core/SvgIcon';
+import {
+  RiArrowDownSLine,
+  RiArrowRightSLine,
+  RiCloseLine,
+  RiDownloadLine,
+  RiFileTextLine,
+  RiFilterLine,
+  RiSearchLine,
+} from '@remixicon/react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import yaml from 'js-yaml';
-import SearchIcon from '@material-ui/icons/Search';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
-import Checkbox from '@material-ui/core/Checkbox';
-import { default as React } from 'react';
+import styles from './KroResourceTable.module.css';
 
-// Custom Sitemap Icon Component
-const SitemapIcon = (props: any) => (
-  <SvgIcon {...props} viewBox="0 0 576 512">
+// Custom Sitemap Icon Component (repo-specific icon, not in the RemixIcon set)
+const SitemapIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg width="1em" height="1em" fill="currentColor" viewBox="0 0 576 512" {...props}>
     <path d="M208 80c0-26.5 21.5-48 48-48l64 0c26.5 0 48 21.5 48 48l0 64c0 26.5-21.5 48-48 48l-8 0 0 40 152 0c30.9 0 56 25.1 56 56l0 32 8 0c26.5 0 48 21.5 48 48l0 64c0 26.5-21.5 48-48 48l-64 0c-26.5 0-48-21.5-48-48l0-64c0-26.5 21.5-48 48-48l8 0 0-32c0-4.4-3.6-8-8-8l-152 0 0 40 8 0c26.5 0 48 21.5 48 48l0 64c0 26.5-21.5 48-48 48l-64 0c-26.5 0-48-21.5-48-48l0-64c0-26.5 21.5-48 48-48l8 0 0-32c0-30.9 25.1-56 56-56l152 0 0-40-8 0c-26.5 0-48-21.5-48-48l0-64z" />
-  </SvgIcon>
+  </svg>
 );
-
-const useStyles = makeStyles((theme) => ({
-  table: { minWidth: 650 },
-  tableContainer: {
-    backgroundColor: theme.palette.type === 'dark' ? theme.palette.background.paper : '#ffffff',
-    border: `1px solid ${theme.palette.type === 'dark' ? theme.palette.grey[700] : theme.palette.grey[400]}`,
-    borderRadius: '4px',
-    boxShadow: theme.palette.type === 'dark' ? '0 1px 3px rgba(0,0,0,0.4)' : '0 1px 3px rgba(0,0,0,0.1)',
-  },
-  tableCell: {
-    padding: theme.spacing(1, 2),
-    borderBottom: `1px solid ${theme.palette.type === 'dark' ? theme.palette.grey[700] : theme.palette.grey[300]}`,
-    color: theme.palette.text.primary,
-  },
-  headerCell: {
-    fontWeight: 'bold',
-    backgroundColor: theme.palette.type === 'dark' ? theme.palette.background.paper : '#ffffff',
-    borderBottom: `1px solid ${theme.palette.type === 'dark' ? theme.palette.grey[700] : theme.palette.grey[400]}`,
-    color: theme.palette.text.primary,
-  },
-  clickableRow: {
-    '&:hover': { backgroundColor: theme.palette.action.hover },
-  },
-  nestedRow: {
-    backgroundColor: theme.palette.type === 'dark' ? theme.palette.background.default : theme.palette.grey[50],
-  },
-  statusBadge: {
-    padding: '2px 8px', borderRadius: '3px', fontSize: '10px', fontWeight: 'bold', display: 'inline-block', marginRight: '8px',
-  },
-  syncedSuccess: {
-    backgroundColor: theme.palette.type === 'dark' ? 'rgba(76, 175, 80, 0.2)' : 'rgba(76, 175, 80, 0.1)',
-    color: theme.palette.type === 'dark' ? '#81c784' : '#2e7d32',
-  },
-  syncedError: {
-    backgroundColor: theme.palette.type === 'dark' ? 'rgba(244, 67, 54, 0.2)' : 'rgba(244, 67, 54, 0.1)',
-    color: theme.palette.type === 'dark' ? '#e57373' : '#c62828',
-  },
-  readySuccess: {
-    backgroundColor: theme.palette.type === 'dark' ? 'rgba(76, 175, 80, 0.2)' : 'rgba(76, 175, 80, 0.1)',
-    color: theme.palette.type === 'dark' ? '#81c784' : '#2e7d32',
-  },
-  readyError: {
-    backgroundColor: theme.palette.type === 'dark' ? 'rgba(244, 67, 54, 0.2)' : 'rgba(244, 67, 54, 0.1)',
-    color: theme.palette.type === 'dark' ? '#e57373' : '#c62828',
-  },
-  tooltip: {
-    backgroundColor: theme.palette.type === 'dark' ? theme.palette.grey[900] : '#000000',
-    color: theme.palette.type === 'dark' ? theme.palette.common.white : '#ffffff',
-    fontSize: '12px',
-    padding: theme.spacing(1.5),
-    maxWidth: 400,
-    '& .MuiTooltip-arrow': {
-      color: theme.palette.type === 'dark' ? theme.palette.grey[900] : '#000000',
-    },
-  },
-  tooltipContent: {
-    maxWidth: 400,
-    '& strong': {
-      color: theme.palette.type === 'dark' ? theme.palette.common.white : '#ffffff',
-    },
-  },
-  typeBadge: {
-    padding: '4px 12px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', textAlign: 'center', minWidth: '50px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
-  },
-  rgdType: {
-    backgroundColor: theme.palette.type === 'dark' ? '#4a148c' : '#f3e5f5',
-    color: theme.palette.type === 'dark' ? '#e1bee7' : '#7b1fa2',
-  },
-  instanceType: {
-    backgroundColor: theme.palette.type === 'dark' ? '#1b5e20' : '#e8f5e9',
-    color: theme.palette.type === 'dark' ? '#a5d6a7' : '#388e3c',
-  },
-  resourceType: {
-    backgroundColor: theme.palette.type === 'dark' ? '#1976d2' : '#e3f2fd',
-    color: theme.palette.type === 'dark' ? '#90caf9' : '#1976d2',
-  },
-  externalBadge: {
-    backgroundColor: theme.palette.type === 'dark' ? '#ff6f00' : '#fff3e0',
-    color: theme.palette.type === 'dark' ? '#ffb74d' : '#e65100',
-    marginLeft: theme.spacing(1),
-    padding: '2px 6px',
-    borderRadius: '3px',
-    fontSize: '9px',
-    fontWeight: 'bold',
-    display: 'inline-block',
-  },
-  expandIcon: {
-    padding: 4, marginRight: theme.spacing(1), color: theme.palette.text.primary,
-  },
-  resourceName: {
-    display: 'flex', alignItems: 'center', color: theme.palette.text.primary,
-  },
-  indent: {
-    width: theme.spacing(4), flexShrink: 0,
-  },
-  resourceNameContent: {
-    display: 'flex', alignItems: 'center', gap: theme.spacing(1),
-  },
-  actionButtons: {
-    display: 'flex', gap: theme.spacing(0.5),
-  },
-  iconButton: {
-    padding: theme.spacing(0.5), color: theme.palette.text.primary,
-    '&:hover': { backgroundColor: theme.palette.action.hover },
-  },
-  drawer: { width: 800, flexShrink: 0 },
-  drawerPaper: { width: 800, padding: theme.spacing(2), backgroundColor: theme.palette.background.paper, color: theme.palette.text.primary },
-  drawerHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: theme.spacing(2), color: theme.palette.text.primary },
-  tabContent: { marginTop: theme.spacing(2), height: 'calc(100vh - 200px)', overflow: 'auto', position: 'relative' },
-  yamlActions: { position: 'sticky', top: 0, right: 0, display: 'flex', justifyContent: 'flex-end', gap: theme.spacing(1), padding: theme.spacing(1), backgroundColor: theme.palette.background.paper, zIndex: 1, borderBottom: `1px solid ${theme.palette.divider}` },
-  supportingType: {
-    backgroundColor: theme.palette.type === 'dark' ? '#4a148c' : '#f3e5f5',
-    color: theme.palette.type === 'dark' ? '#e1bee7' : '#7b1fa2',
-  },
-  warningEvent: {
-    backgroundColor: theme.palette.type === 'dark' ? 'rgba(255, 215, 0, 0.2)' : 'rgba(255, 215, 0, 0.1)',
-    color: theme.palette.type === 'dark' ? '#ffd700' : '#ffd700',
-  },
-  errorEvent: {
-    backgroundColor: theme.palette.type === 'dark' ? 'rgba(244, 67, 54, 0.2)' : 'rgba(244, 67, 54, 0.1)',
-    color: theme.palette.type === 'dark' ? '#e57373' : '#c62828',
-  },
-  normalEvent: {
-    backgroundColor: theme.palette.type === 'dark' ? 'rgba(156, 39, 176, 0.2)' : 'rgba(156, 39, 176, 0.1)',
-    color: theme.palette.type === 'dark' ? '#9c27b0' : '#9c27b0',
-  },
-  eventTable: {
-    minWidth: 650,
-    '& .MuiTableCell-root': {
-      padding: theme.spacing(1, 2),
-    },
-  },
-  eventRow: {
-    '&:hover': {
-      backgroundColor: theme.palette.action.hover,
-    },
-  },
-  k8sType: {
-    backgroundColor: theme.palette.type === 'dark' ? '#1976d2' : '#e3f2fd',
-    color: theme.palette.type === 'dark' ? '#90caf9' : '#1976d2',
-  },
-}));
 
 // Using KroResource from common package
 
@@ -296,7 +170,6 @@ const KroResourceTable = () => {
   const kroApi = useApi(kroApiRef);
   const config = useApi(configApiRef);
   const navigate = useNavigate();
-  const theme = useTheme();
   const enablePermissions = config.getOptionalBoolean('kro.enablePermissions') ?? false;
   const annotationPrefix = getAnnotationPrefix(config);
 
@@ -328,7 +201,7 @@ const KroResourceTable = () => {
   const [nestedResources, setNestedResources] = useState<Record<string, ResourceTableRow[]>>({});
   const [initialExpansionDone, setInitialExpansionDone] = useState<boolean>(false);
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
-  const [selectedTab, setSelectedTab] = useState<number>(0);
+  const [selectedTab, setSelectedTab] = useState<string>('manifest');
   const [selectedResource, setSelectedResource] = useState<KroResource | null>(null);
   const [events, setEvents] = useState<K8sEvent[]>([]);
   const [loadingEvents, setLoadingEvents] = useState<boolean>(false);
@@ -347,11 +220,6 @@ const KroResourceTable = () => {
     status: [] as string[],
     artifact: [] as string[]
   });
-  const [filterAnchorEl, setFilterAnchorEl] = useState<{ [key: string]: HTMLElement | null }>({});
-  const [supportingFilterAnchorEl, setSupportingFilterAnchorEl] = useState<{ [key: string]: HTMLElement | null }>({});
-  const [filterSearch, setFilterSearch] = useState<{ [key: string]: string }>({});
-  const [supportingFilterSearch, setSupportingFilterSearch] = useState<{ [key: string]: string }>({});
-  const classes = useStyles();
 
   // --- Add state for auto-expanded rows ---
   const [autoExpandedRows, setAutoExpandedRows] = useState<Set<string>>(new Set());
@@ -604,7 +472,7 @@ const KroResourceTable = () => {
     }
   };
 
-  const handleOpenDrawer = (resource: KroResource, tab: number) => {
+  const handleOpenDrawer = (resource: KroResource, tab: 'manifest' | 'events') => {
     let resourceType: string;
     if (resource.kind === 'ResourceGraphDefinition') {
       resourceType = 'RGD';
@@ -615,7 +483,7 @@ const KroResourceTable = () => {
     }
 
     // Check if we can show the requested tab
-    if (tab === 1) { // Events tab
+    if (tab === 'events') {
       let canShowEvents: boolean;
       if (resourceType === 'RGD') {
         canShowEvents = canShowEventsRGDs;
@@ -644,7 +512,7 @@ const KroResourceTable = () => {
     setSelectedResource(resource);
     setSelectedTab(tab);
     setDrawerOpen(true);
-    if (tab === 1) {
+    if (tab === 'events') {
       fetchEvents(resource);
     }
   };
@@ -655,22 +523,10 @@ const KroResourceTable = () => {
     setEvents([]);
   };
 
-  const handleTabChange = (_: React.ChangeEvent<{}>, newValue: number) => {
+  const handleTabChange = (newValue: string) => {
     setSelectedTab(newValue);
-    if (newValue === 1 && selectedResource) {
+    if (newValue === 'events' && selectedResource) {
       fetchEvents(selectedResource);
-    }
-  };
-
-  const handleCopyYaml = () => {
-    if (selectedResource) {
-      try {
-        const yamlStr = yaml.dump(removeManagedFields(selectedResource));
-        navigator.clipboard.writeText(yamlStr);
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error('Failed to copy YAML:', error);
-      }
     }
   };
 
@@ -725,21 +581,19 @@ const KroResourceTable = () => {
   const renderStatusBadge = (conditions: any[], conditionType: string) => {
     const { status, condition } = getConditionStatus(conditions, conditionType);
     const isSuccess = status === 'True';
-    const syncedClass = isSuccess ? classes.syncedSuccess : classes.syncedError;
-    const readyClass = isSuccess ? classes.readySuccess : classes.readyError;
-    const badgeClass = conditionType === 'Synced' ? syncedClass : readyClass;
     return (
-      <Tooltip classes={{ tooltip: classes.tooltip }} title={
-        <Box className={classes.tooltipContent}>
-          <Typography variant="subtitle2" gutterBottom><strong>Condition: {condition.type}</strong></Typography>
-          <Typography variant="body2">Status: {condition.status}</Typography>
-          {condition.reason && <Typography variant="body2">Reason: {condition.reason}</Typography>}
-          {condition.lastTransitionTime && <Typography variant="body2">Last Transition: {new Date(condition.lastTransitionTime).toLocaleString()}</Typography>}
-          {condition.message && <Typography variant="body2" style={{ wordWrap: 'break-word' }}>Message: {condition.message}</Typography>}
-        </Box>
-      } arrow>
-        <span className={`${classes.statusBadge} ${badgeClass}`}>{conditionType}</span>
-      </Tooltip>
+      <TooltipTrigger key={conditionType}>
+        <span className={`${styles.statusBadge} ${isSuccess ? styles.badgePositive : styles.badgeNegative}`}>{conditionType}</span>
+        <Tooltip>
+          <Box style={{ maxWidth: '380px' }}>
+            <Text variant="body-small" weight="bold" style={{ display: 'block' }}>Condition: {condition.type}</Text>
+            <Text variant="body-small" style={{ display: 'block' }}>Status: {condition.status}</Text>
+            {condition.reason && <Text variant="body-small" style={{ display: 'block' }}>Reason: {condition.reason}</Text>}
+            {condition.lastTransitionTime && <Text variant="body-small" style={{ display: 'block' }}>Last Transition: {new Date(condition.lastTransitionTime).toLocaleString()}</Text>}
+            {condition.message && <Text variant="body-small" style={{ wordWrap: 'break-word', display: 'block' }}>Message: {condition.message}</Text>}
+          </Box>
+        </Tooltip>
+      </TooltipTrigger>
     );
   };
 
@@ -769,18 +623,18 @@ const KroResourceTable = () => {
 
   const getTypeBadgeClass = (type: string) => {
     switch (type) {
-      case 'RGD': return classes.rgdType;
-      case 'Instance': return classes.instanceType;
-      case 'Resource': return classes.resourceType;
+      case 'RGD': return styles.badgeAccent;
+      case 'Instance': return styles.badgePositive;
+      case 'Resource': return styles.badgeAnnouncement;
       default: return '';
     }
   };
 
   const getEventTypeChip = (type?: string) => {
     switch (type) {
-      case 'Warning': return <Chip size="small" label={type} className={classes.warningEvent} />;
-      case 'Error': return <Chip size="small" label={type} className={classes.errorEvent} />;
-      default: return <Chip size="small" label={type || 'Normal'} className={classes.normalEvent} />;
+      case 'Warning': return <span className={`${styles.statusBadge} ${styles.badgeWarning}`}>{type}</span>;
+      case 'Error': return <span className={`${styles.statusBadge} ${styles.badgeNegative}`}>{type}</span>;
+      default: return <span className={`${styles.statusBadge} ${styles.badgeAccent}`}>{type || 'Normal'}</span>;
     }
   };
 
@@ -1049,30 +903,6 @@ const KroResourceTable = () => {
     setSupportingFilters(prev => ({ ...prev, [field]: values }));
   };
 
-  const handleFilterClick = (event: React.MouseEvent<HTMLElement>, field: string) => {
-    setFilterAnchorEl(prev => ({ ...prev, [field]: event.currentTarget }));
-  };
-
-  const handleSupportingFilterClick = (event: React.MouseEvent<HTMLElement>, field: string) => {
-    setSupportingFilterAnchorEl(prev => ({ ...prev, [field]: event.currentTarget }));
-  };
-
-  const handleFilterClose = (field: string) => {
-    setFilterAnchorEl(prev => ({ ...prev, [field]: null }));
-  };
-
-  const handleSupportingFilterClose = (field: string) => {
-    setSupportingFilterAnchorEl(prev => ({ ...prev, [field]: null }));
-  };
-
-  const isFieldFilterActive = (field: string) => {
-    return filters[field as keyof typeof filters].length > 0;
-  };
-
-  const isSupportingFilterActive = (field: string) => {
-    return supportingFilters[field as keyof typeof supportingFilters].length > 0;
-  };
-
   const getFilteredSupportingResources = (): KroResource[] => {
     return supportingResources.filter(resource => {
       const typeMatch = supportingFilters.type.length === 0 || supportingFilters.type.some(filter => resource.kind?.toLowerCase().includes(filter.toLowerCase()));
@@ -1107,22 +937,23 @@ const KroResourceTable = () => {
     if (row.type === 'Resource') {
       return row.status.conditions.length > 0 ? (
         row.status.conditions.map((condition: any, idx: number) => (
-          <Tooltip key={`${condition.type}-${idx}`} classes={{ tooltip: classes.tooltip }} title={
-            <Box className={classes.tooltipContent}>
-              <Typography variant="subtitle2" gutterBottom><strong>Condition: {condition.type}</strong></Typography>
-              <Typography variant="body2">Status: {condition.status}</Typography>
-              {condition.reason && <Typography variant="body2">Reason: {condition.reason}</Typography>}
-              {condition.lastTransitionTime && <Typography variant="body2">Last Transition: {new Date(condition.lastTransitionTime).toLocaleString()}</Typography>}
-              {condition.message && <Typography variant="body2" style={{ wordWrap: 'break-word' }}>Message: {condition.message}</Typography>}
-            </Box>
-          } arrow>
-            <span className={`${classes.statusBadge} ${condition.status === 'True' ? classes.readySuccess : classes.readyError}`}>
+          <TooltipTrigger key={`${condition.type}-${idx}`}>
+            <span className={`${styles.statusBadge} ${condition.status === 'True' ? styles.badgePositive : styles.badgeNegative}`}>
               {condition.type}
             </span>
-          </Tooltip>
+            <Tooltip>
+              <Box style={{ maxWidth: '380px' }}>
+                <Text variant="body-small" weight="bold" style={{ display: 'block' }}>Condition: {condition.type}</Text>
+                <Text variant="body-small" style={{ display: 'block' }}>Status: {condition.status}</Text>
+                {condition.reason && <Text variant="body-small" style={{ display: 'block' }}>Reason: {condition.reason}</Text>}
+                {condition.lastTransitionTime && <Text variant="body-small" style={{ display: 'block' }}>Last Transition: {new Date(condition.lastTransitionTime).toLocaleString()}</Text>}
+                {condition.message && <Text variant="body-small" style={{ wordWrap: 'break-word', display: 'block' }}>Message: {condition.message}</Text>}
+              </Box>
+            </Tooltip>
+          </TooltipTrigger>
         ))
       ) : (
-        <span className={`${classes.statusBadge} ${classes.readySuccess}`}>No Conditions</span>
+        <span className={`${styles.statusBadge} ${styles.badgePositive}`}>No Conditions</span>
       );
     }
     if (row.type === 'RGD') {
@@ -1153,82 +984,89 @@ const KroResourceTable = () => {
       const canExpand = row.type === 'Instance' || (nestedResources[resourceId] && nestedResources[resourceId].length > 0);
 
       rows.push(
-        <TableRow key={resourceId} className={`${classes.clickableRow} ${row.level > 0 ? classes.nestedRow : ''}`}>
-          <TableCell className={classes.tableCell}>
-            <span className={`${classes.typeBadge} ${getTypeBadgeClass(row.type)}`}>{row.type}</span>
-          </TableCell>
-          <TableCell className={classes.tableCell}>
-            <Box className={classes.resourceName}>
+        <tr key={resourceId} className={`${styles.clickableRow} ${row.level > 0 ? styles.nestedRow : ''}`}>
+          <td className={styles.tableCell}>
+            <span className={`${styles.typeBadge} ${getTypeBadgeClass(row.type)}`}>{row.type}</span>
+          </td>
+          <td className={styles.tableCell}>
+            <div className={styles.resourceName}>
               {Array.from({ length: row.level }).map((_item, indentIndex) => (
-                <div key={indentIndex} className={classes.indent} />
+                <div key={indentIndex} className={styles.indent} />
               ))}
-              <Box className={classes.resourceNameContent}>
+              <div className={styles.resourceNameContent}>
                 {canExpand && (
-                  <IconButton className={classes.expandIcon} size="small" onClick={(e) => {
-                    e.stopPropagation();
-                    handleRowExpand(row);
-                  }}>
-                    {isExpanded ? <KeyboardArrowDownIcon /> : <KeyboardArrowRightIcon />}
-                  </IconButton>
+                  <ButtonIcon
+                    aria-label={isExpanded ? 'Collapse' : 'Expand'}
+                    icon={isExpanded ? <RiArrowDownSLine /> : <RiArrowRightSLine />}
+                    size="small"
+                    onPress={() => handleRowExpand(row)}
+                  />
                 )}
                 {row.name}
                 {row.isExternal && (
-                  <Tooltip title="External Reference - Not managed by KRO" arrow>
-                    <span className={classes.externalBadge}>EXTERNAL</span>
-                  </Tooltip>
+                  <TooltipTrigger>
+                    <span className={styles.externalBadge}>EXTERNAL</span>
+                    <Tooltip>External Reference - Not managed by KRO</Tooltip>
+                  </TooltipTrigger>
                 )}
                 {row.reconcilePaused && (
-                  <Tooltip title="Reconciliation is paused for this instance (kro.run/reconcile: disabled)" arrow>
-                    <Chip size="small" label="Paused" style={{ backgroundColor: '#fff3e0', color: '#e65100', fontWeight: 'bold', fontSize: '10px', height: 18, marginLeft: 4 }} />
-                  </Tooltip>
+                  <TooltipTrigger>
+                    <Badge style={{ color: 'var(--bui-fg-warning)' }}>Paused</Badge>
+                    <Tooltip>Reconciliation is paused for this instance (kro.run/reconcile: disabled)</Tooltip>
+                  </TooltipTrigger>
                 )}
-              </Box>
-            </Box>
-          </TableCell>
-          <TableCell className={classes.tableCell}>
+              </div>
+            </div>
+          </td>
+          <td className={styles.tableCell}>
             {row.scope === 'Cluster' ? (
-              <Tooltip title="Cluster-scoped resource (no namespace)" arrow>
-                <Chip size="small" label="Cluster-Scoped" style={{ backgroundColor: '#e3f2fd', color: '#1565c0', fontWeight: 'bold', fontSize: '10px', height: 18 }} />
-              </Tooltip>
+              <TooltipTrigger>
+                <Badge style={{ color: 'var(--bui-fg-announcement)' }}>Cluster-Scoped</Badge>
+                <Tooltip>Cluster-scoped resource (no namespace)</Tooltip>
+              </TooltipTrigger>
             ) : (
-              <Tooltip title={row.namespace ? `Namespace: ${row.namespace}` : 'Cluster-scoped resource'} arrow>
+              <TooltipTrigger>
                 <span>{row.namespace || '-'}</span>
-              </Tooltip>
+                <Tooltip>{row.namespace ? `Namespace: ${row.namespace}` : 'Cluster-scoped resource'}</Tooltip>
+              </TooltipTrigger>
             )}
-          </TableCell>
-          <TableCell className={classes.tableCell}>{row.group}</TableCell>
-          <TableCell className={classes.tableCell}>{row.kind}</TableCell>
-          <TableCell className={classes.tableCell}>
-            <Box display="flex">
+          </td>
+          <td className={styles.tableCell}>{row.group}</td>
+          <td className={styles.tableCell}>{row.kind}</td>
+          <td className={styles.tableCell}>
+            <Flex style={{ flexWrap: 'wrap' }}>
               {renderRowStatusBadges(row)}
-            </Box>
-          </TableCell>
-          <TableCell className={classes.tableCell}>
-            <Tooltip classes={{ tooltip: classes.tooltip }} title={formatDate(row.createdAt)} arrow>
+            </Flex>
+          </td>
+          <td className={styles.tableCell}>
+            <TooltipTrigger>
               <span style={{ cursor: 'help' }}>{getRelativeTime(row.createdAt)}</span>
-            </Tooltip>
-          </TableCell>
-          <TableCell className={classes.tableCell}>
-            <Box className={classes.actionButtons}>
-              <Tooltip title="View Graph">
-                <IconButton className={classes.iconButton} size="small" onClick={(e) => {
-                  e.stopPropagation();
-                  navigate(`/catalog/${entity.metadata.namespace}/component/${entity.metadata.name}/kro-graph`);
-                }}>
-                  <SitemapIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="View YAML & Events">
-                <IconButton className={classes.iconButton} size="small" onClick={(e) => {
-                  e.stopPropagation();
-                  handleOpenDrawer(row.resource, 0);
-                }}>
-                  <DescriptionIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            </Box>
-          </TableCell>
-        </TableRow>
+              <Tooltip>{formatDate(row.createdAt)}</Tooltip>
+            </TooltipTrigger>
+          </td>
+          <td className={styles.tableCell}>
+            <Flex className={styles.actionButtons}>
+              <TooltipTrigger>
+                <ButtonIcon
+                  aria-label="View Graph"
+                  icon={<SitemapIcon />}
+                  size="small"
+                  onPress={() => navigate(`/catalog/${entity.metadata.namespace}/component/${entity.metadata.name}/kro-graph`)}
+                />
+                <Tooltip>View Graph</Tooltip>
+              </TooltipTrigger>
+              <TooltipTrigger>
+                <ButtonIcon
+                  aria-label="View YAML & Events"
+                  icon={<RiFileTextLine />}
+                  size="small"
+                  onPress={() => handleOpenDrawer(row.resource, 'manifest')}
+                />
+                <Tooltip>View YAML & Events</Tooltip>
+              </TooltipTrigger>
+            </Flex>
+          </td>
+        </tr>
       );
       // Don't add nested resources here since they're already included in the flattened list
       // The expand button is just for visual indication now
@@ -1249,7 +1087,7 @@ const KroResourceTable = () => {
       const versionPath = /^v\d$/.test(version) ? '' : `/${version}`;
       const marketplaceUrl = `https://marketplace.upbound.io/${resourceType}/${org}/${name}${versionPath}`;
       return (
-        <Link href={marketplaceUrl} target="_blank" rel="noopener noreferrer" style={{ color: theme.palette.text.primary, textDecoration: 'underline' }}>
+        <Link href={marketplaceUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--bui-fg-primary)', textDecoration: 'underline' }}>
           {packageName}
         </Link>
       );
@@ -1260,7 +1098,7 @@ const KroResourceTable = () => {
       const versionPath = /^v\d$/.test(version) ? '' : `/${version}`;
       const marketplaceUrl = `https://github.com/crossplane-contrib/${name}/tree/${versionPath}`;
       return (
-        <Link href={marketplaceUrl} target="_blank" rel="noopener noreferrer" style={{ color: theme.palette.text.primary, textDecoration: 'underline' }}>
+        <Link href={marketplaceUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--bui-fg-primary)', textDecoration: 'underline' }}>
           {packageName}
         </Link>
       );
@@ -1271,64 +1109,81 @@ const KroResourceTable = () => {
   const renderSupportingResourceRows = () => {
     if (!canListRGDs) {
       return (
-        <TableRow>
-          <TableCell colSpan={5}>
-            <Typography align="center">You don't have permissions to view supporting resources</Typography>
-          </TableCell>
-        </TableRow>
+        <tr>
+          <td className={styles.tableCell} colSpan={5}>
+            <Text style={{ textAlign: 'center', display: 'block' }}>You don't have permissions to view supporting resources</Text>
+          </td>
+        </tr>
       );
     }
     if (loadingSupportingResources) {
       return (
-        <TableRow>
-          <TableCell colSpan={5}>
-            <Box display="flex" justifyContent="center" p={2}>
-              <CircularProgress />
-            </Box>
-          </TableCell>
-        </TableRow>
+        <tr>
+          <td className={styles.tableCell} colSpan={5}>
+            <Flex align="center" justify="center" p="4">
+              <Progress />
+            </Flex>
+          </td>
+        </tr>
       );
     }
     const filteredSupportingResources = getFilteredSupportingResources();
     if (filteredSupportingResources.length === 0) {
       return (
-        <TableRow>
-          <TableCell colSpan={5}>
-            <Typography align="center">No supporting resources found</Typography>
-          </TableCell>
-        </TableRow>
+        <tr>
+          <td className={styles.tableCell} colSpan={5}>
+            <Text style={{ textAlign: 'center', display: 'block' }}>No supporting resources found</Text>
+          </td>
+        </tr>
       );
     }
     return filteredSupportingResources.map((resource, index) => (
-      <TableRow key={`${resource.kind}-${resource.metadata?.name}-${index}`}>
-        <TableCell className={classes.tableCell}>
-          <span className={`${classes.typeBadge} ${classes.supportingType}`}>{resource.kind}</span>
-        </TableCell>
-        <TableCell className={classes.tableCell}>{resource.metadata?.name}</TableCell>
-        <TableCell className={classes.tableCell}>
-          <Box display="flex">
+      <tr key={`${resource.kind}-${resource.metadata?.name}-${index}`}>
+        <td className={styles.tableCell}>
+          <span className={`${styles.typeBadge} ${styles.badgeAccent}`}>{resource.kind}</span>
+        </td>
+        <td className={styles.tableCell}>{resource.metadata?.name}</td>
+        <td className={styles.tableCell}>
+          <Flex style={{ flexWrap: 'wrap' }}>
             {resource.status?.conditions?.map((condition: any, idx: number) => (
               <React.Fragment key={`${condition.type}-${idx}`}>
                 {renderStatusBadge([condition], condition.type)}
               </React.Fragment>
             ))}
-          </Box>
-        </TableCell>
-        <TableCell className={classes.tableCell}>
-          <Box className={classes.actionButtons}>
-            <Tooltip title="View YAML & Events">
-              <IconButton className={classes.iconButton} size="small" onClick={() => handleOpenDrawer(resource, 0)}>
-                <DescriptionIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        </TableCell>
-      </TableRow>
+          </Flex>
+        </td>
+        <td className={styles.tableCell}>
+          <Flex className={styles.actionButtons}>
+            <TooltipTrigger>
+              <ButtonIcon
+                aria-label="View YAML & Events"
+                icon={<RiFileTextLine />}
+                size="small"
+                onPress={() => handleOpenDrawer(resource, 'manifest')}
+              />
+              <Tooltip>View YAML & Events</Tooltip>
+            </TooltipTrigger>
+          </Flex>
+        </td>
+      </tr>
     ));
   };
 
-  // Custom Filter Popover
-  const renderFilterPopover = (anchorEl: HTMLElement | null, onClose: () => void, options: string[], selected: string[], onChange: (values: string[]) => void, searchValue: string, setSearchValue: (v: string) => void) => {
+  // Reusable filterable column header: owns its own popover open state via DialogTrigger,
+  // so no anchor-element/open-state bookkeeping is needed in the parent component.
+  const ColumnFilterHeader = ({
+    label,
+    options,
+    selected,
+    onChange,
+  }: {
+    label: string;
+    options: string[];
+    selected: string[];
+    onChange: (values: string[]) => void;
+  }) => {
+      const [searchValue, setSearchValue] = useState('');
+      const isActive = selected.length > 0;
       const filteredOptions = options.filter(option => option.toLowerCase().includes(searchValue.toLowerCase()));
       const allSelected = selected.length === options.length || (selected.length > 0 && filteredOptions.every(opt => selected.includes(opt)));
       const handleToggle = (option: string) => {
@@ -1346,48 +1201,56 @@ const KroResourceTable = () => {
           }
       };
       return (
-          <Popover
-              open={Boolean(anchorEl)}
-              anchorEl={anchorEl}
-              onClose={onClose}
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-              transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-          >
-              <Box p={2} minWidth={250} maxHeight={400} display="flex" flexDirection="column">
-                  <TextField
+          <Flex align="center" justify="between" gap="2">
+              <span>{label}</span>
+              <DialogTrigger>
+                  <ButtonIcon
+                      aria-label={`Filter ${label}`}
+                      icon={<RiFilterLine />}
                       size="small"
-                      placeholder="Search..."
-                      value={searchValue}
-                      onChange={e => setSearchValue(e.target.value)}
-                      InputProps={{ endAdornment: <SearchIcon fontSize="small" /> }}
-                      style={{ marginBottom: 8 }}
+                      style={isActive ? { color: 'var(--bui-accent-bg)' } : undefined}
                   />
-                  <List style={{ maxHeight: 300, overflow: 'auto', background: 'rgba(0,0,0,0.02)' }}>
-                      <ListItem button onClick={handleSelectAll} dense>
-                          <Checkbox checked={allSelected} indeterminate={selected.length > 0 && !allSelected} tabIndex={-1} disableRipple />
-                          <ListItemText primary="All" style={{ fontWeight: 600 }} />
-                      </ListItem>
-                      {filteredOptions.map(option => (
-                          <ListItem button key={option} onClick={() => handleToggle(option)} dense>
-                              <Checkbox checked={selected.includes(option)} tabIndex={-1} disableRipple />
-                              <ListItemText primary={option} style={{ fontWeight: 600 }} />
-                          </ListItem>
-                      ))}
-                  </List>
-              </Box>
-          </Popover>
+                  <Popover>
+                      <Box className={styles.filterPopoverBody}>
+                          <TextField
+                              size="small"
+                              placeholder="Search..."
+                              icon={<RiSearchLine />}
+                              value={searchValue}
+                              onChange={setSearchValue}
+                          />
+                          <Box className={styles.filterList}>
+                              <Checkbox
+                                  isSelected={allSelected}
+                                  isIndeterminate={selected.length > 0 && !allSelected}
+                                  onChange={handleSelectAll}
+                              >
+                                  All
+                              </Checkbox>
+                              {filteredOptions.map(option => (
+                                  <Checkbox key={option} isSelected={selected.includes(option)} onChange={() => handleToggle(option)}>
+                                      {option}
+                                  </Checkbox>
+                              ))}
+                          </Box>
+                      </Box>
+                  </Popover>
+              </DialogTrigger>
+          </Flex>
       );
   };
 
   if (!canListResources && !canListInstances && !canListRGDs) {
     return (
       <Card>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>Resources ({getTotalResourceCount()})</Typography>
-          <Box m={2}>
-            <Typography gutterBottom>You don't have permissions to view KRO resources</Typography>
+        <CardBody>
+          <Box mb="4">
+            <Text variant="title-small" weight="bold">Resources ({getTotalResourceCount()})</Text>
           </Box>
-        </CardContent>
+          <Box m="2">
+            <Text>You don't have permissions to view KRO resources</Text>
+          </Box>
+        </CardBody>
       </Card>
     );
   }
@@ -1396,277 +1259,160 @@ const KroResourceTable = () => {
   return (
     <>
       <Card>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>Resources ({getTotalResourceCount()})</Typography>
+        <CardBody>
+          <Box mb="4">
+            <Text variant="title-small" weight="bold">Resources ({getTotalResourceCount()})</Text>
+          </Box>
           {loading && (
-            <Box display="flex" justifyContent="center" alignItems="center" height="200px">
-              <CircularProgress />
-            </Box>
+            <Flex align="center" justify="center" style={{ height: '200px' }}>
+              <Progress />
+            </Flex>
           )}
           {!loading && (allResources.length > 0 ? (
-            <TableContainer component={Paper} className={classes.tableContainer}>
-              <Table className={classes.table} size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell className={`${classes.tableCell} ${classes.headerCell}`}>
-                      <Box display="flex" alignItems="center" justifyContent="space-between">
-                        Type
-                        <IconButton
-                          size="small"
-                          onClick={(e) => handleFilterClick(e, 'type')}
-                          style={{ color: isFieldFilterActive('type') ? theme.palette.primary.main : theme.palette.text.secondary }}
-                        >
-                          <FilterListIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    </TableCell>
-                    <TableCell className={`${classes.tableCell} ${classes.headerCell}`}>
-                      <Box display="flex" alignItems="center" justifyContent="space-between">
-                        Name
-                        <IconButton
-                          size="small"
-                          onClick={(e) => handleFilterClick(e, 'name')}
-                          style={{ color: isFieldFilterActive('name') ? theme.palette.primary.main : theme.palette.text.secondary }}
-                        >
-                          <FilterListIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    </TableCell>
-                    <TableCell className={`${classes.tableCell} ${classes.headerCell}`}>
-                      <Box display="flex" alignItems="center" justifyContent="space-between">
-                        Namespace
-                        <IconButton
-                          size="small"
-                          onClick={(e) => handleFilterClick(e, 'namespace')}
-                          style={{ color: isFieldFilterActive('namespace') ? theme.palette.primary.main : theme.palette.text.secondary }}
-                        >
-                          <FilterListIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    </TableCell>
-                    <TableCell className={`${classes.tableCell} ${classes.headerCell}`}>
-                      <Box display="flex" alignItems="center" justifyContent="space-between">
-                        Group
-                        <IconButton
-                          size="small"
-                          onClick={(e) => handleFilterClick(e, 'group')}
-                          style={{ color: isFieldFilterActive('group') ? theme.palette.primary.main : theme.palette.text.secondary }}
-                        >
-                          <FilterListIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    </TableCell>
-                    <TableCell className={`${classes.tableCell} ${classes.headerCell}`}>
-                      <Box display="flex" alignItems="center" justifyContent="space-between">
-                        Kind
-                        <IconButton
-                          size="small"
-                          onClick={(e) => handleFilterClick(e, 'kind')}
-                          style={{ color: isFieldFilterActive('kind') ? theme.palette.primary.main : theme.palette.text.secondary }}
-                        >
-                          <FilterListIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    </TableCell>
-                    <TableCell className={`${classes.tableCell} ${classes.headerCell}`}>
-                      <Box display="flex" alignItems="center" justifyContent="space-between">
-                        Status
-                        <IconButton
-                          size="small"
-                          onClick={(e) => handleFilterClick(e, 'status')}
-                          style={{ color: isFieldFilterActive('status') ? theme.palette.primary.main : theme.palette.text.secondary }}
-                        >
-                          <FilterListIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    </TableCell>
-                    <TableCell className={`${classes.tableCell} ${classes.headerCell}`}>
-                      <Box display="flex" alignItems="center" justifyContent="space-between">
-                        Created
-                        <IconButton
-                          size="small"
-                          onClick={(e) => handleFilterClick(e, 'created')}
-                          style={{ color: isFieldFilterActive('created') ? theme.palette.primary.main : theme.palette.text.secondary }}
-                        >
-                          <FilterListIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    </TableCell>
-                    <TableCell className={`${classes.tableCell} ${classes.headerCell}`}>Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
+            <div className={styles.tableContainer}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th className={`${styles.tableCell} ${styles.headerCell}`}>
+                      <ColumnFilterHeader label="Type" options={getAllResourceValues().type} selected={filters.type} onChange={(v) => handleFilterChange('type', v)} />
+                    </th>
+                    <th className={`${styles.tableCell} ${styles.headerCell}`}>
+                      <ColumnFilterHeader label="Name" options={getAllResourceValues().name} selected={filters.name} onChange={(v) => handleFilterChange('name', v)} />
+                    </th>
+                    <th className={`${styles.tableCell} ${styles.headerCell}`}>
+                      <ColumnFilterHeader label="Namespace" options={getAllResourceValues().namespace} selected={filters.namespace} onChange={(v) => handleFilterChange('namespace', v)} />
+                    </th>
+                    <th className={`${styles.tableCell} ${styles.headerCell}`}>
+                      <ColumnFilterHeader label="Group" options={getAllResourceValues().group} selected={filters.group} onChange={(v) => handleFilterChange('group', v)} />
+                    </th>
+                    <th className={`${styles.tableCell} ${styles.headerCell}`}>
+                      <ColumnFilterHeader label="Kind" options={getAllResourceValues().kind} selected={filters.kind} onChange={(v) => handleFilterChange('kind', v)} />
+                    </th>
+                    <th className={`${styles.tableCell} ${styles.headerCell}`}>
+                      <ColumnFilterHeader label="Status" options={getAllResourceValues().status} selected={filters.status} onChange={(v) => handleFilterChange('status', v)} />
+                    </th>
+                    <th className={`${styles.tableCell} ${styles.headerCell}`}>
+                      <ColumnFilterHeader label="Created" options={getAllResourceValues().created} selected={filters.created} onChange={(v) => handleFilterChange('created', v)} />
+                    </th>
+                    <th className={`${styles.tableCell} ${styles.headerCell}`}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
                   {renderResourceRows(getFilteredResources())}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                </tbody>
+              </table>
+            </div>
           ) : (
-            <Typography>No resources found</Typography>
+            <Text>No resources found</Text>
           ))}
-        </CardContent>
+        </CardBody>
       </Card>
 
       {/* Supporting Resources Section */}
-      <Card style={{ marginTop: theme.spacing(3) }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>Supporting Resources</Typography>
+      <Card style={{ marginTop: 'var(--bui-space-6)' }}>
+        <CardBody>
+          <Box mb="4">
+            <Text variant="title-small" weight="bold">Supporting Resources</Text>
+          </Box>
           {loadingSupportingResources ? (
-            <Box display="flex" justifyContent="center" alignItems="center" height="200px">
-              <CircularProgress />
-            </Box>
+            <Flex align="center" justify="center" style={{ height: '200px' }}>
+              <Progress />
+            </Flex>
           ) : (
-            <TableContainer component={Paper} className={classes.tableContainer}>
-              <Table className={classes.table} size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell className={`${classes.tableCell} ${classes.headerCell}`}>
-                      <Box display="flex" alignItems="center" justifyContent="space-between">
-                        Type
-                        <IconButton
-                          size="small"
-                          onClick={(e) => handleSupportingFilterClick(e, 'type')}
-                          style={{ color: isSupportingFilterActive('type') ? theme.palette.primary.main : theme.palette.text.secondary }}
-                        >
-                          <FilterListIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    </TableCell>
-                    <TableCell className={`${classes.tableCell} ${classes.headerCell}`}>
-                      <Box display="flex" alignItems="center" justifyContent="space-between">
-                        Name
-                        <IconButton
-                          size="small"
-                          onClick={(e) => handleSupportingFilterClick(e, 'name')}
-                          style={{ color: isSupportingFilterActive('name') ? theme.palette.primary.main : theme.palette.text.secondary }}
-                        >
-                          <FilterListIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    </TableCell>
-                    <TableCell className={`${classes.tableCell} ${classes.headerCell}`}>
-                      <Box display="flex" alignItems="center" justifyContent="space-between">
-                        Status
-                        <IconButton
-                          size="small"
-                          onClick={(e) => handleSupportingFilterClick(e, 'status')}
-                          style={{ color: isSupportingFilterActive('status') ? theme.palette.primary.main : theme.palette.text.secondary }}
-                        >
-                          <FilterListIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    </TableCell>
-                    <TableCell className={`${classes.tableCell} ${classes.headerCell}`}>Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
+            <div className={styles.tableContainer}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th className={`${styles.tableCell} ${styles.headerCell}`}>
+                      <ColumnFilterHeader label="Type" options={getSupportingResourceValues().type} selected={supportingFilters.type} onChange={(v) => handleSupportingFilterChange('type', v)} />
+                    </th>
+                    <th className={`${styles.tableCell} ${styles.headerCell}`}>
+                      <ColumnFilterHeader label="Name" options={getSupportingResourceValues().name} selected={supportingFilters.name} onChange={(v) => handleSupportingFilterChange('name', v)} />
+                    </th>
+                    <th className={`${styles.tableCell} ${styles.headerCell}`}>
+                      <ColumnFilterHeader label="Status" options={getSupportingResourceValues().status} selected={supportingFilters.status} onChange={(v) => handleSupportingFilterChange('status', v)} />
+                    </th>
+                    <th className={`${styles.tableCell} ${styles.headerCell}`}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
                   {renderSupportingResourceRows()}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                </tbody>
+              </table>
+            </div>
           )}
-        </CardContent>
+        </CardBody>
       </Card>
 
-      <Drawer className={classes.drawer} variant="temporary" anchor="right" open={drawerOpen} onClose={handleCloseDrawer} classes={{ paper: classes.drawerPaper }}>
-        <Box className={classes.drawerHeader}>
-          <Typography variant="h6">{selectedResource?.metadata?.name || 'Resource Details'}</Typography>
-          <IconButton onClick={handleCloseDrawer}><CloseIcon /></IconButton>
-        </Box>
-        <Tabs value={selectedTab} onChange={handleTabChange}>
-          <Tab label="Kubernetes Manifest" />
-          <Tab label="Kubernetes Events" />
-        </Tabs>
-        <Box className={classes.tabContent}>
-          {selectedTab === 0 && selectedResource && (
-            <>
-              <Box className={classes.yamlActions}>
-                <Tooltip title="Copy YAML">
-                  <IconButton size="small" onClick={handleCopyYaml}>
-                    <FileCopyIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title="Download YAML">
-                  <IconButton size="small" onClick={handleDownloadYaml}>
-                    <GetAppIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>
+      <Drawer anchor="right" open={drawerOpen} onClose={handleCloseDrawer}>
+        <Box style={{ width: '800px' }}>
+          <Flex align="center" justify="between" className={styles.drawerHeader}>
+            <Text variant="title-small" weight="bold">{selectedResource?.metadata?.name || 'Resource Details'}</Text>
+            <ButtonIcon aria-label="Close" icon={<RiCloseLine />} onPress={handleCloseDrawer} />
+          </Flex>
+          <Tabs selectedKey={selectedTab} onSelectionChange={key => handleTabChange(String(key))}>
+            <TabList>
+              <Tab id="manifest">Kubernetes Manifest</Tab>
+              <Tab id="events">Kubernetes Events</Tab>
+            </TabList>
+            <TabPanel id="manifest">
+              <Box className={styles.tabContent}>
+                {selectedResource && (
+                  <>
+                    <Flex className={styles.yamlActions}>
+                      <CopyTextButton text={yaml.dump(removeManagedFields(selectedResource))} aria-label="Copy YAML to clipboard" />
+                      <TooltipTrigger>
+                        <ButtonIcon aria-label="Download YAML" icon={<RiDownloadLine />} size="small" onPress={handleDownloadYaml} />
+                        <Tooltip>Download YAML</Tooltip>
+                      </TooltipTrigger>
+                    </Flex>
+                    <SyntaxHighlighter language="yaml" style={tomorrow} showLineNumbers>
+                      {yaml.dump(removeManagedFields(selectedResource))}
+                    </SyntaxHighlighter>
+                  </>
+                )}
               </Box>
-              <SyntaxHighlighter language="yaml" style={tomorrow} showLineNumbers>
-                {yaml.dump(removeManagedFields(selectedResource))}
-              </SyntaxHighlighter>
-            </>
-          )}
-          {selectedTab === 1 && loadingEvents && (
-            <Box display="flex" justifyContent="center" p={3}>
-              <CircularProgress />
-            </Box>
-          )}
-          {selectedTab === 1 && !loadingEvents && (
-            events.length > 0 ? (
-                <TableContainer>
-                  <Table size="small" className={classes.eventTable}>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Type</TableCell>
-                        <TableCell>Reason</TableCell>
-                        <TableCell>Age</TableCell>
-                        <TableCell>Message</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {events.map((event, index) => (
-                        <TableRow key={index} className={classes.eventRow}>
-                          <TableCell>{getEventTypeChip(event.type)}</TableCell>
-                          <TableCell>{event.reason}</TableCell>
-                          <TableCell>{getRelativeTime(event.lastTimestamp || event.firstTimestamp)}</TableCell>
-                          <TableCell>{event.message}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              ) : (
-                <Typography align="center" color="textSecondary">No events found for this resource</Typography>
-              )
-          )}
+            </TabPanel>
+            <TabPanel id="events">
+              <Box className={styles.tabContent}>
+                {loadingEvents && (
+                  <Flex align="center" justify="center" p="4">
+                    <Progress />
+                  </Flex>
+                )}
+                {!loadingEvents && (
+                  events.length > 0 ? (
+                    <div className={styles.tableContainer}>
+                      <table className={styles.table}>
+                        <thead>
+                          <tr>
+                            <th className={styles.tableCell}>Type</th>
+                            <th className={styles.tableCell}>Reason</th>
+                            <th className={styles.tableCell}>Age</th>
+                            <th className={styles.tableCell}>Message</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {events.map((event, index) => (
+                            <tr key={index} className={styles.clickableRow}>
+                              <td className={styles.tableCell}>{getEventTypeChip(event.type)}</td>
+                              <td className={styles.tableCell}>{event.reason}</td>
+                              <td className={styles.tableCell}>{getRelativeTime(event.lastTimestamp || event.firstTimestamp)}</td>
+                              <td className={styles.tableCell}>{event.message}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <Text style={{ textAlign: 'center', color: 'var(--bui-fg-secondary)', display: 'block' }}>No events found for this resource</Text>
+                  )
+                )}
+              </Box>
+            </TabPanel>
+          </Tabs>
         </Box>
       </Drawer>
-
-      {/* Filter Popovers */}
-      {Object.keys(filters).map((field) => {
-          const availableValues = getAllResourceValues()[field as keyof ReturnType<typeof getAllResourceValues>] || [];
-          return (
-              <React.Fragment key={field}>
-                  {renderFilterPopover(
-                      filterAnchorEl[field],
-                      () => handleFilterClose(field),
-                      availableValues,
-                      filters[field as keyof typeof filters],
-                      (values) => handleFilterChange(field, values),
-                      filterSearch[field] || '',
-                      (v) => setFilterSearch(prev => ({ ...prev, [field]: v }))
-                  )}
-              </React.Fragment>
-          );
-      })}
-
-      {/* Supporting Resources Filter Popovers */}
-      {Object.keys(supportingFilters).map((field) => {
-          const availableValues = getSupportingResourceValues()[field as keyof ReturnType<typeof getSupportingResourceValues>] || [];
-          return (
-              <React.Fragment key={`supporting-${field}`}>
-                  {renderFilterPopover(
-                      supportingFilterAnchorEl[field],
-                      () => handleSupportingFilterClose(field),
-                      availableValues,
-                      supportingFilters[field as keyof typeof supportingFilters],
-                      (values) => handleSupportingFilterChange(field, values),
-                      supportingFilterSearch[field] || '',
-                      (v) => setSupportingFilterSearch(prev => ({ ...prev, [field]: v }))
-                  )}
-              </React.Fragment>
-          );
-      })}
     </>
   );
 };

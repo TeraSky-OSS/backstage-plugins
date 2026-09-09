@@ -1,0 +1,18 @@
+.root {
+  height: 100%;
+  overflow: auto;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  border-bottom: 1px solid var(--bui-border-1);
+  background-color: var(--bui-bg-app);
+}
+
+.divider {
+  margin-top: var(--bui-space-4);
+  border: none;
+  border-top: 1px solid var(--bui-border-1);
+}

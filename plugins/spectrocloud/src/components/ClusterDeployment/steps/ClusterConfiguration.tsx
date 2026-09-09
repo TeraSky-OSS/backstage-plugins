@@ -1,32 +1,6 @@
 import { useState } from 'react';
-import {
-  Box,
-  Typography,
-  TextField,
-  Button,
-  IconButton,
-  Grid,
-} from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
-import AddIcon from '@material-ui/icons/Add';
-import DeleteIcon from '@material-ui/icons/Delete';
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    padding: theme.spacing(2),
-  },
-  section: {
-    marginTop: theme.spacing(3),
-  },
-  labelItem: {
-    display: 'flex',
-    alignItems: 'center',
-    marginBottom: theme.spacing(1),
-  },
-  labelInput: {
-    marginRight: theme.spacing(1),
-  },
-}));
+import { Box, Button, ButtonIcon, Flex, Text, TextAreaField, TextField } from '@backstage/ui';
+import { RiAddLine, RiDeleteBinLine } from '@remixicon/react';
 
 interface ClusterConfigurationProps {
   clusterName: string;
@@ -47,7 +21,6 @@ export const ClusterConfiguration = ({
   clusterTags,
   onUpdate,
 }: ClusterConfigurationProps) => {
-  const classes = useStyles();
   const [tags, setTags] = useState<string[]>(clusterTags || []);
 
   const updateTags = (tagList: string[]) => {
@@ -74,69 +47,67 @@ export const ClusterConfiguration = ({
   };
 
   return (
-    <Box className={classes.root}>
-      <Typography variant="h5" gutterBottom>
+    <Box p="4">
+      <Text variant="title-medium" weight="bold" as="div">
         Cluster Configuration
-      </Typography>
-      <Typography variant="body2" color="textSecondary" paragraph>
-        Configure basic cluster settings including name, description, and tags
-      </Typography>
+      </Text>
+      <Box mt="1" mb="4">
+        <Text variant="body-small" color="secondary">
+          Configure basic cluster settings including name, description, and tags
+        </Text>
+      </Box>
 
-      <TextField
-        label="Cluster Name"
-        value={clusterName}
-        onChange={e => onUpdate({ clusterName: e.target.value })}
-        fullWidth
-        required
-        helperText="Enter a unique name for your cluster"
-        margin="normal"
-      />
+      <Box mb="4">
+        <TextField
+          label="Cluster Name"
+          value={clusterName}
+          onChange={value => onUpdate({ clusterName: value })}
+          isRequired
+          description="Enter a unique name for your cluster"
+        />
+      </Box>
 
-      <TextField
-        label="Description (Optional)"
-        value={clusterDescription || ''}
-        onChange={e => onUpdate({ clusterDescription: e.target.value })}
-        fullWidth
-        multiline
-        rows={3}
-        helperText="Enter a description for your cluster"
-        margin="normal"
-      />
+      <Box mb="4">
+        <TextAreaField
+          label="Description (Optional)"
+          value={clusterDescription || ''}
+          onChange={value => onUpdate({ clusterDescription: value })}
+          rows={3}
+          description="Enter a description for your cluster"
+        />
+      </Box>
 
-      <Box className={classes.section}>
-        <Typography variant="h6" gutterBottom>
+      <Box mt="6">
+        <Text variant="title-small" weight="bold" as="div">
           Tags (Optional)
-        </Typography>
-        <Typography variant="body2" color="textSecondary" paragraph>
-          Add tags to organize and filter your cluster
-        </Typography>
+        </Text>
+        <Box mt="1" mb="4">
+          <Text variant="body-small" color="secondary">
+            Add tags to organize and filter your cluster
+          </Text>
+        </Box>
 
         {tags.map((tag, index) => (
-          <Grid container spacing={2} key={index} className={classes.labelItem}>
-            <Grid item xs={10}>
+          <Flex key={index} align="center" gap="2" mb="2">
+            <Box style={{ flexGrow: 1 }}>
               <TextField
                 label="Tag Key"
                 value={tag}
-                onChange={e => handleTagChange(index, e.target.value)}
-                fullWidth
+                onChange={value => handleTagChange(index, value)}
                 size="small"
-                helperText="Tag keys will automatically get the value 'spectro__tag'"
+                description="Tag keys will automatically get the value 'spectro__tag'"
               />
-            </Grid>
-            <Grid item xs={2}>
-              <IconButton onClick={() => handleRemoveTag(index)} size="small">
-                <DeleteIcon />
-              </IconButton>
-            </Grid>
-          </Grid>
+            </Box>
+            <ButtonIcon
+              icon={<RiDeleteBinLine />}
+              onPress={() => handleRemoveTag(index)}
+              size="small"
+              aria-label="Remove tag"
+            />
+          </Flex>
         ))}
 
-        <Button
-          startIcon={<AddIcon />}
-          onClick={handleAddTag}
-          size="small"
-          style={{ marginTop: 8 }}
-        >
+        <Button iconStart={<RiAddLine />} onPress={handleAddTag} size="small">
           Add Tag
         </Button>
       </Box>

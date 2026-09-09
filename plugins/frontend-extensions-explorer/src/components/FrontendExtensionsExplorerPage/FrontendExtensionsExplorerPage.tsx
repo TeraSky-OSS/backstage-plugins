@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, MouseEvent } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import {
   useApi,
   appTreeApiRef,
@@ -7,58 +7,44 @@ import {
 } from '@backstage/frontend-plugin-api';
 import {
   Content,
-  ContentHeader,
-  Header,
   Page,
+  Table as BackstageTable,
+  TableColumn,
 } from '@backstage/core-components';
 import {
-  makeStyles,
-  Theme,
-  createStyles,
-  Typography,
-  Chip,
-  TextField,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Paper,
-  Table,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableCell,
-  Drawer,
-  IconButton,
-  Divider,
-  CardContent,
-  Tooltip,
-  Box,
-  Grid,
-  TableContainer,
-  TableSortLabel,
-  InputAdornment,
-  Collapse,
+  Badge,
   Button,
-} from '@material-ui/core';
-import {
+  ButtonIcon,
+  Card,
+  CardBody,
+  Flex,
+  Select,
+  Text,
+  TextField,
   ToggleButton,
   ToggleButtonGroup,
-} from '@material-ui/lab';
-import CloseIcon from '@material-ui/icons/Close';
-import SearchIcon from '@material-ui/icons/Search';
-import ViewListIcon from '@material-ui/icons/ViewList';
-import DashboardIcon from '@material-ui/icons/Dashboard';
-import ExtensionIcon from '@material-ui/icons/Extension';
-import CheckCircleIcon from '@material-ui/icons/CheckCircle';
-import CancelIcon from '@material-ui/icons/Cancel';
-import PowerIcon from '@material-ui/icons/PowerSettingsNew';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import ExpandLessIcon from '@material-ui/icons/ExpandLess';
-import UnfoldLessIcon from '@material-ui/icons/UnfoldLess';
-import UnfoldMoreIcon from '@material-ui/icons/UnfoldMore';
-import FileCopyOutlinedIcon from '@material-ui/icons/FileCopyOutlined';
-import CheckIcon from '@material-ui/icons/Check';
+  Tooltip,
+  TooltipTrigger,
+} from '@backstage/ui';
+import {
+  RiArrowDownSLine,
+  RiArrowUpSLine,
+  RiCheckboxCircleLine,
+  RiCheckLine,
+  RiCloseCircleLine,
+  RiCloseLine,
+  RiContractUpDownLine,
+  RiDashboardLine,
+  RiExpandUpDownLine,
+  RiFileCopyLine,
+  RiPuzzleLine,
+  RiSearchLine,
+  RiShutDownLine,
+  RiTableLine,
+} from '@remixicon/react';
+import styles from './FrontendExtensionsExplorerPage.module.css';
+// BUI-EXCEPTION: `Drawer` has no BUI equivalent (see MUI_TO_BUI_MIGRATION.md exception list).
+import { Drawer } from '@material-ui/core';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -77,8 +63,6 @@ interface ExtensionInfo {
 }
 
 type ViewMode = 'cards' | 'table';
-type SortField = 'id' | 'pluginId' | 'extensionType' | 'status';
-type SortDir = 'asc' | 'desc';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -155,182 +139,6 @@ function formatJson(value: unknown): string {
 }
 
 // ---------------------------------------------------------------------------
-// Styles
-// ---------------------------------------------------------------------------
-
-const useStyles = makeStyles((theme: Theme) =>
-  createStyles({
-    statsContainer: {
-      display: 'flex',
-      gap: theme.spacing(2),
-      marginBottom: theme.spacing(3),
-      flexWrap: 'wrap',
-    },
-    statCard: {
-      padding: theme.spacing(2, 3),
-      display: 'flex',
-      alignItems: 'center',
-      gap: theme.spacing(1.5),
-      minWidth: 160,
-    },
-    statNumber: {
-      fontSize: '1.8rem',
-      fontWeight: 700,
-      lineHeight: 1,
-    },
-    statLabel: {
-      fontSize: '0.75rem',
-      textTransform: 'uppercase',
-      letterSpacing: '0.08em',
-      color: theme.palette.text.secondary,
-    },
-    filtersContainer: {
-      display: 'flex',
-      gap: theme.spacing(2),
-      marginBottom: theme.spacing(3),
-      flexWrap: 'wrap',
-      alignItems: 'flex-end',
-    },
-    searchField: {
-      minWidth: 240,
-    },
-    filterSelect: {
-      minWidth: 160,
-    },
-    viewToggle: {
-      marginLeft: 'auto',
-    },
-    pluginCard: {
-      marginBottom: theme.spacing(2),
-      border: `1px solid ${theme.palette.divider}`,
-    },
-    pluginCardHeader: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: theme.spacing(1),
-      padding: theme.spacing(1.5, 2),
-      backgroundColor:
-        theme.palette.type === 'dark'
-          ? theme.palette.grey[800]
-          : theme.palette.grey[100],
-      borderBottom: `1px solid ${theme.palette.divider}`,
-    },
-    pluginIcon: {
-      color: theme.palette.text.secondary,
-      fontSize: '1.1rem',
-    },
-    pluginTitle: {
-      fontWeight: 600,
-      flexGrow: 1,
-    },
-    pluginCount: {
-      color: theme.palette.text.secondary,
-      fontSize: '0.85rem',
-    },
-    extensionRow: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: theme.spacing(1),
-      padding: theme.spacing(1, 2),
-      cursor: 'pointer',
-      borderBottom: `1px solid ${theme.palette.divider}`,
-      '&:last-child': {
-        borderBottom: 'none',
-      },
-      '&:hover': {
-        backgroundColor:
-          theme.palette.type === 'dark'
-            ? theme.palette.grey[700]
-            : theme.palette.grey[50],
-      },
-    },
-    extensionId: {
-      flexGrow: 1,
-      fontFamily: 'monospace',
-      fontSize: '0.85rem',
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-    },
-    disabledText: {
-      color: theme.palette.text.disabled,
-    },
-    typeChip: {
-      height: 22,
-      fontSize: '0.7rem',
-    },
-    statusChip: {
-      height: 22,
-      fontSize: '0.7rem',
-    },
-    drawerPaper: {
-      width: 480,
-      padding: theme.spacing(3),
-    },
-    drawerHeader: {
-      display: 'flex',
-      alignItems: 'center',
-      marginBottom: theme.spacing(2),
-    },
-    drawerTitle: {
-      flexGrow: 1,
-      fontFamily: 'monospace',
-      wordBreak: 'break-all',
-    },
-    drawerSection: {
-      marginBottom: theme.spacing(2),
-    },
-    drawerLabel: {
-      fontSize: '0.7rem',
-      textTransform: 'uppercase',
-      letterSpacing: '0.08em',
-      color: theme.palette.text.secondary,
-      marginBottom: theme.spacing(0.5),
-    },
-    codeBlock: {
-      fontFamily: 'monospace',
-      fontSize: '0.8rem',
-      backgroundColor:
-        theme.palette.type === 'dark'
-          ? theme.palette.grey[900]
-          : theme.palette.grey[100],
-      padding: theme.spacing(1.5),
-      borderRadius: theme.shape.borderRadius,
-      overflowX: 'auto',
-      whiteSpace: 'pre',
-      maxHeight: 300,
-      overflowY: 'auto',
-      border: `1px solid ${theme.palette.divider}`,
-    },
-    dataRefChip: {
-      margin: theme.spacing(0.25),
-      height: 22,
-      fontSize: '0.7rem',
-      fontFamily: 'monospace',
-    },
-    tableRow: {
-      cursor: 'pointer',
-    },
-    tableIdCell: {
-      fontFamily: 'monospace',
-      fontSize: '0.8rem',
-    },
-    enabledIcon: {
-      color: theme.palette.success?.main ?? '#4caf50',
-      fontSize: '1rem',
-    },
-    disabledIcon: {
-      color: theme.palette.error.main,
-      fontSize: '1rem',
-    },
-    notRunningIcon: {
-      color: theme.palette.warning?.main ?? '#ff9800',
-      fontSize: '1rem',
-    },
-  }),
-);
-
-// ---------------------------------------------------------------------------
 // Status helpers
 // ---------------------------------------------------------------------------
 
@@ -354,43 +162,44 @@ function statusLabel(status: ExtensionStatus): string {
   return 'Not Running';
 }
 
+function statusClassName(status: ExtensionStatus): string {
+  if (status === 'enabled') return styles.statusEnabled;
+  if (status === 'disabled') return styles.statusDisabled;
+  return styles.statusNotRunning;
+}
+
 function StatusChip({ ext, className }: { ext: ExtensionInfo; className?: string }) {
   const status = getStatus(ext);
-  const label = statusLabel(status);
-  const color: 'default' | 'primary' | 'secondary' =
-    status === 'enabled' ? 'primary' : 'default';
   return (
-    <Chip
-      className={className}
-      size="small"
-      label={label}
-      color={color}
-      variant={status === 'enabled' ? 'default' : 'outlined'}
-    />
+    <Badge className={`${statusClassName(status)} ${className ?? ''}`}>
+      {statusLabel(status)}
+    </Badge>
   );
 }
 
 function StatusIcon({ ext }: { ext: ExtensionInfo }) {
-  const classes = useStyles();
   const status = getStatus(ext);
   if (status === 'enabled') {
     return (
-      <Tooltip title="Enabled">
-        <CheckCircleIcon className={classes.enabledIcon} />
-      </Tooltip>
+      <TooltipTrigger>
+        <RiCheckboxCircleLine size={18} className={styles.statusEnabled} />
+        <Tooltip>Enabled</Tooltip>
+      </TooltipTrigger>
     );
   }
   if (status === 'disabled') {
     return (
-      <Tooltip title="Disabled">
-        <CancelIcon className={classes.disabledIcon} />
-      </Tooltip>
+      <TooltipTrigger>
+        <RiCloseCircleLine size={18} className={styles.statusDisabled} />
+        <Tooltip>Disabled</Tooltip>
+      </TooltipTrigger>
     );
   }
   return (
-    <Tooltip title="Not Running (enabled but not instantiated)">
-      <PowerIcon className={classes.notRunningIcon} />
-    </Tooltip>
+    <TooltipTrigger>
+      <RiShutDownLine size={18} className={styles.statusNotRunning} />
+      <Tooltip>Not Running (enabled but not instantiated)</Tooltip>
+    </TooltipTrigger>
   );
 }
 
@@ -409,17 +218,15 @@ const TYPE_COLORS: Record<string, string> = {
 function TypeChip({ type, className }: { type: string; className?: string }) {
   const bgColor = TYPE_COLORS[type] ?? '#546e7a';
   return (
-    <Chip
+    <Badge
       className={className}
-      size="small"
-      label={type}
       style={{
         backgroundColor: bgColor,
         color: '#fff',
-        height: 22,
-        fontSize: '0.7rem',
       }}
-    />
+    >
+      {type}
+    </Badge>
   );
 }
 
@@ -434,101 +241,92 @@ function ExtensionDetailDrawer({
   ext: ExtensionInfo | null;
   onClose: () => void;
 }) {
-  const classes = useStyles();
-
   return (
     <Drawer
       anchor="right"
       open={!!ext}
       onClose={onClose}
-      classes={{ paper: classes.drawerPaper }}
+      PaperProps={{ className: styles.drawerPaper }}
     >
       {ext && (
         <>
-          <div className={classes.drawerHeader}>
-            <Typography variant="h6" className={classes.drawerTitle}>
+          <div className={styles.drawerHeader}>
+            <Text as="h6" className={styles.drawerTitle}>
               {ext.id}
-            </Typography>
-            <IconButton size="small" onClick={onClose}>
-              <CloseIcon />
-            </IconButton>
+            </Text>
+            <ButtonIcon
+              aria-label="Close"
+              size="small"
+              variant="tertiary"
+              icon={<RiCloseLine />}
+              onPress={onClose}
+            />
           </div>
 
-          <Divider style={{ marginBottom: 16 }} />
+          <hr className={styles.divider} />
 
-          <div className={classes.drawerSection}>
-            <Typography className={classes.drawerLabel}>Plugin</Typography>
-            <Typography variant="body2" style={{ fontFamily: 'monospace' }}>
-              {ext.pluginId}
-            </Typography>
+          <div className={styles.drawerSection}>
+            <Text className={styles.drawerLabel}>Plugin</Text>
+            <Text style={{ fontFamily: 'monospace' }}>{ext.pluginId}</Text>
           </div>
 
-          <div className={classes.drawerSection}>
-            <Typography className={classes.drawerLabel}>Extension Type</Typography>
+          <div className={styles.drawerSection}>
+            <Text className={styles.drawerLabel}>Extension Type</Text>
             <TypeChip type={ext.extensionType} />
           </div>
 
-          <div className={classes.drawerSection}>
-            <Typography className={classes.drawerLabel}>Status</Typography>
-            <Box display="flex" alignItems="center" gridGap={8}>
+          <div className={styles.drawerSection}>
+            <Text className={styles.drawerLabel}>Status</Text>
+            <Flex align="center" gap="2">
               <StatusChip ext={ext} />
-              <Typography variant="caption" color="textSecondary">
+              <Text style={{ color: 'var(--bui-fg-secondary)' }}>
                 {statusDescription(ext)}
-              </Typography>
-            </Box>
+              </Text>
+            </Flex>
           </div>
 
-          <Divider style={{ marginBottom: 16 }} />
+          <hr className={styles.divider} />
 
-          <div className={classes.drawerSection}>
-            <Typography className={classes.drawerLabel}>Attaches To</Typography>
+          <div className={styles.drawerSection}>
+            <Text className={styles.drawerLabel}>Attaches To</Text>
             {ext.attachToId ? (
-              <Typography
-                variant="body2"
-                style={{ fontFamily: 'monospace', fontSize: '0.82rem' }}
-              >
+              <Text style={{ fontFamily: 'monospace', fontSize: '0.82rem' }}>
                 <strong>{ext.attachToId}</strong>
                 {ext.attachToInput && (
-                  <span style={{ color: '#888' }}>
+                  <span style={{ color: 'var(--bui-fg-secondary)' }}>
                     {' '}
                     → input: <em>{ext.attachToInput}</em>
                   </span>
                 )}
-              </Typography>
+              </Text>
             ) : (
-              <Typography variant="body2" color="textSecondary">
-                None (root node)
-              </Typography>
+              <Text style={{ color: 'var(--bui-fg-secondary)' }}>None (root node)</Text>
             )}
           </div>
 
           {ext.dataRefs.length > 0 && (
-            <div className={classes.drawerSection}>
-              <Typography className={classes.drawerLabel}>
+            <div className={styles.drawerSection}>
+              <Text className={styles.drawerLabel}>
                 Output Data Refs ({ext.dataRefs.length})
-              </Typography>
-              <Box display="flex" flexWrap="wrap">
+              </Text>
+              <Flex gap="1" style={{ flexWrap: 'wrap' }}>
                 {ext.dataRefs.map(ref => (
-                  <Chip
-                    key={ref}
-                    className={classes.dataRefChip}
-                    label={ref}
-                    size="small"
-                    variant="outlined"
-                  />
+                  <Badge key={ref} className={styles.dataRefChip}>
+                    {ref}
+                  </Badge>
                 ))}
-              </Box>
+              </Flex>
             </div>
           )}
 
-          <div className={classes.drawerSection}>
-            <Typography className={classes.drawerLabel}>Current Config</Typography>
+          <div className={styles.drawerSection}>
+            <Text className={styles.drawerLabel}>Current Config</Text>
             {ext.config !== undefined && ext.config !== null ? (
-              <pre className={classes.codeBlock}>{formatJson(ext.config)}</pre>
+              <pre className={styles.codeBlock}>{formatJson(ext.config)}</pre>
             ) : (
-              <Typography variant="body2" color="textSecondary">
+              <Text style={{ color: 'var(--bui-fg-secondary)' }}>
                 No config applied (using extension defaults)
-              </Typography>
+              </Text>
             )}
           </div>
         </>
@@ -548,7 +346,6 @@ function StatsBar({
   extensions: ExtensionInfo[];
   plugins: string[];
 }) {
-  const classes = useStyles();
   const enabled = extensions.filter(e => !e.isDisabled && e.isInstantiated).length;
   const disabled = extensions.filter(e => e.isDisabled).length;
   const notRunning = extensions.filter(e => !e.isDisabled && !e.isInstantiated).length;
@@ -562,19 +359,16 @@ function StatsBar({
   ];
 
   return (
-    <div className={classes.statsContainer}>
+    <div className={styles.statsContainer}>
       {stats.map(s => (
-        <Paper key={s.label} className={classes.statCard} elevation={1}>
-          <div>
-            <Typography
-              className={classes.statNumber}
-              style={{ color: s.color }}
-            >
+        <Card key={s.label} className={styles.statCard}>
+          <CardBody>
+            <Text className={styles.statNumber} style={{ color: s.color }}>
               {s.value}
-            </Typography>
-            <Typography className={classes.statLabel}>{s.label}</Typography>
-          </div>
-        </Paper>
+            </Text>
+            <Text className={styles.statLabel}>{s.label}</Text>
+          </CardBody>
+        </Card>
       ))}
     </div>
   );
@@ -591,43 +385,47 @@ function ExtensionRow({
   ext: ExtensionInfo;
   onClick: () => void;
 }) {
-  const classes = useStyles();
   const isDisabled = getStatus(ext) !== 'enabled';
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = useCallback(
-    (e: MouseEvent) => {
-      e.stopPropagation();
-      navigator.clipboard.writeText(ext.id).then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1500);
-      });
-    },
-    [ext.id],
-  );
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(ext.id).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  }, [ext.id]);
 
   return (
-    <div className={classes.extensionRow} onClick={onClick} role="button" tabIndex={0} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') onClick(); }}>
+    <div
+      className={styles.extensionRow}
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={e => {
+        if (e.key === 'Enter' || e.key === ' ') onClick();
+      }}
+    >
       <StatusIcon ext={ext} />
-      <Tooltip title={ext.id}>
-        <Typography
-          className={`${classes.extensionId} ${isDisabled ? classes.disabledText : ''}`}
+      <TooltipTrigger>
+        <Text
+          className={styles.extensionId}
+          style={isDisabled ? { color: 'var(--bui-fg-disabled)' } : undefined}
         >
           {ext.id}
-        </Typography>
-      </Tooltip>
-      <Tooltip title={copied ? 'Copied!' : 'Copy extension ID'}>
-        <IconButton
+        </Text>
+        <Tooltip>{ext.id}</Tooltip>
+      </TooltipTrigger>
+      <TooltipTrigger>
+        <ButtonIcon
+          aria-label={copied ? 'Copied' : 'Copy extension ID'}
           size="small"
-          onClick={handleCopy}
-          style={{ padding: 2, marginRight: 4, opacity: copied ? 1 : 0.5 }}
-        >
-          {copied
-            ? <CheckIcon style={{ fontSize: '0.85rem', color: '#4caf50' }} />
-            : <FileCopyOutlinedIcon style={{ fontSize: '0.85rem' }} />}
-        </IconButton>
-      </Tooltip>
-      <TypeChip type={ext.extensionType} className={classes.typeChip} />
+          variant="tertiary"
+          icon={copied ? <RiCheckLine /> : <RiFileCopyLine />}
+          onPress={handleCopy}
+        />
+        <Tooltip>{copied ? 'Copied!' : 'Copy extension ID'}</Tooltip>
+      </TooltipTrigger>
+      <TypeChip type={ext.extensionType} className={styles.typeChip} />
     </div>
   );
 }
@@ -649,34 +447,36 @@ function PluginCard({
   isCollapsed: boolean;
   onToggleCollapse: () => void;
 }) {
-  const classes = useStyles();
   const enabledCount = extensions.filter(e => getStatus(e) === 'enabled').length;
   const disabledCount = extensions.filter(e => getStatus(e) === 'disabled').length;
 
   return (
-    <Paper className={classes.pluginCard} elevation={1}>
+    <Card className={styles.pluginCard}>
       <div
-        className={classes.pluginCardHeader}
+        className={styles.pluginCardHeader}
         onClick={onToggleCollapse}
         role="button"
         tabIndex={0}
-        style={{ cursor: 'pointer' }}
-        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') onToggleCollapse(); }}
+        onKeyDown={e => {
+          if (e.key === 'Enter' || e.key === ' ') onToggleCollapse();
+        }}
       >
-        <ExtensionIcon className={classes.pluginIcon} fontSize="small" />
-        <Typography variant="subtitle1" className={classes.pluginTitle}>
-          {pluginId}
-        </Typography>
-        <Typography className={classes.pluginCount}>
+        <RiPuzzleLine size={18} className={styles.pluginIcon} />
+        <Text className={styles.pluginTitle}>{pluginId}</Text>
+        <Text className={styles.pluginCount}>
           {extensions.length} extensions &nbsp;·&nbsp; {enabledCount} enabled &nbsp;·&nbsp;{' '}
           {disabledCount} disabled
-        </Typography>
-        <IconButton size="small" style={{ marginLeft: 8 }} onClick={e => { e.stopPropagation(); onToggleCollapse(); }}>
-          {isCollapsed ? <ExpandMoreIcon fontSize="small" /> : <ExpandLessIcon fontSize="small" />}
-        </IconButton>
+        </Text>
+        <ButtonIcon
+          aria-label={isCollapsed ? 'Expand' : 'Collapse'}
+          size="small"
+          variant="tertiary"
+          icon={isCollapsed ? <RiArrowDownSLine /> : <RiArrowUpSLine />}
+          onPress={onToggleCollapse}
+        />
       </div>
-      <Collapse in={!isCollapsed}>
-        <CardContent style={{ padding: 0 }}>
+      {!isCollapsed && (
+        <CardBody style={{ padding: 0 }}>
           {extensions.map(ext => (
             <ExtensionRow
               key={ext.id}
@@ -684,9 +484,9 @@ function PluginCard({
               onClick={() => onExtensionClick(ext)}
             />
           ))}
-        </CardContent>
-      </Collapse>
-    </Paper>
+        </CardBody>
+      )}
+    </Card>
   );
 }
 
@@ -701,103 +501,69 @@ function ExtensionTable({
   extensions: ExtensionInfo[];
   onRowClick: (ext: ExtensionInfo) => void;
 }) {
-  const classes = useStyles();
-  const [sortField, setSortField] = useState<SortField>('pluginId');
-  const [sortDir, setSortDir] = useState<SortDir>('asc');
-
-  const sorted = useMemo(() => {
-    return [...extensions].sort((a, b) => {
-      let aVal = '';
-      let bVal = '';
-      if (sortField === 'id') { aVal = a.id; bVal = b.id; }
-      else if (sortField === 'pluginId') { aVal = a.pluginId; bVal = b.pluginId; }
-      else if (sortField === 'extensionType') { aVal = a.extensionType; bVal = b.extensionType; }
-      else if (sortField === 'status') { aVal = getStatus(a); bVal = getStatus(b); }
-      const cmp = aVal.localeCompare(bVal);
-      return sortDir === 'asc' ? cmp : -cmp;
-    });
-  }, [extensions, sortField, sortDir]);
-
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortDir(d => (d === 'asc' ? 'desc' : 'asc'));
-    } else {
-      setSortField(field);
-      setSortDir('asc');
-    }
-  };
-
-  const col = (field: SortField, label: string) => (
-    <TableSortLabel
-      active={sortField === field}
-      direction={sortField === field ? sortDir : 'asc'}
-      onClick={() => handleSort(field)}
-    >
-      {label}
-    </TableSortLabel>
-  );
+  const columns: TableColumn<ExtensionInfo>[] = [
+    {
+      title: 'Extension ID',
+      field: 'id',
+      render: ext => <span className={styles.tableIdCell}>{ext.id}</span>,
+    },
+    {
+      title: 'Plugin',
+      field: 'pluginId',
+      render: ext => (
+        <span style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>{ext.pluginId}</span>
+      ),
+    },
+    {
+      title: 'Type',
+      field: 'extensionType',
+      render: ext => <TypeChip type={ext.extensionType} />,
+    },
+    {
+      title: 'Status',
+      render: ext => (
+        <Flex align="center" gap="1">
+          <StatusIcon ext={ext} />
+          <StatusChip ext={ext} className={styles.statusChip} />
+        </Flex>
+      ),
+    },
+    {
+      title: 'Attach To',
+      render: ext => (
+        <span style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>
+          {ext.attachToId || '—'}
+          {ext.attachToInput && ` → ${ext.attachToInput}`}
+        </span>
+      ),
+    },
+    {
+      title: 'Config',
+      render: ext =>
+        ext.config !== undefined && ext.config !== null ? (
+          <TooltipTrigger>
+            <Badge style={{ cursor: 'pointer' }}>View</Badge>
+            <Tooltip>
+              <pre style={{ fontSize: '0.75rem', whiteSpace: 'pre-wrap', margin: 0 }}>
+                {formatJson(ext.config)}
+              </pre>
+            </Tooltip>
+          </TooltipTrigger>
+        ) : (
+          <span style={{ color: 'var(--bui-fg-secondary)' }}>—</span>
+        ),
+    },
+  ];
 
   return (
-    <TableContainer component={Paper}>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>{col('id', 'Extension ID')}</TableCell>
-            <TableCell>{col('pluginId', 'Plugin')}</TableCell>
-            <TableCell>{col('extensionType', 'Type')}</TableCell>
-            <TableCell>{col('status', 'Status')}</TableCell>
-            <TableCell>Attach To</TableCell>
-            <TableCell>Config</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {sorted.map(ext => (
-            <TableRow
-              key={ext.id}
-              hover
-              className={classes.tableRow}
-              onClick={() => onRowClick(ext)}
-            >
-              <TableCell className={classes.tableIdCell}>{ext.id}</TableCell>
-              <TableCell>
-                <Typography style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
-                  {ext.pluginId}
-                </Typography>
-              </TableCell>
-              <TableCell>
-                <TypeChip type={ext.extensionType} />
-              </TableCell>
-              <TableCell>
-                <Box display="flex" alignItems="center" gridGap={4}>
-                  <StatusIcon ext={ext} />
-                  <StatusChip ext={ext} className={classes.statusChip} />
-                </Box>
-              </TableCell>
-              <TableCell>
-                <Typography
-                  variant="caption"
-                  style={{ fontFamily: 'monospace' }}
-                >
-                  {ext.attachToId || '—'}
-                  {ext.attachToInput && ` → ${ext.attachToInput}`}
-                </Typography>
-              </TableCell>
-              <TableCell>
-                {ext.config !== undefined && ext.config !== null ? (
-                  <Tooltip title={<pre style={{ fontSize: '0.75rem', whiteSpace: 'pre-wrap' }}>{formatJson(ext.config)}</pre>}>
-                    <Chip size="small" label="View" variant="outlined" style={{ cursor: 'pointer', height: 22 }} />
-                  </Tooltip>
-                ) : (
-                  <Typography variant="caption" color="textSecondary">
-                    —
-                  </Typography>
-                )}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+    <BackstageTable
+      options={{ search: false, paging: false }}
+      columns={columns}
+      data={extensions}
+      onRowClick={(_event, rowData) => {
+        if (rowData) onRowClick(rowData);
+      }}
+    />
   );
 }
 
@@ -806,7 +572,6 @@ function ExtensionTable({
 // ---------------------------------------------------------------------------
 
 export function FrontendExtensionsExplorerPage() {
-  const classes = useStyles();
   const appTreeApi = useApi(appTreeApiRef);
   const { tree } = appTreeApi.getTree();
 
@@ -876,139 +641,128 @@ export function FrontendExtensionsExplorerPage() {
 
   return (
     <Page themeId="tool">
-      <Header
-        title="Frontend Extensions Explorer"
-        subtitle="Inspect all New Frontend System extensions loaded in this app"
-      />
       <Content>
-        <ContentHeader title="" />
+        <Text style={{ color: 'var(--bui-fg-secondary)', marginBottom: 'var(--bui-space-4)' }}>
+          Inspect all New Frontend System extensions loaded in this app
+        </Text>
 
         <StatsBar extensions={allExtensions} plugins={allPlugins} />
 
         {/* Filter bar */}
-        <div className={classes.filtersContainer}>
+        <div className={styles.filtersContainer}>
           <TextField
-            className={classes.searchField}
-            variant="outlined"
+            className={styles.searchField}
             size="small"
+            icon={<RiSearchLine size={16} />}
             placeholder="Search by extension ID or plugin…"
             value={search}
-            onChange={e => setSearch(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon fontSize="small" />
-                </InputAdornment>
-              ),
-            }}
+            onChange={setSearch}
           />
 
-          <FormControl variant="outlined" size="small" className={classes.filterSelect}>
-            <InputLabel>Type</InputLabel>
-            <Select
-              value={filterType}
-              onChange={e => setFilterType(e.target.value as string)}
-              label="Type"
-            >
-              <MenuItem value="all">All Types</MenuItem>
-              {allTypes.map(t => (
-                <MenuItem key={t} value={t}>
-                  {t}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <Select
+            className={styles.filterSelect}
+            size="small"
+            label="Type"
+            selectedKey={filterType}
+            onSelectionChange={key => setFilterType(String(key))}
+            options={[
+              { id: 'all', label: 'All Types' },
+              ...allTypes.map(t => ({ id: t, label: t })),
+            ]}
+          />
 
-          <FormControl variant="outlined" size="small" className={classes.filterSelect}>
-            <InputLabel>Plugin</InputLabel>
-            <Select
-              value={filterPlugin}
-              onChange={e => setFilterPlugin(e.target.value as string)}
-              label="Plugin"
-            >
-              <MenuItem value="all">All Plugins</MenuItem>
-              {allPlugins.map(p => (
-                <MenuItem key={p} value={p}>
-                  {p}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <Select
+            className={styles.filterSelect}
+            size="small"
+            label="Plugin"
+            selectedKey={filterPlugin}
+            onSelectionChange={key => setFilterPlugin(String(key))}
+            options={[
+              { id: 'all', label: 'All Plugins' },
+              ...allPlugins.map(p => ({ id: p, label: p })),
+            ]}
+          />
 
-          <FormControl variant="outlined" size="small" className={classes.filterSelect}>
-            <InputLabel>Status</InputLabel>
-            <Select
-              value={filterStatus}
-              onChange={e => setFilterStatus(e.target.value as string)}
-              label="Status"
-            >
-              <MenuItem value="all">All Statuses</MenuItem>
-              <MenuItem value="enabled">Enabled</MenuItem>
-              <MenuItem value="disabled">Disabled</MenuItem>
-              <MenuItem value="not-running">Not Running</MenuItem>
-            </Select>
-          </FormControl>
+          <Select
+            className={styles.filterSelect}
+            size="small"
+            label="Status"
+            selectedKey={filterStatus}
+            onSelectionChange={key => setFilterStatus(String(key))}
+            options={[
+              { id: 'all', label: 'All Statuses' },
+              { id: 'enabled', label: 'Enabled' },
+              { id: 'disabled', label: 'Disabled' },
+              { id: 'not-running', label: 'Not Running' },
+            ]}
+          />
 
           <ToggleButtonGroup
-            className={classes.viewToggle}
-            value={viewMode}
-            exclusive
-            onChange={(_e, v) => { if (v) setViewMode(v); }}
-            size="small"
+            className={styles.viewToggle}
+            selectionMode="single"
+            disallowEmptySelection
+            selectedKeys={[viewMode]}
+            onSelectionChange={keys => {
+              const [v] = Array.from(keys);
+              if (v) setViewMode(v as ViewMode);
+            }}
           >
-            <ToggleButton value="cards" aria-label="card view">
-              <Tooltip title="Plugin Card View">
-                <DashboardIcon fontSize="small" />
-              </Tooltip>
-            </ToggleButton>
-            <ToggleButton value="table" aria-label="table view">
-              <Tooltip title="Flat Table View">
-                <ViewListIcon fontSize="small" />
-              </Tooltip>
-            </ToggleButton>
+            <TooltipTrigger>
+              <ToggleButton id="cards" aria-label="card view">
+                <RiDashboardLine size={16} />
+              </ToggleButton>
+              <Tooltip>Plugin Card View</Tooltip>
+            </TooltipTrigger>
+            <TooltipTrigger>
+              <ToggleButton id="table" aria-label="table view">
+                <RiTableLine size={16} />
+              </ToggleButton>
+              <Tooltip>Flat Table View</Tooltip>
+            </TooltipTrigger>
           </ToggleButtonGroup>
         </div>
 
         {filtered.length === 0 && (
-          <Paper style={{ padding: 32, textAlign: 'center' }}>
-            <Typography color="textSecondary">
-              No extensions match the current filters.
-            </Typography>
-          </Paper>
+          <Card className={styles.emptyState}>
+            <CardBody>
+              <Text style={{ color: 'var(--bui-fg-secondary)' }}>
+                No extensions match the current filters.
+              </Text>
+            </CardBody>
+          </Card>
         )}
         {filtered.length > 0 && viewMode === 'cards' && (
           <>
-            <Box display="flex" alignItems="center" gridGap={8} mb={1}>
+            <Flex align="center" gap="2" style={{ marginBottom: 'var(--bui-space-2)' }}>
               <Button
                 size="small"
-                variant="outlined"
-                startIcon={<UnfoldLessIcon fontSize="small" />}
-                onClick={collapseAll}
+                variant="secondary"
+                iconStart={<RiContractUpDownLine size={16} />}
+                onPress={collapseAll}
               >
                 Collapse All
               </Button>
               <Button
                 size="small"
-                variant="outlined"
-                startIcon={<UnfoldMoreIcon fontSize="small" />}
-                onClick={expandAll}
+                variant="secondary"
+                iconStart={<RiExpandUpDownLine size={16} />}
+                onPress={expandAll}
               >
                 Expand All
               </Button>
-            </Box>
-            <Grid container spacing={0} direction="column">
+            </Flex>
+            <Flex direction="column" gap="0">
               {pluginGroups.map(([pluginId, exts]) => (
-                <Grid item key={pluginId}>
-                  <PluginCard
-                    pluginId={pluginId}
-                    extensions={exts}
-                    onExtensionClick={setSelectedExt}
-                    isCollapsed={collapsedPlugins.has(pluginId)}
-                    onToggleCollapse={() => togglePlugin(pluginId)}
-                  />
-                </Grid>
+                <PluginCard
+                  key={pluginId}
+                  pluginId={pluginId}
+                  extensions={exts}
+                  onExtensionClick={setSelectedExt}
+                  isCollapsed={collapsedPlugins.has(pluginId)}
+                  onToggleCollapse={() => togglePlugin(pluginId)}
+                />
               ))}
-            </Grid>
+            </Flex>
           </>
         )}
         {filtered.length > 0 && viewMode === 'table' && (

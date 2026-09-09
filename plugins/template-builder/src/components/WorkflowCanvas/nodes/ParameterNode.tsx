@@ -1,37 +1,7 @@
 import { Handle, Position } from '@xyflow/react';
-import { Box, Typography, Chip } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
-import InputIcon from '@material-ui/icons/Input';
-
-const useStyles = makeStyles(theme => ({
-  node: {
-    padding: theme.spacing(1),
-    borderRadius: theme.shape.borderRadius,
-    backgroundColor: theme.palette.background.paper,
-    border: `2px solid ${theme.palette.secondary.main}`,
-    minWidth: 100,
-    maxWidth: 150,
-    boxShadow: theme.shadows[1],
-    cursor: 'pointer',
-    '&:hover': {
-      boxShadow: theme.shadows[3],
-      borderColor: theme.palette.secondary.dark,
-    },
-  },
-  header: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(0.5),
-    marginBottom: theme.spacing(0.5),
-  },
-  paramName: {
-    fontSize: '0.75rem',
-    color: theme.palette.text.secondary,
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-  },
-}));
+import { Badge, Box, Text } from '@backstage/ui';
+import { RiLoginBoxLine } from '@remixicon/react';
+import styles from './nodes.module.css';
 
 export interface ParameterNodeData {
   type: 'parameter';
@@ -46,27 +16,20 @@ export interface ParameterNodeProps {
 }
 
 export function ParameterNode({ data }: ParameterNodeProps) {
-  const classes = useStyles();
-
   return (
-    <Box className={classes.node}>
-      <Box className={classes.header}>
-        <InputIcon style={{ fontSize: '1rem', color: '#666' }} />
-        <Typography variant="body2" style={{ fontWeight: 600, fontSize: '0.85rem' }}>
+    <Box className={styles.paramNode}>
+      <Box className={styles.nodeHeader}>
+        <RiLoginBoxLine style={{ fontSize: '1rem', color: 'var(--bui-fg-secondary)' }} />
+        <Text variant="body-small" weight="bold">
           {data.paramTitle}
-        </Typography>
+        </Text>
       </Box>
-      <Typography className={classes.paramName} title={data.paramName}>
+      <Text variant="body-small" color="secondary" truncate title={data.paramName}>
         {data.paramName}
-      </Typography>
+      </Text>
       {data.usageCount > 0 && (
-        <Box mt={0.25}>
-          <Chip
-            label={`Used ${data.usageCount}×`}
-            size="small"
-            color="secondary"
-            style={{ height: 18, fontSize: '0.65rem' }}
-          />
+        <Box mt="1">
+          <Badge>{`Used ${data.usageCount}×`}</Badge>
         </Box>
       )}
 

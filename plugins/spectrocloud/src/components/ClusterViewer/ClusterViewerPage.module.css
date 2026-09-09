@@ -1,0 +1,32 @@
+/*
+ * Tier 2 co-located CSS module (see MUI_TO_BUI_MIGRATION.md styling ladder).
+ * Only genuinely component-specific static CSS lives here: the filter
+ * toolbar surface radius and the cluster card's hover-elevation affordance
+ * (no BUI primitive equivalent for either).
+ */
+
+.filterBar {
+  border-radius: var(--bui-radius-3);
+}
+
+.clusterCardWrapper {
+  cursor: pointer;
+  height: 100%;
+}
+
+.clusterCard {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.clusterCardWrapper:hover .clusterCard {
+  transform: translateY(-4px);
+  box-shadow: var(--bui-shadow);
+}
+
+.emptyState {
+  text-align: center;
+  padding: var(--bui-space-8);
+}

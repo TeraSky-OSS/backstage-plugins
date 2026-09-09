@@ -28,7 +28,7 @@ import {
   useTemplateParameterSchema,
 } from '@backstage/plugin-scaffolder-react/alpha';
 import type { JsonValue } from '@backstage/types';
-import { Button } from '@material-ui/core';
+import { Button } from '@backstage/ui';
 import {
   ComponentType,
   ReactNode,
@@ -260,7 +260,7 @@ const TaskProgressView = ({
       )}
       <TaskLogStream logs={taskStream.stepLogs} />
       {(taskStream.completed || !!taskStream.error) && (
-        <Button variant="contained" color="primary" onClick={onBack}>
+        <Button variant="primary" onPress={onBack}>
           View All Templates
         </Button>
       )}
@@ -350,7 +350,7 @@ const SelectedTemplateWorkflow = ({
           <h2>{error?.message ?? 'Error running workflow'}</h2>
         )}
       />
-      <Button variant="contained" color="primary" onClick={onBack}>
+      <Button variant="primary" onPress={onBack}>
         View All Templates
       </Button>
     </>

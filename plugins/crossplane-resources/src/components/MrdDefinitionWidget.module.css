@@ -1,0 +1,25 @@
+.typeChip {
+  font-family: monospace;
+  background-color: var(--bui-bg-neutral-2);
+  color: var(--bui-fg-primary);
+  font-weight: 500;
+}
+
+.requiredChip {
+  background-color: var(--bui-accent-bg);
+  color: var(--bui-accent-fg);
+}
+
+.stateChipActive {
+  color: var(--bui-fg-positive);
+}
+
+.stateChipInactive {
+  color: var(--bui-fg-negative);
+}
+
+.emptySchema {
+  padding: var(--bui-space-6);
+  text-align: center;
+  color: var(--bui-fg-secondary);
+}

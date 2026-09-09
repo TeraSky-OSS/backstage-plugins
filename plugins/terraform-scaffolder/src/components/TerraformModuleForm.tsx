@@ -1,9 +1,7 @@
-import { useState, useEffect, useCallback, ChangeEvent } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useApi } from '@backstage/core-plugin-api';
 import { Progress } from '@backstage/core-components';
-import { Alert } from '@material-ui/lab';
-import { makeStyles } from '@material-ui/core';
-import { FormControl, InputLabel, Select, MenuItem } from '@material-ui/core';
+import { Alert, Flex, Select } from '@backstage/ui';
 import { FieldExtensionComponentProps } from '@backstage/plugin-scaffolder-react';
 import { terraformScaffolderApiRef } from '../api/TerraformScaffolderApi';
 import { TerraformModuleReference, TerraformVariable } from '../types';
@@ -20,17 +18,6 @@ interface ExtendedRJSFSchema extends RJSFSchema {
 }
 
 const Form = withTheme(MuiTheme);
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    marginTop: theme.spacing(2),
-  },
-  formControl: {
-    marginBottom: theme.spacing(2),
-    minWidth: 200,
-    width: '100%',
-  },
-}));
 
 // Convert Terraform type to JSON Schema type
 function convertTerraformTypeToJsonSchema(variable: TerraformVariable): RJSFSchema {
@@ -189,7 +176,6 @@ export const TerraformModuleForm = ({
   onChange,
   formData,
 }: FieldExtensionComponentProps<TerraformModuleData>): JSX.Element => {
-  const classes = useStyles();
   const api = useApi(terraformScaffolderApiRef);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
@@ -238,8 +224,7 @@ export const TerraformModuleForm = ({
     fetchVariables();
   }, [api, formData?.module, modules, selectedVersion]);
 
-  const handleModuleChange = useCallback(async (event: ChangeEvent<{ value: unknown }>) => {
-    const moduleName = event.target.value as string;
+  const handleModuleChange = useCallback(async (moduleName: string) => {
     const moduleRef = modules.find(m => m.name === moduleName);
     
     if (moduleRef) {
@@ -275,8 +260,7 @@ export const TerraformModuleForm = ({
     }
   }, [onChange, modules, api]);
 
-  const handleVersionChange = useCallback((event: ChangeEvent<{ value: unknown }>) => {
-    const version = event.target.value as string;
+  const handleVersionChange = useCallback((version: string) => {
     setSelectedVersion(version);
     
     if (selectedModule) {
@@ -310,46 +294,28 @@ export const TerraformModuleForm = ({
   }
 
   if (error) {
-    return <Alert severity="error">{error}</Alert>;
+    return <Alert status="danger" description={error} />;
   }
 
   const selectedModuleRef = modules.find(m => m.name === formData?.module);
   const availableVersions = selectedModuleRef?.refs || [];
 
   return (
-    <div className={classes.root}>
-      <FormControl className={classes.formControl}>
-        <InputLabel id="module-select-label">Terraform Module</InputLabel>
-        <Select
-          labelId="module-select-label"
-          id="module-select"
-          value={formData?.module || ''}
-          onChange={handleModuleChange}
-        >
-          {modules.map(module => (
-            <MenuItem key={module.name} value={module.name}>
-              {module.name}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+    <Flex direction="column" gap="4" mt="4">
+      <Select
+        label="Terraform Module"
+        selectedKey={formData?.module || null}
+        onSelectionChange={key => handleModuleChange(key as string)}
+        options={modules.map(module => ({ id: module.name, label: module.name }))}
+      />
 
       {formData?.module && availableVersions.length > 0 && (
-        <FormControl className={classes.formControl}>
-          <InputLabel id="version-select-label">Version</InputLabel>
-          <Select
-            labelId="version-select-label"
-            id="version-select"
-            value={selectedVersion}
-            onChange={handleVersionChange}
-          >
-            {availableVersions.map(version => (
-              <MenuItem key={version} value={version}>
-                {version}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <Select
+          label="Version"
+          selectedKey={selectedVersion || null}
+          onSelectionChange={key => handleVersionChange(key as string)}
+          options={availableVersions.map(version => ({ id: version, label: version }))}
+        />
       )}
 
       {schema && formData?.module && selectedVersion && (
@@ -363,6 +329,6 @@ export const TerraformModuleForm = ({
           children // This hides the submit button
         />
       )}
-    </div>
+    </Flex>
   );
 };

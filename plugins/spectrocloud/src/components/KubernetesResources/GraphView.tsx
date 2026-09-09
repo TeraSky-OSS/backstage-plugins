@@ -8,18 +8,11 @@ import ReactFlow, {
   useNodesState,
   useEdgesState,
 } from 'react-flow-renderer';
-import { 
-  Box, 
-  Drawer, 
-  Typography, 
-  Chip, 
-  Button,
-  IconButton,
-  Divider,
-} from '@material-ui/core';
-import CloseIcon from '@material-ui/icons/Close';
-import OpenInNewIcon from '@material-ui/icons/OpenInNew';
+// BUI-EXCEPTION: `Drawer` has no BUI equivalent (see MUI_TO_BUI_MIGRATION.md exception list).
+import { Drawer } from '@material-ui/core';
+import { Badge, Box, Button, ButtonIcon, Flex, Text } from '@backstage/ui';
 import { Link } from '@backstage/core-components';
+import { RiCloseLine, RiExternalLinkLine } from '@remixicon/react';
 import { Entity } from '@backstage/catalog-model';
 import {
   getKubernetesKind,
@@ -29,7 +22,7 @@ import {
   getEntityStatus,
   isNamespaceEntity,
 } from './utils';
-import { useKubernetesResourcesStyles } from './styles';
+import styles from './KubernetesResources.module.css';
 
 interface GraphViewProps {
   entities: Entity[];
@@ -49,7 +42,6 @@ export const GraphView: React.FC<GraphViewProps> = ({
   entities,
   annotationPrefix,
 }) => {
-  const classes = useKubernetesResourcesStyles();
   const [selectedEntity, setSelectedEntity] = useState<Entity | null>(null);
 
   // Generate nodes and edges
@@ -92,7 +84,7 @@ export const GraphView: React.FC<GraphViewProps> = ({
     // Create nodes for each namespace and its resources
     Array.from(namespaceMap.entries()).forEach(([nsName, resources]) => {
       const nsEntity = namespaceEntities.find(e => e.metadata.name === nsName);
-      
+
       // Namespace node
       const nsNodeId = nsEntity?.metadata.uid || `ns-${nsName}`;
       if (nsEntity) {
@@ -165,7 +157,7 @@ export const GraphView: React.FC<GraphViewProps> = ({
         const nodeId = resource.metadata.uid!;
         const xPos = horizontalSpacing + (resourceIndex % 4) * horizontalSpacing;
         const yRow = Math.floor(resourceIndex / 4);
-        
+
         nodes.push({
           id: nodeId,
           type: 'default',
@@ -247,20 +239,20 @@ export const GraphView: React.FC<GraphViewProps> = ({
 
   if (entities.length === 0) {
     return (
-      <Box className={classes.emptyState}>
-        <Typography variant="h6" gutterBottom>
+      <Box className={styles.emptyState}>
+        <Text variant="title-small" weight="bold">
           No resources found
-        </Typography>
-        <Typography variant="body2" color="textSecondary">
+        </Text>
+        <Text color="secondary">
           No Kubernetes resources are associated with this cluster.
-        </Typography>
+        </Text>
       </Box>
     );
   }
 
   return (
     <Box>
-      <Box className={classes.graphContainer}>
+      <Box className={styles.graphContainer}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -283,95 +275,75 @@ export const GraphView: React.FC<GraphViewProps> = ({
         onClose={handleCloseDrawer}
       >
         {selectedEntity && (
-          <Box style={{ width: 400, padding: 24 }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-              <Typography variant="h6">
+          <Box className={styles.drawerBody}>
+            <Flex align="center" justify="between" mb="4">
+              <Text variant="title-small" weight="bold">
                 {selectedEntity.metadata.title || selectedEntity.metadata.name}
-              </Typography>
-              <IconButton size="small" onClick={handleCloseDrawer}>
-                <CloseIcon />
-              </IconButton>
-            </Box>
+              </Text>
+              <ButtonIcon aria-label="Close" icon={<RiCloseLine />} onPress={handleCloseDrawer} />
+            </Flex>
 
-            <Divider style={{ marginBottom: 16 }} />
+            <hr className={styles.divider} />
 
-            <Box mb={2}>
-              <Typography variant="body2" color="textSecondary" gutterBottom>
+            <Box mb="4">
+              <Text variant="title-x-small" color="secondary">
                 Kubernetes Kind
-              </Typography>
-              <Typography variant="body1">
-                {getKubernetesKind(selectedEntity, annotationPrefix)}
-              </Typography>
+              </Text>
+              <Text>{getKubernetesKind(selectedEntity, annotationPrefix)}</Text>
             </Box>
 
-            <Box mb={2}>
-              <Typography variant="body2" color="textSecondary" gutterBottom>
+            <Box mb="4">
+              <Text variant="title-x-small" color="secondary">
                 Category
-              </Typography>
-              <Chip 
-                label={getResourceCategory(selectedEntity, annotationPrefix)} 
-                size="small"
-              />
+              </Text>
+              <Badge size="small">{getResourceCategory(selectedEntity, annotationPrefix)}</Badge>
             </Box>
 
-            <Box mb={2}>
-              <Typography variant="body2" color="textSecondary" gutterBottom>
+            <Box mb="4">
+              <Text variant="title-x-small" color="secondary">
                 Entity Kind
-              </Typography>
-              <Chip label={selectedEntity.kind} size="small" />
+              </Text>
+              <Badge size="small">{selectedEntity.kind}</Badge>
             </Box>
 
-            <Box mb={2}>
-              <Typography variant="body2" color="textSecondary" gutterBottom>
+            <Box mb="4">
+              <Text variant="title-x-small" color="secondary">
                 Namespace
-              </Typography>
-              <Typography variant="body1">
-                {getEntityNamespace(selectedEntity, annotationPrefix)}
-              </Typography>
+              </Text>
+              <Text>{getEntityNamespace(selectedEntity, annotationPrefix)}</Text>
             </Box>
 
-            <Box mb={2}>
-              <Typography variant="body2" color="textSecondary" gutterBottom>
+            <Box mb="4">
+              <Text variant="title-x-small" color="secondary">
                 Owner
-              </Typography>
-              <Typography variant="body1">
-                {getEntityOwner(selectedEntity)}
-              </Typography>
+              </Text>
+              <Text>{getEntityOwner(selectedEntity)}</Text>
             </Box>
 
             {getEntityStatus(selectedEntity) && (
-              <Box mb={2}>
-                <Typography variant="body2" color="textSecondary" gutterBottom>
+              <Box mb="4">
+                <Text variant="title-x-small" color="secondary">
                   Status
-                </Typography>
-                <Typography variant="body1">
-                  {getEntityStatus(selectedEntity)}
-                </Typography>
+                </Text>
+                <Text>{getEntityStatus(selectedEntity)}</Text>
               </Box>
             )}
 
             {selectedEntity.metadata.description && (
-              <Box mb={2}>
-                <Typography variant="body2" color="textSecondary" gutterBottom>
+              <Box mb="4">
+                <Text variant="title-x-small" color="secondary">
                   Description
-                </Typography>
-                <Typography variant="body2">
-                  {selectedEntity.metadata.description}
-                </Typography>
+                </Text>
+                <Text>{selectedEntity.metadata.description}</Text>
               </Box>
             )}
 
-            <Divider style={{ marginTop: 16, marginBottom: 16 }} />
+            <hr className={styles.divider} />
 
             <Link
               to={`/catalog/${selectedEntity.metadata.namespace || 'default'}/${selectedEntity.kind.toLowerCase()}/${selectedEntity.metadata.name}`}
             >
-              <Button
-                variant="contained"
-                color="primary"
-                fullWidth
-                endIcon={<OpenInNewIcon />}
-              >
+              <Button variant="primary" iconEnd={<RiExternalLinkLine />} style={{ width: '100%' }}>
                 View in Catalog
               </Button>
             </Link>

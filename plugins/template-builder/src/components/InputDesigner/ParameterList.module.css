@@ -1,0 +1,18 @@
+.fieldRow {
+  cursor: pointer;
+  padding: var(--bui-space-2);
+  border-radius: var(--bui-radius-2);
+}
+
+.fieldRow:hover {
+  background-color: var(--bui-bg-neutral-2);
+}
+
+.fieldRowSelected {
+  background-color: var(--bui-bg-neutral-2);
+}
+
+.exampleBlock {
+  font-size: 10px;
+  margin-top: var(--bui-space-1);
+}

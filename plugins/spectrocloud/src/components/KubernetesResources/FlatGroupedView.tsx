@@ -1,31 +1,16 @@
 import { useState, useMemo, Fragment, type MouseEvent } from 'react';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  IconButton,
-  Chip,
-  Typography,
-  Box,
-  Button,
-} from '@material-ui/core';
-import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
-import KeyboardArrowRightIcon from '@material-ui/icons/KeyboardArrowRight';
-import OpenInNewIcon from '@material-ui/icons/OpenInNew';
+import { Badge, Box, Button, ButtonIcon, Flex, Text } from '@backstage/ui';
 import { Link } from '@backstage/core-components';
+import { RiArrowDownSLine, RiArrowRightSLine, RiExternalLinkLine } from '@remixicon/react';
 import { Entity } from '@backstage/catalog-model';
 import { CATEGORIES } from './types';
-import { 
-  getKubernetesKind, 
-  getResourceCategory, 
-  getEntityNamespace, 
+import {
+  getKubernetesKind,
+  getResourceCategory,
+  getEntityNamespace,
   getEntityOwner,
 } from './utils';
-import { useKubernetesResourcesStyles } from './styles';
+import styles from './KubernetesResources.module.css';
 
 interface FlatGroupedViewProps {
   entities: Entity[];
@@ -41,7 +26,6 @@ export const FlatGroupedView: React.FC<FlatGroupedViewProps> = ({
   entities,
   annotationPrefix,
 }) => {
-  const classes = useKubernetesResourcesStyles();
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(Array.from(CATEGORIES)));
   const [expandedKinds, setExpandedKinds] = useState<Set<string>>(new Set());
 
@@ -121,13 +105,13 @@ export const FlatGroupedView: React.FC<FlatGroupedViewProps> = ({
 
   if (groupedData.length === 0) {
     return (
-      <Box className={classes.emptyState}>
-        <Typography variant="h6" gutterBottom>
+      <Box className={styles.emptyState}>
+        <Text variant="title-small" weight="bold">
           No resources found
-        </Typography>
-        <Typography variant="body2" color="textSecondary">
+        </Text>
+        <Text color="secondary">
           No Kubernetes resources are associated with this cluster.
-        </Typography>
+        </Text>
       </Box>
     );
   }
@@ -136,25 +120,23 @@ export const FlatGroupedView: React.FC<FlatGroupedViewProps> = ({
 
   return (
     <Box>
-      <Box mb={2}>
-        <Typography variant="body2" color="textSecondary">
-          Total Resources: {totalCount}
-        </Typography>
+      <Box mb="2">
+        <Text color="secondary">Total Resources: {totalCount}</Text>
       </Box>
-      
-      <TableContainer component={Paper} className={classes.tableContainer}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell className={classes.tableHeaderCell} style={{ width: 48 }} />
-              <TableCell className={classes.tableHeaderCell}>Name</TableCell>
-              <TableCell className={classes.tableHeaderCell} align="center">Namespace</TableCell>
-              <TableCell className={classes.tableHeaderCell} align="center">Entity Kind</TableCell>
-              <TableCell className={classes.tableHeaderCell} align="center">Owner</TableCell>
-              <TableCell className={classes.tableHeaderCell} align="center">Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
+
+      <div className={styles.tableContainer}>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th className={`${styles.tableHeaderCell} ${styles.expandCell}`} />
+              <th className={styles.tableHeaderCell}>Name</th>
+              <th className={`${styles.tableHeaderCell} ${styles.tableCellCenter}`}>Namespace</th>
+              <th className={`${styles.tableHeaderCell} ${styles.tableCellCenter}`}>Entity Kind</th>
+              <th className={`${styles.tableHeaderCell} ${styles.tableCellCenter}`}>Owner</th>
+              <th className={`${styles.tableHeaderCell} ${styles.tableCellCenter}`}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
             {groupedData.map(({ category, kinds }) => {
               const isCategoryExpanded = expandedCategories.has(category);
               const categoryCount = Array.from(kinds.values()).reduce((sum, arr) => sum + arr.length, 0);
@@ -162,26 +144,24 @@ export const FlatGroupedView: React.FC<FlatGroupedViewProps> = ({
               return (
                 <Fragment key={category}>
                   {/* Category Header Row */}
-                  <TableRow className={classes.groupHeader}>
-                    <TableCell className={classes.tableCell} style={{ width: 48 }}>
-                      <IconButton size="small" onClick={() => toggleCategory(category)}>
-                        {isCategoryExpanded ? <KeyboardArrowDownIcon /> : <KeyboardArrowRightIcon />}
-                      </IconButton>
-                    </TableCell>
-                    <TableCell className={classes.tableCell} colSpan={5}>
-                      <Box display="flex" alignItems="center" style={{ gap: 8 }}>
+                  <tr className={styles.groupHeader}>
+                    <td className={`${styles.tableCell} ${styles.expandCell}`}>
+                      <ButtonIcon
+                        size="small"
+                        variant="tertiary"
+                        aria-label={isCategoryExpanded ? 'Collapse category' : 'Expand category'}
+                        icon={isCategoryExpanded ? <RiArrowDownSLine /> : <RiArrowRightSLine />}
+                        onPress={() => toggleCategory(category)}
+                      />
+                    </td>
+                    <td className={styles.tableCell} colSpan={5}>
+                      <Flex align="center" gap="2">
                         <span>{getCategoryIcon(category)}</span>
-                        <Typography variant="subtitle2" style={{ fontWeight: 700 }}>
-                          {category}
-                        </Typography>
-                        <Chip 
-                          label={categoryCount} 
-                          size="small" 
-                          className={classes.countBadge}
-                        />
-                      </Box>
-                    </TableCell>
-                  </TableRow>
+                        <Text weight="bold">{category}</Text>
+                        <Badge size="small">{categoryCount}</Badge>
+                      </Flex>
+                    </td>
+                  </tr>
 
                   {/* Kind Subgroups */}
                   {isCategoryExpanded && Array.from(kinds.entries()).map(([kind, kindEntities]) => {
@@ -191,25 +171,23 @@ export const FlatGroupedView: React.FC<FlatGroupedViewProps> = ({
                     return (
                       <Fragment key={kindKey}>
                         {/* Kind Header Row */}
-                        <TableRow className={classes.kindGroupHeader}>
-                          <TableCell className={classes.tableCell} style={{ width: 48 }} />
-                          <TableCell className={classes.tableCell} style={{ paddingLeft: 32 }}>
-                            <Box display="flex" alignItems="center" style={{ gap: 8 }}>
-                              <IconButton size="small" onClick={() => toggleKind(kindKey)}>
-                                {isKindExpanded ? <KeyboardArrowDownIcon /> : <KeyboardArrowRightIcon />}
-                              </IconButton>
-                              <Typography variant="body2" style={{ fontWeight: 600 }}>
-                                {kind}
-                              </Typography>
-                              <Chip 
-                                label={kindEntities.length} 
-                                size="small" 
-                                className={classes.countBadge}
+                        <tr className={styles.kindGroupHeader}>
+                          <td className={`${styles.tableCell} ${styles.expandCell}`} />
+                          <td className={styles.tableCell} style={{ paddingLeft: 32 }}>
+                            <Flex align="center" gap="2">
+                              <ButtonIcon
+                                size="small"
+                                variant="tertiary"
+                                aria-label={isKindExpanded ? 'Collapse kind' : 'Expand kind'}
+                                icon={isKindExpanded ? <RiArrowDownSLine /> : <RiArrowRightSLine />}
+                                onPress={() => toggleKind(kindKey)}
                               />
-                            </Box>
-                          </TableCell>
-                          <TableCell className={classes.tableCell} colSpan={4} />
-                        </TableRow>
+                              <Text weight="bold">{kind}</Text>
+                              <Badge size="small">{kindEntities.length}</Badge>
+                            </Flex>
+                          </td>
+                          <td className={styles.tableCell} colSpan={4} />
+                        </tr>
 
                         {/* Resource Rows */}
                         {isKindExpanded && kindEntities.map(entity => {
@@ -217,43 +195,38 @@ export const FlatGroupedView: React.FC<FlatGroupedViewProps> = ({
                           const owner = getEntityOwner(entity);
 
                           return (
-                            <TableRow key={entity.metadata.uid} className={classes.tableRow}>
-                              <TableCell className={classes.tableCell} style={{ width: 48 }} />
-                              <TableCell className={classes.tableCell} style={{ paddingLeft: 64 }}>
+                            <tr key={entity.metadata.uid} className={styles.tableRow}>
+                              <td className={`${styles.tableCell} ${styles.expandCell}`} />
+                              <td className={styles.tableCell} style={{ paddingLeft: 64 }}>
                                 <Link
                                   to={`/catalog/${entity.metadata.namespace || 'default'}/${entity.kind.toLowerCase()}/${entity.metadata.name}`}
-onClick={(e: MouseEvent) => e.stopPropagation()}
-                >
-                  <Typography variant="body2">
-                    {entity.metadata.title || entity.metadata.name}
-                  </Typography>
-                </Link>
-              </TableCell>
-              <TableCell className={classes.tableCell} align="center">
-                <Typography variant="body2">{namespace}</Typography>
-              </TableCell>
-              <TableCell className={classes.tableCell} align="center">
-                <Chip label={entity.kind} size="small" />
-              </TableCell>
-              <TableCell className={classes.tableCell} align="center">
-                <Typography variant="body2">{owner}</Typography>
-              </TableCell>
-              <TableCell className={classes.tableCell} align="center">
-                <Link
-                  to={`/catalog/${entity.metadata.namespace || 'default'}/${entity.kind.toLowerCase()}/${entity.metadata.name}`}
-                  onClick={(e: MouseEvent) => e.stopPropagation()}
+                                  onClick={(e: MouseEvent) => e.stopPropagation()}
                                 >
-                                  <Button
-                                    size="small"
-                                    variant="text"
-                                    color="primary"
-                                    endIcon={<OpenInNewIcon />}
-                                  >
+                                  <Text>
+                                    {entity.metadata.title || entity.metadata.name}
+                                  </Text>
+                                </Link>
+                              </td>
+                              <td className={`${styles.tableCell} ${styles.tableCellCenter}`}>
+                                <Text>{namespace}</Text>
+                              </td>
+                              <td className={`${styles.tableCell} ${styles.tableCellCenter}`}>
+                                <Badge size="small">{entity.kind}</Badge>
+                              </td>
+                              <td className={`${styles.tableCell} ${styles.tableCellCenter}`}>
+                                <Text>{owner}</Text>
+                              </td>
+                              <td className={`${styles.tableCell} ${styles.tableCellCenter}`}>
+                                <Link
+                                  to={`/catalog/${entity.metadata.namespace || 'default'}/${entity.kind.toLowerCase()}/${entity.metadata.name}`}
+                                  onClick={(e: MouseEvent) => e.stopPropagation()}
+                                >
+                                  <Button size="small" variant="tertiary" iconEnd={<RiExternalLinkLine />}>
                                     View
                                   </Button>
                                 </Link>
-                              </TableCell>
-                            </TableRow>
+                              </td>
+                            </tr>
                           );
                         })}
                       </Fragment>
@@ -262,9 +235,9 @@ onClick={(e: MouseEvent) => e.stopPropagation()}
                 </Fragment>
               );
             })}
-          </TableBody>
-        </Table>
-      </TableContainer>
+          </tbody>
+        </table>
+      </div>
     </Box>
   );
 };

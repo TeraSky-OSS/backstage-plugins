@@ -40,10 +40,9 @@
     "@backstage/plugin-catalog-react": "^3.2.2",
     "@backstage/plugin-permission-react": "^0.5.4",
     "@backstage/theme": "^0.7.3",
-    "@material-ui/core": "^4.12.4",
-    "@material-ui/icons": "^4.11.3",
-    "@material-ui/lab": "4.0.0-alpha.61",
+    "@backstage/ui": "^0.17.1",
     "@monaco-editor/react": "^4.7.0",
+    "@remixicon/react": ">=4.6.0 <4.9.0",
     "@terasky/backstage-plugin-vcf-automation-common": "^1.2.17",
     "js-yaml": "^4.1.0",
     "react-use": "^17.6.0"

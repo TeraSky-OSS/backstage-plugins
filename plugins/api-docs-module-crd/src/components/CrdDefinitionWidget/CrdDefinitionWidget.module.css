@@ -1,0 +1,26 @@
+.description p {
+  margin: 0;
+}
+
+.typeChip {
+  font-family: monospace;
+  background-color: var(--bui-bg-neutral-2);
+  color: var(--bui-fg-primary);
+  font-weight: 500;
+}
+
+.defaultChip {
+  font-family: monospace;
+  background-color: var(--bui-bg-neutral-1);
+  color: var(--bui-fg-secondary);
+  font-weight: 500;
+}
+
+.enumChip {
+  font-family: monospace;
+}
+
+.requiredChip {
+  background-color: var(--bui-accent-bg);
+  color: var(--bui-accent-fg);
+}

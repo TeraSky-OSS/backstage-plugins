@@ -24,12 +24,6 @@ jest.mock('./NotImplementedMessage', () => ({
   ),
 }));
 
-// Mock material-ui/core makeStyles to avoid complex styling issues
-jest.mock('@material-ui/core/styles', () => ({
-  ...jest.requireActual('@material-ui/core/styles'),
-  makeStyles: () => () => ({}),
-}));
-
 const mockApi = {
   getInstances: jest.fn(),
   findResourceByName: jest.fn(),
@@ -120,7 +114,7 @@ describe('VCFOperationsExplorer', () => {
     );
 
     // The component shows a loading spinner initially
-    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+    expect(screen.getByTestId('progress')).toBeInTheDocument();
   });
 
   it('should handle entity without tags', async () => {

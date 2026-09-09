@@ -1,38 +1,19 @@
 import { useState } from 'react';
 import {
   Box,
+  Flex,
+  Text,
   TextField,
-  Typography,
-  FormControl,
-  Chip,
-  Button,
-  ButtonGroup,
-} from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
-import CodeIcon from '@material-ui/icons/Code';
-import TextFieldsIcon from '@material-ui/icons/TextFields';
-import FunctionsIcon from '@material-ui/icons/Functions';
+  TextAreaField,
+  NumberField,
+  Tag,
+  TagGroup,
+  ToggleButton,
+  ToggleButtonGroup,
+} from '@backstage/ui';
+import { RiCodeLine, RiFunctionLine, RiText } from '@remixicon/react';
 import { VariablePicker, Variable } from './VariablePicker';
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: theme.spacing(1),
-  },
-  modeSelector: {
-    marginBottom: theme.spacing(1),
-  },
-  expressionPreview: {
-    marginTop: theme.spacing(1),
-    padding: theme.spacing(1),
-    backgroundColor: theme.palette.grey[100],
-    borderRadius: theme.shape.borderRadius,
-    fontFamily: 'monospace',
-    fontSize: '0.85rem',
-    wordBreak: 'break-all',
-  },
-}));
+import styles from './ExpressionBuilder.module.css';
 
 type ExpressionMode = 'static' | 'variable' | 'expression';
 
@@ -45,7 +26,6 @@ export interface ExpressionBuilderProps {
 
 export function ExpressionBuilder(props: ExpressionBuilderProps) {
   const { value, onChange, availableVariables, propertyType } = props;
-  const classes = useStyles();
 
   // Determine mode from value
   const getInitialMode = (): ExpressionMode => {
@@ -66,7 +46,7 @@ export function ExpressionBuilder(props: ExpressionBuilderProps) {
 
   const handleModeChange = (newMode: ExpressionMode) => {
     setMode(newMode);
-    
+
     // Clear value when changing modes
     if (newMode === 'static') {
       onChange('');
@@ -77,14 +57,8 @@ export function ExpressionBuilder(props: ExpressionBuilderProps) {
     }
   };
 
-  const handleStaticChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = event.target.value;
-    
-    // Try to parse based on property type
-    if (propertyType === 'number' || propertyType === 'integer') {
-      const parsed = parseFloat(newValue);
-      onChange(isNaN(parsed) ? newValue : parsed);
-    } else if (propertyType === 'boolean') {
+  const handleStaticChange = (newValue: string) => {
+    if (propertyType === 'boolean') {
       onChange(newValue.toLowerCase() === 'true');
     } else {
       onChange(newValue);
@@ -95,22 +69,23 @@ export function ExpressionBuilder(props: ExpressionBuilderProps) {
     onChange(variableValue);
   };
 
-  const handleExpressionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(event.target.value);
-  };
-
   const renderInput = () => {
     switch (mode) {
       case 'static':
+        if (propertyType === 'number' || propertyType === 'integer') {
+          return (
+            <NumberField
+              value={typeof value === 'number' ? value : undefined}
+              onChange={n => onChange(n)}
+              placeholder="Enter a static value..."
+            />
+          );
+        }
         return (
           <TextField
-            fullWidth
-            value={value || ''}
+            value={typeof value === 'string' ? value : ''}
             onChange={handleStaticChange}
             placeholder="Enter a static value..."
-            variant="outlined"
-            size="small"
-            type={propertyType === 'number' || propertyType === 'integer' ? 'number' : 'text'}
           />
         );
 
@@ -124,11 +99,11 @@ export function ExpressionBuilder(props: ExpressionBuilderProps) {
               placeholder="Select a variable..."
             />
             {value && (
-              <Box className={classes.expressionPreview}>
-                <Typography variant="caption" color="textSecondary">
+              <Box className={styles.expressionPreview}>
+                <Text variant="body-small" color="secondary">
                   Expression:
-                </Typography>
-                <Typography variant="body2">{value}</Typography>
+                </Text>
+                <Text variant="body-medium">{value}</Text>
               </Box>
             )}
           </>
@@ -137,33 +112,29 @@ export function ExpressionBuilder(props: ExpressionBuilderProps) {
       case 'expression':
         return (
           <>
-            <TextField
-              fullWidth
+            <TextAreaField
               value={value || '${{  }}'}
-              onChange={handleExpressionChange}
+              onChange={onChange}
               placeholder="${{ expression }}"
-              variant="outlined"
-              size="small"
-              multiline
               rows={2}
-              helperText="Use ${{ }} syntax for expressions"
+              description="Use ${{ }} syntax for expressions"
             />
-            <Box mt={1}>
-              <Typography variant="caption" color="textSecondary" gutterBottom>
+            <Box mt="2">
+              <Text variant="body-small" color="secondary">
                 Quick insert:
-              </Typography>
-              <Box display="flex" flexWrap="wrap" style={{ gap: 4 }}>
-                {availableVariables.slice(0, 5).map(variable => (
-                  <Chip
-                    key={variable.value}
-                    label={variable.label}
-                    size="small"
-                    onClick={() => {
-                      // Insert at cursor or append
-                      onChange(variable.value);
-                    }}
-                  />
-                ))}
+              </Text>
+              <Box mt="1">
+                <TagGroup
+                  items={availableVariables
+                    .slice(0, 5)
+                    .map(v => ({ id: v.value, label: v.label }))}
+                >
+                  {item => (
+                    <Tag id={item.id} onPress={() => onChange(String(item.id))}>
+                      {item.label}
+                    </Tag>
+                  )}
+                </TagGroup>
               </Box>
             </Box>
           </>
@@ -175,34 +146,30 @@ export function ExpressionBuilder(props: ExpressionBuilderProps) {
   };
 
   return (
-    <Box className={classes.root}>
-      <ButtonGroup size="small" className={classes.modeSelector}>
-        <Button
-          variant={mode === 'static' ? 'contained' : 'outlined'}
-          onClick={() => handleModeChange('static')}
-        >
-          <TextFieldsIcon fontSize="small" style={{ marginRight: 4 }} />
+    <Flex direction="column" gap="2">
+      <ToggleButtonGroup
+        selectionMode="single"
+        disallowEmptySelection
+        selectedKeys={[mode]}
+        onSelectionChange={keys => {
+          const [newMode] = Array.from(keys) as ExpressionMode[];
+          if (newMode) {
+            handleModeChange(newMode);
+          }
+        }}
+      >
+        <ToggleButton id="static" iconStart={<RiText />}>
           Static
-        </Button>
-        <Button
-          variant={mode === 'variable' ? 'contained' : 'outlined'}
-          onClick={() => handleModeChange('variable')}
-        >
-          <FunctionsIcon fontSize="small" style={{ marginRight: 4 }} />
+        </ToggleButton>
+        <ToggleButton id="variable" iconStart={<RiFunctionLine />}>
           Variable
-        </Button>
-        <Button
-          variant={mode === 'expression' ? 'contained' : 'outlined'}
-          onClick={() => handleModeChange('expression')}
-        >
-          <CodeIcon fontSize="small" style={{ marginRight: 4 }} />
+        </ToggleButton>
+        <ToggleButton id="expression" iconStart={<RiCodeLine />}>
           Expression
-        </Button>
-      </ButtonGroup>
+        </ToggleButton>
+      </ToggleButtonGroup>
 
-      <FormControl fullWidth>
-        {renderInput()}
-      </FormControl>
-    </Box>
+      {renderInput()}
+    </Flex>
   );
 }

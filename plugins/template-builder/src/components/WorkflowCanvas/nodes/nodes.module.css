@@ -1,0 +1,203 @@
+/* Shared styling for the small React Flow custom node renderers in this
+ * directory (StartNode, ActionNode, ParameterNode/ParameterGroupNode,
+ * OutputNode/OutputGroupNode). These are static, component-specific chrome
+ * with no BUI layout-primitive equivalent (Tier 2 CSS Module), using
+ * `var(--bui-*)` tokens so they automatically track the active theme mode. */
+
+/* ---------- Start node ---------- */
+
+.startNode {
+  padding: var(--bui-space-4);
+  border-radius: var(--bui-radius-2);
+  background-color: var(--bui-positive-bg);
+  color: var(--bui-positive-fg);
+  min-width: 120px;
+  text-align: center;
+  box-shadow: var(--bui-shadow);
+}
+
+.startNodeIcon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--bui-space-1);
+}
+
+/* ---------- Action node ---------- */
+
+.actionNode {
+  padding: var(--bui-space-2);
+  border-radius: var(--bui-radius-2);
+  background-color: var(--bui-bg-neutral-1);
+  border: 2px solid var(--bui-accent-bg);
+  min-width: 120px;
+  max-width: 180px;
+  box-shadow: var(--bui-shadow);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.actionNode:hover {
+  transform: scale(1.02);
+}
+
+.actionNodeConditional {
+  border-style: dashed;
+  border-width: 3px;
+  opacity: 0.85;
+}
+
+.actionNodeError {
+  border-color: var(--bui-negative-border);
+}
+
+.actionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--bui-space-1);
+  gap: var(--bui-space-1);
+}
+
+.errorIndicator {
+  display: flex;
+  align-items: center;
+  gap: var(--bui-space-1);
+  color: var(--bui-fg-negative);
+  margin-top: var(--bui-space-1);
+}
+
+.conditionalIndicator {
+  display: flex;
+  align-items: center;
+  gap: var(--bui-space-1);
+  color: var(--bui-fg-warning);
+  margin-top: var(--bui-space-1);
+}
+
+/* ---------- Parameter node / Parameter group node ---------- */
+
+.paramNode {
+  padding: var(--bui-space-2);
+  border-radius: var(--bui-radius-2);
+  background-color: var(--bui-bg-neutral-1);
+  border: 2px solid var(--bui-announcement-border);
+  min-width: 100px;
+  max-width: 150px;
+  box-shadow: var(--bui-shadow);
+  cursor: pointer;
+}
+
+.outputNode {
+  composes: paramNode;
+  border-color: var(--bui-positive-border);
+}
+
+.nodeHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--bui-space-1);
+  margin-bottom: var(--bui-space-1);
+}
+
+.groupOuter {
+  position: relative;
+  overflow: visible;
+  border-radius: var(--bui-radius-2);
+  /* No background - fully transparent so connecting lines show through. */
+}
+
+.paramGroupOuter {
+  composes: groupOuter;
+  padding-bottom: var(--bui-space-4);
+  border: 3px solid var(--bui-announcement-border);
+}
+
+.outputGroupOuter {
+  composes: groupOuter;
+  padding-top: var(--bui-space-4);
+  border: 3px solid var(--bui-positive-border);
+}
+
+.groupInnerContent {
+  padding: var(--bui-space-3);
+  position: relative;
+  z-index: 1;
+  /* Extra space for the handles rendered at the outer edge. */
+}
+
+.paramGroupInnerContent {
+  composes: groupInnerContent;
+  padding-bottom: var(--bui-space-4);
+}
+
+.outputGroupInnerContent {
+  composes: groupInnerContent;
+  padding-top: var(--bui-space-4);
+}
+
+.groupHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--bui-space-1);
+  margin-bottom: var(--bui-space-2);
+  padding: var(--bui-space-2);
+  border-radius: var(--bui-radius-2);
+  background-color: var(--bui-bg-neutral-1);
+}
+
+.paramGroupHeader {
+  composes: groupHeader;
+  border-bottom: 2px solid var(--bui-announcement-border);
+}
+
+.outputGroupHeader {
+  composes: groupHeader;
+  border-bottom: 2px solid var(--bui-positive-border);
+}
+
+.groupList {
+  display: flex;
+  gap: var(--bui-space-2);
+  position: relative;
+}
+
+.chipWrapper {
+  position: relative;
+  display: inline-block;
+  z-index: 1;
+  /* Establishes the positioning context for the handle rendered on the chip. */
+  height: fit-content;
+}
+
+.paramChip {
+  cursor: pointer;
+  background-color: var(--bui-bg-neutral-2);
+  color: var(--bui-fg-primary);
+  border: 1px solid var(--bui-announcement-border);
+  font-weight: 600;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.paramChip:hover {
+  background-color: var(--bui-announcement-bg-subdued);
+  transform: scale(1.05);
+}
+
+.outputChip {
+  cursor: pointer;
+  background-color: var(--bui-positive-bg-subdued);
+  color: var(--bui-positive-fg-subdued);
+  border: 1px solid var(--bui-positive-border);
+  font-weight: 600;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.outputChip:hover {
+  background-color: var(--bui-positive-bg-subdued-hover);
+  transform: scale(1.05);
+}
+
+.countChip {
+  margin-left: auto;
+  font-weight: 600;
+}

@@ -10,7 +10,7 @@ import {
   StructuredMetadataTable,
   Link,
 } from '@backstage/core-components';
-import { Grid, Typography } from '@material-ui/core';
+import { Grid, Text } from '@backstage/ui';
 import useAsync from 'react-use/lib/useAsync';
 import { usePermission } from '@backstage/plugin-permission-react';
 import { viewDeploymentHistoryPermission } from '@terasky/backstage-plugin-vcf-automation-common';
@@ -164,7 +164,7 @@ export const VCFAutomationDeploymentDetails = () => {
   if (!deploymentId) {
     return (
       <InfoCard title="VCF Automation Deployment">
-        <Typography>No deployment ID found for this entity.</Typography>
+        <Text>No deployment ID found for this entity.</Text>
       </InfoCard>
     );
   }
@@ -180,7 +180,7 @@ export const VCFAutomationDeploymentDetails = () => {
   if (!hasViewPermission) {
     return (
       <InfoCard title="VCF Automation Deployment">
-        <Typography>You don't have permission to view deployment information.</Typography>
+        <Text>You don't have permission to view deployment information.</Text>
       </InfoCard>
     );
   }
@@ -218,13 +218,13 @@ export const VCFAutomationDeploymentDetails = () => {
   };
 
   return (
-    <Grid container spacing={3}>
-      <Grid item xs={12}>
+    <Grid.Root columns="12" gap="5">
+      <Grid.Item colSpan="12">
         <InfoCard title="Deployment Details">
           <StructuredMetadataTable metadata={metadata} />
         </InfoCard>
-      </Grid>
-      <Grid item xs={12}>
+      </Grid.Item>
+      <Grid.Item colSpan="12">
         <InfoCard title="Deployment Resources">
           {resources && resources.length > 0 ? (
             <Table
@@ -238,11 +238,11 @@ export const VCFAutomationDeploymentDetails = () => {
               }}
             />
           ) : (
-            <Typography>No resources found for this deployment.</Typography>
+            <Text>No resources found for this deployment.</Text>
           )}
         </InfoCard>
-      </Grid>
-      <Grid item xs={12}>
+      </Grid.Item>
+      <Grid.Item colSpan="12">
         <InfoCard title="Deployment Events">
           {eventsResponse?.content && eventsResponse.content.length > 0 ? (
             <Table
@@ -256,10 +256,10 @@ export const VCFAutomationDeploymentDetails = () => {
               }}
             />
           ) : (
-            <Typography>No deployment events available.</Typography>
+            <Text>No deployment events available.</Text>
           )}
         </InfoCard>
-      </Grid>
-    </Grid>
+      </Grid.Item>
+    </Grid.Root>
   );
 }; 

@@ -1,0 +1,57 @@
+/*
+ * Maps the TeraSky brand palette (see theme.ts) onto BUI's `--bui-*` custom
+ * properties, so BUI components (Card, Badge, Alert, Button, ...) match the
+ * same brand colors as our still-MUI `core-components` (InfoCard, Table, ...)
+ * instead of falling back to BUI's own generic default palette.
+ *
+ * This file is intentionally NOT wrapped in `@layer` — `@backstage/ui/css/styles.css`
+ * defines its tokens inside `@layer tokens`, and per the CSS cascade spec, any
+ * un-layered rule always wins over a layered one regardless of specificity or
+ * source order. That means these overrides take effect no matter where this
+ * file is imported relative to the BUI stylesheet.
+ *
+ * Only tokens that are both (a) genuinely brand-specific in theme.ts and
+ * (b) visibly used by our migrated plugins are overridden here. Tokens TeraSky
+ * never customizes (text/divider colors) are left as BUI's own defaults, since
+ * those already derive from the same near-black/near-white MUI convention.
+ */
+
+[data-theme-mode='light'] {
+  /* Backgrounds — mirrors palette.background.{default,paper} in theme.ts */
+  --bui-bg-app: #f4f5f7;
+  --bui-bg-neutral-1: #ffffff;
+  --bui-bg-neutral-2: #f4f5f7;
+  --bui-bg-neutral-3: #ffffff;
+  --bui-bg-neutral-4: #f4f5f7;
+
+  /* Accent — mirrors palette.primary.main */
+  --bui-accent-bg: #2c2c3e;
+  --bui-accent-bg-hover: #1f1f2c;
+  --bui-accent-fg: #ffffff;
+
+  /* Status colors — mirror palette.{error,warning,success,info}.main */
+  --bui-fg-negative: #ff5630;
+  --bui-fg-warning: #ffab00;
+  --bui-fg-positive: #36b37e;
+  --bui-fg-announcement: #00b8d9;
+}
+
+[data-theme-mode='dark'] {
+  /* Backgrounds — mirrors palette.background.{default,paper} in theme.ts */
+  --bui-bg-app: #121212;
+  --bui-bg-neutral-1: #1e1e1e;
+  --bui-bg-neutral-2: #2a2a2a;
+  --bui-bg-neutral-3: #333333;
+  --bui-bg-neutral-4: #3d3d3d;
+
+  /* Accent — mirrors palette.primary.main */
+  --bui-accent-bg: #bebec6;
+  --bui-accent-bg-hover: #d4d4da;
+  --bui-accent-fg: #121212;
+
+  /* Status colors — mirror palette.{error,warning,success,info}.main */
+  --bui-fg-negative: #ff5630;
+  --bui-fg-warning: #ffab00;
+  --bui-fg-positive: #36b37e;
+  --bui-fg-announcement: #00b8d9;
+}

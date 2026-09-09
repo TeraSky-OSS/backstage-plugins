@@ -1,19 +1,6 @@
 import { useState } from 'react';
-import {
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Typography,
-} from '@material-ui/core';
-import CheckCircleIcon from '@material-ui/icons/CheckCircle';
-import ErrorIcon from '@material-ui/icons/Error';
-import WarningIcon from '@material-ui/icons/Warning';
+import { Button, Dialog, DialogBody, DialogFooter, DialogHeader, List, ListRow, Text } from '@backstage/ui';
+import { RiCheckboxCircleLine, RiCloseCircleLine, RiAlertLine } from '@remixicon/react';
 import type { ValidationError } from '../../api/types';
 
 export interface ValidateButtonProps {
@@ -38,55 +25,53 @@ export function ValidateButton(props: ValidateButtonProps) {
   const errorCount = errors.filter(e => e.severity === 'error').length;
   const warningCount = errors.filter(e => e.severity === 'warning').length;
 
+  const errorItems = errors.map((error, index) => ({ ...error, id: index }));
+
   return (
     <>
-      <Button
-        variant="outlined"
-        startIcon={<CheckCircleIcon />}
-        onClick={handleValidate}
-      >
+      <Button variant="secondary" iconStart={<RiCheckboxCircleLine />} onPress={handleValidate}>
         Validate
       </Button>
 
-      <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-        <DialogTitle>
+      <Dialog isOpen={open} onOpenChange={isOpen => !isOpen && handleClose()} width="800px">
+        <DialogHeader>
           {errors.length === 0 ? 'Validation Passed' : 'Validation Results'}
-        </DialogTitle>
-        <DialogContent>
+        </DialogHeader>
+        <DialogBody>
           {errors.length === 0 ? (
-            <Typography variant="body1" color="primary">
-              Template is valid! No errors found.
-            </Typography>
+            <Text color="success">Template is valid! No errors found.</Text>
           ) : (
             <>
-              <Typography variant="body2" gutterBottom>
+              <Text as="p" style={{ marginBottom: 'var(--bui-space-2)' }}>
                 Found {errorCount} error(s) and {warningCount} warning(s)
-              </Typography>
-              <List>
-                {errors.map((error, index) => (
-                  <ListItem key={index}>
-                    <ListItemIcon>
-                      {error.severity === 'error' ? (
-                        <ErrorIcon color="error" />
+              </Text>
+              <List items={errorItems}>
+                {item => (
+                  <ListRow
+                    key={item.id}
+                    id={item.id}
+                    textValue={item.message}
+                    description={item.path}
+                    icon={
+                      item.severity === 'error' ? (
+                        <RiCloseCircleLine color="var(--bui-fg-negative)" />
                       ) : (
-                        <WarningIcon style={{ color: '#ff9800' }} />
-                      )}
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={error.message}
-                      secondary={error.path}
-                    />
-                  </ListItem>
-                ))}
+                        <RiAlertLine color="var(--bui-fg-warning)" />
+                      )
+                    }
+                  >
+                    {item.message}
+                  </ListRow>
+                )}
               </List>
             </>
           )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} color="primary">
+        </DialogBody>
+        <DialogFooter>
+          <Button variant="secondary" onPress={handleClose}>
             Close
           </Button>
-        </DialogActions>
+        </DialogFooter>
       </Dialog>
     </>
   );

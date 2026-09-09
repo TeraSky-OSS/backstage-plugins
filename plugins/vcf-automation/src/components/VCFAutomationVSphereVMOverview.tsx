@@ -9,30 +9,25 @@ import {
   StatusError,
   StatusPending,
 } from '@backstage/core-components';
-import { Grid, Typography, makeStyles } from '@material-ui/core';
+import { Flex, Grid, Text } from '@backstage/ui';
 import useAsync from 'react-use/lib/useAsync';
 import { usePermission } from '@backstage/plugin-permission-react';
 import { showDeploymentResourcesDataPermission } from '@terasky/backstage-plugin-vcf-automation-common';
 
-const useStyles = makeStyles(theme => ({
-  statusText: {
-    fontWeight: 'bold',
-    '&.success': {
-      color: theme.palette.success.main,
-    },
-    '&.error': {
-      color: theme.palette.error.main,
-    },
-    '&.pending': {
-      color: theme.palette.warning.main,
-    },
-  },
-}));
+const statusTextColor = (state?: string): string => {
+  switch (state?.toLowerCase() || 'unknown') {
+    case 'success':
+      return 'var(--bui-fg-positive)';
+    case 'error':
+      return 'var(--bui-fg-negative)';
+    default:
+      return 'var(--bui-fg-warning)';
+  }
+};
 
 export const VCFAutomationVSphereVMOverview = () => {
   const { entity } = useEntity();
   const api = useApi(vcfAutomationApiRef);
-  const classes = useStyles();
   const deploymentId = entity.spec?.system || '';
   const resourceId = entity.metadata.name;
   const instanceName = entity.metadata.annotations?.['terasky.backstage.io/vcf-automation-instance'];
@@ -49,7 +44,7 @@ export const VCFAutomationVSphereVMOverview = () => {
   if (!resourceId || !deploymentId) {
     return (
       <InfoCard title="VCF Automation Resource">
-        <Typography>No resource ID or deployment ID found for this entity.</Typography>
+        <Text>No resource ID or deployment ID found for this entity.</Text>
       </InfoCard>
     );
   }
@@ -65,7 +60,7 @@ export const VCFAutomationVSphereVMOverview = () => {
   if (!hasViewPermission) {
     return (
       <InfoCard title="VCF Automation Resource">
-        <Typography>You don't have permission to view resource details.</Typography>
+        <Text>You don't have permission to view resource details.</Text>
       </InfoCard>
     );
   }
@@ -77,7 +72,7 @@ export const VCFAutomationVSphereVMOverview = () => {
   if (!resource) {
     return (
       <InfoCard title="VCF Automation Resource">
-        <Typography>No resource details available.</Typography>
+        <Text>No resource details available.</Text>
       </InfoCard>
     );
   }
@@ -97,58 +92,58 @@ export const VCFAutomationVSphereVMOverview = () => {
 
   return (
     <InfoCard title="VCF Automation Resource">
-      <Grid container spacing={2}>
-        <Grid item xs={6}>
-          <Typography variant="subtitle2">Name</Typography>
-          <Typography>{resource.name}</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography variant="subtitle2">Type</Typography>
-          <Typography>{resource.type}</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography variant="subtitle2">State</Typography>
-          <Grid container spacing={1} alignItems="center">
+      <Grid.Root columns="12" gap="5">
+        <Grid.Item colSpan="6">
+          <Text variant="body-small" weight="bold" style={{ display: 'block' }}>Name</Text>
+          <Text>{resource.name}</Text>
+        </Grid.Item>
+        <Grid.Item colSpan="6">
+          <Text variant="body-small" weight="bold" style={{ display: 'block' }}>Type</Text>
+          <Text>{resource.type}</Text>
+        </Grid.Item>
+        <Grid.Item colSpan="6">
+          <Text variant="body-small" weight="bold" style={{ display: 'block' }}>State</Text>
+          <Flex align="center" gap="1">
             {getStatusComponent(resource.state)}
-            <Typography className={`${classes.statusText} ${resource.state?.toLowerCase() || 'unknown'}`}>
+            <Text weight="bold" style={{ color: statusTextColor(resource.state) }}>
               {resource.state}
-            </Typography>
-          </Grid>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography variant="subtitle2">Sync Status</Typography>
-          <Grid container spacing={1} alignItems="center">
+            </Text>
+          </Flex>
+        </Grid.Item>
+        <Grid.Item colSpan="6">
+          <Text variant="body-small" weight="bold" style={{ display: 'block' }}>Sync Status</Text>
+          <Flex align="center" gap="1">
             {getStatusComponent(resource.syncStatus)}
-            <Typography className={`${classes.statusText} ${resource.syncStatus?.toLowerCase() || 'unknown'}`}>
+            <Text weight="bold" style={{ color: statusTextColor(resource.syncStatus) }}>
               {resource.syncStatus}
-            </Typography>
-          </Grid>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography variant="subtitle2">Created At</Typography>
-          <Typography>{new Date(resource.createdAt).toLocaleString()}</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography variant="subtitle2">Region</Typography>
-          <Typography>{resource.properties?.region || 'N/A'}</Typography>
-        </Grid>
-        <Grid item xs={12}>
-          <Typography variant="subtitle2">Resource Metrics</Typography>
-          <Typography>
+            </Text>
+          </Flex>
+        </Grid.Item>
+        <Grid.Item colSpan="6">
+          <Text variant="body-small" weight="bold" style={{ display: 'block' }}>Created At</Text>
+          <Text>{new Date(resource.createdAt).toLocaleString()}</Text>
+        </Grid.Item>
+        <Grid.Item colSpan="6">
+          <Text variant="body-small" weight="bold" style={{ display: 'block' }}>Region</Text>
+          <Text>{resource.properties?.region || 'N/A'}</Text>
+        </Grid.Item>
+        <Grid.Item colSpan="12">
+          <Text variant="body-small" weight="bold" style={{ display: 'block' }}>Resource Metrics</Text>
+          <Text>
             {`CPU: ${resource.properties?.cpuCount || 'N/A'} cores, `}
             {`Memory: ${resource.properties?.memoryGB || 'N/A'} GB, `}
             {`Storage: ${resource.properties?.storage?.disks?.[0]?.capacityGb || 'N/A'} GB`}
-          </Typography>
-        </Grid>
-        <Grid item xs={12}>
-          <Typography variant="subtitle2">Expense Information</Typography>
-          <Typography>
+          </Text>
+        </Grid.Item>
+        <Grid.Item colSpan="12">
+          <Text variant="body-small" weight="bold" style={{ display: 'block' }}>Expense Information</Text>
+          <Text>
             {`Total: $${resource.expense?.totalExpense?.toFixed(2) || 'N/A'}, `}
             {`Compute: $${resource.expense?.computeExpense?.toFixed(2) || 'N/A'}, `}
             {`Storage: $${resource.expense?.storageExpense?.toFixed(2) || 'N/A'}`}
-          </Typography>
-        </Grid>
-      </Grid>
+          </Text>
+        </Grid.Item>
+      </Grid.Root>
     </InfoCard>
   );
 }; 

@@ -1,0 +1,101 @@
+.toolbar {
+  display: flex;
+  gap: var(--bui-space-4);
+  margin-bottom: var(--bui-space-4);
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.searchField {
+  min-width: 240px;
+  flex: 1;
+}
+
+.filterSelect {
+  min-width: 160px;
+}
+
+.tableContainer {
+  background-color: var(--bui-bg-neutral-1);
+  border: 1px solid var(--bui-border-1);
+  border-radius: var(--bui-radius-2);
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--bui-font-size-3);
+}
+
+.headerCell {
+  font-weight: bold;
+  background-color: var(--bui-bg-neutral-1);
+}
+
+.tableCell {
+  padding: var(--bui-space-2) var(--bui-space-4);
+  border-bottom: 1px solid var(--bui-border-1);
+  color: var(--bui-fg-primary);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.clickableRow {
+  cursor: pointer;
+}
+
+.clickableRow:hover {
+  background-color: var(--bui-bg-neutral-2);
+}
+
+.stateChipActive {
+  color: var(--bui-fg-positive);
+}
+
+.stateChipInactive {
+  color: var(--bui-fg-negative);
+}
+
+.scopeChipNamespaced {
+  color: var(--bui-fg-announcement);
+}
+
+.scopeChipCluster {
+  color: var(--bui-fg-warning);
+}
+
+.drawerBody {
+  width: 720px;
+  max-width: 92vw;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.drawerHeader {
+  padding: var(--bui-space-4);
+  border-bottom: 1px solid var(--bui-border-1);
+  flex-shrink: 0;
+}
+
+.drawerContent {
+  overflow: auto;
+  flex: 1;
+}
+
+.rawYamlActions {
+  display: flex;
+  gap: var(--bui-space-2);
+  padding: var(--bui-space-2) var(--bui-space-4);
+  border-bottom: 1px solid var(--bui-border-1);
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+.summaryBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bui-space-2);
+  margin-bottom: var(--bui-space-4);
+}

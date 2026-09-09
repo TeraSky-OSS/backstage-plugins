@@ -1,0 +1,27 @@
+.root {
+  padding: var(--bui-space-6);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.sectionIcon {
+  color: var(--bui-accent-fg);
+}
+
+.poolCard {
+  border: 1px solid var(--bui-border-1);
+  margin-bottom: var(--bui-space-4);
+  transition: border-color 0.2s ease;
+}
+
+.poolCard:hover {
+  border-color: var(--bui-accent-fg);
+}
+
+.highlightedAccordion {
+  border: 1px solid var(--bui-border-1);
+  border-radius: var(--bui-radius-2);
+  background-color: var(--bui-bg-neutral-2);
+  overflow: hidden;
+  margin-bottom: var(--bui-space-4);
+}

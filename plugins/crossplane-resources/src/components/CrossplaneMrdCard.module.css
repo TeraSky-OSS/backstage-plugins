@@ -1,0 +1,35 @@
+.divider {
+  border: none;
+  border-top: 1px solid var(--bui-border-1);
+  margin: var(--bui-space-2) 0;
+}
+
+.statBox {
+  text-align: center;
+  padding: var(--bui-space-3);
+}
+
+.statValue {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  display: block;
+}
+
+.statLabel {
+  font-size: 0.75rem;
+  color: var(--bui-fg-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: block;
+}
+
+.sectionTitle {
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--bui-fg-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: var(--bui-space-1);
+  display: block;
+}

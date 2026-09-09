@@ -62,6 +62,7 @@ describe('KubernetesService', () => {
 
       const result = await service.getPolicyReports({
         entity: {
+          kind: 'Component',
           metadata: { name: 'test-entity', namespace: 'default' },
         },
       });
@@ -94,6 +95,7 @@ describe('KubernetesService', () => {
 
       const result = await service.getPolicyReports({
         entity: {
+          kind: 'Component',
           metadata: { name: 'test-entity', namespace: 'default' },
         },
       });
@@ -111,6 +113,7 @@ describe('KubernetesService', () => {
       await expect(
         service.getPolicyReports({
           entity: {
+            kind: 'Component',
             metadata: { name: 'test-entity', namespace: 'default' },
           },
         })

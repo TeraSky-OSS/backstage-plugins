@@ -1,0 +1,25 @@
+.divider {
+  margin: var(--bui-space-4) 0;
+  border: none;
+  border-top: 1px solid var(--bui-border-1);
+}
+
+.entityLink {
+  color: var(--bui-accent-fg);
+  text-decoration: none;
+}
+
+.entityLink:hover {
+  text-decoration: underline;
+}
+
+.progressBar {
+  margin-top: var(--bui-space-1);
+  height: 6px;
+  border-radius: 3px;
+}
+
+.accentBadge {
+  background-color: var(--bui-accent-bg);
+  color: var(--bui-accent-fg);
+}

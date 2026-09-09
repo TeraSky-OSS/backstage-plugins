@@ -9,6 +9,7 @@ Before installing the plugin, ensure you have:
 1. A working Backstage instance
 2. DevPod installed on your development machine(s)
 3. Access to modify your Backstage frontend configuration
+4. [Backstage UI](https://ui.backstage.io) styles loaded in your app — this plugin's components are built with `@backstage/ui`, which requires `import '@backstage/ui/css/styles.css';` somewhere in your app's entry point (e.g. `packages/app/src/index.tsx`). Most recent Backstage apps already have this from the `new-frontend-plugin` app template; if the plugin's components render unstyled, add the import.
 
 ## Installation Steps
 

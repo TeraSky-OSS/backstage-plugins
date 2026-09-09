@@ -1,25 +1,10 @@
 import { useEffect, useState } from 'react';
-import {
-  Box,
-  Typography,
-  TextField,
-  CircularProgress,
-} from '@material-ui/core';
-import { Alert, Autocomplete } from '@material-ui/lab';
-import { makeStyles } from '@material-ui/core/styles';
+import type { Key } from 'react';
+import { Alert, Box, Combobox, Text } from '@backstage/ui';
+import { Progress } from '@backstage/core-components';
 import { useApi } from '@backstage/core-plugin-api';
 import { spectroCloudApiRef } from '../../../api';
 import { SpectroCloudProject } from '../../../api/SpectroCloudApi';
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    padding: theme.spacing(2),
-  },
-  formControl: {
-    marginTop: theme.spacing(2),
-    width: '100%',
-  },
-}));
 
 interface ProjectSelectionProps {
   selectedProjectUid?: string;
@@ -30,7 +15,6 @@ export const ProjectSelection = ({
   selectedProjectUid,
   onSelect,
 }: ProjectSelectionProps) => {
-  const classes = useStyles();
   const spectroCloudApi = useApi(spectroCloudApiRef);
   const [projects, setProjects] = useState<SpectroCloudProject[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,7 +26,7 @@ export const ProjectSelection = ({
         setLoading(true);
         const result = await spectroCloudApi.getProjects();
         // Sort projects alphabetically
-        const sortedProjects = result.sort((a, b) => 
+        const sortedProjects = result.sort((a, b) =>
           a.metadata.name.localeCompare(b.metadata.name)
         );
         setProjects(sortedProjects);
@@ -59,56 +43,49 @@ export const ProjectSelection = ({
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
-        <CircularProgress />
+      <Box display="flex" style={{ justifyContent: 'center', alignItems: 'center' }} minHeight="200px">
+        <Progress />
       </Box>
     );
   }
 
   if (error) {
     return (
-      <Box className={classes.root}>
-        <Alert severity="error">{error}</Alert>
+      <Box p="4">
+        <Alert status="danger" description={error} />
       </Box>
     );
   }
 
   return (
-    <Box className={classes.root}>
-      <Typography variant="h5" gutterBottom>
+    <Box p="4">
+      <Text variant="title-medium" weight="bold" as="div">
         Select Project
-      </Typography>
-      <Typography variant="body2" color="textSecondary" paragraph>
-        Choose the project where you want to deploy the cluster
-      </Typography>
+      </Text>
+      <Box mt="1" mb="4">
+        <Text variant="body-small" color="secondary">
+          Choose the project where you want to deploy the cluster
+        </Text>
+      </Box>
 
-      <Autocomplete
-        options={projects}
-        getOptionLabel={(option) => option.metadata.name}
-        value={projects.find(p => p.metadata.uid === selectedProjectUid) || null}
-        onChange={(_, newValue) => {
-          if (newValue) {
-            onSelect(newValue.metadata.uid, newValue.metadata.name);
+      <Combobox
+        options={projects.map(p => ({
+          id: p.metadata.uid,
+          label: p.metadata.name,
+          description: p.spec?.description,
+        }))}
+        label="Project *"
+        isRequired
+        description={`${projects.length} project${projects.length !== 1 ? 's' : ''} available`}
+        selectedKey={selectedProjectUid ?? null}
+        onSelectionChange={(key: Key | null) => {
+          if (key !== null) {
+            const project = projects.find(p => p.metadata.uid === key);
+            if (project) {
+              onSelect(project.metadata.uid, project.metadata.name);
+            }
           }
         }}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            label="Project *"
-            required
-            helperText={`${projects.length} project${projects.length !== 1 ? 's' : ''} available`}
-          />
-        )}
-        renderOption={(option) => (
-          <Box>
-            <Typography variant="body1">{option.metadata.name}</Typography>
-            {option.spec?.description && (
-              <Typography variant="caption" color="textSecondary">
-                {option.spec.description}
-              </Typography>
-            )}
-          </Box>
-        )}
       />
     </Box>
   );

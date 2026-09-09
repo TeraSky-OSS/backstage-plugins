@@ -1,0 +1,159 @@
+.divider {
+  margin: var(--bui-space-4) 0;
+  border: none;
+  border-top: 1px solid var(--bui-border-1);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--bui-font-size-3);
+}
+
+.tableCell {
+  padding: var(--bui-space-2) var(--bui-space-2);
+  border-bottom: 1px solid var(--bui-border-1);
+  color: var(--bui-fg-primary);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.expandCell {
+  width: 40px;
+  padding: 0 var(--bui-space-2);
+}
+
+.tableHeader {
+  background-color: var(--bui-bg-neutral-2);
+}
+
+.infraProfileRow {
+  background-color: var(--bui-positive-bg-subdued);
+  cursor: pointer;
+}
+
+.infraProfileRow:hover {
+  filter: brightness(0.97);
+}
+
+.addonProfileRow {
+  background-color: var(--bui-announcement-bg-subdued);
+  cursor: pointer;
+}
+
+.addonProfileRow:hover {
+  filter: brightness(0.97);
+}
+
+.expandedRow {
+  background-color: var(--bui-bg-neutral-1);
+}
+
+.packTable {
+  margin-bottom: var(--bui-space-2);
+}
+
+.packTableHeader {
+  background-color: var(--bui-bg-neutral-3);
+}
+
+.packRow {
+  cursor: pointer;
+}
+
+.packRow:nth-of-type(odd) {
+  background-color: var(--bui-bg-neutral-1);
+}
+
+.packRow:hover {
+  background-color: var(--bui-bg-neutral-2);
+}
+
+.profileTypeChip {
+  margin-left: var(--bui-space-2);
+}
+
+.accentBadge {
+  background-color: var(--bui-accent-bg);
+  color: var(--bui-accent-fg);
+}
+
+.layerChip {
+  text-transform: uppercase;
+}
+
+.osLayer {
+  background-color: #ff9800;
+  color: #fff;
+}
+
+.k8sLayer {
+  background-color: #2196f3;
+  color: #fff;
+}
+
+.cniLayer {
+  background-color: #9c27b0;
+  color: #fff;
+}
+
+.csiLayer {
+  background-color: #4caf50;
+  color: #fff;
+}
+
+.addonLayer {
+  background-color: #607d8b;
+  color: #fff;
+}
+
+.profileIcon {
+  margin-right: var(--bui-space-1);
+  vertical-align: middle;
+}
+
+.currentVersionBadge {
+  background-color: var(--bui-positive-bg-subdued);
+  color: var(--bui-fg-positive);
+}
+
+.upgradeIcon {
+  color: var(--bui-fg-warning);
+  margin-left: var(--bui-space-1);
+}
+
+.upgradeBadge {
+  background-color: var(--bui-warning-bg-subdued);
+  color: var(--bui-fg-warning);
+  margin-left: var(--bui-space-1);
+}
+
+.packExpandedContent {
+  padding: var(--bui-space-4);
+  background-color: var(--bui-bg-neutral-1);
+  border-top: 1px solid var(--bui-border-1);
+}
+
+.codeContainer {
+  max-height: 400px;
+  overflow: auto;
+  border-radius: 4px;
+}
+
+.codeContainer :global(pre) {
+  margin: 0 !important;
+  font-size: 12px !important;
+}
+
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--bui-space-4);
+}
+
+.noContent {
+  padding: var(--bui-space-4);
+  text-align: center;
+  color: var(--bui-fg-secondary);
+}

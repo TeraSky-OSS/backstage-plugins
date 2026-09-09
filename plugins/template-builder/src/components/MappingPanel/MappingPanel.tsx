@@ -1,42 +1,8 @@
 import { useMemo } from 'react';
-import {
-  Box,
-  Paper,
-  Typography,
-  Divider,
-} from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
+import { Box, Card, CardBody, CardHeader, Flex, Text } from '@backstage/ui';
 import { ExpressionBuilder } from './ExpressionBuilder';
 import type { ActionNodeData, ParameterStep, PropertySchema } from '../../types';
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    height: '100%',
-    overflow: 'auto',
-  },
-  header: {
-    padding: theme.spacing(2),
-    borderBottom: `1px solid ${theme.palette.divider}`,
-    backgroundColor: theme.palette.background.default,
-    position: 'sticky',
-    top: 0,
-    zIndex: 1,
-  },
-  content: {
-    padding: theme.spacing(2),
-  },
-  section: {
-    marginBottom: theme.spacing(3),
-  },
-  inputField: {
-    marginBottom: theme.spacing(2),
-  },
-  emptyState: {
-    padding: theme.spacing(4),
-    textAlign: 'center',
-    color: theme.palette.text.secondary,
-  },
-}));
+import styles from './MappingPanel.module.css';
 
 export interface MappingPanelProps {
   action: ActionNodeData;
@@ -53,7 +19,6 @@ export interface MappingPanelProps {
 
 export function MappingPanel(props: MappingPanelProps) {
   const { action, actionSchema, parameters, previousSteps, onUpdateInputs } = props;
-  const classes = useStyles();
 
   const inputProperties = actionSchema?.input?.properties || {};
   const requiredInputs = actionSchema?.input?.required || [];
@@ -105,60 +70,64 @@ export function MappingPanel(props: MappingPanelProps) {
 
   if (Object.keys(inputProperties).length === 0) {
     return (
-      <Paper className={classes.root}>
-        <Box className={classes.header}>
-          <Typography variant="h6">{action.name}</Typography>
-          <Typography variant="caption" color="textSecondary">
+      <Card className={styles.root}>
+        <CardHeader className={styles.header}>
+          <Text variant="title-small">{action.name}</Text>
+          <Text variant="body-small" color="secondary">
             {action.actionId}
-          </Typography>
-        </Box>
-        <Box className={classes.emptyState}>
-          <Typography variant="body2">
+          </Text>
+        </CardHeader>
+        <Flex direction="column" align="center" justify="center" p="8">
+          <Text variant="body-medium" color="secondary">
             This action has no configurable inputs
-          </Typography>
-        </Box>
-      </Paper>
+          </Text>
+        </Flex>
+      </Card>
     );
   }
 
   return (
-    <Paper className={classes.root}>
-      <Box className={classes.header}>
-        <Typography variant="h6">{action.name}</Typography>
-        <Typography variant="caption" color="textSecondary">
+    <Card className={styles.root}>
+      <CardHeader className={styles.header}>
+        <Text variant="title-small">{action.name}</Text>
+        <Text variant="body-small" color="secondary">
           {action.actionId}
-        </Typography>
-      </Box>
+        </Text>
+      </CardHeader>
 
-      <Box className={classes.content}>
+      <CardBody>
         {Object.entries(inputProperties).map(([inputName, schema]) => {
           const isRequired = requiredInputs.includes(inputName);
           const currentValue = action.inputs?.[inputName];
 
           return (
-            <Box key={inputName} className={classes.inputField}>
-              <Typography variant="subtitle2" gutterBottom>
+            <Box key={inputName} mb="4">
+              <Text variant="title-x-small">
                 {schema.title || inputName}
-                {isRequired && <span style={{ color: 'red' }}> *</span>}
-              </Typography>
+                {isRequired && (
+                  <span style={{ color: 'var(--bui-fg-negative)' }}> *</span>
+                )}
+              </Text>
               {schema.description && (
-                <Typography variant="caption" color="textSecondary" paragraph>
+                <Text variant="body-small" color="secondary">
                   {schema.description}
-                </Typography>
+                </Text>
               )}
 
-              <ExpressionBuilder
-                value={currentValue}
-                onChange={value => handleInputChange(inputName, value)}
-                availableVariables={availableVariables}
-                propertyType={schema.type}
-              />
+              <Box mt="2">
+                <ExpressionBuilder
+                  value={currentValue}
+                  onChange={value => handleInputChange(inputName, value)}
+                  availableVariables={availableVariables}
+                  propertyType={schema.type}
+                />
+              </Box>
 
-              <Divider style={{ marginTop: 16 }} />
+              <hr className={styles.divider} />
             </Box>
           );
         })}
-      </Box>
-    </Paper>
+      </CardBody>
+    </Card>
   );
 }

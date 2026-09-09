@@ -1,159 +1,22 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
 import {
-  Box,
-  Typography,
   Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Chip,
+  AccordionPanel,
+  AccordionTrigger,
+  Badge,
+  Box,
   Button,
-  Paper,
-  Grid,
+  ButtonIcon,
+  Card,
+  Flex,
   Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-} from '@material-ui/core';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import LinkIcon from '@material-ui/icons/Link';
-import FileCopyIcon from '@material-ui/icons/FileCopy';
+  Text,
+} from '@backstage/ui';
+import { RiFileCopyLine, RiLinkM } from '@remixicon/react';
 import { CodeSnippet } from '@backstage/core-components';
 import { ManagedResourceDefinition } from '@terasky/backstage-plugin-crossplane-common';
 import { default as React } from 'react';
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    padding: theme.spacing(2),
-  },
-  header: {
-    marginBottom: theme.spacing(3),
-  },
-  labelContainer: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: theme.spacing(2),
-    gap: theme.spacing(2),
-    flexWrap: 'wrap',
-    [theme.breakpoints.down('sm')]: {
-      flexDirection: 'column',
-    },
-  },
-  labelItem: {
-    textAlign: 'center',
-  },
-  labelValue: {
-    fontSize: '1.4rem',
-    fontWeight: 600,
-    color: theme.palette.text.primary,
-  },
-  labelType: {
-    fontSize: '0.75rem',
-    color: theme.palette.text.secondary,
-    textTransform: 'uppercase',
-  },
-  apiVersionSnippet: {
-    marginTop: theme.spacing(2),
-    marginBottom: theme.spacing(2),
-  },
-  description: {
-    marginTop: theme.spacing(2),
-    marginBottom: theme.spacing(2),
-    fontSize: '1rem',
-  },
-  accordionSummary: {
-    backgroundColor: theme.palette.background.default,
-    minHeight: 48,
-    '&.Mui-expanded': {
-      minHeight: 48,
-    },
-  },
-  accordionDetails: {
-    flexDirection: 'column',
-    padding: theme.spacing(2),
-  },
-  propertyHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(1),
-    flexWrap: 'wrap',
-  },
-  typeChip: {
-    fontFamily: 'monospace',
-    backgroundColor:
-      theme.palette.type === 'dark' ? theme.palette.grey[800] : theme.palette.grey[200],
-    color: theme.palette.text.primary,
-    fontWeight: 500,
-    fontSize: '11px',
-  },
-  requiredChip: {
-    backgroundColor: theme.palette.primary.main,
-    color: theme.palette.primary.contrastText,
-    fontSize: '11px',
-  },
-  linkButton: {
-    marginLeft: 'auto',
-    minWidth: 'auto',
-    padding: theme.spacing(0.5),
-  },
-  nestedAccordion: {
-    marginTop: theme.spacing(1),
-    '&:before': {
-      display: 'none',
-    },
-  },
-  expandButtons: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    gap: theme.spacing(1),
-    marginBottom: theme.spacing(2),
-    [theme.breakpoints.down('sm')]: {
-      flexDirection: 'column',
-    },
-  },
-  copyExampleButton: {
-    [theme.breakpoints.down('sm')]: {
-      width: '100%',
-    },
-  },
-  emptySchema: {
-    padding: theme.spacing(3),
-    textAlign: 'center',
-    color: theme.palette.text.secondary,
-  },
-  versionSelector: {
-    minWidth: 200,
-    marginBottom: theme.spacing(2),
-  },
-  versionBadge: {
-    marginLeft: theme.spacing(1),
-  },
-  stateChipActive: {
-    backgroundColor:
-      theme.palette.type === 'dark' ? 'rgba(76, 175, 80, 0.2)' : 'rgba(76, 175, 80, 0.1)',
-    color: theme.palette.type === 'dark' ? '#81c784' : '#2e7d32',
-    fontWeight: 'bold',
-  },
-  stateChipInactive: {
-    backgroundColor:
-      theme.palette.type === 'dark' ? 'rgba(244, 67, 54, 0.2)' : 'rgba(244, 67, 54, 0.1)',
-    color: theme.palette.type === 'dark' ? '#e57373' : '#c62828',
-    fontWeight: 'bold',
-  },
-  scopeChipNamespaced: {
-    backgroundColor:
-      theme.palette.type === 'dark' ? 'rgba(33, 150, 243, 0.2)' : 'rgba(33, 150, 243, 0.1)',
-    color: theme.palette.type === 'dark' ? '#64b5f6' : '#1565c0',
-    fontWeight: 'bold',
-  },
-  scopeChipCluster: {
-    backgroundColor:
-      theme.palette.type === 'dark' ? 'rgba(255, 152, 0, 0.2)' : 'rgba(255, 152, 0, 0.1)',
-    color: theme.palette.type === 'dark' ? '#ffb74d' : '#e65100',
-    fontWeight: 'bold',
-  },
-}));
+import styles from './MrdDefinitionWidget.module.css';
 
 // ─── Schema types (mirrors CrdDefinitionWidget internals) ────────────────────
 
@@ -311,8 +174,6 @@ const SchemaPart: React.FC<SchemaPartProps> = ({
   expandAll,
   collapseAll,
 }) => {
-  const classes = useStyles();
-
   const [props, propKeys, required, type, schema] = useMemo(() => {
     let currentSchema: MRDSchema = property;
     let currentProps: Record<string, MRDSchema> = property.properties ?? {};
@@ -370,68 +231,63 @@ const SchemaPart: React.FC<SchemaPartProps> = ({
   };
 
   return (
-    <Accordion
-      expanded={isOpen}
-      onChange={(_, expanded) => setIsOpen(expanded)}
-      className={classes.nestedAccordion}
-    >
-      <AccordionSummary expandIcon={<ExpandMoreIcon />} className={classes.accordionSummary}>
-        <Box className={classes.propertyHeader}>
-          <Typography variant="body1" style={{ fontWeight: 500 }}>
-            {propertyKey}
-          </Typography>
-          <Chip label={type} size="small" className={classes.typeChip} />
-          {required && (
-            <Chip label="required" size="small" className={classes.requiredChip} />
-          )}
-          <Button
-            size="small"
-            className={classes.linkButton}
-            onClick={e => {
-              e.stopPropagation();
-              handleCopyLink();
-            }}
-          >
-            <LinkIcon fontSize="small" />
-          </Button>
-        </Box>
-      </AccordionSummary>
-      <AccordionDetails className={classes.accordionDetails}>
-        {getDescription(property) && (
-          <Box id={slug} className={classes.description}>
-            <Typography variant="body2" color="textSecondary">
-              {getDescription(property)}
-            </Typography>
-          </Box>
-        )}
-        {propKeys.length > 0 && (
-          <Box>
-            {propKeys.map(propKey => (
-              <SchemaPart
-                key={propKey}
-                propertyKey={propKey}
-                property={props[propKey]}
-                parent={schema}
-                parentSlug={slug}
-                expandAll={expandAll}
-                collapseAll={collapseAll}
-              />
-            ))}
-          </Box>
-        )}
-      </AccordionDetails>
-    </Accordion>
+    <Box style={{ position: 'relative', marginTop: 'var(--bui-space-2)' }}>
+      <Accordion isExpanded={isOpen} onExpandedChange={setIsOpen}>
+        <AccordionTrigger>
+          <Flex align="center" gap="2" style={{ flexWrap: 'wrap', paddingRight: 'var(--bui-space-8)' }}>
+            <Text weight="bold">{propertyKey}</Text>
+            <Badge className={styles.typeChip}>{type}</Badge>
+            {required && <Badge className={styles.requiredChip}>required</Badge>}
+          </Flex>
+        </AccordionTrigger>
+        <AccordionPanel>
+          <Flex direction="column" gap="3">
+            {getDescription(property) && (
+              <Box id={slug}>
+                <Text variant="body-small" color="secondary">
+                  {getDescription(property)}
+                </Text>
+              </Box>
+            )}
+            {propKeys.length > 0 && (
+              <Box>
+                {propKeys.map(propKey => (
+                  <SchemaPart
+                    key={propKey}
+                    propertyKey={propKey}
+                    property={props[propKey]}
+                    parent={schema}
+                    parentSlug={slug}
+                    expandAll={expandAll}
+                    collapseAll={collapseAll}
+                  />
+                ))}
+              </Box>
+            )}
+          </Flex>
+        </AccordionPanel>
+      </Accordion>
+      <ButtonIcon
+        aria-label="Copy link to this property"
+        icon={<RiLinkM />}
+        size="small"
+        variant="tertiary"
+        style={{ position: 'absolute', top: 'var(--bui-space-2)', right: 'var(--bui-space-8)' }}
+        onPress={handleCopyLink}
+      />
+    </Box>
   );
 };
 
 // ─── PartLabel ───────────────────────────────────────────────────────────────
 
 const PartLabel: React.FC<{ type: string; value: string }> = ({ type, value }) => {
-  const classes = useStyles();
   return (
-    <Box className={classes.labelItem}>
-      <Typography className={classes.labelValue}>{value}</Typography>
-      <Typography className={classes.labelType}>{type}</Typography>
+    <Box style={{ textAlign: 'center' }}>
+      <Text variant="title-medium" weight="bold">{value}</Text>
+      <Text as="div" variant="body-x-small" color="secondary" style={{ textTransform: 'uppercase' }}>
+        {type}
+      </Text>
     </Box>
   );
 };
@@ -443,7 +299,6 @@ export interface MrdDefinitionWidgetProps {
 }
 
 export const MrdDefinitionWidget: React.FC<MrdDefinitionWidgetProps> = ({ mrd }) => {
-  const classes = useStyles();
   const [expandAll, setExpandAll] = useState(false);
   const [collapseAll, setCollapseAll] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
@@ -459,9 +314,9 @@ export const MrdDefinitionWidget: React.FC<MrdDefinitionWidgetProps> = ({ mrd })
 
   if (!parsed) {
     return (
-      <Paper className={classes.root}>
-        <Typography color="error">Failed to parse ManagedResourceDefinition</Typography>
-      </Paper>
+      <Card style={{ padding: 'var(--bui-space-4)' }}>
+        <Text style={{ color: 'var(--bui-fg-negative)' }}>Failed to parse ManagedResourceDefinition</Text>
+      </Card>
     );
   }
 
@@ -502,67 +357,45 @@ export const MrdDefinitionWidget: React.FC<MrdDefinitionWidgetProps> = ({ mrd })
   };
 
   return (
-    <Box className={classes.root}>
+    <Box style={{ padding: 'var(--bui-space-4)' }}>
       {/* ── Header ── */}
-      <Box className={classes.header}>
-        <Grid container spacing={2} className={classes.labelContainer}>
-          <Grid item>
-            <PartLabel type="Kind" value={kind} />
-          </Grid>
-          <Grid item>
-            <PartLabel type="Group" value={group} />
-          </Grid>
-          <Grid item>
-            <Box className={classes.labelItem}>
-              <Typography className={classes.labelValue}>{scope}</Typography>
-              <Typography className={classes.labelType}>Scope</Typography>
-            </Box>
-          </Grid>
-          <Grid item>
-            <Box className={classes.labelItem}>
-              <Box display="flex" alignItems="center" justifyContent="center">
-                <Chip
-                  label={state}
-                  size="small"
-                  className={
-                    state === 'Active' ? classes.stateChipActive : classes.stateChipInactive
-                  }
-                />
-              </Box>
-              <Typography className={classes.labelType} style={{ marginTop: 4 }}>
-                State
-              </Typography>
-            </Box>
-          </Grid>
-        </Grid>
+      <Box mb="5">
+        <Flex justify="between" align="start" gap="4" mb="4" direction="row" style={{ flexWrap: 'wrap' }}>
+          <PartLabel type="Kind" value={kind} />
+          <PartLabel type="Group" value={group} />
+          <PartLabel type="Scope" value={scope} />
+          <Box style={{ textAlign: 'center' }}>
+            <Badge className={state === 'Active' ? styles.stateChipActive : styles.stateChipInactive}>
+              {state}
+            </Badge>
+            <Text as="div" variant="body-x-small" color="secondary" style={{ textTransform: 'uppercase', marginTop: 'var(--bui-space-1)' }}>
+              State
+            </Text>
+          </Box>
+        </Flex>
 
         {/* Version selector when more than one version */}
         {versions.length > 1 && (
-          <FormControl
-            className={classes.versionSelector}
-            variant="outlined"
-            size="small"
-          >
-            <InputLabel id="mrd-version-select-label">Select Version</InputLabel>
+          <Box mb="4" style={{ maxWidth: '300px' }}>
             <Select
-              labelId="mrd-version-select-label"
-              value={currentVersion}
-              onChange={e => setSelectedVersion(e.target.value as string)}
               label="Select Version"
-            >
-              {versions.map(v => (
-                <MenuItem key={v.name} value={v.name}>
-                  {v.name}
-                  {v.referenceable && ' (referenceable)'}
-                  {v.served && !v.referenceable && ' (served)'}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+              selectedKey={currentVersion}
+              onSelectionChange={key => setSelectedVersion(String(key))}
+              options={versions.map(v => {
+                let suffix = '';
+                if (v.referenceable) {
+                  suffix = ' (referenceable)';
+                } else if (v.served) {
+                  suffix = ' (served)';
+                }
+                return { id: v.name, label: `${v.name}${suffix}` };
+              })}
+            />
+          </Box>
         )}
 
         {/* apiVersion/kind snippet */}
-        <Box className={classes.apiVersionSnippet}>
+        <Box my="4">
           <CodeSnippet
             text={`apiVersion: ${group}/${currentVersion}\nkind: ${kind}`}
             language="yaml"
@@ -573,10 +406,10 @@ export const MrdDefinitionWidget: React.FC<MrdDefinitionWidgetProps> = ({ mrd })
 
         {/* Top-level schema description */}
         {getDescription(schema) && (
-          <Box className={classes.description}>
-            <Typography variant="body2" color="textSecondary">
+          <Box my="4">
+            <Text variant="body-small" color="secondary">
               {getDescription(schema)}
-            </Typography>
+            </Text>
           </Box>
         )}
       </Box>
@@ -584,34 +417,32 @@ export const MrdDefinitionWidget: React.FC<MrdDefinitionWidgetProps> = ({ mrd })
       {/* ── Schema tree ── */}
       {propertyKeys.length > 0 ? (
         <>
-          <Box className={classes.expandButtons}>
+          <Flex justify="between" gap="2" mb="4" direction="row" style={{ flexWrap: 'wrap' }}>
             <Button
-              variant="outlined"
-              color="primary"
+              variant="secondary"
               size="small"
-              startIcon={<FileCopyIcon />}
-              onClick={handleCopyExampleYAML}
-              className={classes.copyExampleButton}
+              iconStart={<RiFileCopyLine />}
+              onPress={handleCopyExampleYAML}
             >
               {copySuccess ? 'Copied!' : 'Copy Example YAML'}
             </Button>
-            <Box style={{ display: 'flex', gap: 8 }}>
+            <Flex gap="2">
               <Button
-                onClick={() => { setExpandAll(false); setCollapseAll(prev => !prev); }}
-                variant="outlined"
+                onPress={() => { setExpandAll(false); setCollapseAll(prev => !prev); }}
+                variant="secondary"
                 size="small"
               >
                 − collapse all
               </Button>
               <Button
-                onClick={() => { setCollapseAll(false); setExpandAll(prev => !prev); }}
-                variant="outlined"
+                onPress={() => { setCollapseAll(false); setExpandAll(prev => !prev); }}
+                variant="secondary"
                 size="small"
               >
                 + expand all
               </Button>
-            </Box>
-          </Box>
+            </Flex>
+          </Flex>
           <Box>
             {propertyKeys.map(propKey => (
               <SchemaPart
@@ -625,11 +456,9 @@ export const MrdDefinitionWidget: React.FC<MrdDefinitionWidgetProps> = ({ mrd })
           </Box>
         </>
       ) : (
-        <Paper className={classes.emptySchema}>
-          <Typography variant="h6">
-            This MRD has an empty or unspecified schema.
-          </Typography>
-        </Paper>
+        <Card className={styles.emptySchema}>
+          <Text variant="title-small">This MRD has an empty or unspecified schema.</Text>
+        </Card>
       )}
     </Box>
   );

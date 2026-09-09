@@ -40,9 +40,8 @@
     "@backstage/plugin-catalog-react": "^3.2.2",
     "@backstage/plugin-permission-react": "^0.5.4",
     "@backstage/theme": "^0.7.3",
-    "@material-ui/core": "^4.12.4",
-    "@material-ui/icons": "^4.11.3",
-    "@material-ui/lab": "4.0.0-alpha.61",
+    "@backstage/ui": "^0.17.1",
+    "@remixicon/react": ">=4.6.0 <4.9.0",
     "@terasky/backstage-plugin-vcf-operations-common": "^0.1.17",
     "react-use": "^17.6.0",
     "recharts": "^2.8.0"

@@ -8,27 +8,7 @@ import {
   Table,
   TableColumn,
 } from '@backstage/core-components';
-import { Grid, Typography, Box, Card, CardContent } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
-
-const useStyles = makeStyles(theme => ({
-  statusChip: {
-    marginRight: theme.spacing(1),
-    marginBottom: theme.spacing(0.5),
-  },
-  sectionTitle: {
-    marginBottom: theme.spacing(2),
-  },
-  conditionChip: {
-    margin: theme.spacing(0.25),
-  },
-  card: {
-    marginBottom: theme.spacing(2),
-  },
-  statusCard: {
-    border: `1px solid ${theme.palette.divider}`,
-  },
-}));
+import { Card, CardBody, Flex, Grid, Text } from '@backstage/ui';
 
 interface VMClass {
   name: string;
@@ -56,7 +36,6 @@ interface Condition {
 }
 
 export const VCFAutomationCCINamespaceDetails = () => {
-  const classes = useStyles();
   const { entity } = useEntity();
 
   const resourceProperties = entity.metadata.annotations?.['terasky.backstage.io/vcf-automation-resource-properties'];
@@ -89,7 +68,7 @@ export const VCFAutomationCCINamespaceDetails = () => {
   if (!namespaceData) {
     return (
       <InfoCard title={`CCI Supervisor Namespace Details${isStandalone ? ' (Standalone)' : ''}`}>
-        <Typography>No namespace data available.</Typography>
+        <Text>No namespace data available.</Text>
       </InfoCard>
     );
   }
@@ -142,14 +121,14 @@ export const VCFAutomationCCINamespaceDetails = () => {
   ];
 
   const conditionColumns: TableColumn<Condition>[] = [
-    { 
-      title: 'Status', 
+    {
+      title: 'Status',
       field: 'status',
       render: (rowData) => (
-        <Box display="flex" alignItems="center">
+        <Flex align="center" gap="2">
           {renderStatusIcon(rowData.status)}
-          <span style={{ marginLeft: 8 }}>{rowData.status}</span>
-        </Box>
+          <span>{rowData.status}</span>
+        </Flex>
       ),
     },
     { title: 'Type', field: 'type' },
@@ -159,21 +138,21 @@ export const VCFAutomationCCINamespaceDetails = () => {
   ];
 
   return (
-    <Grid container spacing={3}>
-      <Grid item xs={12}>
+    <Grid.Root columns="12" gap="5">
+      <Grid.Item colSpan="12">
         <InfoCard title="Basic Information">
           <StructuredMetadataTable metadata={basicInfo} />
         </InfoCard>
-      </Grid>
+      </Grid.Item>
 
-      <Grid item xs={12}>
+      <Grid.Item colSpan="12">
         <InfoCard title="Infrastructure Details">
           <StructuredMetadataTable metadata={infrastructureInfo} />
         </InfoCard>
-      </Grid>
+      </Grid.Item>
 
       {status?.conditions && status.conditions.length > 0 && (
-        <Grid item xs={12}>
+        <Grid.Item colSpan="12">
           <InfoCard title="Namespace Conditions">
             <Table
               columns={conditionColumns}
@@ -185,11 +164,11 @@ export const VCFAutomationCCINamespaceDetails = () => {
               }}
             />
           </InfoCard>
-        </Grid>
+        </Grid.Item>
       )}
 
       {status?.vmClasses && status.vmClasses.length > 0 && (
-        <Grid item xs={12} md={6}>
+        <Grid.Item colSpan={{ xs: '12', md: '6' }}>
           <InfoCard title="Available VM Classes">
             <Table
               columns={vmClassColumns}
@@ -202,11 +181,11 @@ export const VCFAutomationCCINamespaceDetails = () => {
               }}
             />
           </InfoCard>
-        </Grid>
+        </Grid.Item>
       )}
 
       {status?.storageClasses && status.storageClasses.length > 0 && (
-        <Grid item xs={12} md={6}>
+        <Grid.Item colSpan={{ xs: '12', md: '6' }}>
           <InfoCard title="Storage Classes">
             <Table
               columns={storageClassColumns}
@@ -218,11 +197,11 @@ export const VCFAutomationCCINamespaceDetails = () => {
               }}
             />
           </InfoCard>
-        </Grid>
+        </Grid.Item>
       )}
 
       {status?.zones && status.zones.length > 0 && (
-        <Grid item xs={12}>
+        <Grid.Item colSpan="12">
           <InfoCard title="Resource Zones">
             <Table
               columns={zoneColumns}
@@ -234,65 +213,65 @@ export const VCFAutomationCCINamespaceDetails = () => {
               }}
             />
           </InfoCard>
-        </Grid>
+        </Grid.Item>
       )}
 
       {status && (
-        <Grid item xs={12}>
+        <Grid.Item colSpan="12">
           <InfoCard title="Namespace Status Summary">
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6} md={3}>
-                <Card className={classes.statusCard}>
-                  <CardContent>
-                    <Typography variant="h6" color="textSecondary">
+            <Grid.Root columns="12" gap="4">
+              <Grid.Item colSpan={{ xs: '12', sm: '6', md: '3' }}>
+                <Card>
+                  <CardBody>
+                    <Text variant="body-small" style={{ color: 'var(--bui-fg-secondary)', display: 'block' }}>
                       Phase
-                    </Typography>
-                    <Typography variant="h4">
+                    </Text>
+                    <Text variant="title-large" weight="bold" style={{ display: 'block' }}>
                       {status.phase || 'Unknown'}
-                    </Typography>
-                  </CardContent>
+                    </Text>
+                  </CardBody>
                 </Card>
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <Card className={classes.statusCard}>
-                  <CardContent>
-                    <Typography variant="h6" color="textSecondary">
+              </Grid.Item>
+              <Grid.Item colSpan={{ xs: '12', sm: '6', md: '3' }}>
+                <Card>
+                  <CardBody>
+                    <Text variant="body-small" style={{ color: 'var(--bui-fg-secondary)', display: 'block' }}>
                       VM Classes
-                    </Typography>
-                    <Typography variant="h4">
+                    </Text>
+                    <Text variant="title-large" weight="bold" style={{ display: 'block' }}>
                       {status.vmClasses?.length || 0}
-                    </Typography>
-                  </CardContent>
+                    </Text>
+                  </CardBody>
                 </Card>
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <Card className={classes.statusCard}>
-                  <CardContent>
-                    <Typography variant="h6" color="textSecondary">
+              </Grid.Item>
+              <Grid.Item colSpan={{ xs: '12', sm: '6', md: '3' }}>
+                <Card>
+                  <CardBody>
+                    <Text variant="body-small" style={{ color: 'var(--bui-fg-secondary)', display: 'block' }}>
                       Storage Classes
-                    </Typography>
-                    <Typography variant="h4">
+                    </Text>
+                    <Text variant="title-large" weight="bold" style={{ display: 'block' }}>
                       {status.storageClasses?.length || 0}
-                    </Typography>
-                  </CardContent>
+                    </Text>
+                  </CardBody>
                 </Card>
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <Card className={classes.statusCard}>
-                  <CardContent>
-                    <Typography variant="h6" color="textSecondary">
+              </Grid.Item>
+              <Grid.Item colSpan={{ xs: '12', sm: '6', md: '3' }}>
+                <Card>
+                  <CardBody>
+                    <Text variant="body-small" style={{ color: 'var(--bui-fg-secondary)', display: 'block' }}>
                       Zones
-                    </Typography>
-                    <Typography variant="h4">
+                    </Text>
+                    <Text variant="title-large" weight="bold" style={{ display: 'block' }}>
                       {status.zones?.length || 0}
-                    </Typography>
-                  </CardContent>
+                    </Text>
+                  </CardBody>
                 </Card>
-              </Grid>
-            </Grid>
+              </Grid.Item>
+            </Grid.Root>
           </InfoCard>
-        </Grid>
+        </Grid.Item>
       )}
-    </Grid>
+    </Grid.Root>
   );
 };
