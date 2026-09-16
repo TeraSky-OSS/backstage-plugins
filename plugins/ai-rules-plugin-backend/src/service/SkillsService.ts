@@ -1,4 +1,5 @@
 import { LoggerService, UrlReaderService } from '@backstage/backend-plugin-api';
+import { buildFileUrl, buildTreeUrl } from './gitUrls';
 
 const matter = require('gray-matter');
 
@@ -153,7 +154,7 @@ export class SkillsService {
 
   private async listSubdirectories(gitUrl: string, path: string): Promise<string[]> {
     try {
-      const directoryUrl = `${gitUrl}/tree/HEAD/${path}`;
+      const directoryUrl = buildTreeUrl(gitUrl, path);
       const treeResponse = await this.urlReader.readTree(directoryUrl);
       const filesArray = await treeResponse.files();
 
@@ -175,7 +176,7 @@ export class SkillsService {
 
   private async listDirectoryFiles(gitUrl: string, path: string): Promise<string[]> {
     try {
-      const directoryUrl = `${gitUrl}/tree/HEAD/${path}`;
+      const directoryUrl = buildTreeUrl(gitUrl, path);
       const treeResponse = await this.urlReader.readTree(directoryUrl);
       const filesArray = await treeResponse.files();
       return filesArray
@@ -187,10 +188,7 @@ export class SkillsService {
   }
 
   private async fetchFileContent(gitUrl: string, filePath: string): Promise<string> {
-    const cleanGitUrl = gitUrl.replace(/\/+$/, '');
-    const fileUrl = cleanGitUrl.includes('github.com')
-      ? `${cleanGitUrl}/raw/main/${filePath}`
-      : `${cleanGitUrl}/blob/HEAD/${filePath}`;
+    const fileUrl = buildFileUrl(gitUrl, filePath);
 
     const response = await this.urlReader.readUrl(fileUrl);
     const buffer = await response.buffer();

@@ -59,6 +59,38 @@ This is a test cursor rule.`;
       expect(result.rules[0].content).toContain('Test Rule Content');
     });
 
+    it('should fetch rules from an Azure DevOps repository', async () => {
+      const agentsContent = `# Agent Instructions
+
+This is an AGENTS.md file.`;
+      const requestedUrls: string[] = [];
+
+      mockUrlReader.readUrl.mockImplementation(async (url: string) => {
+        requestedUrls.push(url);
+        if (url.includes('AGENTS.md')) {
+          return {
+            buffer: async () => Buffer.from(agentsContent),
+          };
+        }
+        throw new Error('Not found');
+      });
+      mockUrlReader.readTree.mockRejectedValue(new Error('Not found'));
+
+      const result = await service.getAiRules(
+        'https://dev.azure.com/my-org/my-project/_git/my-repo?path=%2F&version=GBmain',
+        ['codex'],
+      );
+
+      expect(result.rules).toHaveLength(1);
+      expect(result.rules[0].content).toContain('Agent Instructions');
+      expect(requestedUrls).toContain(
+        'https://dev.azure.com/my-org/my-project/_git/my-repo?path=%2FAGENTS.md&version=GBmain',
+      );
+      expect(requestedUrls.every(url => !url.includes('/blob/HEAD/'))).toBe(
+        true,
+      );
+    });
+
     it('should fetch copilot rules when instructions file exists', async () => {
       const copilotContent = `# Copilot Instructions
 

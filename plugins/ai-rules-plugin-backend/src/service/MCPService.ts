@@ -1,5 +1,6 @@
 import { LoggerService, UrlReaderService } from '@backstage/backend-plugin-api';
 import { MCPConfig, MCPServerInfo, MCPServersResponse } from './types';
+import { buildFileUrl } from './gitUrls';
 
 export interface MCPServiceOptions {
   logger: LoggerService;
@@ -65,14 +66,8 @@ export class MCPService {
 
   private async fetchMCPConfig(gitUrl: string, filePath: string): Promise<MCPConfig | null> {
     try {
-      // Remove any trailing slashes from the gitUrl
-      const cleanGitUrl = gitUrl.replace(/\/+$/, '');
-      
-      // For GitHub URLs, we need to use the raw content URL
-      const fileUrl = cleanGitUrl.includes('github.com')
-        ? `${cleanGitUrl}/raw/main/${filePath}`
-        : `${cleanGitUrl}/blob/HEAD/${filePath}`;
-      
+      const fileUrl = buildFileUrl(gitUrl, filePath);
+
       this.logger.info(`Fetching MCP config from ${fileUrl}`);
       const response = await this.urlReader.readUrl(fileUrl);
       const content = await response.buffer();

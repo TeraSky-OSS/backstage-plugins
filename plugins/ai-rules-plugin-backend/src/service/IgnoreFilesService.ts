@@ -1,4 +1,5 @@
 import { LoggerService, UrlReaderService } from '@backstage/backend-plugin-api';
+import { buildFileUrl } from './gitUrls';
 
 export interface IgnoreFile {
   agent: string;
@@ -56,10 +57,7 @@ export class IgnoreFilesService {
   }
 
   private async fetchFileContent(gitUrl: string, filePath: string): Promise<string> {
-    const cleanGitUrl = gitUrl.replace(/\/+$/, '');
-    const fileUrl = cleanGitUrl.includes('github.com')
-      ? `${cleanGitUrl}/raw/main/${filePath}`
-      : `${cleanGitUrl}/blob/HEAD/${filePath}`;
+    const fileUrl = buildFileUrl(gitUrl, filePath);
 
     const response = await this.urlReader.readUrl(fileUrl);
     const buffer = await response.buffer();

@@ -1,5 +1,6 @@
 import { LoggerService, DiscoveryService, UrlReaderService } from '@backstage/backend-plugin-api';
 import { Config } from '@backstage/config';
+import { buildFileUrl, buildTreeUrl } from './gitUrls';
 
 const matter = require('gray-matter');
 
@@ -798,7 +799,7 @@ export class AiRulesService {
     try {
       return await this.retryWithBackoff(
         async () => {
-          const directoryUrl = `${gitUrl}/tree/HEAD/${path}`;
+          const directoryUrl = buildTreeUrl(gitUrl, path);
           const treeResponse = await this.urlReader.readTree(directoryUrl);
           const files: string[] = [];
           const filesArray = await treeResponse.files();
@@ -823,7 +824,7 @@ export class AiRulesService {
   private async fetchFileContent(gitUrl: string, filePath: string): Promise<string> {
     return await this.retryWithBackoff(
       async () => {
-        const fileUrl = `${gitUrl}/blob/HEAD/${filePath}`;
+        const fileUrl = buildFileUrl(gitUrl, filePath);
         const response = await this.urlReader.readUrl(fileUrl);
         const buffer = await response.buffer();
         return buffer.toString('utf-8');
