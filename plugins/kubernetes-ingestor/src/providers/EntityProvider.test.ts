@@ -4187,6 +4187,103 @@ describe('XRDTemplateEntityProvider', () => {
     });
   });
 
+  describe('extractParameters – x-ui-field and x-ui-options', () => {
+    const taskRunner = { run: jest.fn() };
+
+    const makeProvider = () =>
+      new XRDTemplateEntityProvider(
+        taskRunner as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+      );
+
+    const makeXrd = () => ({
+      metadata: { name: 'myresources.example.com' },
+      spec: {
+        scope: 'Cluster',
+        names: { kind: 'MyResource' },
+        group: 'example.com',
+      },
+      clusters: ['test-cluster'],
+    });
+
+    const makeVersion = (specProps: Record<string, any>) => ({
+      name: 'v1alpha1',
+      schema: {
+        openAPIV3Schema: {
+          type: 'object',
+          properties: {
+            spec: { type: 'object', properties: specProps },
+          },
+        },
+      },
+    });
+
+    it('maps XRD UI extensions to Backstage form field configuration', () => {
+      const params = (makeProvider() as any).extractParameters(
+        makeVersion({
+          service: {
+            type: 'string',
+            'x-ui-field': 'EntityPicker',
+            'x-ui-options': {
+              catalogFilter: { kind: 'Component' },
+              allowArbitraryValues: false,
+            },
+          },
+        }),
+        ['test-cluster'],
+        makeXrd(),
+      );
+
+      const field = params.find((p: any) => p.title === 'Resource Spec').properties.service;
+      expect(field['ui:field']).toBe('EntityPicker');
+      expect(field['ui:options']).toEqual({
+        catalogFilter: { kind: 'Component' },
+        allowArbitraryValues: false,
+      });
+      expect(field['x-ui-field']).toBeUndefined();
+      expect(field['x-ui-options']).toBeUndefined();
+    });
+
+    it('applies spec.owner UI extensions to the generated metadata owner picker', () => {
+      const ownerOptions = {
+        catalogFilter: { kind: 'Group', 'spec.type': 'team' },
+        allowArbitraryValues: false,
+      };
+      const params = (makeProvider() as any).extractParameters(
+        makeVersion({
+          owner: {
+            type: 'string',
+            'x-ui-field': 'OwnerPicker',
+            'x-ui-options': ownerOptions,
+          },
+        }),
+        ['test-cluster'],
+        makeXrd(),
+      );
+
+      const metadataOwner = params.find((p: any) => p.title === 'Resource Metadata').properties.owner;
+      const specOwner = params.find((p: any) => p.title === 'Resource Spec').properties.owner;
+      expect(metadataOwner['ui:field']).toBe('OwnerPicker');
+      expect(metadataOwner['ui:options']).toEqual(ownerOptions);
+      expect(specOwner['ui:field']).toBe('OwnerPicker');
+      expect(specOwner['ui:options']).toEqual(ownerOptions);
+    });
+
+    it('keeps the existing metadata owner picker defaults without extensions', () => {
+      const params = (makeProvider() as any).extractParameters(
+        makeVersion({ owner: { type: 'string' } }),
+        ['test-cluster'],
+        makeXrd(),
+      );
+
+      const owner = params.find((p: any) => p.title === 'Resource Metadata').properties.owner;
+      expect(owner['ui:field']).toBe('OwnerPicker');
+      expect(owner['ui:options']).toEqual({ catalogFilter: { kind: 'Group' } });
+    });
+  });
+
   // ── x-ui-advanced ───────────────────────────────────────────────────────
 
   describe('extractParameters – x-ui-advanced field grouping', () => {
