@@ -1,0 +1,73 @@
+.sourceAccordion {
+  margin-bottom: var(--bui-space-4);
+}
+
+.serversList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bui-space-4);
+  width: 100%;
+}
+
+.serverAccordion {
+  width: 100%;
+}
+
+.envContainer {
+  background-color: var(--bui-bg-neutral-2);
+  padding: var(--bui-space-4);
+  border-radius: var(--bui-radius-2);
+}
+
+.envGrid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--bui-space-2);
+  align-items: center;
+}
+
+.envKey,
+.envValue {
+  padding: var(--bui-space-1) var(--bui-space-2);
+  background-color: var(--bui-bg-neutral-1);
+  border-radius: var(--bui-radius-2);
+  font-size: 0.875rem;
+}
+.envKey {
+  font-weight: bold;
+}
+.envValue {
+  word-break: break-word;
+}
+
+.rawConfig {
+  background-color: var(--bui-bg-neutral-2);
+  padding: var(--bui-space-4);
+  border-radius: var(--bui-radius-2);
+}
+.rawConfig pre {
+  margin: 0;
+}
+
+.serverContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bui-space-6);
+  width: 100%;
+}
+
+.commandContainer {
+  background-color: var(--bui-bg-neutral-2);
+  padding: var(--bui-space-4);
+  border-radius: var(--bui-radius-2);
+  font-family: monospace;
+  font-size: 0.9rem;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.detailsContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--bui-space-6);
+}

@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
+import { renderInTestApp } from '@backstage/test-utils';
 import { DevpodComponent, isDevpodAvailable } from './DevpodComponent';
 import { useDevpod } from '../../hooks/useDevpod';
 
@@ -56,7 +57,7 @@ describe('DevpodComponent', () => {
   });
 
   describe('component rendering', () => {
-    it('should render message when no git URL', () => {
+    it('should render message when no git URL', async () => {
       mockUseDevpod.mockReturnValue({
         gitUrl: undefined,
         hasGitUrl: false,
@@ -66,12 +67,12 @@ describe('DevpodComponent', () => {
         componentName: 'test-component',
       });
 
-      render(<DevpodComponent />);
+      await renderInTestApp(<DevpodComponent />);
 
       expect(screen.getByText('No Git source URL found for this component')).toBeInTheDocument();
     });
 
-    it('should render devpod button when git URL is available', () => {
+    it('should render devpod button when git URL is available', async () => {
       mockUseDevpod.mockReturnValue({
         gitUrl: 'https://github.com/org/repo',
         hasGitUrl: true,
@@ -81,13 +82,13 @@ describe('DevpodComponent', () => {
         componentName: 'test-component',
       });
 
-      render(<DevpodComponent />);
+      await renderInTestApp(<DevpodComponent />);
 
       expect(screen.getByText('Open With DevPod')).toBeInTheDocument();
       expect(screen.getByText('Your component can be opened in Devpod!')).toBeInTheDocument();
     });
 
-    it('should render IDE selector when git URL is available', () => {
+    it('should render IDE selector when git URL is available', async () => {
       mockUseDevpod.mockReturnValue({
         gitUrl: 'https://github.com/org/repo',
         hasGitUrl: true,
@@ -97,7 +98,7 @@ describe('DevpodComponent', () => {
         componentName: 'test-component',
       });
 
-      render(<DevpodComponent />);
+      await renderInTestApp(<DevpodComponent />);
 
       expect(screen.getByRole('button', { name: /vscode/i })).toBeInTheDocument();
     });

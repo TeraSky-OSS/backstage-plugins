@@ -15,157 +15,24 @@
  */
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
 import {
-  Box,
-  Typography,
   Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Chip,
+  AccordionPanel,
+  AccordionTrigger,
+  Badge,
+  Box,
   Button,
-  Paper,
-  Grid,
+  ButtonIcon,
+  Card,
+  Flex,
   Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-} from '@material-ui/core';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import LinkIcon from '@material-ui/icons/Link';
-import FileCopyIcon from '@material-ui/icons/FileCopy';
+  Text,
+} from '@backstage/ui';
+import { RiFileCopyLine, RiLinkM } from '@remixicon/react';
 import { CodeSnippet } from '@backstage/core-components';
 import yaml from 'js-yaml';
 import ReactMarkdown from 'react-markdown';
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    padding: theme.spacing(2),
-  },
-  header: {
-    marginBottom: theme.spacing(3),
-  },
-  labelContainer: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: theme.spacing(2),
-    gap: theme.spacing(2),
-    flexWrap: 'wrap',
-    [theme.breakpoints.down('sm')]: {
-      flexDirection: 'column',
-    },
-  },
-  labelItem: {
-    textAlign: 'center',
-  },
-  labelValue: {
-    fontSize: '1.5rem',
-    fontWeight: 600,
-    color: theme.palette.text.primary,
-  },
-  labelType: {
-    fontSize: '0.75rem',
-    color: theme.palette.text.secondary,
-    textTransform: 'uppercase',
-  },
-  apiVersionSnippet: {
-    marginTop: theme.spacing(2),
-    marginBottom: theme.spacing(2),
-  },
-  description: {
-    marginTop: theme.spacing(2),
-    marginBottom: theme.spacing(2),
-    fontSize: '1.125rem',
-    '& p': {
-      margin: 0,
-    },
-  },
-  accordionSummary: {
-    backgroundColor: theme.palette.background.default,
-    minHeight: 56,
-    '&.Mui-expanded': {
-      minHeight: 56,
-    },
-  },
-  accordionDetails: {
-    flexDirection: 'column',
-    padding: theme.spacing(2),
-  },
-  propertyHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(1),
-    flexWrap: 'wrap',
-  },
-  typeChip: {
-    fontFamily: 'monospace',
-    backgroundColor: theme.palette.type === 'dark' 
-      ? theme.palette.grey[800] 
-      : theme.palette.grey[200],
-    color: theme.palette.text.primary,
-    fontWeight: 500,
-  },
-  requiredChip: {
-    backgroundColor: theme.palette.primary.main,
-    color: theme.palette.primary.contrastText,
-  },
-  defaultChip: {
-    fontFamily: 'monospace',
-    backgroundColor: theme.palette.type === 'dark'
-      ? theme.palette.grey[700]
-      : theme.palette.grey[100],
-    color: theme.palette.text.secondary,
-    fontWeight: 500,
-  },
-  enumContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: theme.spacing(0.5),
-    marginBottom: theme.spacing(1),
-  },
-  enumChip: {
-    fontFamily: 'monospace',
-  },
-  linkButton: {
-    marginLeft: 'auto',
-    minWidth: 'auto',
-    padding: theme.spacing(0.5),
-  },
-  nestedAccordion: {
-    marginTop: theme.spacing(1),
-    '&:before': {
-      display: 'none',
-    },
-  },
-  expandButtons: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    gap: theme.spacing(1),
-    marginBottom: theme.spacing(2),
-    [theme.breakpoints.down('sm')]: {
-      flexDirection: 'column',
-    },
-  },
-  copyExampleButton: {
-    [theme.breakpoints.down('sm')]: {
-      width: '100%',
-    },
-  },
-  emptySchema: {
-    padding: theme.spacing(3),
-    textAlign: 'center',
-    color: theme.palette.text.secondary,
-  },
-  versionSelector: {
-    minWidth: 200,
-    marginBottom: theme.spacing(2),
-  },
-  versionBadge: {
-    marginLeft: theme.spacing(1),
-  },
-}));
+import styles from './CrdDefinitionWidget.module.css';
 
 interface CRDSchema {
   Type?: string;
@@ -430,8 +297,6 @@ const SchemaPart: React.FC<SchemaPartProps> = ({
   expandAll,
   collapseAll,
 }) => {
-  const classes = useStyles();
-
   const [props, propKeys, required, type, schema, defaultValue, enumValues] =
     useMemo(() => {
       const normalized = normalizeSchema(property);
@@ -516,86 +381,60 @@ const SchemaPart: React.FC<SchemaPartProps> = ({
   };
 
   return (
-    <Accordion
-      expanded={isOpen}
-      onChange={(_, expanded) => setIsOpen(expanded)}
-      className={classes.nestedAccordion}
-    >
-      <AccordionSummary
-        expandIcon={<ExpandMoreIcon />}
-        className={classes.accordionSummary}
-      >
-        <Box className={classes.propertyHeader}>
-          <Typography variant="body1" style={{ fontWeight: 500 }}>
-            {propertyKey}
-          </Typography>
-          <Chip
-            label={type}
-            size="small"
-            className={classes.typeChip}
-          />
-          {required && (
-            <Chip
-              label="required"
-              size="small"
-              className={classes.requiredChip}
-            />
-          )}
-          {defaultValue !== undefined && (
-            <Chip
-              label={`default: ${defaultValue}`}
-              size="small"
-              className={classes.defaultChip}
-            />
-          )}
-          <Button
-            size="small"
-            className={classes.linkButton}
-            onClick={e => {
-              e.stopPropagation();
-              handleCopyLink();
-            }}
-          >
-            <LinkIcon fontSize="small" />
-          </Button>
-        </Box>
-      </AccordionSummary>
-      <AccordionDetails className={classes.accordionDetails}>
-        <Box id={slug} className={classes.description}>
-          <ReactMarkdown>{getDescription(property)}</ReactMarkdown>
-        </Box>
-        {enumValues && enumValues.length > 0 && (
-          <Box className={classes.enumContainer}>
-            <Typography variant="caption" color="textSecondary">
-              Allowed values:
-            </Typography>
-            {enumValues.map(value => (
-              <Chip
-                key={value}
-                label={value}
-                size="small"
-                className={classes.enumChip}
-              />
-            ))}
-          </Box>
-        )}
-        {propKeys.length > 0 && (
-          <Box>
-            {propKeys.map(propKey => (
-              <SchemaPart
-                key={propKey}
-                propertyKey={propKey}
-                property={props[propKey]}
-                parent={schema}
-                parentSlug={slug}
-                expandAll={expandAll}
-                collapseAll={collapseAll}
-              />
-            ))}
-          </Box>
-        )}
-      </AccordionDetails>
-    </Accordion>
+    <Box style={{ position: 'relative', marginTop: 'var(--bui-space-2)' }}>
+      <Accordion isExpanded={isOpen} onExpandedChange={setIsOpen}>
+        <AccordionTrigger>
+          <Flex align="center" gap="2" style={{ flexWrap: 'wrap', paddingRight: 'var(--bui-space-8)' }}>
+            <Text weight="bold">{propertyKey}</Text>
+            <Badge className={styles.typeChip}>{type}</Badge>
+            {required && <Badge className={styles.requiredChip}>required</Badge>}
+            {defaultValue !== undefined && (
+              <Badge className={styles.defaultChip}>{`default: ${defaultValue}`}</Badge>
+            )}
+          </Flex>
+        </AccordionTrigger>
+        <AccordionPanel>
+          <Flex direction="column" gap="3">
+            <Box id={slug} className={styles.description}>
+              <ReactMarkdown>{getDescription(property)}</ReactMarkdown>
+            </Box>
+            {enumValues && enumValues.length > 0 && (
+              <Flex align="center" gap="1" style={{ flexWrap: 'wrap' }}>
+                <Text variant="body-small" color="secondary">
+                  Allowed values:
+                </Text>
+                {enumValues.map(value => (
+                  <Badge key={value} className={styles.enumChip}>{value}</Badge>
+                ))}
+              </Flex>
+            )}
+            {propKeys.length > 0 && (
+              <Box>
+                {propKeys.map(propKey => (
+                  <SchemaPart
+                    key={propKey}
+                    propertyKey={propKey}
+                    property={props[propKey]}
+                    parent={schema}
+                    parentSlug={slug}
+                    expandAll={expandAll}
+                    collapseAll={collapseAll}
+                  />
+                ))}
+              </Box>
+            )}
+          </Flex>
+        </AccordionPanel>
+      </Accordion>
+      <ButtonIcon
+        aria-label="Copy link to this property"
+        icon={<RiLinkM />}
+        size="small"
+        variant="tertiary"
+        style={{ position: 'absolute', top: 'var(--bui-space-2)', right: 'var(--bui-space-8)' }}
+        onPress={handleCopyLink}
+      />
+    </Box>
   );
 };
 
@@ -605,12 +444,17 @@ interface PartLabelProps {
 }
 
 const PartLabel: React.FC<PartLabelProps> = ({ type, value }) => {
-  const classes = useStyles();
-
   return (
-    <Box className={classes.labelItem}>
-      <Typography className={classes.labelValue}>{value}</Typography>
-      <Typography className={classes.labelType}>{type}</Typography>
+    <Box style={{ textAlign: 'center' }}>
+      <Text variant="title-medium" weight="bold">{value}</Text>
+      <Text
+        as="div"
+        variant="body-x-small"
+        color="secondary"
+        style={{ textTransform: 'uppercase' }}
+      >
+        {type}
+      </Text>
     </Box>
   );
 };
@@ -622,7 +466,6 @@ export interface CrdDefinitionWidgetProps {
 export const CrdDefinitionWidget: React.FC<CrdDefinitionWidgetProps> = ({
   definition,
 }) => {
-  const classes = useStyles();
   const [expandAll, setExpandAll] = useState(false);
   const [collapseAll, setCollapseAll] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
@@ -658,9 +501,11 @@ export const CrdDefinitionWidget: React.FC<CrdDefinitionWidgetProps> = ({
 
   if (!crdData) {
     return (
-      <Paper className={classes.root}>
-        <Typography color="error">Failed to parse CRD definition</Typography>
-      </Paper>
+      <Card style={{ padding: 'var(--bui-space-4)' }}>
+        <Text style={{ color: 'var(--bui-fg-negative)' }}>
+          Failed to parse CRD definition
+        </Text>
+      </Card>
     );
   }
 
@@ -720,59 +565,49 @@ export const CrdDefinitionWidget: React.FC<CrdDefinitionWidgetProps> = ({
   const propertyKeys = properties ? Object.keys(properties) : [];
 
   return (
-    <Box className={classes.root}>
-      <Box className={classes.header}>
-        <Grid container spacing={2} className={classes.labelContainer}>
-          <Grid item>
-            <PartLabel type="Kind" value={Kind} />
-          </Grid>
-          <Grid item>
-            <PartLabel type="Group" value={Group} />
-          </Grid>
-          <Grid item>
-            <Box>
-              <PartLabel type="Version" value={Version} />
-              {currentVersionData.storage && (
-                <Chip
-                  label="storage"
-                  size="small"
-                  color="primary"
-                  className={classes.versionBadge}
-                />
-              )}
-              {currentVersionData.served && (
-                <Chip
-                  label="served"
-                  size="small"
-                  color="secondary"
-                  className={classes.versionBadge}
-                />
-              )}
-            </Box>
-          </Grid>
-        </Grid>
+    <Box style={{ padding: 'var(--bui-space-4)' }}>
+      <Box mb="5">
+        <Flex
+          justify="between"
+          align="start"
+          gap="4"
+          mb="4"
+          direction="row"
+          style={{ flexWrap: 'wrap' }}
+        >
+          <PartLabel type="Kind" value={Kind} />
+          <PartLabel type="Group" value={Group} />
+          <Box>
+            <PartLabel type="Version" value={Version} />
+            {currentVersionData.storage && (
+              <Badge style={{ marginLeft: 'var(--bui-space-2)' }}>storage</Badge>
+            )}
+            {currentVersionData.served && (
+              <Badge style={{ marginLeft: 'var(--bui-space-2)' }}>served</Badge>
+            )}
+          </Box>
+        </Flex>
 
         {versions && versions.length > 1 && (
-          <FormControl className={classes.versionSelector} variant="outlined" size="small">
-            <InputLabel id="version-select-label">Select Version</InputLabel>
+          <Box mb="4" style={{ maxWidth: 300 }}>
             <Select
-              labelId="version-select-label"
-              value={selectedVersion || crdData.Version}
-              onChange={e => setSelectedVersion(e.target.value as string)}
               label="Select Version"
-            >
-              {versions.map(v => (
-                <MenuItem key={v.name} value={v.name}>
-                  {v.name}
-                  {v.storage && ' (storage)'}
-                  {v.served && !v.storage && ' (served)'}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+              selectedKey={selectedVersion || crdData.Version}
+              onSelectionChange={key => setSelectedVersion(key as string)}
+              options={versions.map(v => {
+                let suffix = '';
+                if (v.storage) {
+                  suffix = ' (storage)';
+                } else if (v.served) {
+                  suffix = ' (served)';
+                }
+                return { id: v.name, label: `${v.name}${suffix}` };
+              })}
+            />
+          </Box>
         )}
 
-        <Box className={classes.apiVersionSnippet}>
+        <Box my="4">
           <CodeSnippet
             text={`apiVersion: ${Group}/${Version}\nkind: ${Kind}`}
             language="yaml"
@@ -782,7 +617,7 @@ export const CrdDefinitionWidget: React.FC<CrdDefinitionWidgetProps> = ({
         </Box>
 
         {Schema && (
-          <Box className={classes.description}>
+          <Box my="4" className={styles.description}>
             <ReactMarkdown>{getDescription(Schema)}</ReactMarkdown>
           </Box>
         )}
@@ -790,26 +625,30 @@ export const CrdDefinitionWidget: React.FC<CrdDefinitionWidgetProps> = ({
 
       {propertyKeys.length > 0 ? (
         <>
-          <Box className={classes.expandButtons}>
-            <Button 
-              variant="outlined"
-              color="primary"
+          <Flex
+            justify="between"
+            gap="2"
+            mb="4"
+            direction="row"
+            style={{ flexWrap: 'wrap' }}
+          >
+            <Button
+              variant="secondary"
               size="small"
-              startIcon={<FileCopyIcon />}
-              onClick={handleCopyExampleYAML}
-              className={classes.copyExampleButton}
+              iconStart={<RiFileCopyLine />}
+              onPress={handleCopyExampleYAML}
             >
               {copySuccess ? 'Copied!' : 'Copy Example YAML'}
             </Button>
-            <Box style={{ display: 'flex', gap: 8 }}>
-              <Button onClick={handleCollapseAll} variant="outlined" size="small">
+            <Flex gap="2">
+              <Button onPress={handleCollapseAll} variant="secondary" size="small">
                 - collapse all
               </Button>
-              <Button onClick={handleExpandAll} variant="outlined" size="small">
+              <Button onPress={handleExpandAll} variant="secondary" size="small">
                 + expand all
               </Button>
-            </Box>
-          </Box>
+            </Flex>
+          </Flex>
           <Box>
             {propertyKeys.map(propKey => (
               <SchemaPart
@@ -823,11 +662,11 @@ export const CrdDefinitionWidget: React.FC<CrdDefinitionWidgetProps> = ({
           </Box>
         </>
       ) : (
-        <Paper className={classes.emptySchema}>
-          <Typography variant="h6">
+        <Card style={{ padding: 'var(--bui-space-6)', textAlign: 'center' }}>
+          <Text variant="title-small" color="secondary">
             This CRD has an empty or unspecified schema.
-          </Typography>
-        </Paper>
+          </Text>
+        </Card>
       )}
     </Box>
   );

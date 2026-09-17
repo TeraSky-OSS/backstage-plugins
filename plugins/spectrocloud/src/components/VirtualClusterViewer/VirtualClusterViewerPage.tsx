@@ -1,130 +1,68 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Header, Page, Content, Progress, Link } from '@backstage/core-components';
-import { useApi, configApiRef, useRouteRef } from '@backstage/core-plugin-api';
-import { catalogApiRef } from '@backstage/plugin-catalog-react';
-import { Entity } from '@backstage/catalog-model';
-import { clusterDeploymentRouteRef } from '../../routes';
 import {
-  Box,
-  Card,
-  CardContent,
-  CardActions,
-  Typography,
-  Grid,
-  Chip,
-  Button,
-  makeStyles,
-  TextField,
-  MenuItem,
-  IconButton,
-  Tooltip,
+  Page,
+  Content,
+  Progress,
+  Link,
   Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  CircularProgress,
-  FormControlLabel,
-  Checkbox,
-} from '@material-ui/core';
-import { Alert, ToggleButtonGroup, ToggleButton } from '@material-ui/lab';
-import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
-import RefreshIcon from '@material-ui/icons/Refresh';
-import NewReleasesIcon from '@material-ui/icons/NewReleases';
-import ViewModuleIcon from '@material-ui/icons/ViewModule';
-import ViewListIcon from '@material-ui/icons/ViewList';
-import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
-import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
-import AddCircleIcon from '@material-ui/icons/AddCircle';
-import {
+  TableColumn,
   StatusOK,
   StatusError,
   StatusWarning,
   StatusPending,
 } from '@backstage/core-components';
+import { useApi, configApiRef, useRouteRef } from '@backstage/core-plugin-api';
+import { catalogApiRef } from '@backstage/plugin-catalog-react';
+import { Entity } from '@backstage/catalog-model';
+import { clusterDeploymentRouteRef } from '../../routes';
+import {
+  Alert,
+  Badge,
+  Box,
+  Button,
+  ButtonIcon,
+  Card,
+  CardBody,
+  CardFooter,
+  CardHeader,
+  Checkbox,
+  Flex,
+  Grid,
+  Select,
+  Text,
+  ToggleButton,
+  ToggleButtonGroup,
+  Tooltip,
+  TooltipTrigger,
+} from '@backstage/ui';
+import {
+  RiAddCircleFill,
+  RiDownloadCloud2Line,
+  RiLayoutGridLine,
+  RiListUnordered,
+  RiRefreshLine,
+  RiSparkling2Fill,
+} from '@remixicon/react';
 import { spectroCloudApiRef } from '../../api';
 import { saveAs } from 'file-saver';
+import styles from './VirtualClusterViewerPage.module.css';
 
-const useStyles = makeStyles(theme => ({
-  root: {
-    padding: theme.spacing(2),
-  },
-  filterBar: {
-    marginBottom: theme.spacing(3),
-    padding: theme.spacing(2),
-    backgroundColor: theme.palette.background.paper,
-    borderRadius: theme.shape.borderRadius,
-  },
-  card: {
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-    cursor: 'pointer',
-    transition: 'transform 0.2s, box-shadow 0.2s',
-    '&:hover': {
-      transform: 'translateY(-4px)',
-      boxShadow: theme.shadows[8],
-    },
-  },
-  cardContent: {
-    flexGrow: 1,
-  },
-  cardActions: {
-    padding: theme.spacing(2),
-    paddingTop: 0,
-    justifyContent: 'space-between',
-  },
-  infoRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    marginBottom: theme.spacing(1),
-    alignItems: 'center',
-  },
-  label: {
-    fontWeight: 600,
-    color: theme.palette.text.secondary,
-  },
-  clusterName: {
-    marginBottom: theme.spacing(2),
-    fontWeight: 600,
-  },
-  statusContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(1),
-  },
-  emptyState: {
-    textAlign: 'center',
-    padding: theme.spacing(8),
-  },
-  tableContainer: {
-    marginTop: theme.spacing(2),
-  },
-  tableHeaderCell: {
-    fontWeight: 700,
-    cursor: 'pointer',
-    userSelect: 'none',
-    '&:hover': {
-      backgroundColor: theme.palette.action.hover,
-    },
-  },
-  tableHeaderCellNonSortable: {
-    fontWeight: 700,
-  },
-  tableCell: {
-    padding: theme.spacing(2),
-  },
-  tableRow: {
-    '&:hover': {
-      backgroundColor: theme.palette.action.hover,
-    },
-  },
-  viewToggle: {
-    marginLeft: 'auto',
-  },
-}));
+interface VirtualClusterRow {
+  entity: Entity;
+  uid: string;
+  clusterUid?: string;
+  title: string;
+  project: string;
+  projectSystem?: Entity;
+  status: string;
+  cpuQuota: string;
+  memoryQuota: string;
+  hostClusterName: string;
+  hostClusterEntity?: Entity;
+  clusterGroupName: string;
+  clusterGroupEntity?: Entity;
+  hasUpdates: boolean;
+}
 
 const getStatusComponent = (state: string) => {
   switch (state?.toLowerCase()) {
@@ -145,13 +83,252 @@ const getStatusComponent = (state: string) => {
   }
 };
 
+const InfoRow = ({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) => (
+  <Flex justify="between" align="center" className={styles.infoRow}>
+    <Text weight="bold" color="secondary">
+      {label}
+    </Text>
+    {children}
+  </Flex>
+);
+
+const UpdatesAvailableBadgeIcon = () => (
+  <TooltipTrigger>
+    <RiSparkling2Fill size={18} style={{ color: 'var(--bui-fg-warning)' }} />
+    <Tooltip>Profile updates available</Tooltip>
+  </TooltipTrigger>
+);
+
+const VirtualClusterCard = ({
+  row,
+  isDownloading,
+  onCardClick,
+  onDownload,
+}: {
+  row: VirtualClusterRow;
+  isDownloading: boolean;
+  onCardClick: () => void;
+  onDownload: () => void;
+}) => {
+  const { entity } = row;
+  const namespace = entity.metadata.namespace || 'default';
+
+  return (
+    <Card className={styles.card}>
+      <div
+        className={styles.cardClickArea}
+        role="button"
+        tabIndex={0}
+        onClick={onCardClick}
+        onKeyDown={e => {
+          if (e.key === 'Enter' || e.key === ' ') onCardClick();
+        }}
+      >
+        <CardHeader>
+          <Flex justify="between" align="start">
+            <Text variant="title-small" weight="bold">
+              {row.title}
+            </Text>
+            {row.hasUpdates && <UpdatesAvailableBadgeIcon />}
+          </Flex>
+        </CardHeader>
+        <CardBody className={styles.cardBody}>
+          <InfoRow label="Project:">
+            {row.projectSystem ? (
+              <Link
+                to={`/catalog/${row.projectSystem.metadata.namespace || 'default'}/system/${row.projectSystem.metadata.name}`}
+                onClick={(e: React.MouseEvent) => e.stopPropagation()}
+              >
+                {row.project}
+              </Link>
+            ) : (
+              <Text>{row.project || 'N/A'}</Text>
+            )}
+          </InfoRow>
+
+          <InfoRow label="Status:">
+            <Flex align="center" gap="1">
+              {getStatusComponent(row.status)}
+              <Text>{row.status}</Text>
+            </Flex>
+          </InfoRow>
+
+          <InfoRow label="CPU Quota:">
+            <Text>{row.cpuQuota}</Text>
+          </InfoRow>
+
+          <InfoRow label="Memory Quota:">
+            <Text>{row.memoryQuota}</Text>
+          </InfoRow>
+
+          <InfoRow label="Host Cluster:">
+            {row.hostClusterEntity ? (
+              <Link
+                to={`/catalog/${row.hostClusterEntity.metadata.namespace || 'default'}/resource/${row.hostClusterEntity.metadata.name}`}
+                onClick={(e: React.MouseEvent) => e.stopPropagation()}
+              >
+                {row.hostClusterName}
+              </Link>
+            ) : (
+              <Text truncate>{row.hostClusterName}</Text>
+            )}
+          </InfoRow>
+
+          <InfoRow label="Cluster Group:">
+            {row.clusterGroupEntity ? (
+              <Link
+                to={`/catalog/${row.clusterGroupEntity.metadata.namespace || 'default'}/resource/${row.clusterGroupEntity.metadata.name}`}
+                onClick={(e: React.MouseEvent) => e.stopPropagation()}
+              >
+                {row.clusterGroupName}
+              </Link>
+            ) : (
+              <Text truncate>{row.clusterGroupName}</Text>
+            )}
+          </InfoRow>
+
+          <Flex gap="1" style={{ marginTop: 'var(--bui-space-2)' }}>
+            <Badge>Virtual Cluster</Badge>
+            <Badge>Nested</Badge>
+          </Flex>
+        </CardBody>
+      </div>
+      <CardFooter>
+        <Flex justify="between" align="center">
+          <Link to={`/catalog/${namespace}/resource/${entity.metadata.name}/kubernetes-resources`}>
+            View Details
+          </Link>
+          <Button
+            size="small"
+            variant="secondary"
+            iconStart={<RiDownloadCloud2Line />}
+            isPending={isDownloading}
+            onPress={onDownload}
+          >
+            {isDownloading ? 'Downloading...' : 'Kubeconfig'}
+          </Button>
+        </Flex>
+      </CardFooter>
+    </Card>
+  );
+};
+
+const VirtualClusterTable = ({
+  rows,
+  downloadingCluster,
+  onDownload,
+}: {
+  rows: VirtualClusterRow[];
+  downloadingCluster?: string;
+  onDownload: (entity: Entity) => void;
+}) => {
+  const columns: TableColumn<VirtualClusterRow>[] = [
+    {
+      title: 'Virtual Cluster Name',
+      field: 'title',
+      render: row => (
+        <Flex align="center" gap="2">
+          <Link
+            to={`/catalog/${row.entity.metadata.namespace || 'default'}/resource/${row.entity.metadata.name}/kubernetes-resources`}
+          >
+            {row.title}
+          </Link>
+          {row.hasUpdates && <UpdatesAvailableBadgeIcon />}
+        </Flex>
+      ),
+    },
+    {
+      title: 'Project',
+      field: 'project',
+      render: row =>
+        row.projectSystem ? (
+          <Link
+            to={`/catalog/${row.projectSystem.metadata.namespace || 'default'}/system/${row.projectSystem.metadata.name}`}
+          >
+            {row.project}
+          </Link>
+        ) : (
+          row.project || 'N/A'
+        ),
+    },
+    {
+      title: 'Status',
+      field: 'status',
+      render: row => (
+        <Flex align="center" gap="1">
+          {getStatusComponent(row.status)}
+          <Text>{row.status}</Text>
+        </Flex>
+      ),
+    },
+    { title: 'CPU Quota', field: 'cpuQuota' },
+    { title: 'Memory Quota', field: 'memoryQuota' },
+    {
+      title: 'Host Cluster',
+      field: 'hostClusterName',
+      render: row =>
+        row.hostClusterEntity ? (
+          <Link
+            to={`/catalog/${row.hostClusterEntity.metadata.namespace || 'default'}/resource/${row.hostClusterEntity.metadata.name}`}
+          >
+            {row.hostClusterName}
+          </Link>
+        ) : (
+          row.hostClusterName
+        ),
+    },
+    {
+      title: 'Cluster Group',
+      field: 'clusterGroupName',
+      render: row =>
+        row.clusterGroupEntity ? (
+          <Link
+            to={`/catalog/${row.clusterGroupEntity.metadata.namespace || 'default'}/resource/${row.clusterGroupEntity.metadata.name}`}
+          >
+            {row.clusterGroupName}
+          </Link>
+        ) : (
+          row.clusterGroupName
+        ),
+    },
+    {
+      title: 'Actions',
+      sorting: false,
+      render: row => (
+        <Button
+          size="small"
+          variant="secondary"
+          iconStart={<RiDownloadCloud2Line />}
+          isPending={downloadingCluster === row.clusterUid}
+          onPress={() => onDownload(row.entity)}
+        >
+          {downloadingCluster === row.clusterUid ? 'Downloading...' : 'Kubeconfig'}
+        </Button>
+      ),
+    },
+  ];
+
+  return (
+    <Table
+      options={{ search: false, paging: false }}
+      columns={columns}
+      data={rows}
+    />
+  );
+};
+
 export const VirtualClusterViewerPage = () => {
-  const classes = useStyles();
   const catalogApi = useApi(catalogApiRef);
   const spectroCloudApi = useApi(spectroCloudApiRef);
   const configApi = useApi(configApiRef);
   const clusterDeploymentRoute = useRouteRef(clusterDeploymentRouteRef);
-  
+
   const [virtualClusters, setVirtualClusters] = useState<Entity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
@@ -159,8 +336,6 @@ export const VirtualClusterViewerPage = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [showOnlyWithUpdates, setShowOnlyWithUpdates] = useState(false);
   const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
-  const [sortColumn, setSortColumn] = useState<string>('name');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [downloadingCluster, setDownloadingCluster] = useState<string>();
   const [virtualClustersWithUpdates, setVirtualClustersWithUpdates] = useState<Set<string>>(new Set());
   const [hostClusterNames, setHostClusterNames] = useState<Map<string, string>>(new Map());
@@ -168,7 +343,7 @@ export const VirtualClusterViewerPage = () => {
   const [hostClusterEntities, setHostClusterEntities] = useState<Map<string, Entity>>(new Map());
   const [clusterGroupEntities, setClusterGroupEntities] = useState<Map<string, Entity>>(new Map());
   const [projectSystemEntities, setProjectSystemEntities] = useState<Map<string, Entity>>(new Map());
-  
+
   // Get annotation prefix from config
   const annotationPrefix = configApi.getOptionalConfig('spectrocloud')?.getOptionalString('annotationPrefix') ?? 'terasky.backstage.io';
 
@@ -176,14 +351,14 @@ export const VirtualClusterViewerPage = () => {
     try {
       setLoading(true);
       setError(undefined);
-      
+
       // Get virtual clusters from SpectroCloud API that the user has access to based on OIDC token
       const spectroCloudVirtualClusters = await spectroCloudApi.getAllVirtualClusters();
-      
+
       const accessibleVirtualClusterUids = new Set(
         spectroCloudVirtualClusters.map(vc => vc.metadata.uid)
       );
-      
+
       // Get all catalog entities
       const { items } = await catalogApi.getEntities({
         filter: {
@@ -191,7 +366,7 @@ export const VirtualClusterViewerPage = () => {
           'spec.type': 'spectrocloud-virtual-cluster',
         },
       });
-      
+
       // Filter catalog entities to only show virtual clusters the user has access to
       // and deduplicate by cluster UID (in case same cluster is ingested by multiple instances)
       const virtualClusterMap = new Map<string, Entity>();
@@ -212,15 +387,15 @@ export const VirtualClusterViewerPage = () => {
           }
         }
       });
-      
+
       const dedupedVirtualClusters = Array.from(virtualClusterMap.values());
       setVirtualClusters(dedupedVirtualClusters);
-      
+
       // Fetch host cluster and cluster group names, and project systems
       const hostClusterIds = new Set<string>();
       const clusterGroupIds = new Set<string>();
       const projectNames = new Set<string>();
-      
+
       dedupedVirtualClusters.forEach(vc => {
         const hostClusterId = vc.metadata.annotations?.[`${annotationPrefix}/host-cluster-id`];
         const clusterGroupId = vc.metadata.annotations?.[`${annotationPrefix}/cluster-group-id`];
@@ -229,7 +404,7 @@ export const VirtualClusterViewerPage = () => {
         if (clusterGroupId) clusterGroupIds.add(clusterGroupId);
         if (projectName) projectNames.add(projectName);
       });
-      
+
       // Fetch host clusters from catalog
       const hostClusterNamesMap = new Map<string, string>();
       const hostClusterEntitiesMap = new Map<string, Entity>();
@@ -240,7 +415,7 @@ export const VirtualClusterViewerPage = () => {
             'spec.type': 'spectrocloud-cluster',
           },
         });
-        
+
         hostClusters.forEach(cluster => {
           const clusterId = cluster.metadata.annotations?.[`${annotationPrefix}/cluster-id`];
           if (clusterId && hostClusterIds.has(clusterId)) {
@@ -251,7 +426,7 @@ export const VirtualClusterViewerPage = () => {
       }
       setHostClusterNames(hostClusterNamesMap);
       setHostClusterEntities(hostClusterEntitiesMap);
-      
+
       // Fetch cluster groups from catalog
       const clusterGroupNamesMap = new Map<string, string>();
       const clusterGroupEntitiesMap = new Map<string, Entity>();
@@ -262,7 +437,7 @@ export const VirtualClusterViewerPage = () => {
             'spec.type': 'spectrocloud-cluster-group',
           },
         });
-        
+
         clusterGroups.forEach(cg => {
           const cgId = cg.metadata.annotations?.[`${annotationPrefix}/cluster-group-id`];
           if (cgId && clusterGroupIds.has(cgId)) {
@@ -273,7 +448,7 @@ export const VirtualClusterViewerPage = () => {
       }
       setClusterGroupNames(clusterGroupNamesMap);
       setClusterGroupEntities(clusterGroupEntitiesMap);
-      
+
       // Fetch project systems from catalog
       const projectSystemEntitiesMap = new Map<string, Entity>();
       if (projectNames.size > 0) {
@@ -282,7 +457,7 @@ export const VirtualClusterViewerPage = () => {
             kind: 'System',
           },
         });
-        
+
         systems.forEach(system => {
           const systemName = system.metadata.name;
           const systemTitle = system.metadata.title || systemName;
@@ -295,7 +470,7 @@ export const VirtualClusterViewerPage = () => {
         });
       }
       setProjectSystemEntities(projectSystemEntitiesMap);
-      
+
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load virtual clusters');
     } finally {
@@ -314,45 +489,45 @@ export const VirtualClusterViewerPage = () => {
 
     const checkForUpdates = async () => {
       const virtualClustersWithUpdatesSet = new Set<string>();
-      
+
       // Check each virtual cluster for profile updates
       for (const virtualCluster of virtualClusters) {
         const clusterUid = virtualCluster.metadata.annotations?.[`${annotationPrefix}/cluster-id`];
         const projectUid = virtualCluster.metadata.annotations?.[`${annotationPrefix}/project-id`];
         const instanceName = virtualCluster.metadata.annotations?.[`${annotationPrefix}/instance`];
-        
+
         if (!clusterUid) continue;
-        
+
         try {
           // Get virtual cluster details to find attached profiles
           const clusterDetails = await spectroCloudApi.getVirtualClusterDetails(clusterUid, projectUid, instanceName);
-          
+
           const profileNames = clusterDetails.spec?.clusterProfileTemplates
             ?.map(p => p.name)
             .filter((name): name is string => !!name) || [];
-          
+
           if (profileNames.length === 0) continue;
-          
+
           // Search for full profile data with version info
           const profiles = await spectroCloudApi.searchProfiles(profileNames, projectUid, instanceName);
-          
+
           // Check if any profile has updates
           const hasAnyUpdates = profiles.some(profileData => {
             if (!profileData?.specSummary?.versions) return false;
-            
+
             const versions = profileData.specSummary.versions;
-            
+
             // Find the profile UID currently used by the virtual cluster
             const clusterProfileTemplate = clusterDetails.spec?.clusterProfileTemplates?.find(
               p => p.name === profileData.metadata.name
             );
             const profileUid = clusterProfileTemplate?.uid;
-            
+
             if (!profileUid) return false;
-            
+
             const currentVersionData = versions.find(v => v.uid === profileUid);
             const currentVersion = currentVersionData?.version;
-            
+
             const compareVersions = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true });
 
             const latestVersion = versions?.reduce((max: string | null, v) => {
@@ -363,7 +538,7 @@ export const VirtualClusterViewerPage = () => {
 
             return Boolean(currentVersion && latestVersion && compareVersions(latestVersion, currentVersion) > 0);
           });
-          
+
           if (hasAnyUpdates) {
             virtualClustersWithUpdatesSet.add(clusterUid);
           }
@@ -373,10 +548,10 @@ export const VirtualClusterViewerPage = () => {
           console.warn(`Failed to check updates for virtual cluster ${clusterUid}:`, err);
         }
       }
-      
+
       setVirtualClustersWithUpdates(virtualClustersWithUpdatesSet);
     };
-    
+
     checkForUpdates();
   }, [virtualClusters, annotationPrefix, spectroCloudApi]);
 
@@ -400,91 +575,96 @@ export const VirtualClusterViewerPage = () => {
     return Array.from(statusSet).sort();
   }, [virtualClusters, annotationPrefix]);
 
-  // Filter and sort virtual clusters
-  const filteredAndSortedVirtualClusters = useMemo(() => {
+  // Filter virtual clusters (sorting itself is handled per-view: the table's own
+  // column headers are sortable via @backstage/core-components' Table, and cards
+  // are shown in a stable name-sorted order)
+  const filteredVirtualClusters = useMemo(() => {
     const filtered = virtualClusters.filter(vc => {
       // Project filter
       if (selectedProject !== 'all') {
         const projectName = vc.metadata.annotations?.[`${annotationPrefix}/project-name`];
         if (projectName !== selectedProject) return false;
       }
-      
+
       // Status filter
       if (selectedStatus !== 'all') {
         const status = vc.metadata.annotations?.[`${annotationPrefix}/state`];
         if (status !== selectedStatus) return false;
       }
-      
+
       // Updates filter
       if (showOnlyWithUpdates) {
         const clusterUid = vc.metadata.annotations?.[`${annotationPrefix}/cluster-id`];
         if (!clusterUid || !virtualClustersWithUpdates.has(clusterUid)) return false;
       }
-      
+
       return true;
     });
 
-    // Sort
-    filtered.sort((a, b) => {
-      let aVal: string;
-      let bVal: string;
+    return filtered.sort((a, b) =>
+      (a.metadata.title || a.metadata.name || '').localeCompare(b.metadata.title || b.metadata.name || ''),
+    );
+  }, [virtualClusters, selectedProject, selectedStatus, showOnlyWithUpdates, annotationPrefix, virtualClustersWithUpdates]);
 
-      switch (sortColumn) {
-        case 'name':
-          aVal = a.metadata.title || a.metadata.name || '';
-          bVal = b.metadata.title || b.metadata.name || '';
-          break;
-        case 'project':
-          aVal = a.metadata.annotations?.[`${annotationPrefix}/project-name`] || '';
-          bVal = b.metadata.annotations?.[`${annotationPrefix}/project-name`] || '';
-          break;
-        case 'status':
-          aVal = a.metadata.annotations?.[`${annotationPrefix}/state`] || '';
-          bVal = b.metadata.annotations?.[`${annotationPrefix}/state`] || '';
-          break;
-        case 'hostCluster': {
-          const aHostId = a.metadata.annotations?.[`${annotationPrefix}/host-cluster-id`] || '';
-          const bHostId = b.metadata.annotations?.[`${annotationPrefix}/host-cluster-id`] || '';
-          aVal = hostClusterNames.get(aHostId) || aHostId;
-          bVal = hostClusterNames.get(bHostId) || bHostId;
-          break;
-        }
-        case 'clusterGroup': {
-          const aCgId = a.metadata.annotations?.[`${annotationPrefix}/cluster-group-id`] || '';
-          const bCgId = b.metadata.annotations?.[`${annotationPrefix}/cluster-group-id`] || '';
-          aVal = clusterGroupNames.get(aCgId) || aCgId;
-          bVal = clusterGroupNames.get(bCgId) || bCgId;
-          break;
-        }
-        default:
-          aVal = '';
-          bVal = '';
-      }
+  // Build the display rows consumed by both the card grid and the table view
+  const rows = useMemo<VirtualClusterRow[]>(() => {
+    return filteredVirtualClusters.map(virtualCluster => {
+      const clusterUid = virtualCluster.metadata.annotations?.[`${annotationPrefix}/cluster-id`];
+      const projectName = virtualCluster.metadata.annotations?.[`${annotationPrefix}/project-name`];
+      const status = virtualCluster.metadata.annotations?.[`${annotationPrefix}/state`] || 'Unknown';
+      const hostClusterId = virtualCluster.metadata.annotations?.[`${annotationPrefix}/host-cluster-id`];
+      const clusterGroupId = virtualCluster.metadata.annotations?.[`${annotationPrefix}/cluster-group-id`];
+      const hostClusterName = hostClusterId ? (hostClusterNames.get(hostClusterId) || hostClusterId.substring(0, 8)) : 'N/A';
+      const clusterGroupName = clusterGroupId ? (clusterGroupNames.get(clusterGroupId) || clusterGroupId.substring(0, 8)) : 'N/A';
 
-      const comparison = aVal.localeCompare(bVal);
-      return sortDirection === 'asc' ? comparison : -comparison;
+      // CPU and Memory quotas
+      const cpuLimit = virtualCluster.metadata.annotations?.[`${annotationPrefix}/cpu-limit`];
+      const memoryLimit = virtualCluster.metadata.annotations?.[`${annotationPrefix}/memory-limit`];
+      // Format CPU quota (convert MilliCore to cores)
+      const cpuQuota = cpuLimit ? `${(parseInt(cpuLimit, 10) / 1000).toFixed(2)} cores` : 'N/A';
+      // Format Memory quota (convert KiB to GiB)
+      const memoryQuota = memoryLimit ? `${(parseInt(memoryLimit, 10) / (1024 * 1024)).toFixed(2)} GiB` : 'N/A';
+
+      return {
+        entity: virtualCluster,
+        uid: virtualCluster.metadata.uid || virtualCluster.metadata.name,
+        clusterUid,
+        title: virtualCluster.metadata.title || virtualCluster.metadata.name,
+        project: projectName || '',
+        projectSystem: projectName ? projectSystemEntities.get(projectName) : undefined,
+        status,
+        cpuQuota,
+        memoryQuota,
+        hostClusterName,
+        hostClusterEntity: hostClusterId ? hostClusterEntities.get(hostClusterId) : undefined,
+        clusterGroupName,
+        clusterGroupEntity: clusterGroupId ? clusterGroupEntities.get(clusterGroupId) : undefined,
+        hasUpdates: clusterUid ? virtualClustersWithUpdates.has(clusterUid) : false,
+      };
     });
+  }, [
+    filteredVirtualClusters,
+    annotationPrefix,
+    hostClusterNames,
+    clusterGroupNames,
+    hostClusterEntities,
+    clusterGroupEntities,
+    projectSystemEntities,
+    virtualClustersWithUpdates,
+  ]);
 
-    return filtered;
-  }, [virtualClusters, selectedProject, selectedStatus, showOnlyWithUpdates, sortColumn, sortDirection, annotationPrefix, virtualClustersWithUpdates, hostClusterNames, clusterGroupNames]);
-
-  const handleCardClick = (virtualCluster: Entity) => {
+  const handleCardClick = useCallback((virtualCluster: Entity) => {
     // Navigate to Kubernetes Resources tab
     window.location.href = `/catalog/${virtualCluster.metadata.namespace || 'default'}/resource/${virtualCluster.metadata.name}`;
-  };
+  }, []);
 
-  const handleDownloadKubeconfig = useCallback(async (virtualCluster: Entity, event?: React.MouseEvent) => {
-    // Stop propagation to prevent card click
-    if (event) {
-      event.stopPropagation();
-    }
-    
+  const handleDownloadKubeconfig = useCallback(async (virtualCluster: Entity) => {
     const clusterUid = virtualCluster.metadata.annotations?.[`${annotationPrefix}/cluster-id`];
     const projectUid = virtualCluster.metadata.annotations?.[`${annotationPrefix}/project-id`];
     const instanceName = virtualCluster.metadata.annotations?.[`${annotationPrefix}/instance`];
-    
+
     if (!clusterUid) return;
-    
+
     try {
       setDownloadingCluster(clusterUid);
       const kubeconfig = await spectroCloudApi.getVirtualClusterKubeconfig(
@@ -493,7 +673,7 @@ export const VirtualClusterViewerPage = () => {
         instanceName,
         true,
       );
-      
+
       const blob = new Blob([kubeconfig], { type: 'application/x-yaml' });
       saveAs(blob, `${virtualCluster.metadata.name}-kubeconfig.yaml`);
     } catch (err) {
@@ -504,24 +684,9 @@ export const VirtualClusterViewerPage = () => {
     }
   }, [spectroCloudApi, annotationPrefix]);
 
-  const handleSort = useCallback((column: string) => {
-    if (sortColumn === column) {
-      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortColumn(column);
-      setSortDirection('asc');
-    }
-  }, [sortColumn]);
-
-  const renderSortIcon = (column: string) => {
-    if (sortColumn !== column) return null;
-    return sortDirection === 'asc' ? <ArrowUpwardIcon fontSize="small" /> : <ArrowDownwardIcon fontSize="small" />;
-  };
-
   if (loading) {
     return (
       <Page themeId="tool">
-        <Header title="Virtual Clusters" subtitle="View and manage your Spectro Cloud virtual clusters" />
         <Content>
           <Progress />
         </Content>
@@ -532,413 +697,141 @@ export const VirtualClusterViewerPage = () => {
   if (error) {
     return (
       <Page themeId="tool">
-        <Header title="Virtual Clusters" subtitle="View and manage your Spectro Cloud virtual clusters" />
         <Content>
-          <Alert severity="error">{error}</Alert>
+          <Alert status="danger" description={error} />
         </Content>
       </Page>
     );
   }
 
   const virtualClusterDisplay = viewMode === 'cards' ? (
-    <Grid container spacing={3}>
-      {filteredAndSortedVirtualClusters.map(virtualCluster => {
-        const clusterUid = virtualCluster.metadata.annotations?.[`${annotationPrefix}/cluster-id`];
-        const projectName = virtualCluster.metadata.annotations?.[`${annotationPrefix}/project-name`];
-        const state = virtualCluster.metadata.annotations?.[`${annotationPrefix}/state`] || 'Unknown';
-        const hostClusterId = virtualCluster.metadata.annotations?.[`${annotationPrefix}/host-cluster-id`];
-        const clusterGroupId = virtualCluster.metadata.annotations?.[`${annotationPrefix}/cluster-group-id`];
-        const hostClusterName = hostClusterId ? (hostClusterNames.get(hostClusterId) || hostClusterId.substring(0, 8)) : 'N/A';
-        const clusterGroupName = clusterGroupId ? (clusterGroupNames.get(clusterGroupId) || clusterGroupId.substring(0, 8)) : 'N/A';
-        
-        // CPU and Memory quotas
-        const cpuLimit = virtualCluster.metadata.annotations?.[`${annotationPrefix}/cpu-limit`];
-        const memoryLimit = virtualCluster.metadata.annotations?.[`${annotationPrefix}/memory-limit`];
-        
-        // Format CPU quota (convert MilliCore to cores)
-        const cpuQuota = cpuLimit ? `${(parseInt(cpuLimit, 10) / 1000).toFixed(2)} cores` : 'N/A';
-        // Format Memory quota (convert KiB to GiB)
-        const memoryQuota = memoryLimit ? `${(parseInt(memoryLimit, 10) / (1024 * 1024)).toFixed(2)} GiB` : 'N/A';
-        
-        const hasUpdates = clusterUid ? virtualClustersWithUpdates.has(clusterUid) : false;
-        const isDownloading = downloadingCluster === clusterUid;
-
-        return (
-          <Grid item xs={12} sm={6} md={4} key={virtualCluster.metadata.uid}>
-            <Card 
-              className={classes.card}
-              onClick={() => handleCardClick(virtualCluster)}
-            >
-              <CardContent className={classes.cardContent}>
-                <Box display="flex" justifyContent="space-between" alignItems="flex-start">
-                  <Typography variant="h6" className={classes.clusterName}>
-                    {virtualCluster.metadata.title || virtualCluster.metadata.name}
-                  </Typography>
-                  {hasUpdates && (
-                    <Tooltip title="Profile updates available">
-                      <NewReleasesIcon color="secondary" />
-                    </Tooltip>
-                  )}
-                </Box>
-                
-                <Box className={classes.infoRow}>
-                  <Typography variant="body2" className={classes.label}>
-                    Project:
-                  </Typography>
-                  {projectName && projectSystemEntities.has(projectName) ? (
-                    <Link 
-                      to={`/catalog/${projectSystemEntities.get(projectName)!.metadata.namespace || 'default'}/system/${projectSystemEntities.get(projectName)!.metadata.name}`}
-                      onClick={(e: React.MouseEvent) => e.stopPropagation()}
-                    >
-                      {projectName}
-                    </Link>
-                  ) : (
-                    <Typography variant="body2">
-                      {projectName || 'N/A'}
-                    </Typography>
-                  )}
-                </Box>
-
-                <Box className={classes.infoRow}>
-                  <Typography variant="body2" className={classes.label}>
-                    Status:
-                  </Typography>
-                  <Box className={classes.statusContainer}>
-                    {getStatusComponent(state)}
-                    <Typography variant="body2">{state}</Typography>
-                  </Box>
-                </Box>
-
-                <Box className={classes.infoRow}>
-                  <Typography variant="body2" className={classes.label}>
-                    CPU Quota:
-                  </Typography>
-                  <Typography variant="body2">{cpuQuota}</Typography>
-                </Box>
-
-                <Box className={classes.infoRow}>
-                  <Typography variant="body2" className={classes.label}>
-                    Memory Quota:
-                  </Typography>
-                  <Typography variant="body2">{memoryQuota}</Typography>
-                </Box>
-
-                <Box className={classes.infoRow}>
-                  <Typography variant="body2" className={classes.label}>
-                    Host Cluster:
-                  </Typography>
-                  {hostClusterId && hostClusterEntities.has(hostClusterId) ? (
-                    <Link 
-                      to={`/catalog/${hostClusterEntities.get(hostClusterId)!.metadata.namespace || 'default'}/resource/${hostClusterEntities.get(hostClusterId)!.metadata.name}`}
-                      onClick={(e: React.MouseEvent) => e.stopPropagation()}
-                    >
-                      {hostClusterName}
-                    </Link>
-                  ) : (
-                    <Typography variant="body2" noWrap>
-                      {hostClusterName}
-                    </Typography>
-                  )}
-                </Box>
-
-                <Box className={classes.infoRow}>
-                  <Typography variant="body2" className={classes.label}>
-                    Cluster Group:
-                  </Typography>
-                  {clusterGroupId && clusterGroupEntities.has(clusterGroupId) ? (
-                    <Link 
-                      to={`/catalog/${clusterGroupEntities.get(clusterGroupId)!.metadata.namespace || 'default'}/resource/${clusterGroupEntities.get(clusterGroupId)!.metadata.name}`}
-                      onClick={(e: React.MouseEvent) => e.stopPropagation()}
-                    >
-                      {clusterGroupName}
-                    </Link>
-                  ) : (
-                    <Typography variant="body2" noWrap>
-                      {clusterGroupName}
-                    </Typography>
-                  )}
-                </Box>
-
-                <Box mt={2}>
-                  <Chip label="Virtual Cluster" size="small" color="primary" />
-                  <Chip label="Nested" size="small" style={{ marginLeft: 4 }} />
-                </Box>
-              </CardContent>
-              <CardActions className={classes.cardActions}>
-                <Link 
-                  to={`/catalog/${virtualCluster.metadata.namespace || 'default'}/resource/${virtualCluster.metadata.name}/kubernetes-resources`}
-                  onClick={(e: React.MouseEvent) => e.stopPropagation()}
-                >
-                  View Details
-                </Link>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  color="primary"
-                  startIcon={isDownloading ? <CircularProgress size={16} /> : <CloudDownloadIcon />}
-                  onClick={(e) => handleDownloadKubeconfig(virtualCluster, e)}
-                  disabled={isDownloading}
-                >
-                  {isDownloading ? 'Downloading...' : 'Kubeconfig'}
-                </Button>
-              </CardActions>
-            </Card>
-          </Grid>
-        );
-      })}
-    </Grid>
+    <Grid.Root columns="12" gap="5">
+      {rows.map(row => (
+        <Grid.Item key={row.uid} colSpan={{ xs: '12', sm: '6', md: '4' }}>
+          <VirtualClusterCard
+            row={row}
+            isDownloading={downloadingCluster === row.clusterUid}
+            onCardClick={() => handleCardClick(row.entity)}
+            onDownload={() => handleDownloadKubeconfig(row.entity)}
+          />
+        </Grid.Item>
+      ))}
+    </Grid.Root>
   ) : (
-    <TableContainer component={Paper} className={classes.tableContainer}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell 
-              className={classes.tableHeaderCell}
-              onClick={() => handleSort('name')}
-            >
-              <Box display="flex" alignItems="center">
-                Virtual Cluster Name
-                {renderSortIcon('name')}
-              </Box>
-            </TableCell>
-            <TableCell 
-              className={classes.tableHeaderCell}
-              onClick={() => handleSort('project')}
-            >
-              <Box display="flex" alignItems="center">
-                Project
-                {renderSortIcon('project')}
-              </Box>
-            </TableCell>
-            <TableCell 
-              className={classes.tableHeaderCell}
-              onClick={() => handleSort('status')}
-            >
-              <Box display="flex" alignItems="center">
-                Status
-                {renderSortIcon('status')}
-              </Box>
-            </TableCell>
-            <TableCell className={classes.tableHeaderCellNonSortable}>
-              CPU Quota
-            </TableCell>
-            <TableCell className={classes.tableHeaderCellNonSortable}>
-              Memory Quota
-            </TableCell>
-            <TableCell className={classes.tableHeaderCellNonSortable}>
-              Host Cluster
-            </TableCell>
-            <TableCell className={classes.tableHeaderCellNonSortable}>
-              Cluster Group
-            </TableCell>
-            <TableCell className={classes.tableHeaderCellNonSortable}>
-              Actions
-            </TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {filteredAndSortedVirtualClusters.map(virtualCluster => {
-            const clusterUid = virtualCluster.metadata.annotations?.[`${annotationPrefix}/cluster-id`];
-            const projectName = virtualCluster.metadata.annotations?.[`${annotationPrefix}/project-name`];
-            const state = virtualCluster.metadata.annotations?.[`${annotationPrefix}/state`] || 'Unknown';
-            const hostClusterId = virtualCluster.metadata.annotations?.[`${annotationPrefix}/host-cluster-id`];
-            const clusterGroupId = virtualCluster.metadata.annotations?.[`${annotationPrefix}/cluster-group-id`];
-            const hostClusterName = hostClusterId ? (hostClusterNames.get(hostClusterId) || hostClusterId.substring(0, 8)) : 'N/A';
-            const clusterGroupName = clusterGroupId ? (clusterGroupNames.get(clusterGroupId) || clusterGroupId.substring(0, 8)) : 'N/A';
-            
-            // CPU and Memory quotas
-            const cpuLimit = virtualCluster.metadata.annotations?.[`${annotationPrefix}/cpu-limit`];
-            const memoryLimit = virtualCluster.metadata.annotations?.[`${annotationPrefix}/memory-limit`];
-            const cpuQuota = cpuLimit ? `${(parseInt(cpuLimit, 10) / 1000).toFixed(2)} cores` : 'N/A';
-            const memoryQuota = memoryLimit ? `${(parseInt(memoryLimit, 10) / (1024 * 1024)).toFixed(2)} GiB` : 'N/A';
-            
-            const hasUpdates = clusterUid ? virtualClustersWithUpdates.has(clusterUid) : false;
-            const isDownloading = downloadingCluster === clusterUid;
-
-            return (
-              <TableRow key={virtualCluster.metadata.uid} className={classes.tableRow}>
-                <TableCell className={classes.tableCell}>
-                  <Box display="flex" alignItems="center">
-                    <Link to={`/catalog/${virtualCluster.metadata.namespace || 'default'}/resource/${virtualCluster.metadata.name}/kubernetes-resources`}>
-                      {virtualCluster.metadata.title || virtualCluster.metadata.name}
-                    </Link>
-                    {hasUpdates && (
-                      <Tooltip title="Profile updates available">
-                        <NewReleasesIcon color="secondary" fontSize="small" style={{ marginLeft: 8 }} />
-                      </Tooltip>
-                    )}
-                  </Box>
-                </TableCell>
-                <TableCell className={classes.tableCell}>
-                  {projectName && projectSystemEntities.has(projectName) ? (
-                    <Link 
-                      to={`/catalog/${projectSystemEntities.get(projectName)!.metadata.namespace || 'default'}/system/${projectSystemEntities.get(projectName)!.metadata.name}`}
-                    >
-                      {projectName}
-                    </Link>
-                  ) : (
-                    projectName || 'N/A'
-                  )}
-                </TableCell>
-                <TableCell className={classes.tableCell}>
-                  <Box className={classes.statusContainer}>
-                    {getStatusComponent(state)}
-                    <Typography variant="body2">{state}</Typography>
-                  </Box>
-                </TableCell>
-                <TableCell className={classes.tableCell}>{cpuQuota}</TableCell>
-                <TableCell className={classes.tableCell}>{memoryQuota}</TableCell>
-                <TableCell className={classes.tableCell}>
-                  {hostClusterId && hostClusterEntities.has(hostClusterId) ? (
-                    <Link 
-                      to={`/catalog/${hostClusterEntities.get(hostClusterId)!.metadata.namespace || 'default'}/resource/${hostClusterEntities.get(hostClusterId)!.metadata.name}`}
-                    >
-                      {hostClusterName}
-                    </Link>
-                  ) : (
-                    hostClusterName
-                  )}
-                </TableCell>
-                <TableCell className={classes.tableCell}>
-                  {clusterGroupId && clusterGroupEntities.has(clusterGroupId) ? (
-                    <Link 
-                      to={`/catalog/${clusterGroupEntities.get(clusterGroupId)!.metadata.namespace || 'default'}/resource/${clusterGroupEntities.get(clusterGroupId)!.metadata.name}`}
-                    >
-                      {clusterGroupName}
-                    </Link>
-                  ) : (
-                    clusterGroupName
-                  )}
-                </TableCell>
-                <TableCell className={classes.tableCell}>
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    color="primary"
-                    startIcon={isDownloading ? <CircularProgress size={16} /> : <CloudDownloadIcon />}
-                    onClick={() => handleDownloadKubeconfig(virtualCluster)}
-                    disabled={isDownloading}
-                  >
-                    {isDownloading ? 'Downloading...' : 'Kubeconfig'}
-                  </Button>
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-    </TableContainer>
+    <VirtualClusterTable
+      rows={rows}
+      downloadingCluster={downloadingCluster}
+      onDownload={handleDownloadKubeconfig}
+    />
   );
 
   return (
     <Page themeId="tool">
-      <Header title="Virtual Clusters" subtitle="View and manage your Spectro Cloud virtual clusters" />
       <Content>
-        <Box className={classes.root}>
+        <Text color="secondary" style={{ display: 'block', marginBottom: 'var(--bui-space-4)' }}>
+          View and manage your Spectro Cloud virtual clusters
+        </Text>
+
+        <Box p="4">
           {/* Filters */}
-          <Box className={classes.filterBar}>
-            <Grid container spacing={2} alignItems="center">
-              <Grid item xs={12} sm={4} md={3}>
-                <TextField
-                  select
-                  fullWidth
+          <Box className={styles.filterBar}>
+            <Grid.Root columns="12" gap="3">
+              <Grid.Item colSpan={{ xs: '12', sm: '4', md: '3' }}>
+                <Select
+                  size="small"
                   label="Project"
-                  value={selectedProject}
-                  onChange={e => setSelectedProject(e.target.value)}
-                  variant="outlined"
-                  size="small"
-                >
-                  <MenuItem value="all">All Projects</MenuItem>
-                  {projects.map(project => (
-                    <MenuItem key={project} value={project}>
-                      {project}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
-              <Grid item xs={12} sm={4} md={2}>
-                <TextField
-                  select
-                  fullWidth
-                  label="Status"
-                  value={selectedStatus}
-                  onChange={e => setSelectedStatus(e.target.value)}
-                  variant="outlined"
-                  size="small"
-                >
-                  <MenuItem value="all">All Statuses</MenuItem>
-                  {statuses.map(status => (
-                    <MenuItem key={status} value={status}>
-                      {status}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
-              <Grid item xs={12} sm={4} md={4}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={showOnlyWithUpdates}
-                      onChange={(e) => setShowOnlyWithUpdates(e.target.checked)}
-                      color="primary"
-                    />
-                  }
-                  label="Show only clusters with updates available"
+                  selectedKey={selectedProject}
+                  onSelectionChange={key => setSelectedProject(String(key))}
+                  options={[
+                    { id: 'all', label: 'All Projects' },
+                    ...projects.map(project => ({ id: project, label: project })),
+                  ]}
                 />
-              </Grid>
-              <Grid item xs={12} sm={12} md={3}>
-                <Box display="flex" alignItems="center" justifyContent="flex-end" style={{ gap: 8 }}>
-                  <ToggleButtonGroup
-                    value={viewMode}
-                    exclusive
-                    onChange={(_, newMode) => newMode && setViewMode(newMode)}
-                    size="small"
-                    className={classes.viewToggle}
+              </Grid.Item>
+              <Grid.Item colSpan={{ xs: '12', sm: '4', md: '2' }}>
+                <Select
+                  size="small"
+                  label="Status"
+                  selectedKey={selectedStatus}
+                  onSelectionChange={key => setSelectedStatus(String(key))}
+                  options={[
+                    { id: 'all', label: 'All Statuses' },
+                    ...statuses.map(status => ({ id: status, label: status })),
+                  ]}
+                />
+              </Grid.Item>
+              <Grid.Item colSpan={{ xs: '12', sm: '4', md: '4' }}>
+                <Flex align="center" style={{ height: '100%' }}>
+                  <Checkbox
+                    isSelected={showOnlyWithUpdates}
+                    onChange={setShowOnlyWithUpdates}
                   >
-                    <ToggleButton value="cards">
-                      <Tooltip title="Card View">
-                        <ViewModuleIcon />
-                      </Tooltip>
-                    </ToggleButton>
-                    <ToggleButton value="list">
-                      <Tooltip title="List View">
-                        <ViewListIcon />
-                      </Tooltip>
-                    </ToggleButton>
+                    Show only clusters with updates available
+                  </Checkbox>
+                </Flex>
+              </Grid.Item>
+              <Grid.Item colSpan={{ xs: '12', sm: '12', md: '3' }}>
+                <Flex align="center" justify="end" gap="2" style={{ flexWrap: 'wrap' }}>
+                  <ToggleButtonGroup
+                    className={styles.viewToggle}
+                    selectionMode="single"
+                    disallowEmptySelection
+                    selectedKeys={[viewMode]}
+                    onSelectionChange={keys => {
+                      const [v] = Array.from(keys);
+                      if (v) setViewMode(v as 'cards' | 'list');
+                    }}
+                  >
+                    <TooltipTrigger>
+                      <ToggleButton id="cards" aria-label="card view">
+                        <RiLayoutGridLine size={16} />
+                      </ToggleButton>
+                      <Tooltip>Card View</Tooltip>
+                    </TooltipTrigger>
+                    <TooltipTrigger>
+                      <ToggleButton id="list" aria-label="list view">
+                        <RiListUnordered size={16} />
+                      </ToggleButton>
+                      <Tooltip>List View</Tooltip>
+                    </TooltipTrigger>
                   </ToggleButtonGroup>
-                  <Typography variant="body2" color="textSecondary">
-                    {filteredAndSortedVirtualClusters.length} / {virtualClusters.length}
-                  </Typography>
+                  <Text color="secondary">
+                    {rows.length} / {virtualClusters.length}
+                  </Text>
                   <Button
-                    variant="contained"
-                    color="primary"
+                    variant="primary"
                     size="small"
-                    startIcon={<AddCircleIcon />}
-                    onClick={() => { window.location.href = clusterDeploymentRoute(); }}
+                    iconStart={<RiAddCircleFill />}
+                    onPress={() => { window.location.href = clusterDeploymentRoute(); }}
                   >
                     Create Cluster
                   </Button>
-                  <Tooltip title="Refresh virtual clusters">
-                    <IconButton onClick={fetchVirtualClusters} size="small">
-                      <RefreshIcon />
-                    </IconButton>
-                  </Tooltip>
-                </Box>
-              </Grid>
-            </Grid>
+                  <TooltipTrigger>
+                    <ButtonIcon
+                      aria-label="Refresh virtual clusters"
+                      variant="tertiary"
+                      size="small"
+                      icon={<RiRefreshLine />}
+                      onPress={fetchVirtualClusters}
+                    />
+                    <Tooltip>Refresh virtual clusters</Tooltip>
+                  </TooltipTrigger>
+                </Flex>
+              </Grid.Item>
+            </Grid.Root>
           </Box>
 
           {/* Virtual Cluster Display */}
-          {filteredAndSortedVirtualClusters.length === 0 ? (
-            <Box className={classes.emptyState}>
-              <Typography variant="h5" color="textSecondary" gutterBottom>
+          {rows.length === 0 ? (
+            <Box className={styles.emptyState}>
+              <Text variant="title-medium" color="secondary" style={{ display: 'block' }}>
                 No virtual clusters found
-              </Typography>
-              <Typography variant="body2" color="textSecondary">
+              </Text>
+              <Text color="secondary">
                 {virtualClusters.length === 0
                   ? 'You do not have access to any virtual clusters.'
                   : 'No virtual clusters match the selected filters.'}
-              </Typography>
+              </Text>
             </Box>
           ) : virtualClusterDisplay}
         </Box>

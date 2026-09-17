@@ -25,7 +25,7 @@ describe('ParameterGroupNode', () => {
 
   it('should render all parameters as chips', () => {
     const { container } = renderWithReactFlow(<ParameterGroupNode data={baseData} selected={false} />);
-    const chips = container.querySelectorAll('.MuiChip-root');
+    const chips = container.querySelectorAll('.bui-Badge');
     // At least parameters + reference count chip
     expect(chips.length).toBeGreaterThanOrEqual(2);
   });

@@ -3,23 +3,18 @@ import { useEntity } from '@backstage/plugin-catalog-react';
 import { useApi, configApiRef } from '@backstage/core-plugin-api';
 import { catalogApiRef } from '@backstage/plugin-catalog-react';
 import { Entity } from '@backstage/catalog-model';
-import {
-  Box,
-  Typography,
-  CircularProgress,
-} from '@material-ui/core';
-import { Alert } from '@material-ui/lab';
+import { Alert, Box, Flex, Text } from '@backstage/ui';
+import { Progress } from '@backstage/core-components';
 import { FilterState } from './types';
 import { FilterBar } from './FilterBar';
 import { FlatGroupedView } from './FlatGroupedView';
 import { getClusterName, applyFilters } from './utils';
-import { useKubernetesResourcesStyles } from './styles';
+import styles from './KubernetesResources.module.css';
 
 export const KubernetesResourcesPage: React.FC = () => {
   const { entity: clusterEntity } = useEntity();
   const catalogApi = useApi(catalogApiRef);
   const configApi = useApi(configApiRef);
-  const classes = useKubernetesResourcesStyles();
 
   const [entities, setEntities] = useState<Entity[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,8 +29,8 @@ export const KubernetesResourcesPage: React.FC = () => {
   });
 
   // Get annotation prefix from config
-  const annotationPrefix = configApi.getOptionalConfig('spectrocloud')?.getOptionalString('annotationPrefix') ?? 
-                           configApi.getOptionalConfig('kubernetesIngestor')?.getOptionalString('annotationPrefix') ?? 
+  const annotationPrefix = configApi.getOptionalConfig('spectrocloud')?.getOptionalString('annotationPrefix') ??
+                           configApi.getOptionalConfig('kubernetesIngestor')?.getOptionalString('annotationPrefix') ??
                            'terasky.backstage.io';
 
   // Extract cluster name from cluster entity
@@ -79,7 +74,7 @@ export const KubernetesResourcesPage: React.FC = () => {
         });
 
         // Filter to only include Component, Resource, and System kinds (exclude Template, etc.)
-        const allEntities = Array.from(entityMap.values()).filter(e => 
+        const allEntities = Array.from(entityMap.values()).filter(e =>
           e.kind === 'Component' || e.kind === 'Resource' || e.kind === 'System'
         );
         setEntities(allEntities);
@@ -100,38 +95,33 @@ export const KubernetesResourcesPage: React.FC = () => {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
-        <CircularProgress />
-      </Box>
+      <Flex align="center" justify="center" style={{ minHeight: 400 }}>
+        <Progress />
+      </Flex>
     );
   }
 
   if (error) {
-    return (
-      <Alert severity="error">
-        <Typography variant="body2">{error}</Typography>
-      </Alert>
-    );
+    return <Alert status="danger" description={error} />;
   }
 
   if (!clusterName) {
     return (
-      <Alert severity="warning">
-        <Typography variant="body2">
-          Could not determine cluster name from entity annotations or tags.
-        </Typography>
-      </Alert>
+      <Alert
+        status="warning"
+        description="Could not determine cluster name from entity annotations or tags."
+      />
     );
   }
 
   const resourcesContent = filteredEntities.length === 0 ? (
-    <Box className={classes.emptyState}>
-      <Typography variant="h6" gutterBottom>
+    <Box className={styles.emptyState}>
+      <Text variant="title-small" weight="bold">
         No matches found
-      </Typography>
-      <Typography variant="body2" color="textSecondary">
+      </Text>
+      <Text color="secondary">
         No resources match the selected filters. Try adjusting your filter criteria.
-      </Typography>
+      </Text>
     </Box>
   ) : (
     <FlatGroupedView
@@ -141,15 +131,15 @@ export const KubernetesResourcesPage: React.FC = () => {
   );
 
   return (
-    <Box p={3}>
+    <Box p="6">
       {/* Header */}
-      <Box mb={3}>
-        <Typography variant="h5" gutterBottom>
+      <Box mb="6">
+        <Text variant="title-medium" weight="bold">
           Kubernetes Resources
-        </Typography>
-        <Typography variant="body2" color="textSecondary">
+        </Text>
+        <Text color="secondary">
           Cluster: <strong>{clusterName}</strong> • Total: {entities.length} • Filtered: {filteredEntities.length}
-        </Typography>
+        </Text>
       </Box>
 
       {/* Filter Bar */}
@@ -162,16 +152,16 @@ export const KubernetesResourcesPage: React.FC = () => {
 
       {/* Content */}
       {entities.length === 0 ? (
-        <Box className={classes.emptyState}>
-          <Typography variant="h6" gutterBottom>
+        <Box className={styles.emptyState}>
+          <Text variant="title-small" weight="bold">
             No resources found
-          </Typography>
-          <Typography variant="body2" color="textSecondary">
+          </Text>
+          <Text color="secondary">
             No Kubernetes resources are ingested for cluster <strong>{clusterName}</strong>.
-          </Typography>
-          <Typography variant="body2" color="textSecondary" style={{ marginTop: 8 }}>
+          </Text>
+          <Text color="secondary" style={{ marginTop: 'var(--bui-space-2)', display: 'block' }}>
             Make sure the kubernetes-ingestor is configured for this cluster.
-          </Typography>
+          </Text>
         </Box>
       ) : resourcesContent}
     </Box>

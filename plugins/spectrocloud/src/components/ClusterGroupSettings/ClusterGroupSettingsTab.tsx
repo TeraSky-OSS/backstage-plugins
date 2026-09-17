@@ -1,119 +1,108 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { useApi, configApiRef } from '@backstage/core-plugin-api';
+import { Progress } from '@backstage/core-components';
 import {
-  Progress,
-} from '@backstage/core-components';
-import {
-  Grid,
-  Typography,
-  makeStyles,
-  Box,
-  Divider,
-  Card,
-  CardContent,
-  Chip,
   Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Table,
-  TableBody,
-  TableRow,
-  TableCell,
-} from '@material-ui/core';
-import { Alert } from '@material-ui/lab';
-import StorageIcon from '@material-ui/icons/Storage';
-import MemoryIcon from '@material-ui/icons/Memory';
-import SpeedIcon from '@material-ui/icons/Speed';
-import SettingsIcon from '@material-ui/icons/Settings';
-import SyncIcon from '@material-ui/icons/Sync';
-import ExtensionIcon from '@material-ui/icons/Extension';
-import SecurityIcon from '@material-ui/icons/Security';
-import NetworkCheckIcon from '@material-ui/icons/NetworkCheck';
-import CodeIcon from '@material-ui/icons/Code';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import CheckCircleIcon from '@material-ui/icons/CheckCircle';
-import CancelIcon from '@material-ui/icons/Cancel';
+  AccordionPanel,
+  AccordionTrigger,
+  Alert,
+  Badge,
+  Box,
+  Card,
+  CardBody,
+  Flex,
+  Grid,
+  Text,
+} from '@backstage/ui';
+import {
+  RiCheckboxCircleLine,
+  RiCloseCircleLine,
+  RiCodeSSlashLine,
+  RiCpuLine,
+  RiHardDriveLine,
+  RiLoopLeftLine,
+  RiNetworkLine,
+  RiPlugLine,
+  RiSettings3Line,
+  RiShieldCheckLine,
+  RiSpeedLine,
+} from '@remixicon/react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
+// BUI-EXCEPTION: `react-syntax-highlighter`'s `style` prop needs a literal JS style object
+// (light/dark theme constant), which cannot be derived from a CSS custom property. `useTheme`
+// is kept narrowly for this one boolean.
 import { useTheme } from '@material-ui/core/styles';
 import yaml from 'js-yaml';
 import { spectroCloudApiRef } from '../../api';
+import styles from './ClusterGroupSettingsTab.module.css';
 
-const useStyles = makeStyles(theme => ({
-  root: {
-    padding: theme.spacing(3),
-  },
-  section: {
-    marginBottom: theme.spacing(3),
-  },
-  sectionTitle: {
-    marginBottom: theme.spacing(2),
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(1),
-  },
-  card: {
-    height: '100%',
-  },
-  infoRow: {
-    marginBottom: theme.spacing(1.5),
-  },
-  label: {
-    fontWeight: 600,
-    color: theme.palette.text.secondary,
-    marginBottom: theme.spacing(0.5),
-  },
-  value: {
-    color: theme.palette.text.primary,
-  },
-  chip: {
-    margin: theme.spacing(0.5),
-  },
-  codeContainer: {
-    maxHeight: 600,
-    overflow: 'auto',
-    borderRadius: 4,
-    '& pre': {
-      margin: '0 !important',
-      fontSize: '13px !important',
-    },
-  },
-  accordion: {
-    marginTop: theme.spacing(2),
-  },
-  accordionSummary: {
-    backgroundColor: theme.palette.type === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
-  },
-  statusIcon: {
-    verticalAlign: 'middle',
-    marginRight: theme.spacing(0.5),
-  },
-  syncTable: {
-    '& .MuiTableCell-root': {
-      padding: theme.spacing(1),
-      borderBottom: 'none',
-    },
-  },
-  subSection: {
-    marginTop: theme.spacing(2),
-    marginBottom: theme.spacing(1),
-  },
-}));
+const StatusIndicator = ({ enabled }: { enabled: boolean | string }) => {
+  const isEnabled = enabled === true || enabled === 'true' || enabled === 'auto';
+  return (
+    <Flex align="center" gap="1">
+      {isEnabled ? (
+        <RiCheckboxCircleLine size={16} style={{ color: 'var(--bui-fg-positive)' }} />
+      ) : (
+        <RiCloseCircleLine size={16} style={{ color: 'var(--bui-fg-negative)' }} />
+      )}
+      <Text variant="body-small">{isEnabled ? 'Enabled' : 'Disabled'}</Text>
+    </Flex>
+  );
+};
+
+const StatusRow = ({ label, enabled }: { label: string; enabled: boolean | string }) => (
+  <Flex justify="between" align="center" py="1">
+    <Text variant="body-small">{label}</Text>
+    <StatusIndicator enabled={enabled} />
+  </Flex>
+);
+
+const KeyValueRow = ({ label, value }: { label: string; value: ReactNode }) => (
+  <Flex justify="between" align="center" py="1">
+    <Text variant="body-x-small">{label}</Text>
+    <Text variant="body-x-small">{value}</Text>
+  </Flex>
+);
+
+const SectionHeading = ({ icon, children }: { icon: ReactNode; children: ReactNode }) => (
+  <Flex align="center" gap="2" mb="4">
+    {icon}
+    <Text variant="title-small" weight="bold">
+      {children}
+    </Text>
+  </Flex>
+);
+
+const SubHeading = ({ children }: { children: ReactNode }) => (
+  <Box mt="4" mb="2">
+    <Text as="div" variant="body-small" weight="bold">
+      {children}
+    </Text>
+  </Box>
+);
+
+const FieldLabel = ({ children }: { children: ReactNode }) => (
+  <Box mb="1">
+    <Text as="div" variant="body-small" color="secondary" weight="bold">
+      {children}
+    </Text>
+  </Box>
+);
 
 export const ClusterGroupSettingsTab = () => {
-  const classes = useStyles();
   const theme = useTheme();
   const { entity } = useEntity();
   const configApi = useApi(configApiRef);
   const spectroCloudApi = useApi(spectroCloudApiRef);
-  
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
   const [clusterGroupDetails, setClusterGroupDetails] = useState<any>(null);
-  
+
   const annotationPrefix = configApi.getOptionalConfig('spectrocloud')?.getOptionalString('annotationPrefix') ?? 'terasky.backstage.io';
-  
+
   const annotations = entity.metadata.annotations || {};
   const clusterGroupUid = annotations[`${annotationPrefix}/cluster-group-id`];
   const projectUid = annotations[`${annotationPrefix}/project-id`];
@@ -126,10 +115,10 @@ export const ClusterGroupSettingsTab = () => {
         setLoading(false);
         return;
       }
-      
+
       setLoading(true);
       setError(undefined);
-      
+
       try {
         const details = await spectroCloudApi.getClusterGroupDetails(
           clusterGroupUid,
@@ -143,7 +132,7 @@ export const ClusterGroupSettingsTab = () => {
         setLoading(false);
       }
     };
-    
+
     fetchClusterGroupDetails();
   }, [clusterGroupUid, projectUid, instanceName, spectroCloudApi]);
 
@@ -152,11 +141,11 @@ export const ClusterGroupSettingsTab = () => {
   }
 
   if (error) {
-    return <Alert severity="error">{error}</Alert>;
+    return <Alert status="danger" description={error} />;
   }
 
   if (!clusterGroupDetails) {
-    return <Alert severity="warning">No cluster group details available</Alert>;
+    return <Alert status="warning" description="No cluster group details available" />;
   }
 
   const limitConfig = clusterGroupDetails.spec?.clustersConfig?.limitConfig;
@@ -185,586 +174,395 @@ export const ClusterGroupSettingsTab = () => {
   const deploySettings = vclusterConfig?.deploy || {};
   const policies = vclusterConfig?.policies || {};
   const plugins = vclusterConfig?.plugin || {};
-  
+
   // Extract versions
   const k8sVersion = k8sDistro?.image?.tag || k8sDistro?.apiServer?.image?.tag || 'N/A';
   const vclusterVersion = controlPlane?.statefulSet?.image?.tag || 'N/A';
 
-  // Helper function to render enabled/disabled status
-  const renderStatus = (enabled: boolean | string) => {
-    const isEnabled = enabled === true || enabled === 'true' || enabled === 'auto';
-    return (
-      <Box display="flex" alignItems="center">
-        {isEnabled ? (
-          <>
-            <CheckCircleIcon className={classes.statusIcon} style={{ color: '#4caf50' }} />
-            <Typography variant="body2">Enabled</Typography>
-          </>
-        ) : (
-          <>
-            <CancelIcon className={classes.statusIcon} style={{ color: '#f44336' }} />
-            <Typography variant="body2">Disabled</Typography>
-          </>
-        )}
-      </Box>
-    );
-  };
-
   return (
-    <Box className={classes.root}>
-      <Grid container spacing={3}>
+    <Box p="4">
+      <Grid.Root columns="12" gap="5">
         {/* Versions */}
-        <Grid item xs={12} md={6}>
+        <Grid.Item colSpan={{ xs: '12', md: '6' }}>
           <Card>
-            <CardContent>
-              <Typography variant="h6" className={classes.sectionTitle}>
-                <CodeIcon />
-                Versions
-              </Typography>
+            <CardBody>
+              <SectionHeading icon={<RiCodeSSlashLine size={20} />}>Versions</SectionHeading>
 
-              <Box className={classes.infoRow}>
-                <Typography variant="body2" className={classes.label}>
-                  Kubernetes Version
-                </Typography>
-                <Chip label={k8sVersion} size="small" color="primary" />
+              <Box mb="2">
+                <FieldLabel>Kubernetes Version</FieldLabel>
+                <Badge>{k8sVersion}</Badge>
               </Box>
 
-              <Box className={classes.infoRow}>
-                <Typography variant="body2" className={classes.label}>
-                  vCluster Version
-                </Typography>
-                <Chip label={vclusterVersion} size="small" color="secondary" />
+              <Box mb="2">
+                <FieldLabel>vCluster Version</FieldLabel>
+                <Badge>{vclusterVersion}</Badge>
               </Box>
 
-              <Box className={classes.infoRow}>
-                <Typography variant="body2" className={classes.label}>
-                  Kubernetes Distribution
-                </Typography>
-                <Chip label={kubernetesDistroType} size="small" />
+              <Box mb="2">
+                <FieldLabel>Kubernetes Distribution</FieldLabel>
+                <Badge>{kubernetesDistroType}</Badge>
               </Box>
-            </CardContent>
+            </CardBody>
           </Card>
-        </Grid>
+        </Grid.Item>
 
         {/* Basic Configuration */}
-        <Grid item xs={12} md={6}>
+        <Grid.Item colSpan={{ xs: '12', md: '6' }}>
           <Card>
-            <CardContent>
-              <Typography variant="h6" className={classes.sectionTitle}>
-                <SettingsIcon />
-                Basic Configuration
-              </Typography>
+            <CardBody>
+              <SectionHeading icon={<RiSettings3Line size={20} />}>Basic Configuration</SectionHeading>
 
-              <Box className={classes.infoRow}>
-                <Typography variant="body2" className={classes.label}>
-                  Endpoint Type
-                </Typography>
-                <Chip label={endpointType} size="small" color="primary" />
-                <Typography variant="caption" color="textSecondary" display="block">
+              <Box mb="2">
+                <FieldLabel>Endpoint Type</FieldLabel>
+                <Badge>{endpointType}</Badge>
+                <Text as="div" variant="body-x-small" color="secondary">
                   How virtual clusters expose their API endpoints
-                </Typography>
+                </Text>
               </Box>
 
-              <Box className={classes.infoRow}>
-                <Typography variant="body2" className={classes.label}>
-                  Member Clusters
-                </Typography>
-                <Typography variant="body2" className={classes.value}>
+              <Box mb="2">
+                <FieldLabel>Member Clusters</FieldLabel>
+                <Text variant="body-small">
                   {clusterGroupDetails.spec?.clusterRefs?.length || 0} cluster(s)
-                </Typography>
+                </Text>
               </Box>
-            </CardContent>
+            </CardBody>
           </Card>
-        </Grid>
+        </Grid.Item>
 
         {/* Resource Limits */}
-        <Grid item xs={12} md={6}>
+        <Grid.Item colSpan={{ xs: '12', md: '6' }}>
           <Card>
-            <CardContent>
-              <Typography variant="h6" className={classes.sectionTitle}>
-                <MemoryIcon />
-                Virtual Cluster Resource Limits
-              </Typography>
-              <Typography variant="body2" color="textSecondary" paragraph>
-                Per virtual cluster limits
-              </Typography>
-              
+            <CardBody>
+              <SectionHeading icon={<RiCpuLine size={20} />}>Virtual Cluster Resource Limits</SectionHeading>
+              <Box mb="3">
+                <Text as="div" variant="body-small" color="secondary">
+                  Per virtual cluster limits
+                </Text>
+              </Box>
+
               {limitConfig ? (
                 <>
-                  <Box className={classes.infoRow}>
-                    <Box display="flex" alignItems="center" mb={0.5}>
-                      <SpeedIcon fontSize="small" style={{ marginRight: 8 }} />
-                      <Typography variant="body2" className={classes.label}>
-                        CPU Limit
-                      </Typography>
-                    </Box>
-                    <Typography variant="h6" className={classes.value}>
-                      {limitConfig.cpu || limitConfig.cpuMilliCore ? 
-                        `${limitConfig.cpu || (limitConfig.cpuMilliCore / 1000)} cores` : 
-                        'N/A'}
-                    </Typography>
+                  <Box mb="3">
+                    <Flex align="center" gap="1" mb="1">
+                      <RiSpeedLine size={16} />
+                      <FieldLabel>CPU Limit</FieldLabel>
+                    </Flex>
+                    <Text variant="title-small">
+                      {limitConfig.cpu || limitConfig.cpuMilliCore
+                        ? `${limitConfig.cpu || (limitConfig.cpuMilliCore / 1000)} cores`
+                        : 'N/A'}
+                    </Text>
                   </Box>
 
-                  <Box className={classes.infoRow}>
-                    <Box display="flex" alignItems="center" mb={0.5}>
-                      <MemoryIcon fontSize="small" style={{ marginRight: 8 }} />
-                      <Typography variant="body2" className={classes.label}>
-                        Memory Limit
-                      </Typography>
-                    </Box>
-                    <Typography variant="h6" className={classes.value}>
-                      {limitConfig.memory || limitConfig.memoryMiB ? 
-                        `${limitConfig.memory || limitConfig.memoryMiB} MiB` : 
-                        'N/A'}
-                    </Typography>
+                  <Box mb="3">
+                    <Flex align="center" gap="1" mb="1">
+                      <RiCpuLine size={16} />
+                      <FieldLabel>Memory Limit</FieldLabel>
+                    </Flex>
+                    <Text variant="title-small">
+                      {limitConfig.memory || limitConfig.memoryMiB
+                        ? `${limitConfig.memory || limitConfig.memoryMiB} MiB`
+                        : 'N/A'}
+                    </Text>
                   </Box>
 
-                  <Box className={classes.infoRow}>
-                    <Box display="flex" alignItems="center" mb={0.5}>
-                      <StorageIcon fontSize="small" style={{ marginRight: 8 }} />
-                      <Typography variant="body2" className={classes.label}>
-                        Storage Limit
-                      </Typography>
-                    </Box>
-                    <Typography variant="h6" className={classes.value}>
+                  <Box mb="3">
+                    <Flex align="center" gap="1" mb="1">
+                      <RiHardDriveLine size={16} />
+                      <FieldLabel>Storage Limit</FieldLabel>
+                    </Flex>
+                    <Text variant="title-small">
                       {limitConfig.storageGiB ? `${limitConfig.storageGiB} GiB` : 'N/A'}
-                    </Typography>
+                    </Text>
                   </Box>
 
-                  <Divider style={{ margin: '16px 0' }} />
+                  <Box my="3">
+                    <hr className={styles.hr} />
+                  </Box>
 
-                  <Box className={classes.infoRow}>
-                    <Typography variant="body2" className={classes.label}>
-                      Over-subscription
-                    </Typography>
-                    <Box display="flex" alignItems="center" style={{ gap: 8 }}>
-                      <Typography variant="h6" className={classes.value}>
-                        {overSubscription}%
-                      </Typography>
-                      <Chip 
-                        label={overSubscription > 100 ? 'Enabled' : 'Disabled'} 
-                        size="small" 
-                        color={overSubscription > 100 ? 'secondary' : 'default'}
-                      />
-                    </Box>
+                  <Box mb="2">
+                    <FieldLabel>Over-subscription</FieldLabel>
+                    <Flex align="center" gap="2">
+                      <Text variant="title-small">{overSubscription}%</Text>
+                      <Badge>{overSubscription > 100 ? 'Enabled' : 'Disabled'}</Badge>
+                    </Flex>
                   </Box>
                 </>
               ) : (
-                <Typography variant="body2" color="textSecondary">
+                <Text variant="body-small" color="secondary">
                   No resource limits configured
-                </Typography>
+                </Text>
               )}
-            </CardContent>
+            </CardBody>
           </Card>
-        </Grid>
+        </Grid.Item>
 
         {/* Deploy Components */}
-        <Grid item xs={12} md={6}>
+        <Grid.Item colSpan={{ xs: '12', md: '6' }}>
           <Card>
-            <CardContent>
-              <Typography variant="h6" className={classes.sectionTitle}>
-                <NetworkCheckIcon />
-                Deployed Components
-              </Typography>
+            <CardBody>
+              <SectionHeading icon={<RiNetworkLine size={20} />}>Deployed Components</SectionHeading>
 
-              <Table size="small" className={classes.syncTable}>
-                <TableBody>
-                  <TableRow>
-                    <TableCell><Typography variant="body2">Local Path Provisioner</Typography></TableCell>
-                    <TableCell align="right">{renderStatus(deploySettings?.localPathProvisioner?.enabled)}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell><Typography variant="body2">CNI (Flannel)</Typography></TableCell>
-                    <TableCell align="right">{renderStatus(deploySettings?.cni?.flannel?.enabled)}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell><Typography variant="body2">Kube Proxy</Typography></TableCell>
-                    <TableCell align="right">{renderStatus(deploySettings?.kubeProxy?.enabled)}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell><Typography variant="body2">MetalLB</Typography></TableCell>
-                    <TableCell align="right">{renderStatus(deploySettings?.metallb?.enabled)}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell><Typography variant="body2">Ingress NGINX</Typography></TableCell>
-                    <TableCell align="right">{renderStatus(deploySettings?.ingressNginx?.enabled)}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell><Typography variant="body2">Metrics Server</Typography></TableCell>
-                    <TableCell align="right">{renderStatus(deploySettings?.metricsServer?.enabled)}</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </CardContent>
+              <Flex direction="column">
+                <StatusRow label="Local Path Provisioner" enabled={deploySettings?.localPathProvisioner?.enabled} />
+                <StatusRow label="CNI (Flannel)" enabled={deploySettings?.cni?.flannel?.enabled} />
+                <StatusRow label="Kube Proxy" enabled={deploySettings?.kubeProxy?.enabled} />
+                <StatusRow label="MetalLB" enabled={deploySettings?.metallb?.enabled} />
+                <StatusRow label="Ingress NGINX" enabled={deploySettings?.ingressNginx?.enabled} />
+                <StatusRow label="Metrics Server" enabled={deploySettings?.metricsServer?.enabled} />
+              </Flex>
+            </CardBody>
           </Card>
-        </Grid>
+        </Grid.Item>
 
         {/* Sync Configuration */}
-        <Grid item xs={12}>
+        <Grid.Item colSpan="12">
           <Card>
-            <CardContent>
-              <Typography variant="h6" className={classes.sectionTitle}>
-                <SyncIcon />
-                Resource Sync Configuration
-              </Typography>
+            <CardBody>
+              <SectionHeading icon={<RiLoopLeftLine size={20} />}>Resource Sync Configuration</SectionHeading>
 
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <Typography variant="subtitle2" className={classes.subSection}>
-                    Synced to Host Cluster
-                  </Typography>
-                  <Table size="small" className={classes.syncTable}>
-                    <TableBody>
-                      <TableRow>
-                        <TableCell><Typography variant="body2">Services</Typography></TableCell>
-                        <TableCell align="right">{renderStatus(syncToHost?.services?.enabled)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell><Typography variant="body2">Endpoints</Typography></TableCell>
-                        <TableCell align="right">{renderStatus(syncToHost?.endpoints?.enabled)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell><Typography variant="body2">PersistentVolumeClaims</Typography></TableCell>
-                        <TableCell align="right">{renderStatus(syncToHost?.persistentVolumeClaims?.enabled)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell><Typography variant="body2">ConfigMaps</Typography></TableCell>
-                        <TableCell align="right">{renderStatus(syncToHost?.configMaps?.enabled)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell><Typography variant="body2">Secrets</Typography></TableCell>
-                        <TableCell align="right">{renderStatus(syncToHost?.secrets?.enabled)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell><Typography variant="body2">Pods</Typography></TableCell>
-                        <TableCell align="right">{renderStatus(syncToHost?.pods?.enabled)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell><Typography variant="body2">Ingresses</Typography></TableCell>
-                        <TableCell align="right">{renderStatus(syncToHost?.ingresses?.enabled)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell><Typography variant="body2">StorageClasses</Typography></TableCell>
-                        <TableCell align="right">{renderStatus(syncToHost?.storageClasses?.enabled)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell><Typography variant="body2">PriorityClasses</Typography></TableCell>
-                        <TableCell align="right">{renderStatus(syncToHost?.priorityClasses?.enabled)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell><Typography variant="body2">NetworkPolicies</Typography></TableCell>
-                        <TableCell align="right">{renderStatus(syncToHost?.networkPolicies?.enabled)}</TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </Grid>
+              <Grid.Root columns="12" gap="4">
+                <Grid.Item colSpan={{ xs: '12', md: '6' }}>
+                  <SubHeading>Synced to Host Cluster</SubHeading>
+                  <Flex direction="column">
+                    <StatusRow label="Services" enabled={syncToHost?.services?.enabled} />
+                    <StatusRow label="Endpoints" enabled={syncToHost?.endpoints?.enabled} />
+                    <StatusRow label="PersistentVolumeClaims" enabled={syncToHost?.persistentVolumeClaims?.enabled} />
+                    <StatusRow label="ConfigMaps" enabled={syncToHost?.configMaps?.enabled} />
+                    <StatusRow label="Secrets" enabled={syncToHost?.secrets?.enabled} />
+                    <StatusRow label="Pods" enabled={syncToHost?.pods?.enabled} />
+                    <StatusRow label="Ingresses" enabled={syncToHost?.ingresses?.enabled} />
+                    <StatusRow label="StorageClasses" enabled={syncToHost?.storageClasses?.enabled} />
+                    <StatusRow label="PriorityClasses" enabled={syncToHost?.priorityClasses?.enabled} />
+                    <StatusRow label="NetworkPolicies" enabled={syncToHost?.networkPolicies?.enabled} />
+                  </Flex>
+                </Grid.Item>
 
-                <Grid item xs={12} md={6}>
-                  <Typography variant="subtitle2" className={classes.subSection}>
-                    Synced from Host Cluster
-                  </Typography>
-                  <Table size="small" className={classes.syncTable}>
-                    <TableBody>
-                      <TableRow>
-                        <TableCell><Typography variant="body2">Events</Typography></TableCell>
-                        <TableCell align="right">{renderStatus(syncFromHost?.events?.enabled)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell><Typography variant="body2">ConfigMaps</Typography></TableCell>
-                        <TableCell align="right">{renderStatus(syncFromHost?.configMaps?.enabled)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell><Typography variant="body2">Secrets</Typography></TableCell>
-                        <TableCell align="right">{renderStatus(syncFromHost?.secrets?.enabled)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell><Typography variant="body2">Nodes</Typography></TableCell>
-                        <TableCell align="right">{renderStatus(syncFromHost?.nodes?.enabled)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell><Typography variant="body2">CSI Drivers</Typography></TableCell>
-                        <TableCell align="right">{renderStatus(syncFromHost?.csiDrivers?.enabled)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell><Typography variant="body2">CSI Nodes</Typography></TableCell>
-                        <TableCell align="right">{renderStatus(syncFromHost?.csiNodes?.enabled)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell><Typography variant="body2">StorageClasses</Typography></TableCell>
-                        <TableCell align="right">{renderStatus(syncFromHost?.storageClasses?.enabled)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell><Typography variant="body2">IngressClasses</Typography></TableCell>
-                        <TableCell align="right">{renderStatus(syncFromHost?.ingressClasses?.enabled)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell><Typography variant="body2">RuntimeClasses</Typography></TableCell>
-                        <TableCell align="right">{renderStatus(syncFromHost?.runtimeClasses?.enabled)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell><Typography variant="body2">PriorityClasses</Typography></TableCell>
-                        <TableCell align="right">{renderStatus(syncFromHost?.priorityClasses?.enabled)}</TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </Grid>
-              </Grid>
-            </CardContent>
+                <Grid.Item colSpan={{ xs: '12', md: '6' }}>
+                  <SubHeading>Synced from Host Cluster</SubHeading>
+                  <Flex direction="column">
+                    <StatusRow label="Events" enabled={syncFromHost?.events?.enabled} />
+                    <StatusRow label="ConfigMaps" enabled={syncFromHost?.configMaps?.enabled} />
+                    <StatusRow label="Secrets" enabled={syncFromHost?.secrets?.enabled} />
+                    <StatusRow label="Nodes" enabled={syncFromHost?.nodes?.enabled} />
+                    <StatusRow label="CSI Drivers" enabled={syncFromHost?.csiDrivers?.enabled} />
+                    <StatusRow label="CSI Nodes" enabled={syncFromHost?.csiNodes?.enabled} />
+                    <StatusRow label="StorageClasses" enabled={syncFromHost?.storageClasses?.enabled} />
+                    <StatusRow label="IngressClasses" enabled={syncFromHost?.ingressClasses?.enabled} />
+                    <StatusRow label="RuntimeClasses" enabled={syncFromHost?.runtimeClasses?.enabled} />
+                    <StatusRow label="PriorityClasses" enabled={syncFromHost?.priorityClasses?.enabled} />
+                  </Flex>
+                </Grid.Item>
+              </Grid.Root>
+            </CardBody>
           </Card>
-        </Grid>
+        </Grid.Item>
 
         {/* Policies */}
-        <Grid item xs={12}>
+        <Grid.Item colSpan="12">
           <Card>
-            <CardContent>
-              <Typography variant="h6" className={classes.sectionTitle}>
-                <SecurityIcon />
-                Policies
-              </Typography>
+            <CardBody>
+              <SectionHeading icon={<RiShieldCheckLine size={20} />}>Policies</SectionHeading>
 
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={4}>
-                  <Typography variant="subtitle2" className={classes.subSection}>
-                    Resource Quota
-                  </Typography>
-                  <Box className={classes.infoRow}>
-                    <Typography variant="body2" className={classes.label}>
-                      Status
-                    </Typography>
-                    {renderStatus(policies?.resourceQuota?.enabled)}
+              <Grid.Root columns="12" gap="4">
+                <Grid.Item colSpan={{ xs: '12', md: '4' }}>
+                  <SubHeading>Resource Quota</SubHeading>
+                  <Box mb="2">
+                    <FieldLabel>Status</FieldLabel>
+                    <StatusIndicator enabled={policies?.resourceQuota?.enabled} />
                   </Box>
                   {policies?.resourceQuota?.enabled && policies?.resourceQuota?.quota && (
                     <>
-                      <Divider style={{ margin: '8px 0' }} />
-                      <Table size="small" className={classes.syncTable}>
-                        <TableBody>
-                          {Object.entries(policies.resourceQuota.quota).map(([key, value]) => (
-                            <TableRow key={key}>
-                              <TableCell><Typography variant="caption">{key}</Typography></TableCell>
-                              <TableCell align="right"><Typography variant="caption">{String(value)}</Typography></TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+                      <Box my="2">
+                        <hr className={styles.hr} />
+                      </Box>
+                      <Flex direction="column">
+                        {Object.entries(policies.resourceQuota.quota).map(([key, value]) => (
+                          <KeyValueRow key={key} label={key} value={String(value)} />
+                        ))}
+                      </Flex>
                     </>
                   )}
-                </Grid>
+                </Grid.Item>
 
-                <Grid item xs={12} md={4}>
-                  <Typography variant="subtitle2" className={classes.subSection}>
-                    Limit Range
-                  </Typography>
-                  <Box className={classes.infoRow}>
-                    <Typography variant="body2" className={classes.label}>
-                      Status
-                    </Typography>
-                    {renderStatus(policies?.limitRange?.enabled)}
+                <Grid.Item colSpan={{ xs: '12', md: '4' }}>
+                  <SubHeading>Limit Range</SubHeading>
+                  <Box mb="2">
+                    <FieldLabel>Status</FieldLabel>
+                    <StatusIndicator enabled={policies?.limitRange?.enabled} />
                   </Box>
                   {policies?.limitRange?.enabled && (
                     <>
-                      <Divider style={{ margin: '8px 0' }} />
+                      <Box my="2">
+                        <hr className={styles.hr} />
+                      </Box>
                       {policies?.limitRange?.default && (
                         <>
-                          <Typography variant="caption" display="block" className={classes.label}>
-                            Default Limits
-                          </Typography>
-                          <Table size="small" className={classes.syncTable}>
-                            <TableBody>
-                              {Object.entries(policies.limitRange.default).map(([key, value]) => (
-                                <TableRow key={key}>
-                                  <TableCell><Typography variant="caption">{key}</Typography></TableCell>
-                                  <TableCell align="right"><Typography variant="caption">{String(value)}</Typography></TableCell>
-                                </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
+                          <Box mb="1">
+                            <Text as="div" variant="body-x-small" color="secondary" weight="bold">
+                              Default Limits
+                            </Text>
+                          </Box>
+                          <Flex direction="column">
+                            {Object.entries(policies.limitRange.default).map(([key, value]) => (
+                              <KeyValueRow key={key} label={key} value={String(value)} />
+                            ))}
+                          </Flex>
                         </>
                       )}
                       {policies?.limitRange?.defaultRequest && (
                         <>
-                          <Typography variant="caption" display="block" className={classes.label} style={{ marginTop: 8 }}>
-                            Default Requests
-                          </Typography>
-                          <Table size="small" className={classes.syncTable}>
-                            <TableBody>
-                              {Object.entries(policies.limitRange.defaultRequest).map(([key, value]) => (
-                                <TableRow key={key}>
-                                  <TableCell><Typography variant="caption">{key}</Typography></TableCell>
-                                  <TableCell align="right"><Typography variant="caption">{String(value)}</Typography></TableCell>
-                                </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
+                          <Box mt="2" mb="1">
+                            <Text as="div" variant="body-x-small" color="secondary" weight="bold">
+                              Default Requests
+                            </Text>
+                          </Box>
+                          <Flex direction="column">
+                            {Object.entries(policies.limitRange.defaultRequest).map(([key, value]) => (
+                              <KeyValueRow key={key} label={key} value={String(value)} />
+                            ))}
+                          </Flex>
                         </>
                       )}
                     </>
                   )}
-                </Grid>
+                </Grid.Item>
 
-                <Grid item xs={12} md={4}>
-                  <Typography variant="subtitle2" className={classes.subSection}>
-                    Network Policy
-                  </Typography>
-                  <Box className={classes.infoRow}>
-                    <Typography variant="body2" className={classes.label}>
-                      Status
-                    </Typography>
-                    {renderStatus(policies?.networkPolicy?.enabled)}
+                <Grid.Item colSpan={{ xs: '12', md: '4' }}>
+                  <SubHeading>Network Policy</SubHeading>
+                  <Box mb="2">
+                    <FieldLabel>Status</FieldLabel>
+                    <StatusIndicator enabled={policies?.networkPolicy?.enabled} />
                   </Box>
                   {policies?.networkPolicy?.enabled && (
                     <>
-                      <Divider style={{ margin: '8px 0' }} />
-                      <Box className={classes.infoRow}>
-                        <Typography variant="caption" className={classes.label}>
-                          Fallback DNS
-                        </Typography>
-                        <Typography variant="caption" className={classes.value}>
-                          {policies?.networkPolicy?.fallbackDns || 'N/A'}
-                        </Typography>
+                      <Box my="2">
+                        <hr className={styles.hr} />
                       </Box>
-                      
+                      <Box mb="2">
+                        <Text variant="body-x-small" color="secondary" weight="bold">
+                          Fallback DNS
+                        </Text>{' '}
+                        <Text variant="body-x-small">
+                          {policies?.networkPolicy?.fallbackDns || 'N/A'}
+                        </Text>
+                      </Box>
+
                       {/* Outgoing Connections */}
                       {policies?.networkPolicy?.outgoingConnections?.ipBlock && (
-                        <>
-                          <Box className={classes.infoRow} mt={1}>
-                            <Typography variant="caption" className={classes.label} display="block">
-                              Outgoing Connections
-                            </Typography>
-                            <Typography variant="caption" color="textSecondary" display="block">
-                              CIDR: {policies.networkPolicy.outgoingConnections.ipBlock.cidr || 'N/A'}
-                            </Typography>
-                            {policies.networkPolicy.outgoingConnections.ipBlock.except && 
-                             policies.networkPolicy.outgoingConnections.ipBlock.except.length > 0 && (
-                              <Box mt={0.5}>
-                                <Typography variant="caption" color="textSecondary" display="block">
+                        <Box mb="2" mt="1">
+                          <Text as="div" variant="body-x-small" color="secondary" weight="bold">
+                            Outgoing Connections
+                          </Text>
+                          <Text as="div" variant="body-x-small" color="secondary">
+                            CIDR: {policies.networkPolicy.outgoingConnections.ipBlock.cidr || 'N/A'}
+                          </Text>
+                          {policies.networkPolicy.outgoingConnections.ipBlock.except &&
+                            policies.networkPolicy.outgoingConnections.ipBlock.except.length > 0 && (
+                              <Box mt="1">
+                                <Text as="div" variant="body-x-small" color="secondary">
                                   Exceptions ({policies.networkPolicy.outgoingConnections.ipBlock.except.length}):
-                                </Typography>
-                                {policies.networkPolicy.outgoingConnections.ipBlock.except.map((cidr: string, idx: number) => (
-                                  <Chip 
-                                    key={idx} 
-                                    label={cidr} 
-                                    size="small" 
-                                    style={{ margin: '2px', fontSize: '0.7rem' }}
-                                  />
-                                ))}
+                                </Text>
+                                <Flex gap="1" mt="1" style={{ flexWrap: 'wrap' }}>
+                                  {policies.networkPolicy.outgoingConnections.ipBlock.except.map(
+                                    (cidr: string, idx: number) => (
+                                      <Badge key={idx}>{cidr}</Badge>
+                                    ),
+                                  )}
+                                </Flex>
                               </Box>
                             )}
-                          </Box>
-                        </>
+                        </Box>
                       )}
 
                       {/* Extra Rules */}
-                      {policies?.networkPolicy?.extraControlPlaneRules && 
-                       policies.networkPolicy.extraControlPlaneRules.length > 0 && (
-                        <Box className={classes.infoRow} mt={1}>
-                          <Typography variant="caption" className={classes.label}>
-                            Extra Control Plane Rules
-                          </Typography>
-                          <Chip 
-                            label={`${policies.networkPolicy.extraControlPlaneRules.length} rule(s)`}
-                            size="small"
-                            color="primary"
-                            style={{ fontSize: '0.7rem' }}
-                          />
-                        </Box>
-                      )}
+                      {policies?.networkPolicy?.extraControlPlaneRules &&
+                        policies.networkPolicy.extraControlPlaneRules.length > 0 && (
+                          <Box mb="2" mt="1">
+                            <FieldLabel>Extra Control Plane Rules</FieldLabel>
+                            <Badge>{`${policies.networkPolicy.extraControlPlaneRules.length} rule(s)`}</Badge>
+                          </Box>
+                        )}
 
-                      {policies?.networkPolicy?.extraWorkloadRules && 
-                       policies.networkPolicy.extraWorkloadRules.length > 0 && (
-                        <Box className={classes.infoRow} mt={1}>
-                          <Typography variant="caption" className={classes.label}>
-                            Extra Workload Rules
-                          </Typography>
-                          <Chip 
-                            label={`${policies.networkPolicy.extraWorkloadRules.length} rule(s)`}
-                            size="small"
-                            color="secondary"
-                            style={{ fontSize: '0.7rem' }}
-                          />
-                        </Box>
-                      )}
+                      {policies?.networkPolicy?.extraWorkloadRules &&
+                        policies.networkPolicy.extraWorkloadRules.length > 0 && (
+                          <Box mb="2" mt="1">
+                            <FieldLabel>Extra Workload Rules</FieldLabel>
+                            <Badge>{`${policies.networkPolicy.extraWorkloadRules.length} rule(s)`}</Badge>
+                          </Box>
+                        )}
                     </>
                   )}
-                </Grid>
-              </Grid>
-            </CardContent>
+                </Grid.Item>
+              </Grid.Root>
+            </CardBody>
           </Card>
-        </Grid>
+        </Grid.Item>
 
         {/* vCluster Plugins */}
         {Object.keys(plugins).length > 0 && (
-          <Grid item xs={12}>
+          <Grid.Item colSpan="12">
             <Card>
-              <CardContent>
-                <Typography variant="h6" className={classes.sectionTitle}>
-                  <ExtensionIcon />
-                  vCluster Plugins
-                </Typography>
+              <CardBody>
+                <SectionHeading icon={<RiPlugLine size={20} />}>vCluster Plugins</SectionHeading>
 
-                <Grid container spacing={2}>
+                <Grid.Root columns="12" gap="4">
                   {Object.entries(plugins).map(([pluginName, pluginConfig]: [string, any]) => (
-                    <Grid item xs={12} md={6} key={pluginName}>
-                      <Box className={classes.infoRow}>
-                        <Typography variant="body2" className={classes.label}>
-                          {pluginName}
-                        </Typography>
-                        <Chip 
-                          label={pluginConfig?.image || 'Configured'} 
-                          size="small" 
-                          className={classes.chip}
-                        />
+                    <Grid.Item colSpan={{ xs: '12', md: '6' }} key={pluginName}>
+                      <Box mb="2">
+                        <FieldLabel>{pluginName}</FieldLabel>
+                        <Badge>{pluginConfig?.image || 'Configured'}</Badge>
                         {pluginConfig?.version && (
-                          <Typography variant="caption" color="textSecondary" display="block">
+                          <Text as="div" variant="body-x-small" color="secondary">
                             Version: {pluginConfig.version}
-                          </Typography>
+                          </Text>
                         )}
                       </Box>
-                    </Grid>
+                    </Grid.Item>
                   ))}
-                </Grid>
-              </CardContent>
+                </Grid.Root>
+              </CardBody>
             </Card>
-          </Grid>
+          </Grid.Item>
         )}
 
         {/* Raw vCluster Configuration (Collapsed by default) */}
         {vclusterConfigYaml && (
-          <Grid item xs={12}>
-            <Accordion className={classes.accordion}>
-              <AccordionSummary 
-                expandIcon={<ExpandMoreIcon />}
-                className={classes.accordionSummary}
-              >
-                <Box display="flex" alignItems="center">
-                  <CodeIcon style={{ marginRight: 8 }} />
-                  <Typography variant="h6">
-                    Raw vCluster Configuration (YAML)
-                  </Typography>
-                </Box>
-              </AccordionSummary>
-              <AccordionDetails>
+          <Grid.Item colSpan="12">
+            <Accordion>
+              <AccordionTrigger>
+                <Flex align="center" gap="2">
+                  <RiCodeSSlashLine size={18} />
+                  <Text variant="title-small">Raw vCluster Configuration (YAML)</Text>
+                </Flex>
+              </AccordionTrigger>
+              <AccordionPanel>
                 <Box width="100%">
-                  <Typography variant="body2" color="textSecondary" paragraph>
-                    Complete Helm values applied to virtual clusters in this group
-                  </Typography>
-                  <Box className={classes.codeContainer}>
+                  <Box mb="2">
+                    <Text as="div" variant="body-small" color="secondary">
+                      Complete Helm values applied to virtual clusters in this group
+                    </Text>
+                  </Box>
+                  <Box className={styles.codeContainer}>
                     <SyntaxHighlighter
                       language="yaml"
                       style={theme.palette.type === 'dark' ? vscDarkPlus : vs}
                       customStyle={{
                         margin: 0,
                         borderRadius: 4,
+                        fontSize: 13,
                       }}
                     >
                       {vclusterConfigYaml}
                     </SyntaxHighlighter>
                   </Box>
                 </Box>
-              </AccordionDetails>
+              </AccordionPanel>
             </Accordion>
-          </Grid>
+          </Grid.Item>
         )}
-      </Grid>
+      </Grid.Root>
     </Box>
   );
 };

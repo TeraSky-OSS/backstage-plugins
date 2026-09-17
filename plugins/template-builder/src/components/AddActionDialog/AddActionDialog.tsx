@@ -1,46 +1,7 @@
 import { useState, useMemo } from 'react';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  TextField,
-  List,
-  ListItem,
-  ListItemText,
-  InputAdornment,
-  Box,
-  Chip,
-  Typography,
-} from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
-import SearchIcon from '@material-ui/icons/Search';
+import { Badge, Box, Dialog, DialogBody, DialogHeader, Flex, List, ListRow, Text, TextField } from '@backstage/ui';
+import { RiSearchLine } from '@remixicon/react';
 import type { AvailableAction } from '../../types';
-
-const useStyles = makeStyles(theme => ({
-  dialogContent: {
-    padding: 0,
-    height: 500,
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  searchBox: {
-    padding: theme.spacing(2),
-    borderBottom: `1px solid ${theme.palette.divider}`,
-  },
-  listContainer: {
-    flex: 1,
-    overflow: 'auto',
-  },
-  listItem: {
-    cursor: 'pointer',
-    '&:hover': {
-      backgroundColor: theme.palette.action.hover,
-    },
-  },
-  categoryChip: {
-    marginLeft: theme.spacing(1),
-  },
-}));
 
 export interface AddActionDialogProps {
   open: boolean;
@@ -51,12 +12,11 @@ export interface AddActionDialogProps {
 
 export function AddActionDialog(props: AddActionDialogProps) {
   const { open, actions, onClose, onSelectAction } = props;
-  const classes = useStyles();
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredActions = useMemo(() => {
     if (!searchQuery) return actions;
-    
+
     const query = searchQuery.toLowerCase();
     return actions.filter(
       action =>
@@ -78,74 +38,51 @@ export function AddActionDialog(props: AddActionDialogProps) {
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-      <DialogTitle>Add Workflow Step</DialogTitle>
-      <DialogContent className={classes.dialogContent}>
-        <Box className={classes.searchBox}>
+    <Dialog isOpen={open} onOpenChange={isOpen => !isOpen && handleClose()} width="800px" height="500px">
+      <DialogHeader>Add Workflow Step</DialogHeader>
+      <DialogBody style={{ display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden' }}>
+        <Box
+          style={{
+            padding: 'var(--bui-space-4)',
+            borderBottom: '1px solid var(--bui-border-1)',
+          }}
+        >
           <TextField
-            fullWidth
             placeholder="Search actions..."
             value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            variant="outlined"
+            onChange={setSearchQuery}
             size="small"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            }}
+            icon={<RiSearchLine />}
           />
         </Box>
-        
-        <Box className={classes.listContainer}>
+
+        <Box style={{ flex: 1, overflow: 'auto' }}>
           {filteredActions.length > 0 ? (
-            <List>
-              {filteredActions.map(action => (
-                <ListItem
+            <List items={filteredActions}>
+              {action => (
+                <ListRow
                   key={action.id}
-                  className={classes.listItem}
-                  onClick={() => handleSelect(action)}
+                  id={action.id}
+                  textValue={action.name}
+                  description={action.description || action.id}
+                  onAction={() => handleSelect(action)}
                 >
-                  <ListItemText
-                    primary={
-                      <Box display="flex" alignItems="center">
-                        <Typography variant="body1">{action.name}</Typography>
-                        {action.category && (
-                          <Chip
-                            label={action.category}
-                            size="small"
-                            className={classes.categoryChip}
-                          />
-                        )}
-                      </Box>
-                    }
-                    secondary={
-                      <>
-                        <Typography variant="caption" display="block" color="textSecondary">
-                          {action.id}
-                        </Typography>
-                        {action.description && (
-                          <Typography variant="body2" color="textSecondary">
-                            {action.description}
-                          </Typography>
-                        )}
-                      </>
-                    }
-                  />
-                </ListItem>
-              ))}
+                  <Flex align="center" gap="2">
+                    <Text as="span">{action.name}</Text>
+                    {action.category && <Badge size="small">{action.category}</Badge>}
+                  </Flex>
+                </ListRow>
+              )}
             </List>
           ) : (
-            <Box p={3} textAlign="center">
-              <Typography variant="body2" color="textSecondary">
+            <Box style={{ padding: 'var(--bui-space-6)', textAlign: 'center' }}>
+              <Text as="p" variant="body-small" color="secondary">
                 No actions found matching "{searchQuery}"
-              </Typography>
+              </Text>
             </Box>
           )}
         </Box>
-      </DialogContent>
+      </DialogBody>
     </Dialog>
   );
 }

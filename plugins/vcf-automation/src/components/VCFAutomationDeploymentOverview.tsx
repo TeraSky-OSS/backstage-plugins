@@ -6,7 +6,7 @@ import {
   Progress,
   ResponseErrorPanel,
 } from '@backstage/core-components';
-import { Grid, Typography } from '@material-ui/core';
+import { Grid, Text } from '@backstage/ui';
 import useAsync from 'react-use/lib/useAsync';
 import { usePermission } from '@backstage/plugin-permission-react';
 import { viewDeploymentHistoryPermission } from '@terasky/backstage-plugin-vcf-automation-common';
@@ -31,7 +31,7 @@ export const VCFAutomationDeploymentOverview = () => {
   if (!deploymentId) {
     return (
       <InfoCard title="VCF Automation Deployment">
-        <Typography>No deployment ID found for this entity.</Typography>
+        <Text>No deployment ID found for this entity.</Text>
       </InfoCard>
     );
   }
@@ -47,7 +47,7 @@ export const VCFAutomationDeploymentOverview = () => {
   if (!hasViewPermission) {
     return (
       <InfoCard title="VCF Automation Deployment">
-        <Typography>You don't have permission to view deployment details.</Typography>
+        <Text>You don't have permission to view deployment details.</Text>
       </InfoCard>
     );
   }
@@ -59,73 +59,73 @@ export const VCFAutomationDeploymentOverview = () => {
   if (!deploymentDetails) {
     return (
       <InfoCard title="VCF Automation Deployment">
-        <Typography>No deployment details available.</Typography>
+        <Text>No deployment details available.</Text>
       </InfoCard>
     );
   }
 
   return (
     <InfoCard title="VCF Automation Deployment">
-      <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <Typography variant="h6">Deployment Information</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography variant="subtitle2">Name</Typography>
-          <Typography>{deploymentDetails.name}</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography variant="subtitle2">Status</Typography>
-          <Typography>{deploymentDetails.status}</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography variant="subtitle2">Created By</Typography>
-          <Typography>{deploymentDetails.createdBy}</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography variant="subtitle2">Created At</Typography>
-          <Typography>
+      <Grid.Root columns="12" gap="5">
+        <Grid.Item colSpan="12">
+          <Text variant="title-small" weight="bold">Deployment Information</Text>
+        </Grid.Item>
+        <Grid.Item colSpan="6">
+          <Text variant="body-small" weight="bold" style={{ display: 'block' }}>Name</Text>
+          <Text>{deploymentDetails.name}</Text>
+        </Grid.Item>
+        <Grid.Item colSpan="6">
+          <Text variant="body-small" weight="bold" style={{ display: 'block' }}>Status</Text>
+          <Text>{deploymentDetails.status}</Text>
+        </Grid.Item>
+        <Grid.Item colSpan="6">
+          <Text variant="body-small" weight="bold" style={{ display: 'block' }}>Created By</Text>
+          <Text>{deploymentDetails.createdBy}</Text>
+        </Grid.Item>
+        <Grid.Item colSpan="6">
+          <Text variant="body-small" weight="bold" style={{ display: 'block' }}>Created At</Text>
+          <Text>
             {new Date(deploymentDetails.createdAt).toLocaleString()}
-          </Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography variant="subtitle2">Last Updated By</Typography>
-          <Typography>{deploymentDetails.lastUpdatedBy}</Typography>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography variant="subtitle2">Last Updated At</Typography>
-          <Typography>
+          </Text>
+        </Grid.Item>
+        <Grid.Item colSpan="6">
+          <Text variant="body-small" weight="bold" style={{ display: 'block' }}>Last Updated By</Text>
+          <Text>{deploymentDetails.lastUpdatedBy}</Text>
+        </Grid.Item>
+        <Grid.Item colSpan="6">
+          <Text variant="body-small" weight="bold" style={{ display: 'block' }}>Last Updated At</Text>
+          <Text>
             {new Date(deploymentDetails.lastUpdatedAt).toLocaleString()}
-          </Typography>
-        </Grid>
-        <Grid item xs={12}>
-          <Typography variant="h6">Expenses</Typography>
-        </Grid>
-        <Grid item xs={3}>
-          <Typography variant="subtitle2">Total</Typography>
-          <Typography>
+          </Text>
+        </Grid.Item>
+        <Grid.Item colSpan="12">
+          <Text variant="title-small" weight="bold">Expenses</Text>
+        </Grid.Item>
+        <Grid.Item colSpan="3">
+          <Text variant="body-small" weight="bold" style={{ display: 'block' }}>Total</Text>
+          <Text>
             {deploymentDetails.expense?.totalExpense || 'N/A'} {deploymentDetails.expense?.unit || ''}
-          </Typography>
-        </Grid>
-        <Grid item xs={3}>
-          <Typography variant="subtitle2">Compute</Typography>
-          <Typography>
+          </Text>
+        </Grid.Item>
+        <Grid.Item colSpan="3">
+          <Text variant="body-small" weight="bold" style={{ display: 'block' }}>Compute</Text>
+          <Text>
             {deploymentDetails.expense?.computeExpense || 'N/A'} {deploymentDetails.expense?.unit || ''}
-          </Typography>
-        </Grid>
-        <Grid item xs={3}>
-          <Typography variant="subtitle2">Storage</Typography>
-          <Typography>
+          </Text>
+        </Grid.Item>
+        <Grid.Item colSpan="3">
+          <Text variant="body-small" weight="bold" style={{ display: 'block' }}>Storage</Text>
+          <Text>
             {deploymentDetails.expense?.storageExpense || 'N/A'} {deploymentDetails.expense?.unit || ''}
-          </Typography>
-        </Grid>
-        <Grid item xs={3}>
-          <Typography variant="subtitle2">Additional</Typography>
-          <Typography>
+          </Text>
+        </Grid.Item>
+        <Grid.Item colSpan="3">
+          <Text variant="body-small" weight="bold" style={{ display: 'block' }}>Additional</Text>
+          <Text>
             {deploymentDetails.expense?.additionalExpense || 'N/A'} {deploymentDetails.expense?.unit || ''}
-          </Typography>
-        </Grid>
-      </Grid>
+          </Text>
+        </Grid.Item>
+      </Grid.Root>
     </InfoCard>
   );
 }; 

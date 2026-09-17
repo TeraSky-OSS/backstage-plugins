@@ -1,5 +1,5 @@
-import { Button } from '@material-ui/core';
-import DownloadIcon from '@material-ui/icons/GetApp';
+import { Button } from '@backstage/ui';
+import { RiDownloadLine } from '@remixicon/react';
 
 export interface DownloadButtonProps {
   templateName: string;
@@ -27,12 +27,7 @@ export function DownloadButton(props: DownloadButtonProps) {
   };
 
   return (
-    <Button
-      variant="contained"
-      color="primary"
-      startIcon={<DownloadIcon />}
-      onClick={handleDownload}
-    >
+    <Button variant="primary" iconStart={<RiDownloadLine />} onPress={handleDownload}>
       Download
     </Button>
   );

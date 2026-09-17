@@ -1,12 +1,5 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  Button,
-  Typography,
-  Box,
-} from '@material-ui/core';
-import BuildIcon from '@material-ui/icons/Build';
+import { Button, Card, CardBody, CardHeader, Flex, Text } from '@backstage/ui';
+import { RiHammerLine } from '@remixicon/react';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -23,28 +16,23 @@ export function TemplateEditorCard() {
 
   return (
     <Card>
-      <CardHeader
-        title="Visual Template Editor"
-        titleTypographyProps={{ variant: 'h6' }}
-      />
-      <CardContent>
-        <Box display="flex" flexDirection="column">
-          <Typography variant="body2" color="textSecondary" style={{ marginBottom: 16 }}>
+      <CardHeader>
+        <Text as="p" variant="title-small" weight="bold">
+          Visual Template Editor
+        </Text>
+      </CardHeader>
+      <CardBody>
+        <Flex direction="column">
+          <Text as="p" variant="body-small" color="secondary" style={{ marginBottom: 'var(--bui-space-4)' }}>
             Open this template in the visual editor to modify parameters,
             workflow steps, and see a graphical representation of the template
             structure.
-          </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<BuildIcon />}
-            onClick={handleOpenEditor}
-            fullWidth
-          >
+          </Text>
+          <Button variant="primary" iconStart={<RiHammerLine />} onPress={handleOpenEditor} style={{ width: '100%' }}>
             Open in Template Builder
           </Button>
-        </Box>
-      </CardContent>
+        </Flex>
+      </CardBody>
     </Card>
   );
 }

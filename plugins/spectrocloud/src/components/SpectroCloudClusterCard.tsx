@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, Fragment } from 'react';
+import { useState, useEffect, useCallback, Fragment, type ReactNode } from 'react';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { useApi, configApiRef } from '@backstage/core-plugin-api';
 import {
@@ -12,46 +12,44 @@ import {
   Link,
 } from '@backstage/core-components';
 import {
-  Grid,
-  Typography,
-  Chip,
-  Button,
-  CircularProgress,
-  makeStyles,
+  Alert,
+  Badge,
   Box,
-  Divider,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Collapse,
-  IconButton,
-  Tooltip,
-  Tabs,
+  Button,
+  ButtonIcon,
+  Flex,
+  Grid,
   Tab,
-} from '@material-ui/core';
-import { Alert } from '@material-ui/lab';
-import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
-import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
-import KeyboardArrowRightIcon from '@material-ui/icons/KeyboardArrowRight';
-import LayersIcon from '@material-ui/icons/Layers';
-import StorageIcon from '@material-ui/icons/Storage';
-import ExtensionIcon from '@material-ui/icons/Extension';
-import RefreshIcon from '@material-ui/icons/Refresh';
-import NewReleasesIcon from '@material-ui/icons/NewReleases';
-import DescriptionIcon from '@material-ui/icons/Description';
-import CodeIcon from '@material-ui/icons/Code';
-import LockIcon from '@material-ui/icons/Lock';
+  TabList,
+  TabPanel,
+  Tabs,
+  Text,
+  Tooltip,
+  TooltipTrigger,
+} from '@backstage/ui';
+import {
+  RiArrowDownSLine,
+  RiArrowRightSLine,
+  RiCodeLine,
+  RiDownloadCloud2Line,
+  RiFileTextLine,
+  RiHardDriveLine,
+  RiLockLine,
+  RiPuzzleLine,
+  RiRefreshLine,
+  RiSparklingLine,
+  RiStackLine,
+} from '@remixicon/react';
 import { saveAs } from 'file-saver';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
+// BUI-EXCEPTION: `react-syntax-highlighter`'s `style` prop needs a literal JS style object
+// (light/dark theme constant), which cannot be derived from a CSS custom property. `useTheme`
+// is kept narrowly for this one boolean.
 import { useTheme } from '@material-ui/core/styles';
-import { 
-  spectroCloudApiRef, 
-  SpectroCloudClusterDetails, 
+import {
+  spectroCloudApiRef,
+  SpectroCloudClusterDetails,
   SpectroCloudProfile,
   SpectroCloudClusterProfilesResponse,
   SpectroCloudProfileWithPacks,
@@ -62,180 +60,7 @@ import {
   useCanViewPackValues,
   useCanViewPackManifests,
 } from './PermissionGuards';
-
-const useStyles = makeStyles(theme => ({
-  chip: {
-    margin: theme.spacing(0.5),
-  },
-  infoRow: {
-    marginBottom: theme.spacing(1),
-  },
-  label: {
-    fontWeight: 600,
-    color: theme.palette.text.secondary,
-    marginBottom: theme.spacing(0.5),
-  },
-  value: {
-    color: theme.palette.text.primary,
-  },
-  divider: {
-    margin: theme.spacing(2, 0),
-  },
-  downloadButton: {
-    marginTop: theme.spacing(2),
-  },
-  statusContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(1),
-  },
-  profileTable: {
-    marginTop: theme.spacing(1),
-  },
-  tableHeader: {
-    backgroundColor: theme.palette.type === 'dark' ? '#1e1e1e' : '#f5f5f5',
-  },
-  infraProfileRow: {
-    backgroundColor: theme.palette.type === 'dark' ? '#1a3a1a' : '#e8f5e9',
-    cursor: 'pointer',
-    '&:hover': {
-      backgroundColor: theme.palette.type === 'dark' ? '#2d4a2d' : '#c8e6c9',
-    },
-  },
-  addonProfileRow: {
-    backgroundColor: theme.palette.type === 'dark' ? '#1a237e' : '#e3f2fd',
-    cursor: 'pointer',
-    '&:hover': {
-      backgroundColor: theme.palette.type === 'dark' ? '#283593' : '#bbdefb',
-    },
-  },
-  expandCell: {
-    width: 48,
-    padding: theme.spacing(0, 1),
-  },
-  expandedRow: {
-    backgroundColor: theme.palette.type === 'dark' ? '#252525' : '#fafafa',
-  },
-  packTable: {
-    marginBottom: theme.spacing(1),
-  },
-  packTableHeader: {
-    backgroundColor: theme.palette.type === 'dark' ? '#333' : '#eee',
-  },
-  packRow: {
-    cursor: 'pointer',
-    '&:nth-of-type(odd)': {
-      backgroundColor: theme.palette.type === 'dark' ? '#2a2a2a' : '#f9f9f9',
-    },
-    '&:hover': {
-      backgroundColor: theme.palette.type === 'dark' ? '#3a3a3a' : '#e8e8e8',
-    },
-  },
-  profileTypeChip: {
-    marginLeft: theme.spacing(1),
-    fontSize: '0.7rem',
-    height: 20,
-  },
-  layerChip: {
-    fontSize: '0.7rem',
-    height: 20,
-    textTransform: 'uppercase',
-  },
-  osLayer: {
-    backgroundColor: '#ff9800',
-    color: '#fff',
-  },
-  k8sLayer: {
-    backgroundColor: '#2196f3',
-    color: '#fff',
-  },
-  cniLayer: {
-    backgroundColor: '#9c27b0',
-    color: '#fff',
-  },
-  csiLayer: {
-    backgroundColor: '#4caf50',
-    color: '#fff',
-  },
-  addonLayer: {
-    backgroundColor: '#607d8b',
-    color: '#fff',
-  },
-  profileIcon: {
-    marginRight: theme.spacing(1),
-    verticalAlign: 'middle',
-  },
-  refreshButton: {
-    marginLeft: theme.spacing(1),
-  },
-  versionCell: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(0.5),
-  },
-  versionChip: {
-    fontSize: '0.75rem',
-    height: 22,
-  },
-  currentVersion: {
-    backgroundColor: theme.palette.type === 'dark' ? '#2d4a22' : '#c8e6c9',
-  },
-  upgradeIcon: {
-    color: '#ff9800',
-    fontSize: '1.2rem',
-    marginLeft: theme.spacing(0.5),
-  },
-  upgradeAvailableChip: {
-    backgroundColor: '#ff9800',
-    color: '#fff',
-    fontSize: '0.65rem',
-    height: 18,
-    marginLeft: theme.spacing(0.5),
-  },
-  latestVersionText: {
-    color: theme.palette.text.secondary,
-    fontSize: '0.75rem',
-    marginLeft: theme.spacing(0.5),
-  },
-  packExpandedContent: {
-    padding: theme.spacing(2),
-    backgroundColor: theme.palette.type === 'dark' ? '#1a1a1a' : '#fafafa',
-    borderTop: `1px solid ${theme.palette.divider}`,
-  },
-  codeContainer: {
-    maxHeight: 400,
-    overflow: 'auto',
-    borderRadius: 4,
-    '& pre': {
-      margin: '0 !important',
-      fontSize: '12px !important',
-    },
-  },
-  tabsContainer: {
-    marginBottom: theme.spacing(1),
-    borderBottom: `1px solid ${theme.palette.divider}`,
-  },
-  tab: {
-    minHeight: 36,
-    textTransform: 'none',
-  },
-  manifestTab: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(0.5),
-  },
-  loadingContainer: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: theme.spacing(2),
-  },
-  noContent: {
-    padding: theme.spacing(2),
-    textAlign: 'center',
-    color: theme.palette.text.secondary,
-  },
-}));
+import styles from './SpectroCloudClusterCard.module.css';
 
 interface ProfileVersionInfo {
   currentVersion: string;
@@ -262,27 +87,26 @@ const getStatusComponent = (state: string) => {
   return <StatusPending />;
 };
 
-const getLayerChipClass = (layer: string, classes: ReturnType<typeof useStyles>): string => {
+const getLayerChipClass = (layer: string): string => {
   const lowerLayer = layer.toLowerCase();
-  if (lowerLayer === 'os') return classes.osLayer;
-  if (lowerLayer === 'k8s') return classes.k8sLayer;
-  if (lowerLayer === 'cni') return classes.cniLayer;
-  if (lowerLayer === 'csi') return classes.csiLayer;
-  return classes.addonLayer;
+  if (lowerLayer === 'os') return styles.osLayer;
+  if (lowerLayer === 'k8s') return styles.k8sLayer;
+  if (lowerLayer === 'cni') return styles.cniLayer;
+  if (lowerLayer === 'csi') return styles.csiLayer;
+  return styles.addonLayer;
 };
 
 export const SpectroCloudClusterCard = () => {
-  const classes = useStyles();
   const theme = useTheme();
   const { entity } = useEntity();
   const configApi = useApi(configApiRef);
   const spectroCloudApi = useApi(spectroCloudApiRef);
-  
+
   // Permission hooks - track both allowed and loading states
   const { allowed: canDownloadKubeconfig, loading: kubeconfigPermLoading } = useCanDownloadKubeconfig();
   const { allowed: canViewPackValues } = useCanViewPackValues();
   const { allowed: canViewPackManifests } = useCanViewPackManifests();
-  
+
   const [clusterDetails, setClusterDetails] = useState<SpectroCloudClusterDetails | null>(null);
   const [profilesInfo, setProfilesInfo] = useState<Map<string, SpectroCloudProfile>>(new Map());
   const [clusterProfiles, setClusterProfiles] = useState<SpectroCloudClusterProfilesResponse | null>(null);
@@ -294,7 +118,7 @@ export const SpectroCloudClusterCard = () => {
   const [expandedPacks, setExpandedPacks] = useState<Set<string>>(new Set());
   const [packContents, setPackContents] = useState<Map<string, PackContent>>(new Map());
   const [loadingPacks, setLoadingPacks] = useState<Set<string>>(new Set());
-  const [activePackTabs, setActivePackTabs] = useState<Map<string, number>>(new Map());
+  const [activePackTabs, setActivePackTabs] = useState<Map<string, string>>(new Map());
 
   // Get annotation prefix from config or use default
   const annotationPrefix = configApi.getOptionalConfig('spectrocloud')?.getOptionalString('annotationPrefix') ?? 'terasky.backstage.io';
@@ -354,7 +178,7 @@ export const SpectroCloudClusterCard = () => {
             projectUid || undefined,
             instanceName,
           );
-          
+
           const profileMap = new Map<string, SpectroCloudProfile>();
           profiles.forEach(p => {
             if (p.metadata?.name) {
@@ -382,7 +206,7 @@ export const SpectroCloudClusterCard = () => {
   // Get version info for a profile
   const getProfileVersionInfo = (profileName: string, profileUid: string): ProfileVersionInfo => {
     const profileData = profilesInfo.get(profileName);
-    
+
     if (!profileData?.specSummary?.versions) {
       return {
         currentVersion: 'N/A',
@@ -392,11 +216,11 @@ export const SpectroCloudClusterCard = () => {
     }
 
     const versions = profileData.specSummary.versions;
-    
+
     // Find the current version being used (match by uid)
     const currentVersionData = versions.find(v => v.uid === profileUid);
     const currentVersion = currentVersionData?.version || 'N/A';
-    
+
     const compareVersions = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true });
 
     const latestVersion = versions?.reduce((max: string | null, v) => {
@@ -434,7 +258,7 @@ export const SpectroCloudClusterCard = () => {
     }
 
     const isExpanding = !expandedPacks.has(packKey);
-    
+
     setExpandedPacks(prev => {
       const newSet = new Set(prev);
       if (newSet.has(packKey)) {
@@ -448,7 +272,7 @@ export const SpectroCloudClusterCard = () => {
     // If expanding and we don't have content yet, fetch it
     if (isExpanding && !packContents.has(packKey)) {
       setLoadingPacks(prev => new Set(prev).add(packKey));
-      
+
       try {
         const content: PackContent = {
           values: pack.spec.values,
@@ -489,14 +313,14 @@ export const SpectroCloudClusterCard = () => {
     }
   };
 
-  const handleTabChange = (packKey: string, newValue: number) => {
+  const handleTabChange = (packKey: string, newValue: string) => {
     setActivePackTabs(prev => new Map(prev).set(packKey, newValue));
   };
 
   const handleDownloadKubeconfig = async () => {
     setDownloading(true);
     setDownloadError(null);
-    
+
     try {
       const kubeconfig = await spectroCloudApi.getKubeconfig(
         clusterUid,
@@ -504,7 +328,7 @@ export const SpectroCloudClusterCard = () => {
         instanceName,
         true,
       );
-      
+
       const blob = new Blob([kubeconfig], { type: 'application/x-yaml' });
       const filename = `${entity.metadata.name}-kubeconfig.yaml`;
       saveAs(blob, filename);
@@ -518,55 +342,55 @@ export const SpectroCloudClusterCard = () => {
   const getProfileIcon = (type?: string) => {
     const lowerType = type?.toLowerCase() || '';
     if (lowerType === 'infra') {
-      return <StorageIcon fontSize="small" className={classes.profileIcon} />;
+      return <RiHardDriveLine size={16} className={styles.profileIcon} />;
     }
     if (lowerType === 'add-on' || lowerType === 'addon') {
-      return <ExtensionIcon fontSize="small" className={classes.profileIcon} />;
+      return <RiPuzzleLine size={16} className={styles.profileIcon} />;
     }
-    return <LayersIcon fontSize="small" className={classes.profileIcon} />;
+    return <RiStackLine size={16} className={styles.profileIcon} />;
   };
 
   const getProfileRowClass = (type?: string): string => {
     const lowerType = type?.toLowerCase() || '';
     if (lowerType === 'infra') {
-      return classes.infraProfileRow;
+      return styles.infraProfileRow;
     }
-    return classes.addonProfileRow;
+    return styles.addonProfileRow;
   };
 
   const renderPackContent = (packKey: string, pack: SpectroCloudPackWithMeta) => {
     const content = packContents.get(packKey);
     const isLoading = loadingPacks.has(packKey);
-    const activeTab = activePackTabs.get(packKey) || 0;
     const syntaxStyle = theme.palette.type === 'dark' ? vscDarkPlus : vs;
 
     if (isLoading) {
       return (
-        <Box className={classes.loadingContainer}>
-          <CircularProgress size={24} />
-          <Typography variant="body2" style={{ marginLeft: 8 }}>
+        <Box className={styles.loadingContainer}>
+          <Progress />
+          <Text variant="body-small" style={{ marginLeft: 'var(--bui-space-2)' }}>
             Loading pack content...
-          </Typography>
+          </Text>
         </Box>
       );
     }
 
     if (!content) {
       return (
-        <Typography className={classes.noContent}>
+        <Text variant="body-small" className={styles.noContent}>
           No content available
-        </Typography>
+        </Text>
       );
     }
 
     // Build tabs based on available content
-    const tabs: { label: string; content: string; icon?: React.ReactNode }[] = [];
-    
+    const tabs: { id: string; label: string; content: string; icon: React.ReactNode }[] = [];
+
     if (content.values) {
       tabs.push({
+        id: 'values',
         label: 'Values',
         content: content.values,
-        icon: <CodeIcon fontSize="small" />,
+        icon: <RiCodeLine size={14} />,
       });
     }
 
@@ -576,9 +400,10 @@ export const SpectroCloudClusterCard = () => {
         const manifestContent = content.manifests.get(manifest.uid);
         if (manifestContent) {
           tabs.push({
+            id: `manifest-${manifest.uid}`,
             label: manifest.name,
             content: manifestContent,
-            icon: <DescriptionIcon fontSize="small" />,
+            icon: <RiFileTextLine size={14} />,
           });
         }
       });
@@ -586,50 +411,46 @@ export const SpectroCloudClusterCard = () => {
 
     if (tabs.length === 0) {
       return (
-        <Typography className={classes.noContent}>
+        <Text variant="body-small" className={styles.noContent}>
           No values or manifests available for this pack
-        </Typography>
+        </Text>
       );
     }
 
+    const activeTabId = activePackTabs.get(packKey) || tabs[0].id;
+
     return (
       <Box>
-        <Tabs
-          value={Math.min(activeTab, tabs.length - 1)}
-          onChange={(_, newValue) => handleTabChange(packKey, newValue)}
-          className={classes.tabsContainer}
-          indicatorColor="primary"
-          textColor="primary"
-          variant="scrollable"
-          scrollButtons="auto"
-        >
-          {tabs.map((tab, index) => (
-            <Tab
-              key={index}
-              className={classes.tab}
-              label={
-                <Box className={classes.manifestTab}>
+        <Tabs selectedKey={activeTabId} onSelectionChange={key => handleTabChange(packKey, String(key))}>
+          <TabList>
+            {tabs.map(tab => (
+              <Tab key={tab.id} id={tab.id}>
+                <Flex align="center" gap="1">
                   {tab.icon}
                   {tab.label}
-                </Box>
-              }
-            />
+                </Flex>
+              </Tab>
+            ))}
+          </TabList>
+          {tabs.map(tab => (
+            <TabPanel key={tab.id} id={tab.id}>
+              <Box className={styles.codeContainer}>
+                <SyntaxHighlighter
+                  language="yaml"
+                  style={syntaxStyle}
+                  showLineNumbers
+                  wrapLines
+                  customStyle={{
+                    margin: 0,
+                    borderRadius: 4,
+                  }}
+                >
+                  {tab.content}
+                </SyntaxHighlighter>
+              </Box>
+            </TabPanel>
           ))}
         </Tabs>
-        <Box className={classes.codeContainer}>
-          <SyntaxHighlighter
-            language="yaml"
-            style={syntaxStyle}
-            showLineNumbers
-            wrapLines
-            customStyle={{
-              margin: 0,
-              borderRadius: 4,
-            }}
-          >
-            {tabs[Math.min(activeTab, tabs.length - 1)]?.content || ''}
-          </SyntaxHighlighter>
-        </Box>
       </Box>
     );
   };
@@ -645,7 +466,7 @@ export const SpectroCloudClusterCard = () => {
   if (error) {
     // Check if it's a permissions/not found error
     const errorMessage = error.message || '';
-    const isPermissionError = 
+    const isPermissionError =
       errorMessage.includes('Cluster not found') ||
       errorMessage.includes('not found') ||
       errorMessage.includes('403') ||
@@ -656,38 +477,43 @@ export const SpectroCloudClusterCard = () => {
     if (isPermissionError) {
       return (
         <InfoCard title="SpectroCloud Cluster">
-          <Alert severity="info">
-            <Typography variant="body2" gutterBottom>
-              You don't have permission to view this cluster in Spectro Cloud, or it may not exist in your accessible scope.
-            </Typography>
-            <Typography variant="body2">
-              This could be because:
-            </Typography>
-            <Box component="ul" style={{ marginTop: 8, marginBottom: 8 }}>
-              <li>
-                <Typography variant="body2">
-                  The cluster exists in a project you don't have access to
-                </Typography>
-              </li>
-              <li>
-                <Typography variant="body2">
-                  Your Spectro Cloud credentials don't have the required permissions
-                </Typography>
-              </li>
-              <li>
-                <Typography variant="body2">
-                  The cluster has been deleted from Spectro Cloud
-                </Typography>
-              </li>
-            </Box>
-            <Typography variant="body2">
-              Visit the{' '}
-              <Link to="/spectrocloud/clusters">
-                Cluster Viewer
-              </Link>
-              {' '}to see all clusters you have access to.
-            </Typography>
-          </Alert>
+          <Alert
+            status="info"
+            description={
+              <Box>
+                <Text variant="body-small" style={{ display: 'block', marginBottom: 'var(--bui-space-2)' }}>
+                  You don't have permission to view this cluster in Spectro Cloud, or it may not exist in your accessible scope.
+                </Text>
+                <Text variant="body-small" style={{ display: 'block' }}>
+                  This could be because:
+                </Text>
+                <Box as="ul" style={{ marginTop: 'var(--bui-space-2)', marginBottom: 'var(--bui-space-2)' }}>
+                  <li>
+                    <Text variant="body-small">
+                      The cluster exists in a project you don't have access to
+                    </Text>
+                  </li>
+                  <li>
+                    <Text variant="body-small">
+                      Your Spectro Cloud credentials don't have the required permissions
+                    </Text>
+                  </li>
+                  <li>
+                    <Text variant="body-small">
+                      The cluster has been deleted from Spectro Cloud
+                    </Text>
+                  </li>
+                </Box>
+                <Text variant="body-small">
+                  Visit the{' '}
+                  <Link to="/spectrocloud/clusters">
+                    Cluster Viewer
+                  </Link>
+                  {' '}to see all clusters you have access to.
+                </Text>
+              </Box>
+            }
+          />
         </InfoCard>
       );
     }
@@ -709,285 +535,267 @@ export const SpectroCloudClusterCard = () => {
   const kubeconfigButton = canDownloadKubeconfig ? (
     <>
       <Button
-        variant="contained"
-        color="primary"
-        startIcon={downloading ? <CircularProgress size={20} color="inherit" /> : <CloudDownloadIcon />}
-        onClick={handleDownloadKubeconfig}
-        disabled={downloading || !clusterUid}
-        className={classes.downloadButton}
+        variant="primary"
+        iconStart={<RiDownloadCloud2Line />}
+        onPress={handleDownloadKubeconfig}
+        isDisabled={downloading || !clusterUid}
+        isPending={downloading}
+        style={{ marginTop: 'var(--bui-space-2)' }}
       >
         {downloading ? 'Downloading...' : 'Download Kubeconfig'}
       </Button>
       {downloadError && (
-        <Typography variant="body2" color="error" style={{ marginTop: 8 }}>
+        <Text variant="body-small" color="danger" style={{ display: 'block', marginTop: 'var(--bui-space-2)' }}>
           {downloadError}
-        </Typography>
+        </Text>
       )}
     </>
   ) : (
-    <Tooltip title="You don't have permission to download kubeconfig">
-      <span>
-        <Button
-          variant="contained"
-          color="default"
-          startIcon={<LockIcon />}
-          disabled
-          className={classes.downloadButton}
-        >
-          Download Kubeconfig (Permission Required)
-        </Button>
-      </span>
-    </Tooltip>
+    <TooltipTrigger>
+      <Button
+        variant="secondary"
+        iconStart={<RiLockLine />}
+        isDisabled
+        style={{ marginTop: 'var(--bui-space-2)' }}
+      >
+        Download Kubeconfig (Permission Required)
+      </Button>
+      <Tooltip>You don't have permission to download kubeconfig</Tooltip>
+    </TooltipTrigger>
   );
 
   return (
-    <InfoCard 
+    <InfoCard
       title="SpectroCloud Cluster"
       action={
-        <IconButton 
-          onClick={fetchData} 
-          size="small" 
-          title="Refresh"
-          className={classes.refreshButton}
-        >
-          <RefreshIcon />
-        </IconButton>
+        <TooltipTrigger>
+          <ButtonIcon
+            aria-label="Refresh"
+            icon={<RiRefreshLine />}
+            size="small"
+            onPress={fetchData}
+          />
+          <Tooltip>Refresh</Tooltip>
+        </TooltipTrigger>
       }
     >
-      <Grid container spacing={2}>
+      <Grid.Root columns="12" gap="4">
         {/* Status */}
-        <Grid item xs={6}>
-          <Typography variant="body2" className={classes.label}>
+        <Grid.Item colSpan="6">
+          <Text variant="body-small" weight="bold" color="secondary" style={{ display: 'block' }}>
             Status
-          </Typography>
-          <Box className={classes.statusContainer}>
+          </Text>
+          <Flex align="center" gap="2">
             {getStatusComponent(state)}
-            <Typography variant="body1" className={classes.value}>
-              {state}
-            </Typography>
-          </Box>
-        </Grid>
+            <Text variant="body-medium">{state}</Text>
+          </Flex>
+        </Grid.Item>
 
         {/* Cloud Type */}
-        <Grid item xs={6}>
-          <Typography variant="body2" className={classes.label}>
+        <Grid.Item colSpan="6">
+          <Text variant="body-small" weight="bold" color="secondary" style={{ display: 'block' }}>
             Cloud Type
-          </Typography>
-          <Typography variant="body1" className={classes.value}>
-            {cloudType.toUpperCase()}
-          </Typography>
-        </Grid>
+          </Text>
+          <Text variant="body-medium">{cloudType.toUpperCase()}</Text>
+        </Grid.Item>
 
         {/* Scope */}
-        <Grid item xs={6}>
-          <Typography variant="body2" className={classes.label}>
+        <Grid.Item colSpan="6">
+          <Text variant="body-small" weight="bold" color="secondary" style={{ display: 'block' }}>
             Scope
-          </Typography>
-          <Chip 
-            label={scope} 
-            size="small"
-            color={scope === 'tenant' ? 'secondary' : 'primary'}
-          />
-        </Grid>
+          </Text>
+          <Badge className={scope === 'tenant' ? undefined : styles.accentBadge}>{scope}</Badge>
+        </Grid.Item>
 
         {/* Project */}
         {scope === 'project' && projectUid && (
-          <Grid item xs={6}>
-            <Typography variant="body2" className={classes.label}>
+          <Grid.Item colSpan="6">
+            <Text variant="body-small" weight="bold" color="secondary" style={{ display: 'block' }}>
               Project ID
-            </Typography>
-            <Typography variant="body1" className={classes.value}>
-              {projectUid}
-            </Typography>
-          </Grid>
+            </Text>
+            <Text variant="body-medium">{projectUid}</Text>
+          </Grid.Item>
         )}
 
         {/* Kubernetes Version */}
-        <Grid item xs={6}>
-          <Typography variant="body2" className={classes.label}>
+        <Grid.Item colSpan="6">
+          <Text variant="body-small" weight="bold" color="secondary" style={{ display: 'block' }}>
             Kubernetes Version
-          </Typography>
-          <Typography variant="body1" className={classes.value}>
-            {k8sVersion}
-          </Typography>
-        </Grid>
+          </Text>
+          <Text variant="body-medium">{k8sVersion}</Text>
+        </Grid.Item>
 
-        <Grid item xs={12}>
-          <Divider className={classes.divider} />
-        </Grid>
+        <Grid.Item colSpan="12">
+          <hr className={styles.divider} />
+        </Grid.Item>
 
         {/* Attached Profiles */}
-        <Grid item xs={12}>
-          <Typography variant="body2" className={classes.label}>
+        <Grid.Item colSpan="12">
+          <Text variant="body-small" weight="bold" color="secondary" style={{ display: 'block' }}>
             Attached Profiles ({profiles.length})
-          </Typography>
+          </Text>
           {profiles.length > 0 ? (
-            <TableContainer component={Paper} className={classes.profileTable}>
-              <Table size="small">
-                <TableHead>
-                  <TableRow className={classes.tableHeader}>
-                    <TableCell className={classes.expandCell} />
-                    <TableCell>Profile Name</TableCell>
-                    <TableCell>Version</TableCell>
-                    <TableCell>Type</TableCell>
-                    <TableCell align="right">Packs</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
+            <Box mt="2" style={{ overflowX: 'auto' }}>
+              <table className={styles.table}>
+                <thead>
+                  <tr className={styles.tableHeader}>
+                    <th className={`${styles.tableCell} ${styles.expandCell}`} />
+                    <th className={styles.tableCell}>Profile Name</th>
+                    <th className={styles.tableCell}>Version</th>
+                    <th className={styles.tableCell}>Type</th>
+                    <th className={styles.tableCell} style={{ textAlign: 'right' }}>Packs</th>
+                  </tr>
+                </thead>
+                <tbody>
                   {profiles.map((profile, index) => {
                     const profileKey = profile.metadata?.uid || `profile-${index}`;
                     const isExpanded = expandedProfiles.has(profileKey);
-                    const hasPacks = profile.spec?.packs && profile.spec.packs.length > 0;
+                    const hasPacks = !!profile.spec?.packs && profile.spec.packs.length > 0;
                     const versionInfo = getProfileVersionInfo(
                       profile.metadata?.name || '',
                       profile.metadata?.uid || ''
                     );
-                    
+
                     return (
                       <Fragment key={profileKey}>
-                        <TableRow 
+                        <tr
                           className={getProfileRowClass(profile.spec?.type)}
                           onClick={() => hasPacks && toggleProfileExpansion(profileKey)}
                         >
-                          <TableCell className={classes.expandCell}>
+                          <td className={`${styles.tableCell} ${styles.expandCell}`}>
                             {hasPacks && (
-                              <IconButton size="small" aria-label="expand row">
-                                {isExpanded ? <KeyboardArrowDownIcon /> : <KeyboardArrowRightIcon />}
-                              </IconButton>
+                              isExpanded ? <RiArrowDownSLine size={16} /> : <RiArrowRightSLine size={16} />
                             )}
-                          </TableCell>
-                          <TableCell>
+                          </td>
+                          <td className={styles.tableCell}>
                             {getProfileIcon(profile.spec?.type)}
                             <strong>{profile.metadata?.name}</strong>
-                          </TableCell>
-                          <TableCell>
-                            <Box className={classes.versionCell}>
-                              <Chip
-                                label={versionInfo.currentVersion}
-                                size="small"
-                                className={`${classes.versionChip} ${classes.currentVersion}`}
-                              />
+                          </td>
+                          <td className={styles.tableCell}>
+                            <Flex align="center" gap="1">
+                              <Badge size="small" className={styles.currentVersionBadge}>
+                                {versionInfo.currentVersion}
+                              </Badge>
                               {versionInfo.hasUpgrade && (
-                                <Tooltip title={`Upgrade available: ${versionInfo.latestVersion}`}>
-                                  <Box display="flex" alignItems="center">
-                                    <NewReleasesIcon className={classes.upgradeIcon} />
-                                    <Chip
-                                      label={`→ ${versionInfo.latestVersion}`}
-                                      size="small"
-                                      className={classes.upgradeAvailableChip}
-                                    />
-                                  </Box>
-                                </Tooltip>
+                                <TooltipTrigger>
+                                  <Flex align="center">
+                                    <RiSparklingLine size={16} className={styles.upgradeIcon} />
+                                    <Badge size="small" className={styles.upgradeBadge}>
+                                      {`→ ${versionInfo.latestVersion}`}
+                                    </Badge>
+                                  </Flex>
+                                  <Tooltip>{`Upgrade available: ${versionInfo.latestVersion}`}</Tooltip>
+                                </TooltipTrigger>
                               )}
-                            </Box>
-                          </TableCell>
-                          <TableCell>
-                            <Chip
-                              label={profile.spec?.type || 'unknown'}
-                              size="small"
-                              className={classes.profileTypeChip}
-                              color={profile.spec?.type === 'infra' ? 'primary' : 'secondary'}
-                            />
-                          </TableCell>
-                          <TableCell align="right">
+                            </Flex>
+                          </td>
+                          <td className={styles.tableCell}>
+                            <Badge size="small" className={profile.spec?.type === 'infra' ? styles.accentBadge : undefined}>
+                              {profile.spec?.type || 'unknown'}
+                            </Badge>
+                          </td>
+                          <td className={styles.tableCell} style={{ textAlign: 'right' }}>
                             {profile.spec?.packs?.length || 0}
-                          </TableCell>
-                        </TableRow>
+                          </td>
+                        </tr>
                         {hasPacks && (
-                          <TableRow className={classes.expandedRow}>
-                            <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={5}>
-                              <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-                                <Box margin={2}>
-                                  <Typography variant="subtitle2" gutterBottom>
+                          <tr className={styles.expandedRow}>
+                            <td className={styles.tableCell} style={{ paddingTop: 0, paddingBottom: 0 }} colSpan={5}>
+                              {isExpanded && (
+                                <Box p="4">
+                                  <Text variant="body-small" weight="bold" style={{ display: 'block', marginBottom: 'var(--bui-space-2)' }}>
                                     Packs / Layers
-                                  </Typography>
-                                  <Table size="small" className={classes.packTable}>
-                                    <TableHead>
-                                      <TableRow className={classes.packTableHeader}>
-                                        <TableCell className={classes.expandCell} />
-                                        <TableCell>Layer</TableCell>
-                                        <TableCell>Pack Name</TableCell>
-                                        <TableCell>Version</TableCell>
-                                        <TableCell>Type</TableCell>
-                                      </TableRow>
-                                    </TableHead>
-                                    <TableBody>
+                                  </Text>
+                                  <table className={`${styles.table} ${styles.packTable}`}>
+                                    <thead>
+                                      <tr className={styles.packTableHeader}>
+                                        <th className={`${styles.tableCell} ${styles.expandCell}`} />
+                                        <th className={styles.tableCell}>Layer</th>
+                                        <th className={styles.tableCell}>Pack Name</th>
+                                        <th className={styles.tableCell}>Version</th>
+                                        <th className={styles.tableCell}>Type</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
                                       {profile.spec?.packs?.map((pack, packIdx) => {
                                         const packKey = `${profileKey}-${pack.metadata?.uid || packIdx}`;
                                         const isPackExpanded = expandedPacks.has(packKey);
-                                        
+                                        let expandIcon: ReactNode;
+                                        if (!canViewPackValues) {
+                                          expandIcon = (
+                                            <TooltipTrigger>
+                                              <span>
+                                                <RiLockLine size={14} style={{ color: 'var(--bui-fg-secondary)' }} />
+                                              </span>
+                                              <Tooltip>Permission required to view pack values</Tooltip>
+                                            </TooltipTrigger>
+                                          );
+                                        } else if (isPackExpanded) {
+                                          expandIcon = <RiArrowDownSLine size={16} />;
+                                        } else {
+                                          expandIcon = <RiArrowRightSLine size={16} />;
+                                        }
+
                                         return (
                                           <Fragment key={packKey}>
-                                            <TableRow 
-                                              className={classes.packRow}
+                                            <tr
+                                              className={styles.packRow}
                                               onClick={() => canViewPackValues && togglePackExpansion(packKey, pack)}
                                               style={{ cursor: canViewPackValues ? 'pointer' : 'default' }}
                                             >
-                                              <TableCell className={classes.expandCell}>
-                                                {canViewPackValues ? (
-                                                  <IconButton size="small" aria-label="expand pack">
-                                                    {isPackExpanded ? <KeyboardArrowDownIcon /> : <KeyboardArrowRightIcon />}
-                                                  </IconButton>
-                                                ) : (
-                                                  <Tooltip title="Permission required to view pack values">
-                                                    <LockIcon fontSize="small" color="disabled" />
-                                                  </Tooltip>
-                                                )}
-                                              </TableCell>
-                                              <TableCell>
-                                                <Chip
-                                                  label={pack.spec?.layer || 'addon'}
-                                                  size="small"
-                                                  className={`${classes.layerChip} ${getLayerChipClass(pack.spec?.layer || '', classes)}`}
-                                                />
-                                              </TableCell>
-                                              <TableCell>{pack.spec?.name || pack.metadata?.name}</TableCell>
-                                              <TableCell>{pack.spec?.version || 'N/A'}</TableCell>
-                                              <TableCell>
-                                                <Typography variant="caption" color="textSecondary">
+                                              <td className={`${styles.tableCell} ${styles.expandCell}`}>
+                                                {expandIcon}
+                                              </td>
+                                              <td className={styles.tableCell}>
+                                                <Badge size="small" className={`${styles.layerChip} ${getLayerChipClass(pack.spec?.layer || '')}`}>
+                                                  {pack.spec?.layer || 'addon'}
+                                                </Badge>
+                                              </td>
+                                              <td className={styles.tableCell}>{pack.spec?.name || pack.metadata?.name}</td>
+                                              <td className={styles.tableCell}>{pack.spec?.version || 'N/A'}</td>
+                                              <td className={styles.tableCell}>
+                                                <Text variant="body-x-small" color="secondary">
                                                   {pack.spec?.type || 'N/A'}
-                                                </Typography>
-                                              </TableCell>
-                                            </TableRow>
-                                            <TableRow>
-                                              <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={5}>
-                                                <Collapse in={isPackExpanded} timeout="auto" unmountOnExit>
-                                                  <Box className={classes.packExpandedContent}>
+                                                </Text>
+                                              </td>
+                                            </tr>
+                                            <tr>
+                                              <td className={styles.tableCell} style={{ paddingTop: 0, paddingBottom: 0 }} colSpan={5}>
+                                                {isPackExpanded && (
+                                                  <Box className={styles.packExpandedContent}>
                                                     {renderPackContent(packKey, pack)}
                                                   </Box>
-                                                </Collapse>
-                                              </TableCell>
-                                            </TableRow>
+                                                )}
+                                              </td>
+                                            </tr>
                                           </Fragment>
                                         );
                                       })}
-                                    </TableBody>
-                                  </Table>
+                                    </tbody>
+                                  </table>
                                 </Box>
-                              </Collapse>
-                            </TableCell>
-                          </TableRow>
+                              )}
+                            </td>
+                          </tr>
                         )}
                       </Fragment>
                     );
                   })}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                </tbody>
+              </table>
+            </Box>
           ) : (
-            <Typography variant="body2" color="textSecondary">
+            <Text variant="body-small" color="secondary">
               No profiles attached
-            </Typography>
+            </Text>
           )}
-        </Grid>
+        </Grid.Item>
 
         {/* Download Kubeconfig Button */}
-        <Grid item xs={12}>
-          {kubeconfigPermLoading ? (
-            <CircularProgress size={20} />
-          ) : kubeconfigButton}
-        </Grid>
-      </Grid>
+        <Grid.Item colSpan="12">
+          {kubeconfigPermLoading ? <Progress /> : kubeconfigButton}
+        </Grid.Item>
+      </Grid.Root>
     </InfoCard>
   );
 };

@@ -1,59 +1,19 @@
 import {
-  Box,
-  Paper,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
-  IconButton,
-  TextField,
-  Typography,
-  Chip,
   Accordion,
-  AccordionSummary,
-  AccordionDetails,
-} from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
-import DeleteIcon from '@material-ui/icons/Delete';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+  AccordionPanel,
+  AccordionTrigger,
+  Badge,
+  Box,
+  ButtonIcon,
+  Card,
+  Flex,
+  Text,
+  TextAreaField,
+  TextField,
+} from '@backstage/ui';
+import { RiDeleteBinLine } from '@remixicon/react';
 import type { ParameterStep } from '../../types';
-
-const useStyles = makeStyles(theme => ({
-  paper: {
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  scrollableContent: {
-    flex: 1,
-    overflow: 'auto',
-    minHeight: 0, // Important: allows flex child to shrink
-  },
-  header: {
-    padding: theme.spacing(2),
-  },
-  fieldsList: {
-    borderTop: `1px solid ${theme.palette.divider}`,
-    paddingTop: theme.spacing(1),
-  },
-  listItem: {
-    cursor: 'pointer',
-    '&:hover': {
-      backgroundColor: theme.palette.action.hover,
-    },
-  },
-  selectedItem: {
-    backgroundColor: theme.palette.action.selected,
-  },
-  fieldType: {
-    marginLeft: theme.spacing(1),
-  },
-  emptyState: {
-    padding: theme.spacing(3),
-    textAlign: 'center',
-    color: theme.palette.text.secondary,
-  },
-}));
+import styles from './ParameterList.module.css';
 
 export interface ParameterListProps {
   step: ParameterStep;
@@ -66,50 +26,45 @@ export interface ParameterListProps {
 
 export function ParameterList(props: ParameterListProps) {
   const { step, selectedField, onSelectField, onDeleteField, onUpdateStep } = props;
-  const classes = useStyles();
 
   const fields = Object.entries(step.properties);
   const isRequired = (fieldName: string) => step.required.includes(fieldName);
 
   return (
-    <Paper className={classes.paper}>
-      <Box className={classes.scrollableContent}>
-        <Box className={classes.header}>
-        <TextField
-          fullWidth
-          label="Step Title"
-          value={step.title}
-          onChange={e => onUpdateStep({ title: e.target.value })}
-          variant="outlined"
-          size="small"
-          margin="dense"
-        />
-        <TextField
-          fullWidth
-          label="Description"
-          value={step.description || ''}
-          onChange={e => onUpdateStep({ description: e.target.value })}
-          variant="outlined"
-          size="small"
-          margin="dense"
-          multiline
-          rows={2}
-        />
+    <Card style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Box style={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
+        <Box p="4">
+          <TextField
+            label="Step Title"
+            value={step.title}
+            onChange={value => onUpdateStep({ title: value })}
+            size="small"
+          />
+          <Box mt="2">
+            <TextAreaField
+              label="Description"
+              value={step.description || ''}
+              onChange={value => onUpdateStep({ description: value })}
+              rows={2}
+            />
+          </Box>
 
-        <Box mt={1}>
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle2">Conditional Fields (dependencies)</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Box width="100%">
-                <Typography variant="caption" color="textSecondary" display="block" gutterBottom>
-                  Use JSON Schema dependencies to show/hide fields based on other field values.
-                  Example: Show field B only when field A has a specific value.
-                </Typography>
-                <Typography variant="caption" color="textSecondary" component="div" gutterBottom>
-                  <strong>Example structure:</strong>
-                  <pre style={{ fontSize: 10, marginTop: 4 }}>
+          <Box mt="1">
+            <Accordion>
+              <AccordionTrigger>
+                <Text variant="title-x-small" weight="bold">
+                  Conditional Fields (dependencies)
+                </Text>
+              </AccordionTrigger>
+              <AccordionPanel>
+                <Box width="100%">
+                  <Text as="div" variant="body-small" color="secondary">
+                    Use JSON Schema dependencies to show/hide fields based on other field
+                    values. Example: Show field B only when field A has a specific value.
+                  </Text>
+                  <Text as="div" variant="body-small" color="secondary">
+                    <strong>Example structure:</strong>
+                    <pre className={styles.exampleBlock}>
 {`{
   "fieldName": {
     "oneOf": [
@@ -131,95 +86,76 @@ export function ParameterList(props: ParameterListProps) {
     ]
   }
 }`}
-                  </pre>
-                </Typography>
-                <TextField
-                  fullWidth
-                  multiline
-                  minRows={4}
-                  maxRows={20}
-                  value={step.dependencies ? JSON.stringify(step.dependencies, null, 2) : '{}'}
-                  onChange={e => {
-                    try {
-                      const parsed = JSON.parse(e.target.value);
-                      onUpdateStep({ dependencies: Object.keys(parsed).length > 0 ? parsed : undefined });
-                    } catch {
-                      // Invalid JSON, don't update
-                    }
-                  }}
-                  variant="outlined"
-                  placeholder="{}"
-                  helperText="Enter valid JSON for conditional field dependencies"
-                  style={{ marginTop: 8, fontFamily: 'monospace', fontSize: 12 }}
-                  InputProps={{
-                    style: { maxHeight: 'none' }
-                  }}
-                />
-              </Box>
-            </AccordionDetails>
-          </Accordion>
-        </Box>
+                    </pre>
+                  </Text>
+                  <Box mt="2" style={{ fontFamily: 'monospace', fontSize: 12 }}>
+                    <TextAreaField
+                      value={step.dependencies ? JSON.stringify(step.dependencies, null, 2) : '{}'}
+                      onChange={value => {
+                        try {
+                          const parsed = JSON.parse(value);
+                          onUpdateStep({ dependencies: Object.keys(parsed).length > 0 ? parsed : undefined });
+                        } catch {
+                          // Invalid JSON, don't update
+                        }
+                      }}
+                      placeholder="{}"
+                      description="Enter valid JSON for conditional field dependencies"
+                      rows={4}
+                    />
+                  </Box>
+                </Box>
+              </AccordionPanel>
+            </Accordion>
+          </Box>
         </Box>
 
-        <Box className={classes.fieldsList}>
+        <Box style={{ borderTop: '1px solid var(--bui-border-1)', paddingTop: 'var(--bui-space-1)' }}>
           {fields.length > 0 ? (
-            <List>
+            <Flex direction="column" gap="1" p="2">
               {fields.map(([fieldName, field]) => (
-                <ListItem
+                <Flex
                   key={fieldName}
-                  button
-                  className={`${classes.listItem} ${
-                    selectedField === fieldName ? classes.selectedItem : ''
+                  align="center"
+                  justify="between"
+                  className={`${styles.fieldRow} ${
+                    selectedField === fieldName ? styles.fieldRowSelected : ''
                   }`}
                   onClick={() => onSelectField(fieldName)}
                 >
-                  <ListItemText
-                    primary={
-                      <Box display="flex" alignItems="center">
-                        <Typography variant="body2">{field.title}</Typography>
-                        {isRequired(fieldName) && (
-                          <Chip
-                            label="Required"
-                            size="small"
-                            color="primary"
-                            style={{ marginLeft: 8, height: 20 }}
-                          />
-                        )}
-                        <Chip
-                          label={field.uiField || field.type}
-                          size="small"
-                          variant="outlined"
-                          className={classes.fieldType}
-                          style={{ height: 20 }}
-                        />
-                      </Box>
-                    }
-                    secondary={field.description}
-                  />
-                  <ListItemSecondaryAction>
-                    <IconButton
-                      edge="end"
+                  <Box style={{ flex: 1, minWidth: 0 }}>
+                    <Flex align="center" gap="2">
+                      <Text variant="body-medium">{field.title}</Text>
+                      {isRequired(fieldName) && <Badge size="small">Required</Badge>}
+                      <Badge size="small">{field.uiField || field.type}</Badge>
+                    </Flex>
+                    {field.description && (
+                      <Text as="div" variant="body-small" color="secondary">
+                        {field.description}
+                      </Text>
+                    )}
+                  </Box>
+                  <Box onClick={e => e.stopPropagation()}>
+                    <ButtonIcon
+                      aria-label={`Delete field ${fieldName}`}
+                      icon={<RiDeleteBinLine />}
                       size="small"
-                      onClick={e => {
-                        e.stopPropagation();
-                        onDeleteField(fieldName);
-                      }}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </ListItemSecondaryAction>
-                </ListItem>
+                      variant="tertiary"
+                      onPress={() => onDeleteField(fieldName)}
+                    />
+                  </Box>
+                </Flex>
               ))}
-            </List>
+            </Flex>
           ) : (
-            <Box className={classes.emptyState}>
-              <Typography variant="body2">
+            <Box p="3" style={{ textAlign: 'center' }}>
+              <Text variant="body-small" color="secondary">
                 No fields defined. Click "Add Field" to create one.
-              </Typography>
+              </Text>
             </Box>
           )}
         </Box>
       </Box>
-    </Paper>
+    </Card>
   );
 }

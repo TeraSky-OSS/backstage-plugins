@@ -1,82 +1,33 @@
 import { useEffect, useState } from 'react';
 import {
-  Box,
-  Typography,
-  TextField,
-  CircularProgress,
-  Grid,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormHelperText,
-  FormControlLabel,
-  Switch,
-  Chip,
   Accordion,
-  AccordionSummary,
-  AccordionDetails,
-} from '@material-ui/core';
-import { Alert } from '@material-ui/lab';
-import { makeStyles } from '@material-ui/core/styles';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import LayersIcon from '@material-ui/icons/Layers';
+  AccordionPanel,
+  AccordionTrigger,
+  Alert,
+  Badge,
+  Box,
+  Flex,
+  Grid,
+  PasswordField,
+  Select,
+  Switch,
+  TextAreaField,
+  TextField,
+  Text,
+} from '@backstage/ui';
+import { Progress } from '@backstage/core-components';
+import { RiStackLine } from '@remixicon/react';
 import { useApi } from '@backstage/core-plugin-api';
 import { spectroCloudApiRef } from '../../../api';
 import { ProfileSelection } from '../types';
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    padding: theme.spacing(2),
-  },
-  formControl: {
-    width: '100%',
-  },
-  profileSection: {
-    marginBottom: theme.spacing(2),
-  },
-  profileHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(1),
-    padding: theme.spacing(2),
-    backgroundColor: theme.palette.type === 'dark' ? theme.palette.grey[800] : theme.palette.grey[100],
-    borderBottom: `1px solid ${theme.palette.divider}`,
-  },
-  profileIcon: {
-    color: theme.palette.primary.main,
-  },
-  profileTitle: {
-    fontWeight: 600,
-    fontSize: '1.1rem',
-  },
-  variablesContent: {
-    padding: theme.spacing(2),
-  },
-  accordion: {
-    marginBottom: theme.spacing(1),
-    '&:before': {
-      display: 'none',
-    },
-  },
-  accordionSummary: {
-    backgroundColor: theme.palette.type === 'dark' ? theme.palette.grey[800] : theme.palette.grey[100],
-    '&.Mui-expanded': {
-      minHeight: 48,
-    },
-  },
-  accordionDetails: {
-    padding: theme.spacing(2),
-    display: 'block',
-  },
-}));
+import styles from './ProfileVariables.module.css';
 
 interface ProfileVariablesProps {
   profiles: ProfileSelection[];
   projectUid: string;
   profileVariables: Record<string, any>;
-  onUpdate: (updates: { 
-    profileVariables: Record<string, any>; 
+  onUpdate: (updates: {
+    profileVariables: Record<string, any>;
     profileVariablesByProfile?: Record<string, string[]>;
   }) => void;
   onValidationChange?: (isValid: boolean) => void;
@@ -113,7 +64,6 @@ export const ProfileVariables = ({
   onUpdate,
   onValidationChange,
 }: ProfileVariablesProps) => {
-  const classes = useStyles();
   const spectroCloudApi = useApi(spectroCloudApiRef);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
@@ -122,13 +72,13 @@ export const ProfileVariables = ({
   // Validate required variables whenever variables or values change
   useEffect(() => {
     if (!onValidationChange) return;
-    
+
     // Collect all required variables from all profiles
     const allRequiredVars: Variable[] = [];
     profileVariablesGroups.forEach(group => {
       allRequiredVars.push(...group.variables.filter(v => v.required));
     });
-    
+
     const isValid = allRequiredVars.every(v => {
       const value = profileVariables[v.name];
       // Check if value exists and is not empty
@@ -142,7 +92,7 @@ export const ProfileVariables = ({
       }
       return true;
     });
-    
+
     onValidationChange(isValid);
   }, [profileVariablesGroups, profileVariables, onValidationChange]);
 
@@ -162,14 +112,14 @@ export const ProfileVariables = ({
 
           if (result.variables && Array.isArray(result.variables)) {
             const visibleVariables = result.variables.filter((v: Variable) => !v.hidden);
-            
+
             // Only add profile group if it has visible variables
             if (visibleVariables.length > 0) {
               groups.push({
                 profile,
                 variables: visibleVariables,
               });
-              
+
               // Store which variables belong to this profile
               variableMapping[profile.uid] = visibleVariables.map((v: Variable) => v.name);
             }
@@ -177,13 +127,13 @@ export const ProfileVariables = ({
         }
 
         setProfileVariablesGroups(groups);
-        
+
         // Update parent with the profile-to-variables mapping
         onUpdate({
           profileVariables,
           profileVariablesByProfile: variableMapping,
         });
-        
+
         setError(undefined);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load profile variables');
@@ -207,7 +157,7 @@ export const ProfileVariables = ({
     profileVariablesGroups.forEach(group => {
       variableMapping[group.profile.uid] = group.variables.map((v: Variable) => v.name);
     });
-    
+
     onUpdate({
       profileVariables: {
         ...profileVariables,
@@ -219,16 +169,16 @@ export const ProfileVariables = ({
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
-        <CircularProgress />
-      </Box>
+      <Flex align="center" justify="center" style={{ minHeight: 200 }}>
+        <Progress />
+      </Flex>
     );
   }
 
   if (error) {
     return (
-      <Box className={classes.root}>
-        <Alert severity="error">{error}</Alert>
+      <Box p="4">
+        <Alert status="danger" description={error} />
       </Box>
     );
   }
@@ -236,167 +186,166 @@ export const ProfileVariables = ({
   // Helper function to render a variable input
   const renderVariableInput = (variable: Variable) => {
     const value = profileVariables[variable.name] || variable.defaultValue || '';
-    
+
     // Determine input type based on format and inputType
     const isBoolean = variable.format === 'boolean';
     const isNumber = variable.format === 'number';
     const isSensitive = variable.isSensitive || variable.format === 'base64';
     const isMultiline = variable.inputType === 'multiline';
     const hasOptions = variable.options && variable.options.length > 0;
-    
+    const isMissingRequired = Boolean(variable.required && !value);
+    const label = `${variable.displayName || variable.name}${variable.required ? ' *' : ''}`;
+
     if (hasOptions) {
       return (
-        <FormControl className={classes.formControl} error={variable.required && !value}>
-          <InputLabel>{variable.displayName || variable.name}{variable.required ? ' *' : ''}</InputLabel>
+        <Box style={{ width: '100%' }}>
           <Select
-            value={value}
-            onChange={e => handleVariableChange(variable.name, e.target.value as string)}
-            required={variable.required}
-          >
-            {!variable.required && (
-              <MenuItem value="">
-                <em>None</em>
-              </MenuItem>
-            )}
-            {variable.options?.map((option, idx) => {
-              const optionValue = typeof option === 'object' ? option.value : option;
-              const optionLabel = typeof option === 'object' && option.label ? option.label : optionValue;
-              return (
-                <MenuItem key={idx} value={optionValue}>
-                  {optionLabel}
-                </MenuItem>
-              );
-            })}
-          </Select>
-          {variable.description && (
-            <FormHelperText>{variable.description}</FormHelperText>
+            label={label}
+            description={variable.description}
+            isRequired={variable.required}
+            selectedKey={value === '' ? '' : String(value)}
+            onSelectionChange={key => {
+              handleVariableChange(variable.name, key === '' || key === null ? '' : String(key));
+            }}
+            options={[
+              ...(!variable.required ? [{ id: '', label: 'None' }] : []),
+              ...(variable.options ?? []).map(option => {
+                const optionValue = typeof option === 'object' ? option.value : option;
+                const optionLabel = typeof option === 'object' && option.label ? option.label : optionValue;
+                return { id: optionValue, label: optionLabel };
+              }),
+            ]}
+          />
+          {isMissingRequired && (
+            <Text variant="body-small" style={{ color: 'var(--bui-fg-negative)' }}>
+              This field is required
+            </Text>
           )}
-          {variable.required && !value && (
-            <FormHelperText error>This field is required</FormHelperText>
-          )}
-        </FormControl>
+        </Box>
       );
     }
-    
+
     if (isBoolean) {
       return (
-        <FormControlLabel
-          control={
-            <Switch
-              checked={value === 'true' || value === true}
-              onChange={e => handleVariableChange(variable.name, e.target.checked ? 'true' : 'false')}
-              color="primary"
-              disabled={variable.immutable}
-            />
-          }
+        <Switch
           label={variable.displayName || variable.name}
+          isSelected={value === 'true' || value === true}
+          onChange={isSelected => handleVariableChange(variable.name, isSelected ? 'true' : 'false')}
+          isDisabled={variable.immutable}
         />
       );
     }
-    
+
+    const commonProps = {
+      label,
+      description: variable.description,
+      value: String(value),
+      isRequired: variable.required,
+      isInvalid: isMissingRequired,
+      placeholder: variable.defaultValue,
+      isDisabled: variable.immutable,
+    };
+
+    if (isMultiline) {
+      return (
+        <TextAreaField
+          {...commonProps}
+          rows={4}
+          onChange={val => handleVariableChange(variable.name, val)}
+        />
+      );
+    }
+
+    const handleTextChange = (val: string) => {
+      if (isNumber) {
+        // For number fields, only allow valid numeric input
+        if (val === '') {
+          handleVariableChange(variable.name, '');
+        } else if (/^-?\d*\.?\d*$/.test(val)) {
+          // Valid number format (allows partial input like "1.", "-", "1.2")
+          handleVariableChange(variable.name, val);
+        }
+        // Invalid input is ignored
+      } else {
+        handleVariableChange(variable.name, val);
+      }
+    };
+
+    const handleTextBlur = () => {
+      // Convert to actual number on blur for number fields
+      if (isNumber && value !== '') {
+        const numValue = Number(value);
+        if (!isNaN(numValue)) {
+          handleVariableChange(variable.name, numValue);
+        }
+      }
+    };
+
+    if (isSensitive) {
+      return (
+        <PasswordField
+          {...commonProps}
+          onChange={handleTextChange}
+          onBlur={handleTextBlur}
+        />
+      );
+    }
+
     return (
       <TextField
-        label={variable.displayName || variable.name}
-        value={value}
-        onChange={e => {
-          const rawValue = e.target.value;
-          if (isNumber) {
-            // For number fields, only allow valid numeric input
-            if (rawValue === '') {
-              handleVariableChange(variable.name, '');
-            } else if (/^-?\d*\.?\d*$/.test(rawValue)) {
-              // Valid number format (allows partial input like "1.", "-", "1.2")
-              handleVariableChange(variable.name, rawValue);
-            }
-            // Invalid input is ignored
-          } else {
-            handleVariableChange(variable.name, rawValue);
-          }
-        }}
-        onBlur={e => {
-          // Convert to actual number on blur for number fields
-          if (isNumber && e.target.value !== '') {
-            const numValue = Number(e.target.value);
-            if (!isNaN(numValue)) {
-              handleVariableChange(variable.name, numValue);
-            }
-          }
-        }}
-        fullWidth
-        required={variable.required}
-        helperText={variable.description}
-        placeholder={variable.defaultValue}
-        disabled={variable.immutable}
-        type={isSensitive ? 'password' : 'text'}
-        multiline={isMultiline}
-        rows={isMultiline ? 4 : 1}
-        InputProps={{
-          inputProps: {
-            pattern: isNumber ? '^-?\\d*\\.?\\d+$' : variable.regex,
-            inputMode: isNumber ? 'decimal' : undefined,
-          },
-        }}
-        error={variable.required && !value && value !== 0}
+        {...commonProps}
+        onChange={handleTextChange}
+        onBlur={handleTextBlur}
       />
     );
   };
 
   if (profileVariablesGroups.length === 0) {
     return (
-      <Box className={classes.root}>
-        <Typography variant="h5" gutterBottom>
+      <Box p="4">
+        <Text variant="title-small" style={{ display: 'block', marginBottom: 'var(--bui-space-2)' }}>
           Profile Variables
-        </Typography>
-        <Alert severity="info">
-          No variables are defined for the selected profiles. Click Next to continue.
-        </Alert>
+        </Text>
+        <Alert status="info" description="No variables are defined for the selected profiles. Click Next to continue." />
       </Box>
     );
   }
 
   return (
-    <Box className={classes.root}>
-      <Typography variant="h5" gutterBottom>
+    <Box p="4">
+      <Text variant="title-small" style={{ display: 'block', marginBottom: 'var(--bui-space-2)' }}>
         Profile Variables
-      </Typography>
-      <Typography variant="body2" color="textSecondary" paragraph>
+      </Text>
+      <Text variant="body-medium" color="secondary" style={{ display: 'block', marginBottom: 'var(--bui-space-4)' }}>
         Provide values for the variables defined in your selected profiles.
-      </Typography>
+      </Text>
 
-      {profileVariablesGroups.map((group, groupIdx) => (
-        <Accordion
-          key={groupIdx}
-          defaultExpanded
-          className={classes.accordion}
-        >
-          <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            className={classes.accordionSummary}
-          >
-            <Box display="flex" alignItems="center">
-              <LayersIcon className={classes.profileIcon} />
-              <Typography className={classes.profileTitle} style={{ marginLeft: 8 }}>
-                {group.profile.name} {group.profile.version}
-              </Typography>
-              <Chip 
-                label={`${group.variables.length} variable${group.variables.length !== 1 ? 's' : ''}`} 
-                size="small" 
-                color="primary"
-                style={{ marginLeft: 8 }}
-              />
-            </Box>
-          </AccordionSummary>
-          <AccordionDetails className={classes.accordionDetails}>
-            <Grid container spacing={3}>
-              {group.variables.map(variable => (
-                <Grid item xs={12} md={6} key={variable.name}>
-                  {renderVariableInput(variable)}
-                </Grid>
-              ))}
-            </Grid>
-          </AccordionDetails>
-        </Accordion>
-      ))}
+      <Flex direction="column" gap="2">
+        {profileVariablesGroups.map((group, groupIdx) => (
+          <Accordion key={groupIdx} defaultExpanded>
+            <AccordionTrigger>
+              <Flex align="center" gap="2">
+                <RiStackLine size={18} className={styles.profileIcon} />
+                <Text weight="bold" className={styles.profileTitle}>
+                  {group.profile.name} {group.profile.version}
+                </Text>
+                <Badge>
+                  {`${group.variables.length} variable${group.variables.length !== 1 ? 's' : ''}`}
+                </Badge>
+              </Flex>
+            </AccordionTrigger>
+            <AccordionPanel>
+              <Grid.Root columns="12" gap="4">
+                {group.variables.map(variable => (
+                  <Grid.Item colSpan={{ xs: '12', sm: '6' }} key={variable.name}>
+                    {renderVariableInput(variable)}
+                  </Grid.Item>
+                ))}
+              </Grid.Root>
+            </AccordionPanel>
+          </Accordion>
+        ))}
+      </Flex>
     </Box>
   );
 };

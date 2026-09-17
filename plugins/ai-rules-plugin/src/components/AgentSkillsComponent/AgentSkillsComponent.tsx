@@ -7,97 +7,24 @@ import {
   CodeSnippet,
 } from '@backstage/core-components';
 import {
-  makeStyles,
-  Typography,
-  Chip,
-  Card,
-  CardContent,
   Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  IconButton,
+  AccordionPanel,
+  AccordionTrigger,
+  Badge,
+  Box,
+  ButtonIcon,
+  Card,
+  CardBody,
+  Text,
+  ToggleButton,
+  ToggleButtonGroup,
   Tooltip,
-} from '@material-ui/core';
-import { ToggleButton, ToggleButtonGroup } from '@material-ui/lab';
-import { Theme } from '@material-ui/core/styles';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import LaunchIcon from '@material-ui/icons/Launch';
+  TooltipTrigger,
+} from '@backstage/ui';
+import { RiExternalLinkLine } from '@remixicon/react';
 import { useSkills } from '../../hooks/useSkills';
 import { AgentSkill } from '../../types';
-
-const useStyles = makeStyles((theme: Theme) => ({
-  root: {
-    '& .MuiAccordion-root': {
-      marginBottom: theme.spacing(1),
-      '&:before': { display: 'none' },
-    },
-  },
-  statsContainer: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: theme.spacing(2),
-    marginBottom: theme.spacing(2),
-  },
-  statCard: {
-    minWidth: '120px',
-    textAlign: 'center',
-  },
-  sourceAccordion: {
-    backgroundColor: theme.palette.background.default,
-    marginBottom: theme.spacing(2),
-    '& .MuiAccordionSummary-root': {
-      borderBottom: `1px solid ${theme.palette.divider}`,
-    },
-  },
-  skillAccordion: {
-    backgroundColor: theme.palette.background.paper,
-    border: `1px solid ${theme.palette.divider}`,
-    marginBottom: theme.spacing(1),
-  },
-  summaryRow: {
-    display: 'flex',
-    alignItems: 'center',
-    width: '100%',
-    gap: theme.spacing(1),
-    flexWrap: 'wrap',
-  },
-  summaryActions: {
-    marginLeft: 'auto',
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(0.5),
-    flexShrink: 0,
-  },
-  skillContent: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: theme.spacing(2),
-    width: '100%',
-  },
-  viewToggle: {
-    marginBottom: theme.spacing(1),
-  },
-  resourcesSection: {
-    backgroundColor: theme.palette.background.default,
-    borderRadius: theme.shape.borderRadius,
-    padding: theme.spacing(2),
-  },
-  resourceGroup: {
-    marginBottom: theme.spacing(1),
-    '&:last-child': { marginBottom: 0 },
-  },
-  resourceList: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: theme.spacing(0.5),
-    marginTop: theme.spacing(0.5),
-  },
-  contentViewer: {
-    maxHeight: 400,
-    overflow: 'auto',
-    '& > *': { backgroundColor: 'transparent !important' },
-  },
-}));
+import styles from './AgentSkillsComponent.module.css';
 
 const SOURCE_LABELS: Record<AgentSkill['source'], string> = {
   'cross-client': 'Cross-Client (.agents/skills/)',
@@ -113,19 +40,21 @@ const constructFileUrl = (gitUrl: string, filePath: string): string => {
 };
 
 const SkillContentViewer = ({ content }: { content: string }) => {
-  const styles = useStyles();
   const [view, setView] = useState<'rendered' | 'raw'>('rendered');
   return (
     <div>
       <ToggleButtonGroup
-        size="small"
-        value={view}
-        exclusive
-        onChange={(_e: any, v: any) => { if (v) setView(v); }}
         className={styles.viewToggle}
+        selectionMode="single"
+        disallowEmptySelection
+        selectedKeys={[view]}
+        onSelectionChange={keys => {
+          const [v] = Array.from(keys);
+          if (v) setView(v as 'rendered' | 'raw');
+        }}
       >
-        <ToggleButton value="rendered">Rendered</ToggleButton>
-        <ToggleButton value="raw">Raw</ToggleButton>
+        <ToggleButton id="rendered" size="small">Rendered</ToggleButton>
+        <ToggleButton id="raw" size="small">Raw</ToggleButton>
       </ToggleButtonGroup>
       {view === 'rendered' ? (
         <div className={styles.contentViewer}>
@@ -139,7 +68,6 @@ const SkillContentViewer = ({ content }: { content: string }) => {
 };
 
 const ResourcesSection = ({ resources }: { resources: AgentSkill['resources'] }) => {
-  const styles = useStyles();
   const hasResources =
     resources.scripts.length > 0 ||
     resources.references.length > 0 ||
@@ -149,30 +77,30 @@ const ResourcesSection = ({ resources }: { resources: AgentSkill['resources'] })
 
   return (
     <div className={styles.resourcesSection}>
-      <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+      <Text variant="body-small" style={{ color: 'var(--bui-fg-secondary)', display: 'block', marginBottom: 'var(--bui-space-2)' }}>
         Bundled Resources
-      </Typography>
+      </Text>
       {resources.scripts.length > 0 && (
         <div className={styles.resourceGroup}>
-          <Typography variant="caption" color="textSecondary">Scripts</Typography>
+          <Text variant="body-small" style={{ color: 'var(--bui-fg-secondary)' }}>Scripts</Text>
           <div className={styles.resourceList}>
-            {resources.scripts.map(f => <Chip key={f} label={f} size="small" variant="outlined" />)}
+            {resources.scripts.map(f => <Badge key={f}>{f}</Badge>)}
           </div>
         </div>
       )}
       {resources.references.length > 0 && (
         <div className={styles.resourceGroup}>
-          <Typography variant="caption" color="textSecondary">References</Typography>
+          <Text variant="body-small" style={{ color: 'var(--bui-fg-secondary)' }}>References</Text>
           <div className={styles.resourceList}>
-            {resources.references.map(f => <Chip key={f} label={f} size="small" variant="outlined" />)}
+            {resources.references.map(f => <Badge key={f}>{f}</Badge>)}
           </div>
         </div>
       )}
       {resources.assets.length > 0 && (
         <div className={styles.resourceGroup}>
-          <Typography variant="caption" color="textSecondary">Assets</Typography>
+          <Text variant="body-small" style={{ color: 'var(--bui-fg-secondary)' }}>Assets</Text>
           <div className={styles.resourceList}>
-            {resources.assets.map(f => <Chip key={f} label={f} size="small" variant="outlined" />)}
+            {resources.assets.map(f => <Badge key={f}>{f}</Badge>)}
           </div>
         </div>
       )}
@@ -181,58 +109,50 @@ const ResourcesSection = ({ resources }: { resources: AgentSkill['resources'] })
 };
 
 const SkillAccordion = ({ skill }: { skill: AgentSkill }) => {
-  const styles = useStyles();
   return (
-    <Accordion className={styles.skillAccordion}>
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <div className={styles.summaryRow}>
-          <Typography variant="subtitle1" style={{ fontWeight: 600 }}>
-            {skill.name}
-          </Typography>
-          <Typography variant="body2" color="textSecondary" style={{ flex: 1 }}>
-            {skill.description}
-          </Typography>
-          {skill.compatibility && (
-            <Chip label={skill.compatibility} size="small" variant="outlined" />
-          )}
-          {skill.license && (
-            <Chip label={`License: ${skill.license}`} size="small" />
-          )}
-          {skill.metadata?.author && (
-            <Chip label={`by ${skill.metadata.author}`} size="small" variant="outlined" />
-          )}
-          {skill.metadata?.version && (
-            <Chip label={`v${skill.metadata.version}`} size="small" variant="outlined" />
-          )}
-          <div className={styles.summaryActions}>
-            {skill.gitUrl && (
-              <Tooltip title="Open SKILL.md in repository">
-                <IconButton
-                  size="small"
-                  onClick={(e) => { e.stopPropagation(); window.open(constructFileUrl(skill.gitUrl!, skill.filePath), '_blank'); }}
-                >
-                  <LaunchIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            )}
+    <Box className={styles.skillAccordion} style={{ position: 'relative' }}>
+      <Accordion>
+        <AccordionTrigger>
+          <div className={styles.summaryRow}>
+            <Text weight="bold">{skill.name}</Text>
+            <Text style={{ color: 'var(--bui-fg-secondary)', flex: 1 }}>
+              {skill.description}
+            </Text>
+            {skill.compatibility && <Badge>{skill.compatibility}</Badge>}
+            {skill.license && <Badge>{`License: ${skill.license}`}</Badge>}
+            {skill.metadata?.author && <Badge>{`by ${skill.metadata.author}`}</Badge>}
+            {skill.metadata?.version && <Badge>{`v${skill.metadata.version}`}</Badge>}
           </div>
-        </div>
-      </AccordionSummary>
-      <AccordionDetails>
-        <div className={styles.skillContent}>
-          {skill.allowedTools && skill.allowedTools.length > 0 && (
-            <div>
-              <Typography variant="caption" color="textSecondary">Pre-approved tools</Typography>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
-                {skill.allowedTools.map(t => <Chip key={t} label={t} size="small" />)}
+        </AccordionTrigger>
+        <AccordionPanel>
+          <div className={styles.skillContent}>
+            {skill.allowedTools && skill.allowedTools.length > 0 && (
+              <div>
+                <Text variant="body-small" style={{ color: 'var(--bui-fg-secondary)' }}>Pre-approved tools</Text>
+                <div className={styles.resourceList}>
+                  {skill.allowedTools.map(t => <Badge key={t}>{t}</Badge>)}
+                </div>
               </div>
-            </div>
-          )}
-          <SkillContentViewer content={skill.content} />
-          <ResourcesSection resources={skill.resources} />
-        </div>
-      </AccordionDetails>
-    </Accordion>
+            )}
+            <SkillContentViewer content={skill.content} />
+            <ResourcesSection resources={skill.resources} />
+          </div>
+        </AccordionPanel>
+      </Accordion>
+      {skill.gitUrl && (
+        <TooltipTrigger>
+          <ButtonIcon
+            aria-label="Open SKILL.md in repository"
+            icon={<RiExternalLinkLine />}
+            size="small"
+            variant="tertiary"
+            style={{ position: 'absolute', top: 'var(--bui-space-2)', right: 'var(--bui-space-8)' }}
+            onPress={() => window.open(constructFileUrl(skill.gitUrl!, skill.filePath), '_blank')}
+          />
+          <Tooltip>Open SKILL.md in repository</Tooltip>
+        </TooltipTrigger>
+      )}
+    </Box>
   );
 };
 
@@ -241,7 +161,6 @@ export interface AgentSkillsComponentProps {
 }
 
 export const AgentSkillsComponent = ({ title = 'Agent Skills' }: AgentSkillsComponentProps) => {
-  const styles = useStyles();
   const { skills, loading, error, hasGitUrl } = useSkills();
 
   if (loading) return <InfoCard title={title}><Progress /></InfoCard>;
@@ -284,14 +203,14 @@ export const AgentSkillsComponent = ({ title = 'Agent Skills' }: AgentSkillsComp
   const sourceOrder: AgentSkill['source'][] = ['cross-client', 'claude', 'cursor'];
 
   return (
-    <InfoCard title={title} className={styles.root}>
+    <InfoCard title={title}>
       {/* Stats */}
       <div className={styles.statsContainer}>
         <Card className={styles.statCard}>
-          <CardContent>
-            <Typography variant="h4">{skills.length}</Typography>
-            <Typography color="textSecondary">Total Skills</Typography>
-          </CardContent>
+          <CardBody>
+            <Text variant="title-large" weight="bold" style={{ display: 'block' }}>{skills.length}</Text>
+            <Text style={{ color: 'var(--bui-fg-secondary)' }}>Total Skills</Text>
+          </CardBody>
         </Card>
         {sourceOrder.map(source => {
           const sourceSkills = skillsBySource[source];
@@ -299,12 +218,12 @@ export const AgentSkillsComponent = ({ title = 'Agent Skills' }: AgentSkillsComp
           const sourceLabel = source === 'claude' ? 'Claude' : 'Cursor';
           return (
             <Card key={source} className={styles.statCard}>
-              <CardContent>
-                <Typography variant="h4">{sourceSkills.length}</Typography>
-                <Typography color="textSecondary">
+              <CardBody>
+                <Text variant="title-large" weight="bold" style={{ display: 'block' }}>{sourceSkills.length}</Text>
+                <Text style={{ color: 'var(--bui-fg-secondary)' }}>
                   {source === 'cross-client' ? 'Cross-Client' : sourceLabel}
-                </Typography>
-              </CardContent>
+                </Text>
+              </CardBody>
             </Card>
           );
         })}
@@ -315,19 +234,23 @@ export const AgentSkillsComponent = ({ title = 'Agent Skills' }: AgentSkillsComp
         const sourceSkills = skillsBySource[source];
         if (!sourceSkills || sourceSkills.length === 0) return null;
         return (
-          <Accordion key={source} defaultExpanded className={styles.sourceAccordion}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                <Typography variant="h6">{SOURCE_LABELS[source]}</Typography>
-                <Chip label={`${sourceSkills.length} skill${sourceSkills.length !== 1 ? 's' : ''}`} size="small" color="primary" />
-              </div>
-            </AccordionSummary>
-            <AccordionDetails style={{ flexDirection: 'column' }}>
-              {sourceSkills.map(skill => (
-                <SkillAccordion key={skill.filePath} skill={skill} />
-              ))}
-            </AccordionDetails>
-          </Accordion>
+          <Box key={source} className={styles.sourceAccordion}>
+            <Accordion defaultExpanded>
+              <AccordionTrigger>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--bui-space-4)' }}>
+                  <Text variant="title-small" weight="bold">{SOURCE_LABELS[source]}</Text>
+                  <Badge>{`${sourceSkills.length} skill${sourceSkills.length !== 1 ? 's' : ''}`}</Badge>
+                </div>
+              </AccordionTrigger>
+              <AccordionPanel>
+                <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+                  {sourceSkills.map(skill => (
+                    <SkillAccordion key={skill.filePath} skill={skill} />
+                  ))}
+                </div>
+              </AccordionPanel>
+            </Accordion>
+          </Box>
         );
       })}
     </InfoCard>

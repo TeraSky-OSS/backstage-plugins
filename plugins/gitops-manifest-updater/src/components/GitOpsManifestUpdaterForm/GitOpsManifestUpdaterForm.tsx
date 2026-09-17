@@ -1,22 +1,23 @@
-import { useState, useCallback, useEffect, useRef, ChangeEvent } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useApi, fetchApiRef, githubAuthApiRef, gitlabAuthApiRef, bitbucketAuthApiRef, configApiRef } from '@backstage/core-plugin-api';
 import {
   Progress,
   ResponseErrorPanel,
 } from '@backstage/core-components';
-import { 
-  FormControl, 
-  TextField, 
-  Typography, 
-  Checkbox,
-  Select,
-  MenuItem,
+import {
+  Box,
   Button,
-  Paper,
-  IconButton,
-} from '@material-ui/core';
-import DeleteIcon from '@material-ui/icons/Delete';
-import AddIcon from '@material-ui/icons/Add';
+  ButtonIcon,
+  Card,
+  Checkbox,
+  Flex,
+  NumberField,
+  Select,
+  Text,
+  TextAreaField,
+  TextField,
+} from '@backstage/ui';
+import { RiAddLine, RiDeleteBinLine } from '@remixicon/react';
 import { JsonObject } from '@backstage/types';
 import { catalogApiRef } from '@backstage/plugin-catalog-react';
 import { parse as parseYaml } from 'yaml';
@@ -123,31 +124,33 @@ const KeyValueEditor = ({ value, onChange }: { value: Record<string, string>, on
   };
 
   return (
-    <div>
+    <Box>
       {entries.map(([k, v], idx) => {
         const entryId = entryIdsRef.current[idx] || `kv-fallback-${idx}`;
         return (
-          <div key={entryId} style={{ display: 'flex', gap: 8, marginBottom: 4, alignItems: 'center' }}>
-            <TextField
-              label="Key"
-              value={k}
-              onChange={e => handleChange(idx, e.target.value, v)}
-              size="small"
-              style={{ minWidth: '250px', flexGrow: 1 }}
-            />
-            <TextField
-              label="Value"
-              value={v}
-              onChange={e => handleChange(idx, k, e.target.value)}
-              size="small"
-              style={{ minWidth: '350px', flexGrow: 2 }}
-            />
-            <button onClick={() => handleRemove(idx)} type="button">Remove</button>
-          </div>
+          <Flex key={entryId} gap="2" mb="1" align="center">
+            <Box style={{ minWidth: 250, flexGrow: 1 }}>
+              <TextField
+                label="Key"
+                value={k}
+                onChange={val => handleChange(idx, val, v)}
+                size="small"
+              />
+            </Box>
+            <Box style={{ minWidth: 350, flexGrow: 2 }}>
+              <TextField
+                label="Value"
+                value={v}
+                onChange={val => handleChange(idx, k, val)}
+                size="small"
+              />
+            </Box>
+            <Button variant="secondary" size="small" onPress={() => handleRemove(idx)}>Remove</Button>
+          </Flex>
         );
       })}
-      <button onClick={handleAdd} type="button">Add</button>
-    </div>
+      <Button variant="secondary" size="small" onPress={handleAdd}>Add</Button>
+    </Box>
   );
 };
 
@@ -247,18 +250,18 @@ const ArrayEditor = ({
   };
 
   return (
-    <div style={{ marginTop: 8 }}>
+    <Box style={{ marginTop: 'var(--bui-space-2)' }}>
       {arrayValue.map((item, idx) => {
         const itemKey = itemIdsRef.current[idx] || `${basePath}-fallback-${idx}`;
         return (
-          <Paper key={itemKey} style={{ padding: 16, marginBottom: 8 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div style={{ flexGrow: 1 }}>
+          <Card key={itemKey} style={{ padding: 'var(--bui-space-4)', marginBottom: 'var(--bui-space-2)' }}>
+            <Flex justify="between" align="start">
+              <Box style={{ flexGrow: 1 }}>
                 {items.type === 'object' && items.properties ? (
-                  <div>
-                    <Typography variant="subtitle2" style={{ marginBottom: 8 }}>
+                  <Box>
+                    <Text variant="body-small" weight="bold" style={{ marginBottom: 'var(--bui-space-2)' }}>
                       Item {idx + 1}
-                    </Typography>
+                    </Text>
                     {Object.entries(items.properties).map(([key, prop]) => {
                       const itemPath = `${basePath}.${idx}.${key}`;
                       const itemValue = item?.[key];
@@ -274,7 +277,7 @@ const ArrayEditor = ({
                         />
                       );
                     })}
-                  </div>
+                  </Box>
                 ) : (
                   // eslint-disable-next-line @typescript-eslint/no-use-before-define
                   <RenderField
@@ -285,27 +288,28 @@ const ArrayEditor = ({
                     onChange={(_, val) => handleItemChange(idx, `${idx}`, val)}
                   />
                 )}
-              </div>
-              <IconButton
-                onClick={() => handleRemove(idx)}
+              </Box>
+              <ButtonIcon
+                aria-label={`Remove item ${idx + 1}`}
+                icon={<RiDeleteBinLine />}
                 size="small"
-                style={{ marginLeft: 8 }}
-              >
-                <DeleteIcon />
-              </IconButton>
-            </div>
-          </Paper>
+                variant="tertiary"
+                style={{ marginLeft: 'var(--bui-space-2)' }}
+                onPress={() => handleRemove(idx)}
+              />
+            </Flex>
+          </Card>
         );
       })}
       <Button
-        onClick={handleAdd}
-        startIcon={<AddIcon />}
-        variant="outlined"
+        onPress={handleAdd}
+        iconStart={<RiAddLine />}
+        variant="secondary"
         size="small"
       >
         Add Item
       </Button>
-    </div>
+    </Box>
   );
 };
 
@@ -325,39 +329,35 @@ const RenderField = ({
   // Handle fields with x-kubernetes-preserve-unknown-fields: true that don't have a type
   if (prop['x-kubernetes-preserve-unknown-fields'] === true && !prop.type) {
     return (
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', marginTop: '8px', marginBottom: '4px' }}>
-        <Typography variant="body1" style={{ minWidth: '150px', marginTop: '8px' }}>{label}:</Typography>
-        <TextField
-          helperText={prop.description}
-          value={value === undefined ? '' : value.toString()}
-          onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(fullPath, e.target.value)}
-          fullWidth
-          margin="dense"
-          multiline
-          rows={10}
-          style={{ flexGrow: 1 }}
-        />
-      </div>
+      <Flex align="start" gap="4" style={{ marginTop: 'var(--bui-space-2)', marginBottom: 'var(--bui-space-1)' }}>
+        <Text style={{ minWidth: 150, marginTop: 'var(--bui-space-2)' }}>{label}:</Text>
+        <Box style={{ flexGrow: 1 }}>
+          <TextAreaField
+            description={prop.description}
+            value={value === undefined ? '' : value.toString()}
+            onChange={val => onChange(fullPath, val)}
+            rows={10}
+          />
+        </Box>
+      </Flex>
     );
   }
-  
+
   // Handle fields with ui:widget set to textarea
   if (prop['ui:widget'] === 'textarea') {
     const rows = prop['ui:options']?.rows || 10;
     return (
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', marginTop: '8px', marginBottom: '4px' }}>
-        <Typography variant="body1" style={{ minWidth: '150px', marginTop: '8px' }}>{label}:</Typography>
-        <TextField
-          helperText={prop.description}
-          value={value === undefined ? '' : value.toString()}
-          onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(fullPath, e.target.value)}
-          fullWidth
-          margin="dense"
-          multiline
-          rows={rows}
-          style={{ flexGrow: 1 }}
-        />
-      </div>
+      <Flex align="start" gap="4" style={{ marginTop: 'var(--bui-space-2)', marginBottom: 'var(--bui-space-1)' }}>
+        <Text style={{ minWidth: 150, marginTop: 'var(--bui-space-2)' }}>{label}:</Text>
+        <Box style={{ flexGrow: 1 }}>
+          <TextAreaField
+            description={prop.description}
+            value={value === undefined ? '' : value.toString()}
+            onChange={val => onChange(fullPath, val)}
+            rows={rows}
+          />
+        </Box>
+      </Flex>
     );
   }
 
@@ -368,27 +368,27 @@ const RenderField = ({
     !prop.properties
   ) {
     return (
-      <div style={{ marginTop: 8, marginBottom: 4 }}>
-        <Typography variant="body1" style={{ minWidth: '150px' }}>{label}:</Typography>
+      <Box style={{ marginTop: 'var(--bui-space-2)', marginBottom: 'var(--bui-space-1)' }}>
+        <Text style={{ minWidth: 150 }}>{label}:</Text>
         <KeyValueEditor
           value={value || {}}
           onChange={kv => onChange(fullPath, kv)}
         />
-      </div>
+      </Box>
     );
   }
 
   // Render array fields
   if (prop.type === 'array' && prop.items) {
     return (
-      <div style={{ marginTop: 8, marginBottom: 4 }}>
-        <Typography variant="body1" style={{ minWidth: '150px', marginBottom: 8 }}>
+      <Box style={{ marginTop: 'var(--bui-space-2)', marginBottom: 'var(--bui-space-1)' }}>
+        <Text style={{ minWidth: 150, marginBottom: 'var(--bui-space-2)' }}>
           {label}:
-        </Typography>
+        </Text>
         {prop.description && (
-          <Typography variant="body2" color="textSecondary" style={{ marginBottom: 8 }}>
+          <Text as="div" variant="body-small" color="secondary" style={{ marginBottom: 'var(--bui-space-2)' }}>
             {prop.description}
-          </Typography>
+          </Text>
         )}
         <ArrayEditor
           items={prop.items}
@@ -396,85 +396,67 @@ const RenderField = ({
           onChange={onChange}
           basePath={fullPath}
         />
-      </div>
+      </Box>
     );
   }
 
   if (prop.enum) {
     return (
-      <FormControl fullWidth margin="normal">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <Typography variant="body1" style={{ minWidth: '150px' }}>{label}:</Typography>
+      <Flex align="center" gap="4">
+        <Text style={{ minWidth: 150 }}>{label}:</Text>
+        <Box style={{ flexGrow: 1 }}>
           <Select
-            value={value === undefined ? '' : value}
-            onChange={(e) => onChange(fullPath, e.target.value)}
-            displayEmpty
-            style={{ flexGrow: 1 }}
-          >
-            <MenuItem value="">
-              <em>None</em>
-            </MenuItem>
-            {prop.enum.map((option) => (
-              <MenuItem key={option} value={option}>
-                {option}
-              </MenuItem>
-            ))}
-          </Select>
-        </div>
-      </FormControl>
+            selectedKey={value === undefined ? '' : value}
+            onSelectionChange={key => onChange(fullPath, key === '' ? undefined : key)}
+            options={[
+              { id: '', label: 'None' },
+              ...prop.enum.map(option => ({ id: option, label: option })),
+            ]}
+          />
+        </Box>
+      </Flex>
     );
   }
 
   switch (prop.type) {
     case 'boolean':
       return (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '8px', marginBottom: '4px' }}>
-          <Typography variant="body1" style={{ minWidth: '150px' }}>
+        <Flex align="center" gap="4" style={{ marginTop: 'var(--bui-space-2)', marginBottom: 'var(--bui-space-1)' }}>
+          <Text style={{ minWidth: 150 }}>
             {label}:
-          </Typography>
+          </Text>
           <Checkbox
-            checked={value === undefined ? false : Boolean(value)}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => {
-              onChange(fullPath, e.target.checked);
-            }}
-            color="primary"
+            isSelected={value === undefined ? false : Boolean(value)}
+            onChange={isSelected => onChange(fullPath, isSelected)}
           />
-        </div>
+        </Flex>
       );
     case 'integer':
     case 'number':
       return (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '8px', marginBottom: '4px' }}>
-          <Typography variant="body1" style={{ minWidth: '150px' }}>{label}:</Typography>
-          <TextField
-            helperText={prop.description}
-            value={value === undefined ? '' : value.toString()}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => {
-              const newValue = prop.type === 'integer' 
-                ? parseInt(e.target.value, 10) 
-                : parseFloat(e.target.value);
-              onChange(fullPath, isNaN(newValue) ? '' : newValue);
-            }}
-            type="number"
-            fullWidth
-            margin="dense"
-            style={{ flexGrow: 1 }}
-          />
-        </div>
+        <Flex align="center" gap="4" style={{ marginTop: 'var(--bui-space-2)', marginBottom: 'var(--bui-space-1)' }}>
+          <Text style={{ minWidth: 150 }}>{label}:</Text>
+          <Box style={{ flexGrow: 1 }}>
+            <NumberField
+              description={prop.description}
+              value={value === undefined ? undefined : Number(value)}
+              onChange={newValue => onChange(fullPath, Number.isNaN(newValue) ? '' : newValue)}
+            />
+          </Box>
+        </Flex>
       );
     default:
       return (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '8px', marginBottom: '4px' }}>
-          <Typography variant="body1" style={{ minWidth: '150px' }}>{label}:</Typography>
-          <TextField
-            helperText={prop.description}
-            value={value === undefined ? '' : value.toString()}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(fullPath, e.target.value)}
-            fullWidth
-            margin="dense"
-            style={{ flexGrow: 1 }}
-          />
-        </div>
+        <Flex align="center" gap="4" style={{ marginTop: 'var(--bui-space-2)', marginBottom: 'var(--bui-space-1)' }}>
+          <Text style={{ minWidth: 150 }}>{label}:</Text>
+          <Box style={{ flexGrow: 1 }}>
+            <TextField
+              description={prop.description}
+              value={value === undefined ? '' : value.toString()}
+              onChange={val => onChange(fullPath, val)}
+            />
+          </Box>
+        </Flex>
       );
   }
 };
@@ -534,13 +516,13 @@ const RenderFields = ({
           if (prop.type === 'object' && prop.properties) {
             return (
               <div key={key}>
-                <Typography variant="subtitle1" style={{ marginTop: '16px' }}>
+                <Text variant="title-small" weight="bold" style={{ marginTop: 'var(--bui-space-4)' }}>
                   {prop.title || key}
-                </Typography>
+                </Text>
                 {prop.description && (
-                  <Typography variant="body2" color="textSecondary">
+                  <Text as="div" variant="body-small" color="secondary">
                     {prop.description}
-                  </Typography>
+                  </Text>
                 )}
                 <div style={{ marginLeft: '16px' }}>
                   <RenderFields
@@ -570,16 +552,14 @@ const RenderFields = ({
         })}
         {/* Render the toggle checkbox if needed (only at top level) */}
         {renderToggleCheckbox && onToggleCheckbox && (
-          <FormControl margin="normal" fullWidth>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-              <Checkbox
-                checked={!!showCrossplaneSettings}
-                onChange={e => onToggleCheckbox(e.target.checked)}
-                color="primary"
-              />
-              <Typography variant="body1">Show Crossplane Settings</Typography>
-            </div>
-          </FormControl>
+          <Box style={{ marginTop: 'var(--bui-space-3)', marginBottom: 'var(--bui-space-2)' }}>
+            <Checkbox
+              isSelected={!!showCrossplaneSettings}
+              onChange={isSelected => onToggleCheckbox(isSelected)}
+            >
+              Show Crossplane Settings
+            </Checkbox>
+          </Box>
         )}
         {/* Render toggle-controlled fields if toggle is on */}
         {showCrossplaneSettings && toggleFields.map(([key, prop]) => {
@@ -588,13 +568,13 @@ const RenderFields = ({
           if (prop.type === 'object' && prop.properties) {
             return (
               <div key={key}>
-                <Typography variant="subtitle1" style={{ marginTop: '16px' }}>
+                <Text variant="title-small" weight="bold" style={{ marginTop: 'var(--bui-space-4)' }}>
                   {prop.title || key}
-                </Typography>
+                </Text>
                 {prop.description && (
-                  <Typography variant="body2" color="textSecondary">
+                  <Text as="div" variant="body-small" color="secondary">
                     {prop.description}
-                  </Typography>
+                  </Text>
                 )}
                 <div style={{ marginLeft: '16px' }}>
                   <RenderFields
@@ -636,13 +616,13 @@ const RenderFields = ({
         if (prop.type === 'object' && prop.properties) {
           return (
             <div key={key}>
-              <Typography variant="subtitle1" style={{ marginTop: '16px' }}>
+              <Text variant="title-small" weight="bold" style={{ marginTop: 'var(--bui-space-4)' }}>
                 {prop.title || key}
-              </Typography>
+              </Text>
               {prop.description && (
-                <Typography variant="body2" color="textSecondary">
+                <Text as="div" variant="body-small" color="secondary">
                   {prop.description}
-                </Typography>
+                </Text>
               )}
               <div style={{ marginLeft: '16px' }}>
                 <RenderFields
@@ -1052,97 +1032,90 @@ export const GitOpsManifestUpdaterForm = ({
   }
 
   return (
-    <>
+    <Flex direction="column" gap="3">
       {!formContext?.formData?.entity && (
         <TextField
           label="Source File URL"
-          helperText="The URL to the YAML file in your repository if not available in the entity annotations"
+          description="The URL to the YAML file in your repository if not available in the entity annotations"
           value={manualSourceUrl}
-          onChange={(e: ChangeEvent<HTMLInputElement>) => setManualSourceUrl(e.target.value)}
-          fullWidth
-          margin="normal"
+          onChange={setManualSourceUrl}
         />
       )}
       {schema && formData && (
-        <FormControl margin="normal" fullWidth>
-          <RenderFields
-            schema={schema as Record<string, SchemaProperty>}
-            formData={formData}
-            onFieldChange={handleFieldChange}
-            showCrossplaneSettings={showCrossplaneSettings}
-            hasCrossplane={hasCrossplane}
-            crossplaneFieldsPresent={crossplaneFieldsPresent}
-            renderToggleCheckbox={hasCrossplane || crossplaneFieldsPresent}
-            onToggleCheckbox={setShowCrossplaneSettings}
-            isTopLevel
-          />
-        </FormControl>
+        <RenderFields
+          schema={schema as Record<string, SchemaProperty>}
+          formData={formData}
+          onFieldChange={handleFieldChange}
+          showCrossplaneSettings={showCrossplaneSettings}
+          hasCrossplane={hasCrossplane}
+          crossplaneFieldsPresent={crossplaneFieldsPresent}
+          renderToggleCheckbox={hasCrossplane || crossplaneFieldsPresent}
+          onToggleCheckbox={setShowCrossplaneSettings}
+          isTopLevel
+        />
       )}
-      
+
       {manifestMetadata && (
-        <FormControl margin="normal" fullWidth>
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8, marginTop: 16 }}>
+        <Box>
+          <Box style={{ marginBottom: 'var(--bui-space-2)', marginTop: 'var(--bui-space-4)' }}>
             <Checkbox
-              checked={!!showMetadataSettings}
-              onChange={e => setShowMetadataSettings(e.target.checked)}
-              color="primary"
-            />
-            <Typography variant="body1">Edit Metadata (Labels & Annotations)</Typography>
-          </div>
-          
+              isSelected={!!showMetadataSettings}
+              onChange={isSelected => setShowMetadataSettings(isSelected)}
+            >
+              Edit Metadata (Labels & Annotations)
+            </Checkbox>
+          </Box>
+
           {showMetadataSettings && (
-            <div style={{ marginLeft: 16, marginTop: 8 }}>
-              <Typography variant="h6" style={{ marginBottom: 16 }}>Metadata</Typography>
-              
+            <Box style={{ marginLeft: 'var(--bui-space-4)', marginTop: 'var(--bui-space-2)' }}>
+              <Text variant="title-medium" weight="bold" style={{ marginBottom: 'var(--bui-space-4)' }}>Metadata</Text>
+
               {/* Read-only fields */}
-              <div style={{ marginBottom: 16 }}>
+              <Flex direction="column" gap="2" style={{ marginBottom: 'var(--bui-space-4)' }}>
                 <TextField
                   label="API Version"
-                  value={manifestMetadata.apiVersion || ''}
-                  fullWidth
-                  margin="dense"
-                  disabled
-                  InputProps={{ readOnly: true }}
+                  value={manifestMetadata.apiVersion ? String(manifestMetadata.apiVersion) : ''}
+                  size="small"
+                  isDisabled
+                  isReadOnly
                 />
                 <TextField
                   label="Kind"
-                  value={manifestMetadata.kind || ''}
-                  fullWidth
-                  margin="dense"
-                  disabled
-                  InputProps={{ readOnly: true }}
+                  value={manifestMetadata.kind ? String(manifestMetadata.kind) : ''}
+                  size="small"
+                  isDisabled
+                  isReadOnly
                 />
                 <TextField
                   label="Name"
-                  value={manifestMetadata.name || ''}
-                  fullWidth
-                  margin="dense"
-                  disabled
-                  InputProps={{ readOnly: true }}
+                  value={manifestMetadata.name ? String(manifestMetadata.name) : ''}
+                  size="small"
+                  isDisabled
+                  isReadOnly
                 />
-              </div>
-              
+              </Flex>
+
               {/* Labels */}
-              <div style={{ marginTop: 16, marginBottom: 16 }}>
-                <Typography variant="subtitle1" style={{ marginBottom: 8 }}>Labels</Typography>
+              <Box style={{ marginTop: 'var(--bui-space-4)', marginBottom: 'var(--bui-space-4)' }}>
+                <Text variant="title-small" weight="bold" style={{ marginBottom: 'var(--bui-space-2)' }}>Labels</Text>
                 <KeyValueEditor
                   value={metadataLabels}
                   onChange={setMetadataLabels}
                 />
-              </div>
-              
+              </Box>
+
               {/* Annotations */}
-              <div style={{ marginTop: 16 }}>
-                <Typography variant="subtitle1" style={{ marginBottom: 8 }}>Annotations</Typography>
+              <Box style={{ marginTop: 'var(--bui-space-4)' }}>
+                <Text variant="title-small" weight="bold" style={{ marginBottom: 'var(--bui-space-2)' }}>Annotations</Text>
                 <KeyValueEditor
                   value={metadataAnnotations}
                   onChange={setMetadataAnnotations}
                 />
-              </div>
-            </div>
+              </Box>
+            </Box>
           )}
-        </FormControl>
+        </Box>
       )}
-    </>
+    </Flex>
   );
-}; 
+};

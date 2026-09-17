@@ -5,44 +5,21 @@ import {
   CodeSnippet,
 } from '@backstage/core-components';
 import {
-  makeStyles,
-  Typography,
-  Chip,
   Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  IconButton,
+  AccordionPanel,
+  AccordionTrigger,
+  Badge,
+  Box,
+  ButtonIcon,
+  Flex,
+  Text,
   Tooltip,
-} from '@material-ui/core';
-import { Theme } from '@material-ui/core/styles';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import LaunchIcon from '@material-ui/icons/Launch';
+  TooltipTrigger,
+} from '@backstage/ui';
+import { RiExternalLinkLine } from '@remixicon/react';
 import { useAgentConfigs } from '../../hooks/useAgentConfigs';
 import { AgentConfig } from '../../types';
-
-const useStyles = makeStyles((theme: Theme) => ({
-  root: {
-    '& .MuiAccordion-root': {
-      marginBottom: theme.spacing(1),
-      '&:before': { display: 'none' },
-    },
-  },
-  configAccordion: {
-    backgroundColor: theme.palette.background.paper,
-    border: `1px solid ${theme.palette.divider}`,
-  },
-  summaryRow: {
-    display: 'flex',
-    alignItems: 'center',
-    width: '100%',
-    gap: theme.spacing(1),
-  },
-  codeContainer: {
-    backgroundColor: theme.palette.background.default,
-    borderRadius: theme.shape.borderRadius,
-    '& pre': { margin: 0 },
-  },
-}));
+import styles from './AgentConfigsComponent.module.css';
 
 const constructFileUrl = (gitUrl: string, filePath: string): string => {
   const cleanGitUrl = gitUrl.replace(/\/+$/, '');
@@ -58,35 +35,36 @@ const LANGUAGE_LABEL: Record<AgentConfig['language'], string> = {
 };
 
 const ConfigAccordion = ({ config }: { config: AgentConfig }) => {
-  const styles = useStyles();
   return (
-    <Accordion className={styles.configAccordion}>
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <div className={styles.summaryRow}>
-          <Typography variant="subtitle1">{config.agent}</Typography>
-          <Chip label={config.filePath} size="small" variant="outlined" />
-          <Chip label={LANGUAGE_LABEL[config.language]} size="small" color="primary" />
-          {config.gitUrl && (
-            <Tooltip title="Open file in repository">
-              <IconButton
-                size="small"
-                style={{ marginLeft: 'auto' }}
-                onClick={(e) => { e.stopPropagation(); window.open(constructFileUrl(config.gitUrl!, config.filePath), '_blank'); }}
-              >
-                <LaunchIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          )}
-        </div>
-      </AccordionSummary>
-      <AccordionDetails>
-        <div style={{ width: '100%' }}>
+    <Box className={styles.configAccordion} style={{ position: 'relative' }}>
+      <Accordion>
+        <AccordionTrigger>
+          <Flex align="center" gap="2" style={{ flexWrap: 'wrap', paddingRight: 'var(--bui-space-8)' }}>
+            <Text weight="bold">{config.agent}</Text>
+            <Badge>{config.filePath}</Badge>
+            <Badge>{LANGUAGE_LABEL[config.language]}</Badge>
+          </Flex>
+        </AccordionTrigger>
+        <AccordionPanel>
           <div className={styles.codeContainer}>
             <CodeSnippet text={config.content} language={config.language} showLineNumbers />
           </div>
-        </div>
-      </AccordionDetails>
-    </Accordion>
+        </AccordionPanel>
+      </Accordion>
+      {config.gitUrl && (
+        <TooltipTrigger>
+          <ButtonIcon
+            aria-label="Open file in repository"
+            icon={<RiExternalLinkLine />}
+            size="small"
+            variant="tertiary"
+            style={{ position: 'absolute', top: 'var(--bui-space-2)', right: 'var(--bui-space-8)' }}
+            onPress={() => window.open(constructFileUrl(config.gitUrl!, config.filePath), '_blank')}
+          />
+          <Tooltip>Open file in repository</Tooltip>
+        </TooltipTrigger>
+      )}
+    </Box>
   );
 };
 
@@ -95,7 +73,6 @@ export interface AgentConfigsComponentProps {
 }
 
 export const AgentConfigsComponent = ({ title = 'Agent Configurations' }: AgentConfigsComponentProps) => {
-  const styles = useStyles();
   const { configs, loading, error, hasGitUrl } = useAgentConfigs();
 
   if (loading) return <InfoCard title={title}><Progress /></InfoCard>;
@@ -125,10 +102,10 @@ export const AgentConfigsComponent = ({ title = 'Agent Configurations' }: AgentC
   }
 
   return (
-    <InfoCard title={title} className={styles.root}>
-      <Typography variant="body2" color="textSecondary" style={{ marginBottom: 16 }}>
+    <InfoCard title={title}>
+      <Text style={{ color: 'var(--bui-fg-secondary)', display: 'block', marginBottom: 'var(--bui-space-4)' }}>
         Found {configs.length} agent configuration file{configs.length !== 1 ? 's' : ''}.
-      </Typography>
+      </Text>
       {configs.map(config => (
         <ConfigAccordion key={config.filePath} config={config} />
       ))}

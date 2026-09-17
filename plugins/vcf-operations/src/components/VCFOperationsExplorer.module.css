@@ -1,0 +1,112 @@
+.root {
+  padding: var(--bui-space-4);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.topControls {
+  margin-bottom: var(--bui-space-4);
+}
+
+.topControlsRow {
+  display: flex;
+  align-items: center;
+  gap: var(--bui-space-6);
+  flex-wrap: wrap;
+}
+
+.controlGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--bui-space-2);
+}
+
+.mainContent {
+  display: flex;
+  flex: 1;
+  gap: var(--bui-space-4);
+  min-height: 0;
+}
+
+.leftPanel {
+  width: 320px;
+  min-width: 320px;
+  display: flex;
+  flex-direction: column;
+}
+
+.metricsCard {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.metricsCardBody {
+  flex: 1;
+  overflow: auto;
+  padding-top: var(--bui-space-2);
+  padding-bottom: var(--bui-space-2);
+}
+
+.rightPanel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.chartsContainer {
+  flex: 1;
+  overflow: auto;
+}
+
+.chartCard {
+  margin-bottom: var(--bui-space-4);
+  height: 400px;
+}
+
+.metricItem {
+  padding-left: var(--bui-space-8);
+  padding-right: var(--bui-space-2);
+  border-radius: var(--bui-radius-2);
+  cursor: pointer;
+}
+.metricItem:hover {
+  background-color: var(--bui-bg-neutral-2);
+}
+
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+.categoryHeaderContainer {
+  display: flex;
+  align-items: center;
+  margin-top: var(--bui-space-4);
+  margin-bottom: var(--bui-space-2);
+  padding-right: var(--bui-space-2);
+  border-bottom: 1px solid var(--bui-border-1);
+  padding-bottom: var(--bui-space-1);
+  cursor: pointer;
+}
+.categoryHeaderContainer:first-child {
+  margin-top: var(--bui-space-1);
+}
+.categoryHeaderContainer:hover {
+  background-color: var(--bui-bg-neutral-2);
+}
+
+.categoryTitle {
+  flex: 1;
+  margin-left: var(--bui-space-1);
+}
+
+.selectAllContainer {
+  padding: var(--bui-space-2);
+  border-bottom: 1px solid var(--bui-border-1);
+}

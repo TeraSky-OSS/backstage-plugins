@@ -2,59 +2,25 @@ import { useState, useCallback, useMemo } from 'react';
 import { useApi } from '@backstage/core-plugin-api';
 import { vcfAutomationApiRef } from '../api/VcfAutomationClient';
 import { VmPowerAction, VmPowerActionType, StandaloneVmStatus } from '../types';
+import { Progress } from '@backstage/core-components';
 import {
+  Alert,
+  Badge,
+  Box,
   Button,
   Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Typography,
-  Box,
-  CircularProgress,
-  Snackbar,
-  Chip,
-} from '@material-ui/core';
-import { Alert } from '@material-ui/lab';
-import { makeStyles } from '@material-ui/core/styles';
-import PowerSettingsNewIcon from '@material-ui/icons/PowerSettingsNew';
-import PlayArrowIcon from '@material-ui/icons/PlayArrow';
-import StopIcon from '@material-ui/icons/Stop';
+  DialogBody,
+  DialogFooter,
+  DialogHeader,
+  Flex,
+  Text,
+  Tooltip,
+  TooltipTrigger,
+} from '@backstage/ui';
+import { RiPlayLine, RiShutDownLine, RiStopLine } from '@remixicon/react';
 import useAsync from 'react-use/lib/useAsync';
 import { usePermission } from '@backstage/plugin-permission-react';
 import { vmPowerManagementPermission } from '@terasky/backstage-plugin-vcf-automation-common';
-
-const useStyles = makeStyles(theme => ({
-  powerButtons: {
-    display: 'flex',
-    gap: theme.spacing(1),
-    alignItems: 'center',
-  },
-  powerOnButton: {
-    backgroundColor: theme.palette.success.main,
-    color: theme.palette.success.contrastText,
-    '&:hover': {
-      backgroundColor: theme.palette.success.dark,
-    },
-    '&:disabled': {
-      backgroundColor: theme.palette.action.disabled,
-      color: theme.palette.action.disabled,
-    },
-  },
-  powerOffButton: {
-    backgroundColor: theme.palette.error.main,
-    color: theme.palette.error.contrastText,
-    '&:hover': {
-      backgroundColor: theme.palette.error.dark,
-    },
-    '&:disabled': {
-      backgroundColor: theme.palette.action.disabled,
-      color: theme.palette.action.disabled,
-    },
-  },
-  statusChip: {
-    marginLeft: theme.spacing(1),
-  },
-}));
 
 // Permission is defined in vcf-automation-common plugin
 
@@ -77,7 +43,6 @@ export const VCFAutomationVMPowerManagement: React.FC<VCFAutomationVMPowerManage
   namespaceName,
   namespaceUrnId,
 }) => {
-  const classes = useStyles();
   const api = useApi(vcfAutomationApiRef);
   
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -215,20 +180,20 @@ export const VCFAutomationVMPowerManagement: React.FC<VCFAutomationVMPowerManage
 
   if (loading) {
     return (
-      <Box className={classes.powerButtons}>
-        <CircularProgress size={20} />
-        <Typography variant="body2">Loading power status...</Typography>
-      </Box>
+      <Flex align="center" gap="2">
+        <Progress />
+        <Text variant="body-small">Loading power status...</Text>
+      </Flex>
     );
   }
 
   if (error) {
     return (
-      <Box className={classes.powerButtons}>
-        <Typography variant="body2" color="error">
+      <Flex align="center" gap="2">
+        <Text variant="body-small" style={{ color: 'var(--bui-fg-negative)' }}>
           Failed to load power status
-        </Typography>
-      </Box>
+        </Text>
+      </Flex>
     );
   }
 
@@ -237,90 +202,84 @@ export const VCFAutomationVMPowerManagement: React.FC<VCFAutomationVMPowerManage
   }
 
   const canExecuteAction = hasPermission && availableAction && !executing;
-  const buttonIcon = availableAction === 'PowerOn' ? <PlayArrowIcon /> : <StopIcon />;
-  const buttonClass = availableAction === 'PowerOn' ? classes.powerOnButton : classes.powerOffButton;
+  const buttonIcon = availableAction === 'PowerOn' ? <RiPlayLine /> : <RiStopLine />;
   const buttonText = availableAction === 'PowerOn' ? 'Power On' : 'Power Off';
   const actionTitle = !availableAction ? 'No power action available' : `${buttonText} this virtual machine`;
   const buttonTitle = !hasPermission ? 'You do not have permission to manage VM power state' : actionTitle;
 
   return (
     <>
-      <Box className={classes.powerButtons}>
-        <Button
-          variant="contained"
-          size="small"
-          startIcon={buttonIcon}
-          className={buttonClass}
-          disabled={!canExecuteAction}
-          onClick={() => availableAction && handleActionClick(availableAction)}
-          title={buttonTitle}
-        >
-          {executing ? <CircularProgress size={16} color="inherit" /> : buttonText}
-        </Button>
-        
-        <Chip
-          label={vmData.powerState}
-          size="small"
-          className={classes.statusChip}
-          color={vmData.powerState === 'PoweredOn' ? 'primary' : 'default'}
-          icon={<PowerSettingsNewIcon />}
-        />
-      </Box>
+      <Flex align="center" gap="2">
+        <TooltipTrigger>
+          <Button
+            variant="primary"
+            size="small"
+            destructive={availableAction === 'PowerOff'}
+            iconStart={buttonIcon}
+            isDisabled={!canExecuteAction}
+            isPending={executing}
+            onPress={() => availableAction && handleActionClick(availableAction)}
+          >
+            {buttonText}
+          </Button>
+          <Tooltip>{buttonTitle}</Tooltip>
+        </TooltipTrigger>
+
+        <Badge style={vmData.powerState === 'PoweredOn' ? { color: 'var(--bui-fg-positive)' } : undefined}>
+          <RiShutDownLine style={{ width: '1em', height: '1em', marginRight: 'var(--bui-space-1)' }} />
+          {vmData.powerState}
+        </Badge>
+      </Flex>
 
       {/* Confirmation Dialog */}
-      <Dialog
-        open={confirmDialog.open}
-        onClose={handleCancelAction}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>
+      <Dialog isOpen={confirmDialog.open} onOpenChange={open => !open && handleCancelAction()}>
+        <DialogHeader>
           Confirm {confirmDialog.actionDisplayName}
-        </DialogTitle>
-        <DialogContent>
-          <Typography>
+        </DialogHeader>
+        <DialogBody>
+          <Text>
             Are you sure you want to {confirmDialog.actionDisplayName?.toLowerCase()} this virtual machine?
-          </Typography>
-          <Typography variant="body2" color="textSecondary" style={{ marginTop: 8 }}>
+          </Text>
+          <Text variant="body-small" style={{ color: 'var(--bui-fg-secondary)', display: 'block', marginTop: 'var(--bui-space-2)' }}>
             VM: {vmName || entity.metadata.name}
-          </Typography>
+          </Text>
           {isStandalone && (
-            <Typography variant="body2" color="textSecondary">
+            <Text variant="body-small" style={{ color: 'var(--bui-fg-secondary)', display: 'block' }}>
               Namespace: {namespaceName}
-            </Typography>
+            </Text>
           )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCancelAction} color="primary">
+        </DialogBody>
+        <DialogFooter>
+          <Button variant="secondary" onPress={handleCancelAction}>
             Cancel
           </Button>
-          <Button 
-            onClick={handleConfirmAction} 
-            color="primary" 
-            variant="contained"
+          <Button
+            variant="primary"
+            destructive={confirmDialog.action === 'PowerOff'}
+            onPress={handleConfirmAction}
             // eslint-disable-next-line jsx-a11y/no-autofocus
             autoFocus
           >
             {confirmDialog.actionDisplayName}
           </Button>
-        </DialogActions>
+        </DialogFooter>
       </Dialog>
 
-      {/* Success/Error Snackbar */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert 
-          onClose={handleCloseSnackbar} 
-          severity={snackbar.severity}
-          variant="filled"
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      {/* Success/Error feedback */}
+      {snackbar.open && (
+        <Box style={{ position: 'fixed', bottom: 'var(--bui-space-4)', right: 'var(--bui-space-4)', zIndex: 1300, maxWidth: '400px' }}>
+          <Alert
+            status={snackbar.severity === 'success' ? 'success' : 'danger'}
+            icon
+            description={snackbar.message}
+            customActions={
+              <Button size="small" variant="tertiary" onPress={handleCloseSnackbar}>
+                Dismiss
+              </Button>
+            }
+          />
+        </Box>
+      )}
     </>
   );
 };

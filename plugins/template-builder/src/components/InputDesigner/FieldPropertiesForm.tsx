@@ -1,52 +1,25 @@
 import { useState } from 'react';
 import {
-  Box,
-  TextField,
-  FormControlLabel,
-  Checkbox,
-  Typography,
-  Divider,
   Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Chip,
+  AccordionPanel,
+  AccordionTrigger,
+  Box,
   Button,
-  IconButton,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
-} from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import AddIcon from '@material-ui/icons/Add';
-import DeleteIcon from '@material-ui/icons/Delete';
-import EditIcon from '@material-ui/icons/Edit';
+  ButtonIcon,
+  Checkbox,
+  Flex,
+  NumberField,
+  Select,
+  Tag,
+  TagGroup,
+  Text,
+  TextAreaField,
+  TextField,
+} from '@backstage/ui';
+import { RiAddLine, RiDeleteBinLine, RiEditLine } from '@remixicon/react';
 import type { FieldDefinition } from '../../types';
 import { FieldTypeSelector } from './FieldTypeSelector';
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    paddingTop: theme.spacing(1),
-  },
-  section: {
-    marginBottom: theme.spacing(2),
-  },
-  sectionTitle: {
-    marginBottom: theme.spacing(1),
-    fontWeight: 600,
-  },
-  chipContainer: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: theme.spacing(0.5),
-    marginTop: theme.spacing(1),
-  },
-}));
+import styles from './FieldPropertiesForm.module.css';
 
 const COMMON_WIDGETS = [
   { value: 'text', label: 'Text Input' },
@@ -66,6 +39,28 @@ const COMMON_WIDGETS = [
   { value: 'hidden', label: 'Hidden' },
 ];
 
+const WIDGET_OPTIONS = [
+  { id: '', label: 'Default' },
+  ...COMMON_WIDGETS.map(widget => ({ id: widget.value, label: widget.label })),
+];
+
+const NESTED_TYPE_OPTIONS = [
+  { id: 'string', label: 'String' },
+  { id: 'number', label: 'Number' },
+  { id: 'integer', label: 'Integer' },
+  { id: 'boolean', label: 'Boolean' },
+  { id: 'array', label: 'Array' },
+  { id: 'object', label: 'Object' },
+];
+
+const ITEM_TYPE_OPTIONS = [
+  { id: 'string', label: 'String' },
+  { id: 'number', label: 'Number' },
+  { id: 'integer', label: 'Integer' },
+  { id: 'boolean', label: 'Boolean' },
+  { id: 'object', label: 'Object' },
+];
+
 export interface FieldPropertiesFormProps {
   field: FieldDefinition;
   fieldName: string;
@@ -75,7 +70,6 @@ export interface FieldPropertiesFormProps {
 
 export function FieldPropertiesForm(props: FieldPropertiesFormProps) {
   const { field, fieldName, fieldExtensions, onUpdate } = props;
-  const classes = useStyles();
   const [enumInput, setEnumInput] = useState('');
   const [editingNestedField, setEditingNestedField] = useState<string | null>(null);
   const [nestedFieldDialog, setNestedFieldDialog] = useState(false);
@@ -148,37 +142,36 @@ export function FieldPropertiesForm(props: FieldPropertiesFormProps) {
     });
   };
 
-  return (
-    <Box className={classes.root}>
-      <Typography variant="caption" color="textSecondary" gutterBottom display="block">
-        Field Key: {fieldName}
-      </Typography>
+  const enumTagItems = (field.enum || []).map((value, index) => ({
+    id: String(index),
+    value: String(value),
+  }));
 
-      <Box mt={2} className={classes.section}>
-        <Typography variant="subtitle2" className={classes.sectionTitle}>
+  return (
+    <Box style={{ paddingTop: 'var(--bui-space-2)' }}>
+      <Text as="div" variant="body-small" color="secondary">
+        Field Key: {fieldName}
+      </Text>
+
+      <Box mt="2" mb="2">
+        <Text as="div" variant="title-x-small" weight="bold" style={{ marginBottom: 'var(--bui-space-1)' }}>
           Basic Information
-        </Typography>
+        </Text>
         <TextField
-          fullWidth
           label="Field Title"
           value={field.title}
-          onChange={e => onUpdate({ title: e.target.value })}
-          variant="outlined"
+          onChange={value => onUpdate({ title: value })}
           size="small"
-          margin="dense"
         />
-        <TextField
-          fullWidth
-          label="Description"
-          value={field.description || ''}
-          onChange={e => onUpdate({ description: e.target.value })}
-          variant="outlined"
-          size="small"
-          margin="dense"
-          multiline
-          rows={2}
-        />
-        <Box mt={1}>
+        <Box mt="1">
+          <TextAreaField
+            label="Description"
+            value={field.description || ''}
+            onChange={value => onUpdate({ description: value })}
+            rows={2}
+          />
+        </Box>
+        <Box mt="1">
           <FieldTypeSelector
             value={field.type}
             customFieldType={field.uiField}
@@ -188,273 +181,229 @@ export function FieldPropertiesForm(props: FieldPropertiesFormProps) {
         </Box>
       </Box>
 
-      <Divider />
+      <hr className={styles.divider} />
 
       {/* Enum/Options for Select/Radio */}
       {(field.type === 'string' || field.type === 'number') && (
         <>
-          <Box mt={2} className={classes.section}>
-            <Typography variant="subtitle2" className={classes.sectionTitle}>
+          <Box mt="2" mb="2">
+            <Text as="div" variant="title-x-small" weight="bold" style={{ marginBottom: 'var(--bui-space-1)' }}>
               Enum Options
-            </Typography>
-            <Typography variant="caption" color="textSecondary" display="block" gutterBottom>
+            </Text>
+            <Text as="div" variant="body-small" color="secondary">
               Define allowed values for select/radio widgets
-            </Typography>
-            
-            <Box display="flex" style={{ gap: 8 }} mt={1}>
-              <TextField
-                fullWidth
-                label="Add Option"
-                value={enumInput}
-                onChange={e => setEnumInput(e.target.value)}
-                variant="outlined"
-                size="small"
-                placeholder="Enter value and press Enter"
-                onKeyPress={e => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAddEnumValue();
-                  }
-                }}
-              />
-            </Box>
-            
-            {field.enum && field.enum.length > 0 && (
-              <Box className={classes.chipContainer}>
-                {field.enum.map((value, index) => (
-                  <Chip
-                    key={index}
-                    label={value}
-                    onDelete={() => handleRemoveEnumValue(index)}
-                    size="small"
-                  />
-                ))}
+            </Text>
+
+            <Flex mt="1" gap="2">
+              <Box style={{ flex: 1 }}>
+                <TextField
+                  label="Add Option"
+                  value={enumInput}
+                  onChange={setEnumInput}
+                  size="small"
+                  placeholder="Enter value and press Enter"
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddEnumValue();
+                    }
+                  }}
+                />
+              </Box>
+            </Flex>
+
+            {enumTagItems.length > 0 && (
+              <Box mt="1">
+                <TagGroup
+                  items={enumTagItems}
+                  onRemove={keys => {
+                    const [key] = keys;
+                    if (typeof key === 'string') {
+                      handleRemoveEnumValue(Number(key));
+                    }
+                  }}
+                >
+                  {item => (
+                    <Tag id={item.id} textValue={item.value}>
+                      {item.value}
+                    </Tag>
+                  )}
+                </TagGroup>
               </Box>
             )}
           </Box>
-          <Divider />
+          <hr className={styles.divider} />
         </>
       )}
 
-      <Box mt={2} className={classes.section}>
-        <Typography variant="subtitle2" className={classes.sectionTitle}>
+      <Box mt="2" mb="2">
+        <Text as="div" variant="title-x-small" weight="bold" style={{ marginBottom: 'var(--bui-space-1)' }}>
           Validation
-        </Typography>
-        
+        </Text>
+
         {(field.type === 'string' && !field.uiField) && (
-          <>
+          <Flex direction="column" gap="1">
             <TextField
-              fullWidth
               label="Pattern (regex)"
               value={field.pattern || ''}
-              onChange={e => onUpdate({ pattern: e.target.value })}
-              variant="outlined"
+              onChange={value => onUpdate({ pattern: value })}
               size="small"
-              margin="dense"
               placeholder="^[a-z]+$"
             />
-            <TextField
-              fullWidth
+            <NumberField
               label="Min Length"
-              type="number"
-              value={field.minLength ?? ''}
-              onChange={e => onUpdate({ minLength: e.target.value ? parseInt(e.target.value, 10) : undefined })}
-              variant="outlined"
+              value={field.minLength}
+              onChange={value => onUpdate({ minLength: Number.isNaN(value) ? undefined : value })}
               size="small"
-              margin="dense"
             />
-            <TextField
-              fullWidth
+            <NumberField
               label="Max Length"
-              type="number"
-              value={field.maxLength ?? ''}
-              onChange={e => onUpdate({ maxLength: e.target.value ? parseInt(e.target.value, 10) : undefined })}
-              variant="outlined"
+              value={field.maxLength}
+              onChange={value => onUpdate({ maxLength: Number.isNaN(value) ? undefined : value })}
               size="small"
-              margin="dense"
             />
-          </>
+          </Flex>
         )}
 
         {(field.type === 'number' || field.type === 'integer') && (
-          <>
-            <TextField
-              fullWidth
+          <Flex direction="column" gap="1">
+            <NumberField
               label="Minimum"
-              type="number"
-              value={field.minimum ?? ''}
-              onChange={e => onUpdate({ minimum: e.target.value ? parseFloat(e.target.value) : undefined })}
-              variant="outlined"
+              value={field.minimum}
+              onChange={value => onUpdate({ minimum: Number.isNaN(value) ? undefined : value })}
               size="small"
-              margin="dense"
             />
-            <TextField
-              fullWidth
+            <NumberField
               label="Maximum"
-              type="number"
-              value={field.maximum ?? ''}
-              onChange={e => onUpdate({ maximum: e.target.value ? parseFloat(e.target.value) : undefined })}
-              variant="outlined"
+              value={field.maximum}
+              onChange={value => onUpdate({ maximum: Number.isNaN(value) ? undefined : value })}
               size="small"
-              margin="dense"
             />
-          </>
+          </Flex>
         )}
       </Box>
 
-      <Divider />
+      <hr className={styles.divider} />
 
-      <Box mt={2} className={classes.section}>
-        <Typography variant="subtitle2" className={classes.sectionTitle}>
+      <Box mt="2" mb="2">
+        <Text as="div" variant="title-x-small" weight="bold" style={{ marginBottom: 'var(--bui-space-1)' }}>
           Default Value
-        </Typography>
+        </Text>
         {field.type === 'boolean' ? (
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={field.default === true}
-                onChange={e => onUpdate({ default: e.target.checked })}
-              />
-            }
-            label="Default value"
-          />
+          <Checkbox
+            isSelected={field.default === true}
+            onChange={isSelected => onUpdate({ default: isSelected })}
+          >
+            Default value
+          </Checkbox>
         ) : (
           <TextField
-            fullWidth
             label="Default Value"
             value={field.default ?? ''}
-            onChange={e => onUpdate({ default: e.target.value })}
-            variant="outlined"
+            onChange={value => onUpdate({ default: value })}
             size="small"
-            margin="dense"
           />
         )}
       </Box>
 
-      <Divider />
+      <hr className={styles.divider} />
 
-      <Box mt={2}>
+      <Box mt="2">
         <Accordion>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="subtitle2">UI Options</Typography>
-          </AccordionSummary>
-          <AccordionDetails>
+          <AccordionTrigger>
+            <Text variant="title-x-small" weight="bold">UI Options</Text>
+          </AccordionTrigger>
+          <AccordionPanel>
             <Box width="100%">
-              {/* Widget Selector */}
-              <FormControl fullWidth variant="outlined" size="small" margin="dense">
-                <InputLabel>Widget</InputLabel>
-                <Select
-                  value={field.uiWidget || ''}
-                  onChange={e => onUpdate({ uiWidget: e.target.value as string })}
-                  label="Widget"
-                >
-                  <MenuItem value="">
-                    <em>Default</em>
-                  </MenuItem>
-                  {COMMON_WIDGETS.map(widget => (
-                    <MenuItem key={widget.value} value={widget.value}>
-                      {widget.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              <TextField
-                fullWidth
-                label="Placeholder"
-                value={field.uiPlaceholder || ''}
-                onChange={e => onUpdate({ uiPlaceholder: e.target.value })}
-                variant="outlined"
-                size="small"
-                margin="dense"
-              />
-              
-              <TextField
-                fullWidth
-                label="Help Text"
-                value={field.uiHelp || ''}
-                onChange={e => onUpdate({ uiHelp: e.target.value })}
-                variant="outlined"
-                size="small"
-                margin="dense"
-                multiline
-                rows={2}
+              <Select
+                label="Widget"
+                selectedKey={field.uiWidget || ''}
+                onSelectionChange={key => onUpdate({ uiWidget: key as string })}
+                options={WIDGET_OPTIONS}
               />
 
-              <TextField
-                fullWidth
-                label="Rows (for textarea)"
-                type="number"
-                value={(field.uiOptions as any)?.rows || ''}
-                onChange={e => handleUiOptionsChange('rows', e.target.value ? parseInt(e.target.value, 10) : undefined)}
-                variant="outlined"
-                size="small"
-                margin="dense"
-              />
-
-              <TextField
-                fullWidth
-                label="Empty Value"
-                value={(field.uiOptions as any)?.emptyValue || ''}
-                onChange={e => handleUiOptionsChange('emptyValue', e.target.value)}
-                variant="outlined"
-                size="small"
-                margin="dense"
-                helperText="Value to use when field is empty"
-              />
-
-              <Box mt={2}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={field.uiAutofocus || false}
-                      onChange={e => onUpdate({ uiAutofocus: e.target.checked })}
-                    />
-                  }
-                  label="Auto-focus"
+              <Box mt="1">
+                <TextField
+                  label="Placeholder"
+                  value={field.uiPlaceholder || ''}
+                  onChange={value => onUpdate({ uiPlaceholder: value })}
+                  size="small"
                 />
               </Box>
-              
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={field.uiDisabled || false}
-                    onChange={e => onUpdate({ uiDisabled: e.target.checked })}
-                  />
-                }
-                label="Disabled"
-              />
-              
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={field.uiReadonly || false}
-                    onChange={e => onUpdate({ uiReadonly: e.target.checked })}
-                  />
-                }
-                label="Read-only"
-              />
+
+              <Box mt="1">
+                <TextAreaField
+                  label="Help Text"
+                  value={field.uiHelp || ''}
+                  onChange={value => onUpdate({ uiHelp: value })}
+                  rows={2}
+                />
+              </Box>
+
+              <Box mt="1">
+                <NumberField
+                  label="Rows (for textarea)"
+                  value={(field.uiOptions as any)?.rows ?? undefined}
+                  onChange={value =>
+                    handleUiOptionsChange('rows', Number.isNaN(value) ? undefined : value)
+                  }
+                  size="small"
+                />
+              </Box>
+
+              <Box mt="1">
+                <TextField
+                  label="Empty Value"
+                  value={(field.uiOptions as any)?.emptyValue || ''}
+                  onChange={value => handleUiOptionsChange('emptyValue', value)}
+                  size="small"
+                  description="Value to use when field is empty"
+                />
+              </Box>
+
+              <Box mt="2">
+                <Checkbox
+                  isSelected={field.uiAutofocus || false}
+                  onChange={isSelected => onUpdate({ uiAutofocus: isSelected })}
+                >
+                  Auto-focus
+                </Checkbox>
+              </Box>
+
+              <Checkbox
+                isSelected={field.uiDisabled || false}
+                onChange={isSelected => onUpdate({ uiDisabled: isSelected })}
+              >
+                Disabled
+              </Checkbox>
+
+              <Checkbox
+                isSelected={field.uiReadonly || false}
+                onChange={isSelected => onUpdate({ uiReadonly: isSelected })}
+              >
+                Read-only
+              </Checkbox>
             </Box>
-          </AccordionDetails>
+          </AccordionPanel>
         </Accordion>
       </Box>
 
       {/* Custom Field Options */}
       {field.uiField && (
-        <Box mt={2}>
+        <Box mt="2">
           <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle2">
+            <AccordionTrigger>
+              <Text variant="title-x-small" weight="bold">
                 {field.uiField} Options (JSON)
-              </Typography>
-            </AccordionSummary>
-            <AccordionDetails>
+              </Text>
+            </AccordionTrigger>
+            <AccordionPanel>
               <Box width="100%">
-                <Typography variant="caption" color="textSecondary" gutterBottom display="block">
+                <Text as="div" variant="body-small" color="secondary">
                   Configure options specific to the {field.uiField} field extension.
                   Common options:
-                </Typography>
-                <Typography variant="caption" color="textSecondary" component="div">
+                </Text>
+                <Text as="div" variant="body-small" color="secondary">
                   • <strong>allowedHosts:</strong> Array of allowed hosts (for RepoUrlPicker)
                   <br />
                   • <strong>allowedOwners:</strong> Array of allowed owners
@@ -462,185 +411,168 @@ export function FieldPropertiesForm(props: FieldPropertiesFormProps) {
                   • <strong>catalogFilter:</strong> Filter for catalog entities
                   <br />
                   • <strong>requestUserCredentials:</strong> Request user credentials
-                </Typography>
-                
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={8}
-                  value={field.uiOptions ? JSON.stringify(field.uiOptions, null, 2) : '{}'}
-                  onChange={e => {
-                    try {
-                      const parsed = JSON.parse(e.target.value);
-                      onUpdate({ uiOptions: parsed });
-                    } catch {
-                      // Invalid JSON, don't update
-                    }
-                  }}
-                  variant="outlined"
-                  placeholder={`{
+                </Text>
+
+                <Box mt="1">
+                  <TextAreaField
+                    value={field.uiOptions ? JSON.stringify(field.uiOptions, null, 2) : '{}'}
+                    onChange={value => {
+                      try {
+                        const parsed = JSON.parse(value);
+                        onUpdate({ uiOptions: parsed });
+                      } catch {
+                        // Invalid JSON, don't update
+                      }
+                    }}
+                    rows={8}
+                    placeholder={`{
   "allowedHosts": ["github.com"],
   "requestUserCredentials": true
 }`}
-                  helperText="Enter valid JSON for custom field options"
-                  style={{ marginTop: 8 }}
-                />
+                    description="Enter valid JSON for custom field options"
+                  />
+                </Box>
               </Box>
-            </AccordionDetails>
+            </AccordionPanel>
           </Accordion>
         </Box>
       )}
 
       {/* Nested Object Properties */}
       {field.type === 'object' && (
-        <Box mt={2}>
+        <Box mt="2">
           <Accordion defaultExpanded>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle2">Object Properties</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
+            <AccordionTrigger>
+              <Text variant="title-x-small" weight="bold">Object Properties</Text>
+            </AccordionTrigger>
+            <AccordionPanel>
               <Box width="100%">
-                <Typography variant="caption" color="textSecondary" gutterBottom display="block">
+                <Text as="div" variant="body-small" color="secondary">
                   Define nested properties for this object
-                </Typography>
-                
-                <Button
-                  size="small"
-                  startIcon={<AddIcon />}
-                  onClick={handleAddNestedProperty}
-                  variant="outlined"
-                  color="primary"
-                  fullWidth
-                  style={{ marginTop: 8, marginBottom: 8 }}
-                >
-                  Add Property
-                </Button>
+                </Text>
+
+                <Box mt="1" mb="1">
+                  <Button
+                    size="small"
+                    iconStart={<RiAddLine />}
+                    onPress={handleAddNestedProperty}
+                    variant="secondary"
+                    style={{ width: '100%' }}
+                  >
+                    Add Property
+                  </Button>
+                </Box>
 
                 {field.properties && Object.keys(field.properties).length > 0 ? (
-                  <List dense>
+                  <Box>
                     {Object.entries(field.properties).map(([key, prop]) => (
-                      <ListItem key={key} divider>
-                        <ListItemText
-                          primary={`${key}: ${prop.title || key}`}
-                          secondary={`Type: ${prop.type}${prop.description ? ` - ${prop.description}` : ''}`}
-                        />
-                        <ListItemSecondaryAction>
-                          <IconButton
-                            edge="end"
+                      <Box key={key} className={styles.nestedPropertyRow}>
+                        <Box style={{ flex: 1, minWidth: 0 }}>
+                          <Text as="div" variant="body-small">{`${key}: ${prop.title || key}`}</Text>
+                          <Text as="div" variant="body-small" color="secondary">
+                            {`Type: ${prop.type}${prop.description ? ` - ${prop.description}` : ''}`}
+                          </Text>
+                        </Box>
+                        <Flex gap="1">
+                          <ButtonIcon
+                            aria-label={`Edit property ${key}`}
+                            icon={<RiEditLine />}
                             size="small"
-                            onClick={() => {
+                            variant="tertiary"
+                            onPress={() => {
                               setEditingNestedField(key);
                               setNestedFieldDialog(true);
                             }}
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                          <IconButton
-                            edge="end"
+                          />
+                          <ButtonIcon
+                            aria-label={`Delete property ${key}`}
+                            icon={<RiDeleteBinLine />}
                             size="small"
-                            onClick={() => handleDeleteNestedProperty(key)}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </ListItemSecondaryAction>
-                      </ListItem>
+                            variant="tertiary"
+                            onPress={() => handleDeleteNestedProperty(key)}
+                          />
+                        </Flex>
+                      </Box>
                     ))}
-                  </List>
+                  </Box>
                 ) : (
-                  <Typography variant="caption" color="textSecondary" style={{ marginTop: 8 }}>
+                  <Text as="div" variant="body-small" color="secondary" style={{ marginTop: 'var(--bui-space-1)' }}>
                     No properties defined. Click "Add Property" to add nested fields.
-                  </Typography>
+                  </Text>
                 )}
 
                 {/* Nested Field Editor - Simplified inline editor */}
                 {editingNestedField && field.properties?.[editingNestedField] && nestedFieldDialog && (
-                  <Box mt={2} p={2} border={1} borderColor="divider" borderRadius={4}>
-                    <Typography variant="subtitle2" gutterBottom>
+                  <Box className={styles.nestedFieldEditor}>
+                    <Text as="div" variant="title-x-small" weight="bold" style={{ marginBottom: 'var(--bui-space-1)' }}>
                       Edit Property: {editingNestedField}
-                    </Typography>
-                    
+                    </Text>
+
                     <TextField
-                      fullWidth
                       label="Property Key"
                       value={editingNestedField}
-                      variant="outlined"
                       size="small"
-                      margin="dense"
-                      disabled
-                      helperText="Property key cannot be changed after creation"
-                    />
-                    
-                    <TextField
-                      fullWidth
-                      label="Title"
-                      value={field.properties[editingNestedField].title}
-                      onChange={e => handleUpdateNestedProperty(editingNestedField, { title: e.target.value })}
-                      variant="outlined"
-                      size="small"
-                      margin="dense"
-                    />
-                    
-                    <TextField
-                      fullWidth
-                      label="Description"
-                      value={field.properties[editingNestedField].description || ''}
-                      onChange={e => handleUpdateNestedProperty(editingNestedField, { description: e.target.value })}
-                      variant="outlined"
-                      size="small"
-                      margin="dense"
-                      multiline
-                      rows={2}
+                      isDisabled
+                      description="Property key cannot be changed after creation"
                     />
 
-                    <FormControl fullWidth variant="outlined" size="small" margin="dense">
-                      <InputLabel>Type</InputLabel>
+                    <Box mt="1">
+                      <TextField
+                        label="Title"
+                        value={field.properties[editingNestedField].title}
+                        onChange={value => handleUpdateNestedProperty(editingNestedField, { title: value })}
+                        size="small"
+                      />
+                    </Box>
+
+                    <Box mt="1">
+                      <TextAreaField
+                        label="Description"
+                        value={field.properties[editingNestedField].description || ''}
+                        onChange={value => handleUpdateNestedProperty(editingNestedField, { description: value })}
+                        rows={2}
+                      />
+                    </Box>
+
+                    <Box mt="1">
                       <Select
-                        value={field.properties[editingNestedField].type}
-                        onChange={e => handleUpdateNestedProperty(editingNestedField, { type: e.target.value as string })}
                         label="Type"
-                      >
-                        <MenuItem value="string">String</MenuItem>
-                        <MenuItem value="number">Number</MenuItem>
-                        <MenuItem value="integer">Integer</MenuItem>
-                        <MenuItem value="boolean">Boolean</MenuItem>
-                        <MenuItem value="array">Array</MenuItem>
-                        <MenuItem value="object">Object</MenuItem>
-                      </Select>
-                    </FormControl>
+                        selectedKey={field.properties[editingNestedField].type}
+                        onSelectionChange={key => handleUpdateNestedProperty(editingNestedField, { type: key as string })}
+                        options={NESTED_TYPE_OPTIONS}
+                      />
+                    </Box>
 
                     {field.properties[editingNestedField].type === 'string' && (
                       <>
-                        <TextField
-                          fullWidth
-                          label="Default Value"
-                          value={field.properties[editingNestedField].default || ''}
-                          onChange={e => handleUpdateNestedProperty(editingNestedField, { default: e.target.value })}
-                          variant="outlined"
-                          size="small"
-                          margin="dense"
-                        />
-                        <TextField
-                          fullWidth
-                          label="Enum Values (comma-separated)"
-                          value={field.properties[editingNestedField].enum?.join(', ') || ''}
-                          onChange={e => {
-                            const values = e.target.value.split(',').map(v => v.trim()).filter(Boolean);
-                            handleUpdateNestedProperty(editingNestedField, { enum: values.length > 0 ? values : undefined });
-                          }}
-                          variant="outlined"
-                          size="small"
-                          margin="dense"
-                          helperText="For dropdowns/select fields"
-                        />
+                        <Box mt="1">
+                          <TextField
+                            label="Default Value"
+                            value={field.properties[editingNestedField].default || ''}
+                            onChange={value => handleUpdateNestedProperty(editingNestedField, { default: value })}
+                            size="small"
+                          />
+                        </Box>
+                        <Box mt="1">
+                          <TextField
+                            label="Enum Values (comma-separated)"
+                            value={field.properties[editingNestedField].enum?.join(', ') || ''}
+                            onChange={value => {
+                              const values = value.split(',').map(v => v.trim()).filter(Boolean);
+                              handleUpdateNestedProperty(editingNestedField, { enum: values.length > 0 ? values : undefined });
+                            }}
+                            size="small"
+                            description="For dropdowns/select fields"
+                          />
+                        </Box>
                       </>
                     )}
 
-                    <Box mt={2} display="flex" style={{ gap: 8 }}>
+                    <Box mt="2">
                       <Button
                         size="small"
-                        variant="contained"
-                        color="primary"
-                        onClick={() => {
+                        variant="primary"
+                        onPress={() => {
                           setEditingNestedField(null);
                           setNestedFieldDialog(false);
                         }}
@@ -651,89 +583,76 @@ export function FieldPropertiesForm(props: FieldPropertiesFormProps) {
                   </Box>
                 )}
               </Box>
-            </AccordionDetails>
+            </AccordionPanel>
           </Accordion>
         </Box>
       )}
 
       {/* Array Items Configuration */}
       {field.type === 'array' && (
-        <Box mt={2}>
+        <Box mt="2">
           <Accordion defaultExpanded>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle2">Array Item Configuration</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
+            <AccordionTrigger>
+              <Text variant="title-x-small" weight="bold">Array Item Configuration</Text>
+            </AccordionTrigger>
+            <AccordionPanel>
               <Box width="100%">
-                <Typography variant="caption" color="textSecondary" gutterBottom display="block">
+                <Text as="div" variant="body-small" color="secondary">
                   Configure the schema for items in this array
-                </Typography>
+                </Text>
 
-                <FormControl fullWidth variant="outlined" size="small" margin="dense">
-                  <InputLabel>Item Type</InputLabel>
+                <Box mt="1">
                   <Select
-                    value={field.items?.type || 'string'}
-                    onChange={e => handleUpdateArrayItems({ type: e.target.value as string })}
                     label="Item Type"
-                  >
-                    <MenuItem value="string">String</MenuItem>
-                    <MenuItem value="number">Number</MenuItem>
-                    <MenuItem value="integer">Integer</MenuItem>
-                    <MenuItem value="boolean">Boolean</MenuItem>
-                    <MenuItem value="object">Object</MenuItem>
-                  </Select>
-                </FormControl>
+                    selectedKey={field.items?.type || 'string'}
+                    onSelectionChange={key => handleUpdateArrayItems({ type: key as string })}
+                    options={ITEM_TYPE_OPTIONS}
+                  />
+                </Box>
 
                 {field.items?.type === 'string' && (
-                  <TextField
-                    fullWidth
-                    label="Allowed Values (comma-separated)"
-                    value={field.items.enum?.join(', ') || ''}
-                    onChange={e => {
-                      const values = e.target.value.split(',').map(v => v.trim()).filter(Boolean);
-                      handleUpdateArrayItems({ enum: values.length > 0 ? values : undefined });
-                    }}
-                    variant="outlined"
-                    size="small"
-                    margin="dense"
-                    helperText="Define allowed values for array items"
-                  />
+                  <Box mt="1">
+                    <TextField
+                      label="Allowed Values (comma-separated)"
+                      value={field.items.enum?.join(', ') || ''}
+                      onChange={value => {
+                        const values = value.split(',').map(v => v.trim()).filter(Boolean);
+                        handleUpdateArrayItems({ enum: values.length > 0 ? values : undefined });
+                      }}
+                      size="small"
+                      description="Define allowed values for array items"
+                    />
+                  </Box>
                 )}
 
-                <TextField
-                  fullWidth
-                  label="Minimum Items"
-                  type="number"
-                  value={field.minLength ?? ''}
-                  onChange={e => onUpdate({ minLength: e.target.value ? parseInt(e.target.value, 10) : undefined })}
-                  variant="outlined"
-                  size="small"
-                  margin="dense"
-                />
+                <Box mt="1">
+                  <NumberField
+                    label="Minimum Items"
+                    value={field.minLength}
+                    onChange={value => onUpdate({ minLength: Number.isNaN(value) ? undefined : value })}
+                    size="small"
+                  />
+                </Box>
 
-                <TextField
-                  fullWidth
-                  label="Maximum Items"
-                  type="number"
-                  value={field.maxLength ?? ''}
-                  onChange={e => onUpdate({ maxLength: e.target.value ? parseInt(e.target.value, 10) : undefined })}
-                  variant="outlined"
-                  size="small"
-                  margin="dense"
-                />
+                <Box mt="1">
+                  <NumberField
+                    label="Maximum Items"
+                    value={field.maxLength}
+                    onChange={value => onUpdate({ maxLength: Number.isNaN(value) ? undefined : value })}
+                    size="small"
+                  />
+                </Box>
 
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={(field.uiOptions as any)?.uniqueItems || false}
-                      onChange={e => handleUiOptionsChange('uniqueItems', e.target.checked)}
-                    />
-                  }
-                  label="Unique Items"
-                  style={{ marginTop: 8 }}
-                />
+                <Box mt="2">
+                  <Checkbox
+                    isSelected={(field.uiOptions as any)?.uniqueItems || false}
+                    onChange={isSelected => handleUiOptionsChange('uniqueItems', isSelected)}
+                  >
+                    Unique Items
+                  </Checkbox>
+                </Box>
               </Box>
-            </AccordionDetails>
+            </AccordionPanel>
           </Accordion>
         </Box>
       )}

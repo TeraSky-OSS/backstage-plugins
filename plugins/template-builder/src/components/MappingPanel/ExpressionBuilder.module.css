@@ -1,0 +1,9 @@
+.expressionPreview {
+  margin-top: var(--bui-space-2);
+  padding: var(--bui-space-2);
+  background-color: var(--bui-bg-neutral-2);
+  border-radius: var(--bui-radius-2);
+  font-family: monospace;
+  font-size: 0.85rem;
+  word-break: break-all;
+}

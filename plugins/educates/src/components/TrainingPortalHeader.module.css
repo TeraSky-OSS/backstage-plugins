@@ -1,0 +1,35 @@
+.headerContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--bui-space-4);
+  cursor: pointer;
+  padding: var(--bui-space-2);
+  border-radius: var(--bui-radius-2);
+}
+.headerContainer:hover {
+  background-color: var(--bui-bg-neutral-2);
+}
+
+.logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.titleSection {
+  flex: 1;
+}
+
+.contentSection {
+  margin-top: var(--bui-space-4);
+  padding: var(--bui-space-4);
+  background-color: var(--bui-bg-neutral-2);
+  border-radius: var(--bui-radius-2);
+  border: 1px solid var(--bui-border-1);
+}
+
+.labelContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bui-space-2) var(--bui-space-4);
+}

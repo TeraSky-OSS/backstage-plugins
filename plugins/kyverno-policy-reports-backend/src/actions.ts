@@ -19,6 +19,7 @@ export function registerMcpActions(
     schema: {
       input: z => z.object({
         entity: z.object({
+          kind: z.string().describe('The kind of the entity'),
           metadata: z.object({
             name: z.string().describe('The name of the entity'),
             namespace: z.string().describe('The namespace of the entity'),
@@ -72,6 +73,7 @@ export function registerMcpActions(
 
         const reports = await service.getPolicyReports({
           entity: {
+            kind: input.entity.kind,
             metadata: input.entity.metadata,
           },
         });

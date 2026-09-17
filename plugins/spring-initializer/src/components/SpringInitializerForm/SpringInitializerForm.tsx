@@ -1,26 +1,22 @@
-import { useState, useCallback, useEffect, useMemo, ChangeEvent } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useApi, fetchApiRef, configApiRef, discoveryApiRef } from '@backstage/core-plugin-api';
 import {
   Progress,
   ResponseErrorPanel,
 } from '@backstage/core-components';
-import { 
-  FormControl, 
-  TextField, 
-  Typography, 
-  Select,
-  MenuItem,
+import {
   Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Checkbox,
-  FormControlLabel,
-  FormGroup,
-  FormLabel,
+  AccordionPanel,
+  AccordionTrigger,
   Box,
-  Chip,
-} from '@material-ui/core';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+  Checkbox,
+  Flex,
+  Select,
+  Tag,
+  TagGroup,
+  Text,
+  TextField,
+} from '@backstage/ui';
 import type { JsonObject } from '@backstage/types';
 import type { FieldExtensionComponentProps } from '@backstage/plugin-scaffolder-react';
 
@@ -373,268 +369,235 @@ export const SpringInitializerForm = ({
   }
 
   if (!metadata) {
-    return <Typography>No metadata available</Typography>;
+    return <Text>No metadata available</Text>;
   }
 
   return (
-    <Box>
-      <Typography variant="h6" gutterBottom>
+    <Flex direction="column" gap="4">
+      <Text variant="title-medium" weight="bold">
         Spring Boot Project Configuration
-      </Typography>
+      </Text>
 
       {/* Project Type */}
-      <FormControl fullWidth margin="normal">
-        <FormLabel>Project Type{configDefaults.type.readOnly && ' (Read-only)'}</FormLabel>
-        <Select
-          value={projectType}
-          onChange={(e) => setProjectType(e.target.value as string)}
-          disabled={configDefaults.type.readOnly}
-        >
-          {metadata.type?.values.map((type) => (
-            <MenuItem key={type.id} value={type.id}>
-              {type.name}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+      <Select
+        label={`Project Type${configDefaults.type.readOnly ? ' (Read-only)' : ''}`}
+        selectedKey={projectType || null}
+        onSelectionChange={key => setProjectType(key as string)}
+        isDisabled={configDefaults.type.readOnly}
+        options={(metadata.type?.values || []).map(type => ({ id: type.id, label: type.name }))}
+      />
 
       {/* Language */}
-      <FormControl fullWidth margin="normal">
-        <FormLabel>Language{configDefaults.language.readOnly && ' (Read-only)'}</FormLabel>
-        <Select
-          value={language}
-          onChange={(e) => setLanguage(e.target.value as string)}
-          disabled={configDefaults.language.readOnly}
-        >
-          {metadata.language?.values.map((lang) => (
-            <MenuItem key={lang.id} value={lang.id}>
-              {lang.name}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+      <Select
+        label={`Language${configDefaults.language.readOnly ? ' (Read-only)' : ''}`}
+        selectedKey={language || null}
+        onSelectionChange={key => setLanguage(key as string)}
+        isDisabled={configDefaults.language.readOnly}
+        options={(metadata.language?.values || []).map(lang => ({ id: lang.id, label: lang.name }))}
+      />
 
       {/* Spring Boot Version */}
-      <FormControl fullWidth margin="normal">
-        <FormLabel>Spring Boot Version{configDefaults.bootVersion.readOnly && ' (Read-only)'}</FormLabel>
-        <Select
-          value={bootVersion}
-          onChange={(e) => setBootVersion(e.target.value as string)}
-          disabled={configDefaults.bootVersion.readOnly}
-        >
-          {metadata.bootVersion?.values.map((ver) => (
-            <MenuItem key={ver.id} value={ver.id}>
-              {ver.name}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+      <Select
+        label={`Spring Boot Version${configDefaults.bootVersion.readOnly ? ' (Read-only)' : ''}`}
+        selectedKey={bootVersion || null}
+        onSelectionChange={key => setBootVersion(key as string)}
+        isDisabled={configDefaults.bootVersion.readOnly}
+        options={(metadata.bootVersion?.values || []).map(ver => ({ id: ver.id, label: ver.name }))}
+      />
 
       {/* Project Metadata Section */}
-      <Typography variant="subtitle1" style={{ marginTop: 16, marginBottom: 8 }}>
+      <Text variant="title-small" weight="bold" style={{ marginTop: 'var(--bui-space-4)' }}>
         Project Metadata
-      </Typography>
-      
+      </Text>
+
       <TextField
         label={`Group${configDefaults.groupId.readOnly ? ' (Read-only)' : ''}`}
-        helperText="e.g., com.example"
+        description="e.g., com.example"
         value={groupId}
-        onChange={(e: ChangeEvent<HTMLInputElement>) => setGroupId(e.target.value)}
-        fullWidth
-        margin="normal"
-        disabled={configDefaults.groupId.readOnly}
+        onChange={setGroupId}
+        isDisabled={configDefaults.groupId.readOnly}
       />
 
       <TextField
         label="Artifact"
-        helperText="e.g., demo"
+        description="e.g., demo"
         value={artifactId}
-        onChange={(e: ChangeEvent<HTMLInputElement>) => setArtifactId(e.target.value)}
-        fullWidth
-        margin="normal"
+        onChange={setArtifactId}
       />
 
       <TextField
         label="Name"
-        helperText="Project name"
+        description="Project name"
         value={name}
-        onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
-        fullWidth
-        margin="normal"
+        onChange={setName}
       />
 
       <TextField
         label="Description"
-        helperText="Project description"
+        description="Project description"
         value={description}
-        onChange={(e: ChangeEvent<HTMLInputElement>) => setDescription(e.target.value)}
-        fullWidth
-        margin="normal"
+        onChange={setDescription}
       />
 
       <TextField
         label="Package Name"
-        helperText="e.g., com.example.demo"
+        description="e.g., com.example.demo"
         value={packageName}
-        onChange={(e: ChangeEvent<HTMLInputElement>) => setPackageName(e.target.value)}
-        fullWidth
-        margin="normal"
+        onChange={setPackageName}
       />
 
       <TextField
         label="Version"
-        helperText="Project version"
+        description="Project version"
         value={version}
-        onChange={(e: ChangeEvent<HTMLInputElement>) => setVersion(e.target.value)}
-        fullWidth
-        margin="normal"
+        onChange={setVersion}
       />
 
       {/* Packaging */}
-      <FormControl fullWidth margin="normal">
-        <FormLabel>Packaging{configDefaults.packaging.readOnly && ' (Read-only)'}</FormLabel>
-        <Select
-          value={packaging}
-          onChange={(e) => setPackaging(e.target.value as string)}
-          disabled={configDefaults.packaging.readOnly}
-        >
-          {metadata.packaging?.values.map((pack) => (
-            <MenuItem key={pack.id} value={pack.id}>
-              {pack.name}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+      <Select
+        label={`Packaging${configDefaults.packaging.readOnly ? ' (Read-only)' : ''}`}
+        selectedKey={packaging || null}
+        onSelectionChange={key => setPackaging(key as string)}
+        isDisabled={configDefaults.packaging.readOnly}
+        options={(metadata.packaging?.values || []).map(pack => ({ id: pack.id, label: pack.name }))}
+      />
 
       {/* Java Version */}
-      <FormControl fullWidth margin="normal">
-        <FormLabel>Java Version{configDefaults.javaVersion.readOnly && ' (Read-only)'}</FormLabel>
-        <Select
-          value={javaVersion}
-          onChange={(e) => setJavaVersion(e.target.value as string)}
-          disabled={configDefaults.javaVersion.readOnly}
-        >
-          {metadata.javaVersion?.values.map((jv) => (
-            <MenuItem key={jv.id} value={jv.id}>
-              {jv.name}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+      <Select
+        label={`Java Version${configDefaults.javaVersion.readOnly ? ' (Read-only)' : ''}`}
+        selectedKey={javaVersion || null}
+        onSelectionChange={key => setJavaVersion(key as string)}
+        isDisabled={configDefaults.javaVersion.readOnly}
+        options={(metadata.javaVersion?.values || []).map(jv => ({ id: jv.id, label: jv.name }))}
+      />
 
       {/* Selected Dependencies */}
       {selectedDependencies.size > 0 && (
-        <Box marginTop={2} marginBottom={2}>
-          <Typography variant="subtitle1" gutterBottom>
+        <Box my="4">
+          <Text variant="title-small" weight="bold">
             Selected Dependencies ({selectedDependencies.size})
-          </Typography>
-          <Box display="flex" flexWrap="wrap" style={{ gap: '8px' }}>
-            {Array.from(selectedDependencies).map(depId => {
-              // Find the dependency name
-              let depName = depId;
-              metadata.dependencies?.values.forEach(category => {
-                const dep = category.values.find(d => d.id === depId);
-                if (dep) {
-                  depName = dep.name;
-                }
-              });
-              
-              const isRequired = requiredDependencies.includes(depId);
-              
-              return (
-                <Chip
-                  key={depId}
-                  label={`${depName}${isRequired ? ' (Required)' : ''}`}
-                  onDelete={isRequired ? undefined : () => handleRemoveDependency(depId)}
-                  color="primary"
-                  size="small"
-                />
-              );
-            })}
+          </Text>
+          <Box mt="2">
+            <TagGroup
+              items={Array.from(selectedDependencies).map(depId => {
+                let depName = depId;
+                metadata.dependencies?.values.forEach(category => {
+                  const dep = category.values.find(d => d.id === depId);
+                  if (dep) {
+                    depName = dep.name;
+                  }
+                });
+                const isRequired = requiredDependencies.includes(depId);
+                return { id: depId, depName, isRequired };
+              })}
+              onRemove={keys => {
+                const [depId] = keys;
+                if (typeof depId === 'string') handleRemoveDependency(depId);
+              }}
+            >
+              {item => (
+                <Tag
+                  id={item.id}
+                  textValue={item.depName}
+                  isDisabled={item.isRequired}
+                >
+                  {item.depName}{item.isRequired ? ' (Required)' : ''}
+                </Tag>
+              )}
+            </TagGroup>
           </Box>
         </Box>
       )}
 
       {/* Dependencies */}
-      <Typography variant="subtitle1" style={{ marginTop: 16, marginBottom: 8 }}>
+      <Text variant="title-small" weight="bold" style={{ marginTop: 'var(--bui-space-4)' }}>
         Dependencies
-      </Typography>
-      
+      </Text>
+
       {metadata.dependencies?.values.map((category) => {
         // Show all dependencies with their status
         return (
           <Accordion key={category.name}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography>
-                {category.name} ({category.values.filter(dep => 
-                  isDependencyCompatible(dep.versionRange) && 
+            <AccordionTrigger>
+              <Text>
+                {category.name} ({category.values.filter(dep =>
+                  isDependencyCompatible(dep.versionRange) &&
                   !disallowedDependencies.includes(dep.id)
                 ).length}/{category.values.length} available)
-              </Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <FormGroup>
+              </Text>
+            </AccordionTrigger>
+            <AccordionPanel>
+              <Flex direction="column" gap="2">
                 {category.values.map((dep) => {
                   const isRequired = requiredDependencies.includes(dep.id);
                   const isDisallowed = disallowedDependencies.includes(dep.id);
                   const isCompatible = isDependencyCompatible(dep.versionRange);
                   const isDisabled = isRequired || isDisallowed || !isCompatible;
-                  
+
                   // Determine the reason label
                   let reasonLabel = null;
                   if (isRequired) {
                     reasonLabel = (
-                      <Typography variant="caption" color="primary" style={{ marginLeft: 8, fontWeight: 'bold' }}>
+                      <Text
+                        as="span"
+                        variant="body-x-small"
+                        weight="bold"
+                        style={{ marginLeft: 'var(--bui-space-2)', color: 'var(--bui-accent-fg)' }}
+                      >
                         (Required)
-                      </Typography>
+                      </Text>
                     );
                   } else if (isDisallowed) {
                     reasonLabel = (
-                      <Typography variant="caption" style={{ marginLeft: 8, color: '#d32f2f', fontWeight: 'bold' }}>
+                      <Text
+                        as="span"
+                        variant="body-x-small"
+                        weight="bold"
+                        style={{ marginLeft: 'var(--bui-space-2)', color: 'var(--bui-fg-negative)' }}
+                      >
                         (Disallowed by policy)
-                      </Typography>
+                      </Text>
                     );
                   } else if (!isCompatible && dep.versionRange) {
                     reasonLabel = (
-                      <Typography variant="caption" style={{ marginLeft: 8, color: '#f57c00', fontWeight: 'bold' }}>
+                      <Text
+                        as="span"
+                        variant="body-x-small"
+                        weight="bold"
+                        style={{ marginLeft: 'var(--bui-space-2)', color: 'var(--bui-fg-warning)' }}
+                      >
                         (Incompatible: requires {dep.versionRange})
-                      </Typography>
+                      </Text>
                     );
                   }
-                  
+
                   return (
-                    <FormControlLabel
+                    <Checkbox
                       key={dep.id}
-                      control={
-                        <Checkbox
-                          checked={selectedDependencies.has(dep.id)}
-                          onChange={() => handleDependencyToggle(dep.id, dep.versionRange)}
-                          color="primary"
-                          disabled={isDisabled}
-                        />
-                      }
-                      disabled={isDisabled && !isRequired}
-                      label={
-                        <Box style={{ opacity: isDisabled && !isRequired ? 0.6 : 1 }}>
-                          <Typography variant="body2">
-                            {dep.name}
-                            {reasonLabel}
-                          </Typography>
-                          {dep.description && (
-                            <Typography variant="caption" color="textSecondary">
-                              {dep.description}
-                            </Typography>
-                          )}
-                        </Box>
-                      }
-                    />
+                      isSelected={selectedDependencies.has(dep.id)}
+                      onChange={() => handleDependencyToggle(dep.id, dep.versionRange)}
+                      isDisabled={isDisabled}
+                      style={{ opacity: isDisabled && !isRequired ? 0.6 : 1 }}
+                    >
+                      <Box>
+                        <Text variant="body-small">
+                          {dep.name}
+                          {reasonLabel}
+                        </Text>
+                        {dep.description && (
+                          <Text as="div" variant="body-x-small" color="secondary">
+                            {dep.description}
+                          </Text>
+                        )}
+                      </Box>
+                    </Checkbox>
                   );
                 })}
-              </FormGroup>
-            </AccordionDetails>
+              </Flex>
+            </AccordionPanel>
           </Accordion>
         );
       })}
-    </Box>
+    </Flex>
   );
 };

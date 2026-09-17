@@ -1,59 +1,18 @@
 import { useState, useMemo } from 'react';
 import {
-  Box,
-  Paper,
-  TextField,
-  Typography,
-  List,
-  ListItem,
-  ListItemText,
   Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Chip,
-} from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import SearchIcon from '@material-ui/icons/Search';
+  AccordionPanel,
+  AccordionTrigger,
+  Badge,
+  Box,
+  Card,
+  Flex,
+  Text,
+  TextField,
+} from '@backstage/ui';
+import { RiSearchLine } from '@remixicon/react';
 import type { AvailableAction } from '../../types';
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-    overflow: 'hidden',
-  },
-  header: {
-    padding: theme.spacing(2),
-    borderBottom: `1px solid ${theme.palette.divider}`,
-  },
-  searchBox: {
-    marginBottom: theme.spacing(1),
-  },
-  content: {
-    flex: 1,
-    overflow: 'auto',
-    padding: theme.spacing(1),
-  },
-  listItem: {
-    cursor: 'grab',
-    '&:active': {
-      cursor: 'grabbing',
-    },
-    '&:hover': {
-      backgroundColor: theme.palette.action.hover,
-    },
-  },
-  category: {
-    margin: 0,
-  },
-  emptyState: {
-    padding: theme.spacing(3),
-    textAlign: 'center',
-    color: theme.palette.text.secondary,
-  },
-}));
+import styles from './ActionPalette.module.css';
 
 export interface ActionPaletteProps {
   actions: AvailableAction[];
@@ -62,7 +21,6 @@ export interface ActionPaletteProps {
 
 export function ActionPalette(props: ActionPaletteProps) {
   const { actions, onActionDragStart } = props;
-  const classes = useStyles();
   const [searchQuery, setSearchQuery] = useState('');
 
   const categorizedActions = useMemo(() => {
@@ -74,7 +32,7 @@ export function ActionPalette(props: ActionPaletteProps) {
     );
 
     const categories = new Map<string, AvailableAction[]>();
-    
+
     filtered.forEach(action => {
       const category = action.category || 'Other';
       if (!categories.has(category)) {
@@ -96,77 +54,66 @@ export function ActionPalette(props: ActionPaletteProps) {
   };
 
   return (
-    <Paper className={classes.root}>
-      <Box className={classes.header}>
-        <Typography variant="h6" gutterBottom>
+    <Card className={styles.root}>
+      <Box className={styles.header}>
+        <Text variant="title-x-small" as="h2">
           Actions
-        </Typography>
-        <TextField
-          fullWidth
-          size="small"
-          variant="outlined"
-          placeholder="Search actions..."
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          className={classes.searchBox}
-          InputProps={{
-            startAdornment: <SearchIcon color="action" />,
-          }}
-        />
-        <Typography variant="caption" color="textSecondary">
+        </Text>
+        <Box className={styles.searchBox} mt="2">
+          <TextField
+            size="small"
+            placeholder="Search actions..."
+            icon={<RiSearchLine />}
+            value={searchQuery}
+            onChange={setSearchQuery}
+          />
+        </Box>
+        <Text variant="body-x-small" color="secondary">
           Drag actions to the canvas
-        </Typography>
+        </Text>
       </Box>
 
-      <Box className={classes.content}>
+      <Box className={styles.content}>
         {categorizedActions.length > 0 ? (
           categorizedActions.map(category => (
-            <Accordion key={category.name} defaultExpanded className={classes.category}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle2">
-                  {category.name}
-                  <Chip
-                    label={category.actions.length}
-                    size="small"
-                    style={{ marginLeft: 8, height: 18 }}
-                  />
-                </Typography>
-              </AccordionSummary>
-              <AccordionDetails style={{ padding: 0 }}>
-                <List dense style={{ width: '100%' }}>
+            <Accordion key={category.name} defaultExpanded>
+              <AccordionTrigger>
+                <Flex align="center" gap="2">
+                  <Text variant="body-small" weight="bold">
+                    {category.name}
+                  </Text>
+                  <Badge>{category.actions.length}</Badge>
+                </Flex>
+              </AccordionTrigger>
+              <AccordionPanel>
+                <Flex direction="column" gap="0.5">
                   {category.actions.map(action => (
-                    <ListItem
+                    <Box
                       key={action.id}
-                      className={classes.listItem}
+                      className={styles.listItem}
                       draggable
                       onDragStart={handleDragStart(action)}
                     >
-                      <ListItemText
-                        primary={
-                          <Typography variant="body2" noWrap>
-                            {action.name}
-                          </Typography>
-                        }
-                        secondary={
-                          <Typography variant="caption" color="textSecondary" noWrap>
-                            {action.id}
-                          </Typography>
-                        }
-                      />
-                    </ListItem>
+                      <Text variant="body-small" truncate as="div">
+                        {action.name}
+                      </Text>
+                      <Text variant="body-x-small" color="secondary" truncate as="div">
+                        {action.id}
+                      </Text>
+                    </Box>
                   ))}
-                </List>
-              </AccordionDetails>
+                </Flex>
+              </AccordionPanel>
             </Accordion>
           ))
         ) : (
-          <Box className={classes.emptyState}>
-            <Typography variant="body2">
+          <Box className={styles.emptyState}>
+            <Text variant="body-small">
               {searchQuery ? 'No actions found' : 'Loading actions...'}
-            </Typography>
+            </Text>
           </Box>
         )}
       </Box>
-    </Paper>
+    </Card>
   );
 }

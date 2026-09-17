@@ -1,172 +1,25 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
+  Alert,
   Box,
-  Card,
-  CardContent,
-  CardHeader,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  TextField,
-  Typography,
-  CircularProgress,
-  FormControlLabel,
-  Checkbox,
   Button,
-  IconButton,
-  Collapse,
-} from '@material-ui/core';
-import ExpandMore from '@material-ui/icons/ExpandMore';
-import ChevronRight from '@material-ui/icons/ChevronRight';
-import { Alert } from '@material-ui/lab';
-import { makeStyles } from '@material-ui/core/styles';
+  ButtonIcon,
+  Card,
+  CardBody,
+  CardHeader,
+  Checkbox,
+  Flex,
+  Select,
+  Text,
+} from '@backstage/ui';
+import { Progress } from '@backstage/core-components';
+import { RiArrowDownSLine, RiArrowRightSLine } from '@remixicon/react';
 import { useApi } from '@backstage/core-plugin-api';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { vcfOperationsApiRef, MetricData, Resource, VcfOperationsApiError, VcfOperationsInstance } from '../api/VcfOperationsClient';
 import { MetricChart } from './MetricChart';
 import { NotImplementedMessage } from './NotImplementedMessage';
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    padding: theme.spacing(2),
-    height: '100vh',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  topControls: {
-    marginBottom: theme.spacing(2),
-    padding: theme.spacing(2),
-    backgroundColor: theme.palette.background.paper,
-    borderRadius: theme.shape.borderRadius,
-    border: `1px solid ${theme.palette.divider}`,
-  },
-  topControlsRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(3),
-    flexWrap: 'wrap',
-  },
-  controlGroup: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(1),
-  },
-  mainContent: {
-    display: 'flex',
-    flex: 1,
-    gap: theme.spacing(2),
-    minHeight: 0, // Important for flex children
-  },
-  leftPanel: {
-    width: 320,
-    minWidth: 320,
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  metricsCard: {
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  metricsCardContent: {
-    flex: 1,
-    overflow: 'auto',
-    paddingTop: theme.spacing(1),
-    paddingBottom: theme.spacing(1),
-  },
-  rightPanel: {
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    minWidth: 0,
-  },
-  chartsContainer: {
-    flex: 1,
-    overflow: 'auto',
-  },
-  chartCard: {
-    marginBottom: theme.spacing(2),
-    height: 400,
-  },
-  formControl: {
-    minWidth: 180,
-  },
-  metricCheckbox: {
-    padding: theme.spacing(0.5),
-  },
-  metricItem: {
-    paddingLeft: theme.spacing(4), // Indent metrics under category headers
-    paddingRight: theme.spacing(1),
-    borderRadius: theme.shape.borderRadius,
-    '&:hover': {
-      backgroundColor: theme.palette.action.hover,
-    },
-  },
-  loadingContainer: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: 200,
-  },
-  sectionTitle: {
-    fontWeight: 'bold',
-    marginBottom: theme.spacing(1),
-    color: theme.palette.text.primary,
-  },
-  categoryHeader: {
-    fontWeight: 600,
-    fontSize: '0.875rem',
-    color: theme.palette.primary.main,
-    marginTop: theme.spacing(2),
-    marginBottom: theme.spacing(1),
-    paddingLeft: theme.spacing(1),
-    borderBottom: `1px solid ${theme.palette.divider}`,
-    paddingBottom: theme.spacing(0.5),
-    '&:first-child': {
-      marginTop: theme.spacing(0.5),
-    },
-  },
-  categoryHeaderContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    marginTop: theme.spacing(2),
-    marginBottom: theme.spacing(1),
-    paddingLeft: 0, // Align to the left edge
-    paddingRight: theme.spacing(1),
-    borderBottom: `1px solid ${theme.palette.divider}`,
-    paddingBottom: theme.spacing(0.5),
-    '&:first-child': {
-      marginTop: theme.spacing(0.5),
-    },
-    '&:hover': {
-      backgroundColor: theme.palette.action.hover,
-      cursor: 'pointer',
-    },
-  },
-  categoryTitle: {
-    fontWeight: 600,
-    fontSize: '0.875rem',
-    color: theme.palette.primary.main,
-    flex: 1,
-    marginLeft: theme.spacing(0.5),
-  },
-  selectAllContainer: {
-    padding: theme.spacing(1),
-    borderBottom: `1px solid ${theme.palette.divider}`,
-    // Removed background color - same as rest of panel
-  },
-  refreshButton: {
-    minWidth: 'auto',
-    padding: theme.spacing(0.5, 1),
-  },
-  resourceInfo: {
-    marginBottom: theme.spacing(2),
-    padding: theme.spacing(1),
-    backgroundColor: theme.palette.grey[50],
-    borderRadius: theme.shape.borderRadius,
-  },
-}));
+import styles from './VCFOperationsExplorer.module.css';
 
 interface MetricSelection {
   key: string;
@@ -511,7 +364,6 @@ const getErrorMessage = (error: unknown): string => {
 };
 
 export const VCFOperationsExplorer = () => {
-  const classes = useStyles();
   const vcfOperationsApi = useApi(vcfOperationsApiRef);
   const { entity } = useEntity();
 
@@ -1068,44 +920,40 @@ export const VCFOperationsExplorer = () => {
   // Show message when multiple instances available but none selected
   if (instances.length > 1 && !selectedInstance) {
     const vcfaInstanceName = entity.metadata.annotations?.['terasky.backstage.io/vcf-automation-instance'];
-    
+
     return (
-      <Box className={classes.root}>
+      <Box className={styles.root}>
         <Card>
-          <CardContent>
-            <Alert severity="info">
-              <Typography variant="h6" gutterBottom>
-                Select a VCF Operations Instance
-              </Typography>
-              <Typography variant="body2" gutterBottom>
-                Multiple VCF Operations instances are available. Please select one to view metrics:
-              </Typography>
-              {vcfaInstanceName && (
-                <Typography variant="body2" color="textSecondary" gutterBottom>
-                  Note: Could not automatically match VCF Automation instance "{vcfaInstanceName}" to a VCF Operations instance. 
-                  Check that the instance is listed in the relatedVCFAInstances configuration.
-                </Typography>
-              )}
-              <Box style={{ marginTop: 16 }}>
-                <FormControl style={{ minWidth: 300 }}>
-                  <InputLabel>Instance</InputLabel>
-                  <Select
-                    value={selectedInstance}
-                    onChange={(e) => setSelectedInstance(e.target.value as string)}
-                  >
-                    {instances.map((instance) => (
-                      <MenuItem key={instance.name} value={instance.name}>
-                        {instance.name}
-                        {instance.relatedVCFAInstances && instance.relatedVCFAInstances.length > 0 && 
-                          ` (${instance.relatedVCFAInstances.join(', ')})`
-                        }
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Box>
-            </Alert>
-          </CardContent>
+          <CardBody>
+            <Alert
+              status="info"
+              title="Select a VCF Operations Instance"
+              description={
+                <Flex direction="column" gap="2">
+                  <Text>Multiple VCF Operations instances are available. Please select one to view metrics:</Text>
+                  {vcfaInstanceName && (
+                    <Text style={{ color: 'var(--bui-fg-secondary)' }}>
+                      Note: Could not automatically match VCF Automation instance "{vcfaInstanceName}" to a VCF Operations instance.
+                      Check that the instance is listed in the relatedVCFAInstances configuration.
+                    </Text>
+                  )}
+                  <Box style={{ marginTop: 'var(--bui-space-4)', maxWidth: 300 }}>
+                    <Select
+                      label="Instance"
+                      selectedKey={selectedInstance || undefined}
+                      onSelectionChange={key => setSelectedInstance(String(key))}
+                      options={instances.map(instance => ({
+                        id: instance.name,
+                        label: instance.relatedVCFAInstances && instance.relatedVCFAInstances.length > 0
+                          ? `${instance.name} (${instance.relatedVCFAInstances.join(', ')})`
+                          : instance.name,
+                      }))}
+                    />
+                  </Box>
+                </Flex>
+              }
+            />
+          </CardBody>
         </Card>
       </Box>
     );
@@ -1114,18 +962,16 @@ export const VCFOperationsExplorer = () => {
   // Show loading while detecting resource
   if (detectingResource) {
     return (
-      <Box className={classes.root}>
+      <Box className={styles.root}>
         <Card>
-          <CardContent>
-            <Box className={classes.loadingContainer}>
-              <Box textAlign="center">
-                <CircularProgress />
-                <Typography variant="body2" style={{ marginTop: 16 }}>
-                  Detecting VCF Operations resource...
-                </Typography>
-              </Box>
-            </Box>
-          </CardContent>
+          <CardBody>
+            <div className={styles.loadingContainer}>
+              <Progress />
+              <Text style={{ marginTop: 'var(--bui-space-4)' }}>
+                Detecting VCF Operations resource...
+              </Text>
+            </div>
+          </CardBody>
         </Card>
       </Box>
     );
@@ -1134,21 +980,20 @@ export const VCFOperationsExplorer = () => {
   // Show permission error if user doesn't have access
   if (resourceDetection.permissionError) {
     return (
-      <Box className={classes.root}>
+      <Box className={styles.root}>
         <Card>
-          <CardContent>
-            <Alert severity="error">
-              <Typography variant="h6" gutterBottom>
-                Access Denied
-              </Typography>
-              <Typography variant="body2">
-                {resourceDetection.error}
-              </Typography>
-              <Typography variant="body2" style={{ marginTop: 8 }}>
-                Please contact your administrator to request access to VCF Operations metrics.
-              </Typography>
-            </Alert>
-          </CardContent>
+          <CardBody>
+            <Alert
+              status="danger"
+              title="Access Denied"
+              description={
+                <Flex direction="column" gap="2">
+                  <Text>{resourceDetection.error}</Text>
+                  <Text>Please contact your administrator to request access to VCF Operations metrics.</Text>
+                </Flex>
+              }
+            />
+          </CardBody>
         </Card>
       </Box>
     );
@@ -1168,10 +1013,11 @@ export const VCFOperationsExplorer = () => {
   // Show error if resource detection failed
   if (!resourceDetection.found) {
     return (
-      <Box className={classes.root}>
-        <Alert severity="error">
-          {resourceDetection.error || 'Failed to detect VCF Operations resource'}
-        </Alert>
+      <Box className={styles.root}>
+        <Alert
+          status="danger"
+          description={resourceDetection.error || 'Failed to detect VCF Operations resource'}
+        />
       </Box>
     );
   }
@@ -1179,274 +1025,256 @@ export const VCFOperationsExplorer = () => {
   const resource = resourceDetection.resource!;
 
   return (
-    <Box className={classes.root}>
+    <Box className={styles.root}>
       {/* Top Controls */}
-      <Card className={classes.topControls}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
+      <Card className={styles.topControls}>
+        <CardBody>
+          <Text variant="title-small" weight="bold" style={{ display: 'block' }}>
             VCF Operations Metrics: {resource.resourceKey.name}
-          </Typography>
-          <Typography variant="body2" color="textSecondary" gutterBottom>
+          </Text>
+          <Text style={{ color: 'var(--bui-fg-secondary)', display: 'block', marginBottom: 'var(--bui-space-2)' }}>
             {resource.resourceKey.adapterKindKey} | {resource.resourceKey.resourceKindKey} | ID: {resource.identifier}
-          </Typography>
-          
-          <Box className={classes.topControlsRow}>
+          </Text>
+
+          <div className={styles.topControlsRow}>
             {instances.length > 1 && (
-              <Box className={classes.controlGroup}>
-                <FormControl className={classes.formControl}>
-                  <InputLabel>Instance</InputLabel>
-                  <Select
-                    value={selectedInstance}
-                    onChange={(e) => setSelectedInstance(e.target.value as string)}
-                  >
-                    {instances.map((instance) => (
-                      <MenuItem key={instance.name} value={instance.name}>
-                        {instance.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Box>
+              <div className={styles.controlGroup}>
+                <Select
+                  label="Instance"
+                  size="small"
+                  selectedKey={selectedInstance || undefined}
+                  onSelectionChange={key => setSelectedInstance(String(key))}
+                  options={instances.map(instance => ({ id: instance.name, label: instance.name }))}
+                />
+              </div>
             )}
 
-            <Box className={classes.controlGroup}>
-              <FormControl className={classes.formControl}>
-                <InputLabel>Time Range</InputLabel>
-                <Select
-                  value={timeRange}
-                  onChange={(e) => setTimeRange(e.target.value as number)}
-                >
-                  {TIME_RANGES.map((range) => (
-                    <MenuItem key={range.hours} value={range.hours}>
-                      {range.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
-
-            <Box className={classes.controlGroup}>
-              <FormControl className={classes.formControl}>
-                <InputLabel>Aggregation</InputLabel>
-                <Select
-                  value={rollUpType}
-                  onChange={(e) => setRollUpType(e.target.value as string)}
-                >
-                  <MenuItem value="AVERAGE">Average</MenuItem>
-                  <MenuItem value="MIN">Minimum</MenuItem>
-                  <MenuItem value="MAX">Maximum</MenuItem>
-                  <MenuItem value="SUM">Sum</MenuItem>
-                  <MenuItem value="LATEST">Latest</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-
-            <Box className={classes.controlGroup}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={autoRefresh}
-                    onChange={(e) => setAutoRefresh(e.target.checked)}
-                    color="primary"
-                  />
-                }
-                label="Auto-refresh (30s)"
-              />
-              <Button
-                variant="outlined"
+            <div className={styles.controlGroup}>
+              <Select
+                label="Time Range"
                 size="small"
-                onClick={handleManualRefresh}
-                disabled={loading || isNoneSelected}
-                className={classes.refreshButton}
+                selectedKey={String(timeRange)}
+                onSelectionChange={key => setTimeRange(Number(key))}
+                options={TIME_RANGES.map(range => ({ id: String(range.hours), label: range.label }))}
+              />
+            </div>
+
+            <div className={styles.controlGroup}>
+              <Select
+                label="Aggregation"
+                size="small"
+                selectedKey={rollUpType}
+                onSelectionChange={key => setRollUpType(String(key))}
+                options={[
+                  { id: 'AVERAGE', label: 'Average' },
+                  { id: 'MIN', label: 'Minimum' },
+                  { id: 'MAX', label: 'Maximum' },
+                  { id: 'SUM', label: 'Sum' },
+                  { id: 'LATEST', label: 'Latest' },
+                ]}
+              />
+            </div>
+
+            <div className={styles.controlGroup}>
+              <Checkbox
+                isSelected={autoRefresh}
+                onChange={setAutoRefresh}
               >
-                {loading ? <CircularProgress size={16} /> : 'Refresh Now'}
+                Auto-refresh (30s)
+              </Checkbox>
+              <Button
+                variant="secondary"
+                size="small"
+                onPress={handleManualRefresh}
+                isDisabled={loading || isNoneSelected}
+                isPending={loading}
+              >
+                Refresh Now
               </Button>
-            </Box>
-          </Box>
+            </div>
+          </div>
 
           {/* Custom Time Range */}
           {timeRange === -1 && (
-            <Box className={classes.topControlsRow} style={{ marginTop: 16 }}>
-              <TextField
-                label="Start Time"
-                type="datetime-local"
-                value={customStartTime}
-                onChange={(e) => setCustomStartTime(e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                size="small"
-                style={{ minWidth: 200 }}
-              />
-              <TextField
-                label="End Time"
-                type="datetime-local"
-                value={customEndTime}
-                onChange={(e) => setCustomEndTime(e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                size="small"
-                style={{ minWidth: 200 }}
-              />
-            </Box>
+            <Flex gap="4" style={{ marginTop: 'var(--bui-space-4)', flexWrap: 'wrap' }}>
+              <label>
+                <Text variant="body-small" style={{ display: 'block', marginBottom: 'var(--bui-space-1)' }}>Start Time</Text>
+                <input
+                  type="datetime-local"
+                  value={customStartTime}
+                  onChange={e => setCustomStartTime(e.target.value)}
+                  style={{
+                    minWidth: 200,
+                    padding: 'var(--bui-space-2)',
+                    borderRadius: 'var(--bui-radius-2)',
+                    border: '1px solid var(--bui-border-1)',
+                    background: 'var(--bui-bg-app)',
+                    color: 'var(--bui-fg-primary)',
+                  }}
+                />
+              </label>
+              <label>
+                <Text variant="body-small" style={{ display: 'block', marginBottom: 'var(--bui-space-1)' }}>End Time</Text>
+                <input
+                  type="datetime-local"
+                  value={customEndTime}
+                  onChange={e => setCustomEndTime(e.target.value)}
+                  style={{
+                    minWidth: 200,
+                    padding: 'var(--bui-space-2)',
+                    borderRadius: 'var(--bui-radius-2)',
+                    border: '1px solid var(--bui-border-1)',
+                    background: 'var(--bui-bg-app)',
+                    color: 'var(--bui-fg-primary)',
+                  }}
+                />
+              </label>
+            </Flex>
           )}
-        </CardContent>
+        </CardBody>
       </Card>
 
       {/* Main Content Area */}
-      <Box className={classes.mainContent}>
+      <div className={styles.mainContent}>
         {/* Left Panel - Metrics Selection */}
-        <Box className={classes.leftPanel}>
-          <Card className={classes.metricsCard}>
-            <CardHeader 
-              title="Available Metrics"
-              subheader={`${selectedMetrics.length} of ${allMetrics.length} selected`}
-            />
-            
+        <div className={styles.leftPanel}>
+          <Card className={styles.metricsCard}>
+            <CardHeader>
+              <Text weight="bold" style={{ display: 'block' }}>Available Metrics</Text>
+              <Text style={{ color: 'var(--bui-fg-secondary)' }}>
+                {selectedMetrics.length} of {allMetrics.length} selected
+              </Text>
+            </CardHeader>
+
             {/* Select All Controls */}
-            <Box className={classes.selectAllContainer}>
-              <Box display="flex">
+            <div className={styles.selectAllContainer}>
+              <Flex gap="2">
                 <Button
                   size="small"
-                  variant={isAllSelected ? "contained" : "outlined"}
-                  color="primary"
-                  onClick={handleSelectAll}
-                  disabled={isAllSelected}
+                  variant={isAllSelected ? 'primary' : 'secondary'}
+                  onPress={handleSelectAll}
+                  isDisabled={isAllSelected}
                 >
                   Select All
                 </Button>
                 <Button
                   size="small"
-                  variant="outlined"
-                  onClick={handleDeselectAll}
-                  disabled={isNoneSelected}
-                  style={{ marginLeft: 8 }}
+                  variant="secondary"
+                  onPress={handleDeselectAll}
+                  isDisabled={isNoneSelected}
                 >
                   Clear All
                 </Button>
-              </Box>
-            </Box>
+              </Flex>
+            </div>
 
-            <CardContent className={classes.metricsCardContent}>
+            <CardBody className={styles.metricsCardBody}>
               {currentMetricCategories.map((category) => {
                 const isExpanded = expandedCategories.has(category.name);
                 return (
                   <Box key={category.name}>
-                    <Box 
-                      className={classes.categoryHeaderContainer}
+                    <div
+                      className={styles.categoryHeaderContainer}
                       onClick={() => toggleCategoryExpansion(category.name)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') toggleCategoryExpansion(category.name); }}
                     >
-                      <IconButton 
-                        size="small" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleCategoryExpansion(category.name);
-                        }}
-                      >
-                        {isExpanded ? <ExpandMore /> : <ChevronRight />}
-                      </IconButton>
-                      <Checkbox
-                        checked={isCategorySelected(category)}
-                        indeterminate={isCategoryPartiallySelected(category)}
-                        color="primary"
+                      <ButtonIcon
+                        aria-label={isExpanded ? 'Collapse category' : 'Expand category'}
                         size="small"
-                        onClick={(e) => e.stopPropagation()}
+                        variant="tertiary"
+                        icon={isExpanded ? <RiArrowDownSLine /> : <RiArrowRightSLine />}
+                        onPress={() => toggleCategoryExpansion(category.name)}
+                      />
+                      <Checkbox
+                        isSelected={isCategorySelected(category)}
+                        isIndeterminate={isCategoryPartiallySelected(category)}
                         onChange={() => handleCategoryToggle(category)}
                       />
-                      <Typography variant="subtitle2" className={classes.categoryTitle}>
+                      <Text weight="bold" variant="body-small" className={styles.categoryTitle}>
                         {category.name} ({category.metrics.filter(m => selectedMetrics.some(sm => sm.key === m.key)).length}/{category.metrics.length})
-                      </Typography>
-                    </Box>
-                    <Collapse in={isExpanded}>
-                      {category.metrics.map((metric) => {
-                        const isSelected = selectedMetrics.some(m => m.key === metric.key);
-                        return (
-                          <Box 
-                            key={metric.key} 
-                            className={classes.metricItem}
-                            onClick={() => handleMetricToggle(metric)}
-                            style={{ cursor: 'pointer' }}
-                          >
-                            <FormControlLabel
-                              control={
-                                <Checkbox
-                                  checked={isSelected}
-                                  color="primary"
-                                  className={classes.metricCheckbox}
-                                />
-                              }
-                              label={metric.label}
-                              style={{ width: '100%', margin: 0 }}
-                            />
-                          </Box>
-                        );
-                      })}
-                    </Collapse>
+                      </Text>
+                    </div>
+                    {isExpanded && category.metrics.map((metric) => {
+                      const isSelected = selectedMetrics.some(m => m.key === metric.key);
+                      return (
+                        <div
+                          key={metric.key}
+                          className={styles.metricItem}
+                          onClick={() => handleMetricToggle(metric)}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') handleMetricToggle(metric); }}
+                        >
+                          <Checkbox isSelected={isSelected} onChange={() => handleMetricToggle(metric)}>
+                            {metric.label}
+                          </Checkbox>
+                        </div>
+                      );
+                    })}
                   </Box>
                 );
               })}
-            </CardContent>
+            </CardBody>
           </Card>
-        </Box>
+        </div>
 
         {/* Right Panel - Charts */}
-        <Box className={classes.rightPanel}>
+        <div className={styles.rightPanel}>
           {error && (
-            <Alert severity="error" style={{ marginBottom: 16 }}>
-              {error}
-            </Alert>
+            <Alert status="danger" description={error} style={{ marginBottom: 'var(--bui-space-4)' }} />
           )}
 
           {loading && (
-            <Box className={classes.loadingContainer}>
-              <CircularProgress />
-              <Typography variant="body2" style={{ marginTop: 16 }}>
+            <div className={styles.loadingContainer}>
+              <Progress />
+              <Text style={{ marginTop: 'var(--bui-space-4)' }}>
                 Loading metrics data...
-              </Typography>
-            </Box>
+              </Text>
+            </div>
           )}
 
-          <Box className={classes.chartsContainer}>
+          <div className={styles.chartsContainer}>
             {metricsData.length > 0 && selectedMetrics.map((metric) => {
               const metricData = metricsData.find(
                 (data) => data.stat.statKey.key === metric.key
               );
 
               return (
-                <Card key={metric.key} className={classes.chartCard}>
-                  <CardHeader 
-                    title={metric.label}
-                    subheader={`Resource: ${resource.resourceKey.name}`}
-                  />
-                  <CardContent style={{ height: 'calc(100% - 72px)' }}>
+                <Card key={metric.key} className={styles.chartCard}>
+                  <CardHeader>
+                    <Text weight="bold" style={{ display: 'block' }}>{metric.label}</Text>
+                    <Text style={{ color: 'var(--bui-fg-secondary)' }}>Resource: {resource.resourceKey.name}</Text>
+                  </CardHeader>
+                  <CardBody style={{ height: 'calc(100% - 72px)' }}>
                     {metricData ? (
                       <MetricChart
                         data={metricData}
                         height={300}
                       />
                     ) : (
-                      <Box className={classes.loadingContainer}>
-                        <Typography variant="body2" color="textSecondary">
+                      <div className={styles.loadingContainer}>
+                        <Text style={{ color: 'var(--bui-fg-secondary)' }}>
                           No data available for this metric
-                        </Typography>
-                      </Box>
+                        </Text>
+                      </div>
                     )}
-                  </CardContent>
+                  </CardBody>
                 </Card>
               );
             })}
 
             {metricsData.length === 0 && selectedMetrics.length > 0 && !loading && !error && (
-              <Alert severity="info">
-                Metrics will load automatically when you select them.
-              </Alert>
+              <Alert status="info" description="Metrics will load automatically when you select them." />
             )}
 
             {selectedMetrics.length === 0 && (
-              <Alert severity="info">
-                Select metrics from the left panel to view their data.
-              </Alert>
+              <Alert status="info" description="Select metrics from the left panel to view their data." />
             )}
-          </Box>
-        </Box>
-      </Box>
+          </div>
+        </div>
+      </div>
     </Box>
   );
 };
