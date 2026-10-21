@@ -346,7 +346,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
     const isNamespaced = scope === 'Namespaced';
     // --- END VERSION/SCOPE LOGIC REFACTOR ---
     const clusters = xrd.clusters || ["kubetopus"];
-    const templates = xrd.spec.versions.map((version: { name: any }) => {
+    const templates = xrd.spec.versions.map((version: any) => {
       // For v2 Cluster/Namespaced, do not generate claim-based templates
       if (isV2 && !isLegacyCluster && (isCluster || isNamespaced)) {
         // No claimNames, use spec.name as resource type
@@ -359,13 +359,17 @@ export class XRDTemplateEntityProvider implements EntityProvider {
           [`${prefix}/crossplane-version`]: crossplaneVersion,
           [`${prefix}/crossplane-scope`]: scope,
         };
+        const description =
+          xrd.metadata?.annotations?.[`${prefix}/template-description`] ||
+          version.schema?.openAPIV3Schema?.description ||
+          `A template to create a ${xrd.metadata.name} instance`;
         return {
           apiVersion: 'scaffolder.backstage.io/v1beta3',
           kind: 'Template',
           metadata: {
             name: `${xrd.metadata.name}-${version.name}`,
             title: `${xrd.spec.claimNames?.kind || xrd.spec.names?.kind}`,
-            description: `A template to create a ${xrd.metadata.name} instance`,
+            description,
             labels: {
               forEntity: "system",
               source: "crossplane",
@@ -407,13 +411,17 @@ export class XRDTemplateEntityProvider implements EntityProvider {
         [`${prefix}/crossplane-version`]: crossplaneVersion,
         [`${prefix}/crossplane-scope`]: scope,
       };
+      const description =
+        xrd.metadata?.annotations?.[`${prefix}/template-description`] ||
+        version.schema?.openAPIV3Schema?.description ||
+        `A template to create a ${xrd.metadata.name} instance`;
       return {
         apiVersion: 'scaffolder.backstage.io/v1beta3',
         kind: 'Template',
         metadata: {
           name: `${xrd.metadata.name}-${version.name}`,
           title: `${xrd.spec.claimNames?.kind || xrd.spec.names?.kind}`,
-          description: `A template to create a ${xrd.metadata.name} instance`,
+          description,
           labels: {
             forEntity: "system",
             source: "crossplane",
@@ -1723,6 +1731,11 @@ export class XRDTemplateEntityProvider implements EntityProvider {
     const steps = this.extractCRDSteps(storedVersion, crd);
     const clusterTags = clusters.map((cluster: any) => `cluster:${this.getNormalizedClusterName(cluster)}`);
     const tags = ['kubernetes-crd', ...clusterTags];
+    const prefix = this.getAnnotationPrefix();
+    const description =
+      crd.metadata?.annotations?.[`${prefix}/template-description`] ||
+      storedVersion.schema?.openAPIV3Schema?.description ||
+      `A template to create a ${crd.spec.names.kind} instance`;
 
     const templates = [{
       apiVersion: 'scaffolder.backstage.io/v1beta3',
@@ -1730,7 +1743,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
       metadata: {
         name: `${crd.spec.names.singular}-${storedVersion.name}`,
         title: `${crd.spec.names.kind}`,
-        description: `A template to create a ${crd.spec.names.kind} instance`,
+        description,
         tags: tags,
         labels: {
           forEntity: "system",

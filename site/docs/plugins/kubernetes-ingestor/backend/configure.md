@@ -1048,6 +1048,14 @@ xrds:
   ingestAllXRDs: true
 ```
 
+#### Template Description Resolution
+
+When generating software templates for Crossplane XRDs, generic CRDs, or KRO RGDs, the template's `metadata.description` is resolved in the following priority order:
+
+1. **`<configured-prefix>/template-description` annotation**: If present on the resource metadata (e.g. `terasky.backstage.io/template-description` by default, or the prefix configured via `kubernetesIngestor.annotationPrefix`), this custom description is used.
+2. **`schema.openAPIV3Schema.description`**: If defined in the resource's OpenAPI v3 schema version, it is automatically extracted and used.
+3. **Default Fallback**: Defaults to `A template to create a <name> instance`.
+
 #### Repository Selection Options
 
 When `allowRepoSelection` is enabled, you can configure the repository selection user experience:

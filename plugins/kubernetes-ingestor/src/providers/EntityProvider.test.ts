@@ -4785,4 +4785,105 @@ describe('XRDTemplateEntityProvider', () => {
       expect(step.input.specFieldOrder).toBeUndefined();
     });
   });
+
+  // ── Template Description ───────────────────────────────────────────────────
+
+  describe('translateXRDVersionsToTemplates – description resolution', () => {
+    const makeProvider = () =>
+      new XRDTemplateEntityProvider(
+        { run: jest.fn() } as any,
+        mockLogger,
+        mockConfig,
+        mockResourceFetcher as any,
+      );
+
+    const makeXrd = (annotations?: Record<string, string>, scope = 'Namespaced') => ({
+      metadata: {
+        name: 'xazurestorageaccounts.platform.bbraun.io',
+        annotations,
+      },
+      spec: {
+        scope,
+        names: { kind: 'XAzureStorageAccount', plural: 'xazurestorageaccounts' },
+        group: 'platform.bbraun.io',
+        versions: [
+          {
+            name: 'v1alpha1',
+            schema: {
+              openAPIV3Schema: {
+                type: 'object',
+                description: 'Provisions an Azure Storage Account',
+                properties: {},
+              },
+            },
+          },
+        ],
+      },
+      clusterName: 'test-cluster',
+    });
+
+    it('uses openAPIV3Schema.description when no annotation is present', () => {
+      const provider = makeProvider();
+      const xrd = makeXrd();
+      const templates = (provider as any).translateXRDVersionsToTemplates(xrd);
+
+      expect(templates).toHaveLength(1);
+      expect(templates[0].metadata.description).toBe('Provisions an Azure Storage Account');
+    });
+
+    it('prefers terasky.backstage.io/template-description annotation over openAPIV3Schema.description', () => {
+      const provider = makeProvider();
+      const xrd = makeXrd({
+        'terasky.backstage.io/template-description': 'Custom template description',
+      });
+      const templates = (provider as any).translateXRDVersionsToTemplates(xrd);
+
+      expect(templates).toHaveLength(1);
+      expect(templates[0].metadata.description).toBe('Custom template description');
+    });
+
+    it('falls back to default description when neither annotation nor schema description is present', () => {
+      const provider = makeProvider();
+      const xrd = makeXrd();
+      delete (xrd.spec.versions[0].schema.openAPIV3Schema as any).description;
+      const templates = (provider as any).translateXRDVersionsToTemplates(xrd);
+
+      expect(templates).toHaveLength(1);
+      expect(templates[0].metadata.description).toBe(
+        'A template to create a xazurestorageaccounts.platform.bbraun.io instance',
+      );
+    });
+
+    it('works for legacy/v1 claim-based XRDs as well', () => {
+      const provider = makeProvider();
+      const xrd: any = {
+        apiVersion: 'apiextensions.crossplane.io/v1',
+        metadata: {
+          name: 'xdatabases.database.example.com',
+        },
+        spec: {
+          claimNames: { kind: 'Database', plural: 'databases' },
+          names: { kind: 'XDatabase', plural: 'xdatabases' },
+          group: 'database.example.com',
+          versions: [
+            {
+              name: 'v1alpha1',
+              schema: {
+                openAPIV3Schema: {
+                  type: 'object',
+                  description: 'Provisions a Managed Database',
+                  properties: {},
+                },
+              },
+            },
+          ],
+        },
+        clusterName: 'test-cluster',
+      };
+      const templates = (provider as any).translateXRDVersionsToTemplates(xrd);
+
+      expect(templates).toHaveLength(1);
+      expect(templates[0].metadata.description).toBe('Provisions a Managed Database');
+    });
+  });
 });

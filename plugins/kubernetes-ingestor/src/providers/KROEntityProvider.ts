@@ -133,6 +133,10 @@ export class KROEntityProvider implements EntityProvider {
     const clusterTags = clusters.map((cluster: any) => `cluster:${cluster}`);
     const tags = ['kro', ...clusterTags];
     const prefix = this.getAnnotationPrefix();
+    const description =
+      rgd.metadata?.annotations?.[`${prefix}/template-description`] ||
+      crd.spec?.versions?.[0]?.schema?.openAPIV3Schema?.description ||
+      `A template to create a ${rgd.metadata.name} instance`;
 
     const templates = [{
       apiVersion: 'scaffolder.backstage.io/v1beta3',
@@ -140,7 +144,7 @@ export class KROEntityProvider implements EntityProvider {
       metadata: {
         name: `${rgd.metadata.name}-${crd.spec.versions[0].name}`,
         title: `${crd.spec.names.kind}`,
-        description: `A template to create a ${rgd.metadata.name} instance`,
+        description,
         tags: tags,
         labels: {
           forEntity: "system",
