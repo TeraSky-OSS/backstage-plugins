@@ -111,7 +111,7 @@ export function createCrossplaneClaimAction({config}: {config: any}) {
       }
 
       // Remove excluded parameters (always exclude showAdvancedSettings regardless of excludeParams list)
-      const filteredParameters = { ...input.parameters };
+      const filteredParameters = structuredClone(input.parameters);
       // Helper to delete nested keys using dot notation
       function deleteNested(obj: any, keyPath: string) {
         const parts = keyPath.split('.');
