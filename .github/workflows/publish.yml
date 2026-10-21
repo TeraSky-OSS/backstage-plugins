@@ -62,10 +62,6 @@ jobs:
       - run: yarn dedupe
       - run: yarn build:all
       - run: ./publish.sh
-        env:
-          YARN_NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
       - run: yarn build:backend
 
       - id: docker_meta
