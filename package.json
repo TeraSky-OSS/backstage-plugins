@@ -53,8 +53,8 @@
     ]
   },
   "devDependencies": {
-    "@backstage/cli": "^0.36.6",
-    "@backstage/cli-defaults": "^0.1.6",
+    "@backstage/cli": "^0.36.7",
+    "@backstage/cli-defaults": "^0.1.7",
     "@backstage/e2e-test-utils": "^0.1.2",
     "@playwright/test": "^1.32.3",
     "jest": "^29",
@@ -83,11 +83,11 @@
     "koa": "^3.2.0",
     "hono": "^4.12.12",
     "@hono/node-server": "^1.19.13",
+    "@yarnpkg/core": "4.9.1",
     "prismjs": "^1.30.0",
     "protobufjs": "^7.5.5",
     "@protobufjs/inquire": "^1.1.0",
-    "basic-ftp": "^5.3.1",
-    "@backstage/cli-module-build@npm:^0.1.1": "patch:@backstage/cli-module-build@npm%3A0.1.1#~/.yarn/patches/@backstage-cli-module-build-npm-0.1.1-9c149b8b18.patch"
+    "basic-ftp": "^5.3.1"
   },
   "prettier": "@backstage/cli/config/prettier",
   "lint-staged": {

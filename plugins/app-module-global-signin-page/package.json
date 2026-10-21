@@ -1,6 +1,6 @@
 {
   "name": "@terasky/backstage-plugin-app-module-global-signin-page",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "description": "Configuration-driven sign-in page module for Backstage supporting all core authentication providers",
   "license": "Apache-2.0",
   "main": "src/index.ts",
@@ -33,15 +33,15 @@
     "postpack": "backstage-cli package postpack"
   },
   "dependencies": {
-    "@backstage/core-components": "^0.18.14",
-    "@backstage/core-plugin-api": "^1.12.10",
-    "@backstage/frontend-plugin-api": "^0.18.1",
-    "@backstage/plugin-app-react": "^0.2.7",
-    "@terasky/backstage-plugin-spectrocloud-auth": "^0.13.0",
-    "@terasky/backstage-plugin-vcfsso-auth": "^0.10.0"
+    "@backstage/core-components": "^0.18.15",
+    "@backstage/core-plugin-api": "^1.12.11",
+    "@backstage/frontend-plugin-api": "^0.18.2",
+    "@backstage/plugin-app-react": "^0.2.8",
+    "@terasky/backstage-plugin-spectrocloud-auth": "^0.14.0",
+    "@terasky/backstage-plugin-vcfsso-auth": "^0.11.0"
   },
   "devDependencies": {
-    "@backstage/cli": "^0.36.6",
+    "@backstage/cli": "^0.36.7",
     "@testing-library/jest-dom": "^6.0.0",
     "@types/react": "^16",
     "typescript": "^5.8.3"
