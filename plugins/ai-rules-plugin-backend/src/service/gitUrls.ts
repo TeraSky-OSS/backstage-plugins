@@ -30,7 +30,12 @@ function azureUrlForPath(url: URL, path: string): string {
 }
 
 function trimTrailingSlashes(gitUrl: string): string {
-  return gitUrl.replace(/\/+$/, '');
+  // A loop instead of /\/+$/, which backtracks quadratically on long runs of '/'.
+  let end = gitUrl.length;
+  while (end > 0 && gitUrl[end - 1] === '/') {
+    end--;
+  }
+  return gitUrl.slice(0, end);
 }
 
 /**

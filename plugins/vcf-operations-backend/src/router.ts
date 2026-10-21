@@ -1,5 +1,6 @@
 import { Config } from '@backstage/config';
 import express from 'express';
+import { rateLimit, ipKeyGenerator } from 'express-rate-limit';
 import { LoggerService, PermissionsService, HttpAuthService } from '@backstage/backend-plugin-api';
 import { AuthorizeResult } from '@backstage/plugin-permission-common';
 import { viewMetricsPermission } from '@terasky/backstage-plugin-vcf-operations-common';
@@ -20,6 +21,28 @@ export async function createRouter(
   // eslint-disable-next-line new-cap
   const router = express.Router();
   router.use(express.json());
+
+  // Every route below proxies to VCF Operations, so cap how often a single
+  // user can hit them. Keyed by user so users behind a shared proxy are not
+  // throttled together.
+  router.use(
+    rateLimit({
+      windowMs:
+        config.getOptionalNumber('vcfOperations.rateLimit.windowMs') ?? 60_000,
+      limit: config.getOptionalNumber('vcfOperations.rateLimit.max') ?? 300,
+      standardHeaders: 'draft-8',
+      legacyHeaders: false,
+      skip: req => req.path === '/health',
+      keyGenerator: async req => {
+        try {
+          const credentials = await httpAuth.credentials(req, { allow: ['user'] });
+          return credentials.principal.userEntityRef;
+        } catch {
+          return ipKeyGenerator(req.ip ?? '');
+        }
+      },
+    }),
+  );
 
   const vcfOperationsService = new VcfOperationsService(config, logger);
 

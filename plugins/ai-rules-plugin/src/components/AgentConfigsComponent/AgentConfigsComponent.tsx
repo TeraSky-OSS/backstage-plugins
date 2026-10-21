@@ -20,13 +20,7 @@ import { RiExternalLinkLine } from '@remixicon/react';
 import { useAgentConfigs } from '../../hooks/useAgentConfigs';
 import { AgentConfig } from '../../types';
 import styles from './AgentConfigsComponent.module.css';
-
-const constructFileUrl = (gitUrl: string, filePath: string): string => {
-  const cleanGitUrl = gitUrl.replace(/\/+$/, '');
-  if (cleanGitUrl.includes('github.com')) return `${cleanGitUrl}/blob/main/${filePath}`;
-  if (cleanGitUrl.includes('gitlab.com')) return `${cleanGitUrl}/-/blob/main/${filePath}`;
-  return `${cleanGitUrl}/blob/main/${filePath}`;
-};
+import { openFileInRepo } from '../../utils/constructFileUrl';
 
 const LANGUAGE_LABEL: Record<AgentConfig['language'], string> = {
   yaml: 'YAML',
@@ -59,7 +53,7 @@ const ConfigAccordion = ({ config }: { config: AgentConfig }) => {
             size="small"
             variant="tertiary"
             style={{ position: 'absolute', top: 'var(--bui-space-2)', right: 'var(--bui-space-8)' }}
-            onPress={() => window.open(constructFileUrl(config.gitUrl!, config.filePath), '_blank')}
+            onPress={() => openFileInRepo(config.gitUrl!, config.filePath)}
           />
           <Tooltip>Open file in repository</Tooltip>
         </TooltipTrigger>

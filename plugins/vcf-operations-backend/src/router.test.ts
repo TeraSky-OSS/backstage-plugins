@@ -540,5 +540,30 @@ describe('createRouter', () => {
       expect(response.body).toBeNull();
     });
   });
-});
 
+  describe('rate limiting', () => {
+    it('should return 429 once a user exceeds the configured limit', async () => {
+      // Earlier tests replace the service mock implementation, so restore one
+      // with a working getInstances.
+      const { VcfOperationsService } = require('./services/VcfOperationsService');
+      VcfOperationsService.mockImplementation(() => ({
+        getInstances: jest.fn().mockReturnValue([{ name: 'vcfo-1' }]),
+      }));
+
+      const router = await createRouter({
+        logger: mockLogger,
+        config: new ConfigReader({
+          vcfOperations: { instances: [], rateLimit: { max: 2 } },
+        }),
+        permissions: mockPermissions,
+        httpAuth: mockHttpAuth,
+      });
+      const limitedApp = express().use(router);
+
+      expect((await request(limitedApp).get('/instances')).status).toBe(200);
+      expect((await request(limitedApp).get('/instances')).status).toBe(200);
+      expect((await request(limitedApp).get('/instances')).status).toBe(429);
+      expect((await request(limitedApp).get('/health')).status).toBe(200);
+    });
+  });
+});

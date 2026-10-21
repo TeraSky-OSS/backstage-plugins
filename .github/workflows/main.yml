@@ -7,6 +7,9 @@ on:
       - 'site/**'
       - 'cli/**'
 
+permissions:
+  contents: read
+
 jobs:
   build:
     env:

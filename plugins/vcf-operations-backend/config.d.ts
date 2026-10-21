@@ -15,6 +15,19 @@ export interface Config {
      */
     enabled?: boolean;
     /**
+     * Per-user rate limit for the plugin's API routes
+     */
+    rateLimit?: {
+      /**
+       * Length of the rate limit window in milliseconds (default 60000)
+       */
+      windowMs?: number;
+      /**
+       * Maximum requests per user within the window (default 300)
+       */
+      max?: number;
+    };
+    /**
      * VCF Operations instances
      */
     instances: Array<{
