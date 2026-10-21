@@ -20,7 +20,7 @@ import { RiExternalLinkLine } from '@remixicon/react';
 import { useIgnoreFiles } from '../../hooks/useIgnoreFiles';
 import { IgnoreFile } from '../../types';
 import styles from './IgnoreFilesComponent.module.css';
-import { constructFileUrl } from '../../utils/constructFileUrl';
+import { openFileInRepo } from '../../utils/constructFileUrl';
 
 const IgnoreFileAccordion = ({ file }: { file: IgnoreFile }) => {
   const patternCount = file.content.split('\n').filter(l => l.trim() && !l.startsWith('#')).length;
@@ -48,7 +48,7 @@ const IgnoreFileAccordion = ({ file }: { file: IgnoreFile }) => {
             size="small"
             variant="tertiary"
             style={{ position: 'absolute', top: 'var(--bui-space-2)', right: 'var(--bui-space-8)' }}
-            onPress={() => window.open(constructFileUrl(file.gitUrl!, file.filePath), '_blank')}
+            onPress={() => openFileInRepo(file.gitUrl!, file.filePath)}
           />
           <Tooltip>Open file in repository</Tooltip>
         </TooltipTrigger>

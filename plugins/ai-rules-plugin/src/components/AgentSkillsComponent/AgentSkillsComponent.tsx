@@ -25,7 +25,7 @@ import { RiExternalLinkLine } from '@remixicon/react';
 import { useSkills } from '../../hooks/useSkills';
 import { AgentSkill } from '../../types';
 import styles from './AgentSkillsComponent.module.css';
-import { constructFileUrl } from '../../utils/constructFileUrl';
+import { openFileInRepo } from '../../utils/constructFileUrl';
 
 const SOURCE_LABELS: Record<AgentSkill['source'], string> = {
   'cross-client': 'Cross-Client (.agents/skills/)',
@@ -141,7 +141,7 @@ const SkillAccordion = ({ skill }: { skill: AgentSkill }) => {
             size="small"
             variant="tertiary"
             style={{ position: 'absolute', top: 'var(--bui-space-2)', right: 'var(--bui-space-8)' }}
-            onPress={() => window.open(constructFileUrl(skill.gitUrl!, skill.filePath), '_blank')}
+            onPress={() => openFileInRepo(skill.gitUrl!, skill.filePath)}
           />
           <Tooltip>Open SKILL.md in repository</Tooltip>
         </TooltipTrigger>

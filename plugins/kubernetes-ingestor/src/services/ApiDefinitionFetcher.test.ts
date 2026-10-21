@@ -401,6 +401,39 @@ paths: {}`;
       expect(mockUrlReader.readUrl).not.toHaveBeenCalled();
     });
 
+    it.each([
+      'https://gitlab.example.com@attacker.example/openapi.yaml',
+      'https://github.example.com@attacker.example/openapi.yaml',
+      'https://attacker.example/github.com/openapi.yaml',
+      'https://attacker.example/?u=https://gitlab.com/openapi.yaml',
+    ])('should not treat %s as a Git provider URL', async url => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => 'application/json' },
+        text: () => Promise.resolve(JSON.stringify({ openapi: '3.0.0' })),
+      } as any);
+
+      await fetcherWithUrlReader.fetchFromUrl(url);
+
+      expect(mockUrlReader.readUrl).not.toHaveBeenCalled();
+      expect(mockFetch).toHaveBeenCalled();
+    });
+
+    it('should use UrlReaderService for self-hosted GitLab and GitHub Pages hosts', async () => {
+      const response = {
+        buffer: () => Promise.resolve(Buffer.from('openapi: 3.0.0')),
+      };
+      mockUrlReader.readUrl
+        .mockResolvedValueOnce(response)
+        .mockResolvedValueOnce(response);
+
+      await fetcherWithUrlReader.fetchFromUrl('https://gitlab.example.com/g/r/-/raw/main/api.yaml');
+      await fetcherWithUrlReader.fetchFromUrl('https://org.github.io/docs/api.yaml');
+
+      expect(mockUrlReader.readUrl).toHaveBeenCalledTimes(2);
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
     it('should use node-fetch when UrlReaderService is not provided', async () => {
       const jsonContent = {
         openapi: '3.0.0',

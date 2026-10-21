@@ -7,19 +7,20 @@ import fetch from 'node-fetch';
 import pluralize from 'pluralize';
 
 /**
- * Known Git provider URL patterns that should use UrlReaderService.
- * These patterns match common Git hosting services.
+ * Known Git provider hostname patterns that should use UrlReaderService.
+ * These are matched against the parsed URL hostname, so text elsewhere in the
+ * URL (path, query, user-info) cannot make an arbitrary host match.
  */
-const GIT_PROVIDER_PATTERNS = [
-  /^https?:\/\/(www\.)?github\.com\//i,
-  /^https?:\/\/(www\.)?gitlab\.com\//i,
-  /^https?:\/\/(www\.)?bitbucket\.org\//i,
-  /^https?:\/\/dev\.azure\.com\//i,
-  /^https?:\/\/[^/]+\.visualstudio\.com\//i,
-  /^https?:\/\/[^/]+\.github\.io\//i,
-  /^https?:\/\/raw\.githubusercontent\.com\//i,
-  /^https?:\/\/gitlab\.[^/]+\//i, // Self-hosted GitLab
-  /^https?:\/\/github\.[^/]+\//i, // GitHub Enterprise
+const GIT_PROVIDER_HOST_PATTERNS = [
+  /^(www\.)?github\.com$/,
+  /^(www\.)?gitlab\.com$/,
+  /^(www\.)?bitbucket\.org$/,
+  /^dev\.azure\.com$/,
+  /\.visualstudio\.com$/,
+  /\.github\.io$/,
+  /^raw\.githubusercontent\.com$/,
+  /^gitlab\./, // Self-hosted GitLab
+  /^github\./, // GitHub Enterprise
 ];
 
 /**
@@ -153,7 +154,17 @@ export class ApiDefinitionFetcher {
    * @returns true if the URL matches a known Git provider pattern
    */
   private isGitProviderUrl(url: string): boolean {
-    return GIT_PROVIDER_PATTERNS.some(pattern => pattern.test(url));
+    let parsed: URL;
+    try {
+      parsed = new URL(url);
+    } catch {
+      return false;
+    }
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return false;
+    }
+    const hostname = parsed.hostname.toLowerCase();
+    return GIT_PROVIDER_HOST_PATTERNS.some(pattern => pattern.test(hostname));
   }
 
   /**
