@@ -20,13 +20,7 @@ import { RiExternalLinkLine } from '@remixicon/react';
 import { useIgnoreFiles } from '../../hooks/useIgnoreFiles';
 import { IgnoreFile } from '../../types';
 import styles from './IgnoreFilesComponent.module.css';
-
-const constructFileUrl = (gitUrl: string, filePath: string): string => {
-  const cleanGitUrl = gitUrl.replace(/\/+$/, '');
-  if (cleanGitUrl.includes('github.com')) return `${cleanGitUrl}/blob/main/${filePath}`;
-  if (cleanGitUrl.includes('gitlab.com')) return `${cleanGitUrl}/-/blob/main/${filePath}`;
-  return `${cleanGitUrl}/blob/main/${filePath}`;
-};
+import { constructFileUrl } from '../../utils/constructFileUrl';
 
 const IgnoreFileAccordion = ({ file }: { file: IgnoreFile }) => {
   const patternCount = file.content.split('\n').filter(l => l.trim() && !l.startsWith('#')).length;

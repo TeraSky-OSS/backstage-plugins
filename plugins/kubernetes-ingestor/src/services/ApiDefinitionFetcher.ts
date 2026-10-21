@@ -15,11 +15,11 @@ const GIT_PROVIDER_PATTERNS = [
   /^https?:\/\/(www\.)?gitlab\.com\//i,
   /^https?:\/\/(www\.)?bitbucket\.org\//i,
   /^https?:\/\/dev\.azure\.com\//i,
-  /^https?:\/\/.*\.visualstudio\.com\//i,
-  /^https?:\/\/.*\.github\.io\//i,
+  /^https?:\/\/[^/]+\.visualstudio\.com\//i,
+  /^https?:\/\/[^/]+\.github\.io\//i,
   /^https?:\/\/raw\.githubusercontent\.com\//i,
-  /^https?:\/\/gitlab\..+\//i, // Self-hosted GitLab
-  /^https?:\/\/github\..+\//i, // GitHub Enterprise
+  /^https?:\/\/gitlab\.[^/]+\//i, // Self-hosted GitLab
+  /^https?:\/\/github\.[^/]+\//i, // GitHub Enterprise
 ];
 
 /**

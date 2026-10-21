@@ -14407,6 +14407,7 @@ __metadata:
     "@types/supertest": "npm:^2.0.12"
     express: "npm:^4.17.1"
     express-promise-router: "npm:^4.1.1"
+    express-rate-limit: "npm:^8.7.1"
     msw: "npm:^2.12.4"
     node-fetch: "npm:^2.7.0"
     supertest: "npm:^6.2.4"
@@ -22708,7 +22709,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"express-rate-limit@npm:^8.2.1, express-rate-limit@npm:^8.2.2":
+"express-rate-limit@npm:^8.2.1, express-rate-limit@npm:^8.2.2, express-rate-limit@npm:^8.7.1":
   version: 8.7.1
   resolution: "express-rate-limit@npm:8.7.1"
   dependencies:

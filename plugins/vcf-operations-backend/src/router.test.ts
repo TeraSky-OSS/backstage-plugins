@@ -540,5 +540,23 @@ describe('createRouter', () => {
       expect(response.body).toBeNull();
     });
   });
-});
 
+  describe('rate limiting', () => {
+    it('should return 429 once a user exceeds the configured limit', async () => {
+      const router = await createRouter({
+        logger: mockLogger,
+        config: new ConfigReader({
+          vcfOperations: { instances: [], rateLimit: { max: 2 } },
+        }),
+        permissions: mockPermissions,
+        httpAuth: mockHttpAuth,
+      });
+      const limitedApp = express().use(router);
+
+      expect((await request(limitedApp).get('/instances')).status).not.toBe(429);
+      expect((await request(limitedApp).get('/instances')).status).not.toBe(429);
+      expect((await request(limitedApp).get('/instances')).status).toBe(429);
+      expect((await request(limitedApp).get('/health')).status).toBe(200);
+    });
+  });
+});

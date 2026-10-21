@@ -24,6 +24,7 @@ import { Entity } from '@backstage/catalog-model';
 import { RiCodeLine, RiExternalLinkLine, RiFileCopyLine, RiCheckLine, RiDownloadLine } from '@remixicon/react';
 import { AIRuleType, AIRule, CursorRule, CopilotRule, ClineRule, ClaudeCodeRule } from '../../types';
 import styles from './AiRulesComponent.module.css';
+import { constructFileUrl } from '../../utils/constructFileUrl';
 
 export interface AIRulesComponentProps {
   title?: string;
@@ -113,13 +114,6 @@ const manualParseFrontmatter = (content: string) => {
 };
 
 const parseCursorContent = (content: string) => manualParseFrontmatter(content);
-
-const constructFileUrl = (gitUrl: string, filePath: string): string => {
-  const cleanGitUrl = gitUrl.replace(/\/+$/, '');
-  if (cleanGitUrl.includes('github.com')) return `${cleanGitUrl}/blob/main/${filePath}`;
-  if (cleanGitUrl.includes('gitlab.com')) return `${cleanGitUrl}/-/blob/main/${filePath}`;
-  return `${cleanGitUrl}/blob/main/${filePath}`;
-};
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
