@@ -762,6 +762,21 @@ export class XRDTemplateEntityProvider implements EntityProvider {
   private extractParameters(version: any, clusters: string[], xrd: any): any[] {
     // Normalize cluster names for template display
     const normalizedClusters = clusters.map(cluster => this.getNormalizedClusterName(cluster));
+
+    const applyUiExtensions = (schema: Record<string, any>): Record<string, any> => {
+      const processedSchema = { ...schema };
+
+      if (typeof schema['x-ui-field'] === 'string') {
+        processedSchema['ui:field'] = schema['x-ui-field'];
+      }
+      if (schema['x-ui-options'] && typeof schema['x-ui-options'] === 'object') {
+        processedSchema['ui:options'] = schema['x-ui-options'];
+      }
+
+      delete processedSchema['x-ui-field'];
+      delete processedSchema['x-ui-options'];
+      return processedSchema;
+    };
     
     // --- BEGIN VERSION/SCOPE LOGIC REFACTOR ---
     // Use presence of xrd.spec.scope to determine v2, otherwise v1
@@ -796,12 +811,14 @@ export class XRDTemplateEntityProvider implements EntityProvider {
         type: 'string',
       };
     }
+    const xrdOwnerSchema = version.schema?.openAPIV3Schema?.properties?.spec?.properties?.owner;
+    const ownerUiSchema = xrdOwnerSchema ? applyUiExtensions(xrdOwnerSchema) : {};
     mainParameterGroup.properties.owner = {
       title: 'Owner',
       description: 'The owner of the resource',
       type: 'string',
-      'ui:field': 'OwnerPicker',
-      'ui:options': {
+      'ui:field': ownerUiSchema['ui:field'] ?? 'OwnerPicker',
+      'ui:options': ownerUiSchema['ui:options'] ?? {
         'catalogFilter': {
           'kind': 'Group',
         },
@@ -814,7 +831,7 @@ export class XRDTemplateEntityProvider implements EntityProvider {
       const generatedDependencies: Record<string, any> = {};
 
       for (const [key, value] of Object.entries(properties)) {
-        const typedValue = value as Record<string, any>;
+        const typedValue = applyUiExtensions(value as Record<string, any>);
 
         if (typedValue['x-ui-hidden'] === true) {
           continue;
@@ -871,13 +888,14 @@ export class XRDTemplateEntityProvider implements EntityProvider {
           // convertDefaultValuesToPlaceholders, and the enabled dependency logic all apply to
           // object (and nested-array-of-object) items the same way they do for plain objects.
           const processItemSchema = (itemSchema: Record<string, any>): Record<string, any> => {
-            if (itemSchema.type === 'object' && itemSchema.properties) {
-              const { properties: subProps, dependencies: subDeps } = processProperties(itemSchema.properties);
-              const trimmedRequired = (itemSchema.required || []).filter((k: string) => k in subProps);
+            const typedItemSchema = applyUiExtensions(itemSchema);
+            if (typedItemSchema.type === 'object' && typedItemSchema.properties) {
+              const { properties: subProps, dependencies: subDeps } = processProperties(typedItemSchema.properties);
+              const trimmedRequired = (typedItemSchema.required || []).filter((k: string) => k in subProps);
               const processed: Record<string, any> = {
-                ...itemSchema,
+                ...typedItemSchema,
                 properties: subProps,
-                dependencies: { ...itemSchema.dependencies, ...subDeps },
+                dependencies: { ...typedItemSchema.dependencies, ...subDeps },
               };
               if (trimmedRequired.length > 0) {
                 processed.required = trimmedRequired;
@@ -906,10 +924,10 @@ export class XRDTemplateEntityProvider implements EntityProvider {
               }
               return processed;
             }
-            if (itemSchema.type === 'array' && itemSchema.items) {
-              return { ...itemSchema, items: processItemSchema(itemSchema.items) };
+            if (typedItemSchema.type === 'array' && typedItemSchema.items) {
+              return { ...typedItemSchema, items: processItemSchema(typedItemSchema.items) };
             }
-            return itemSchema;
+            return typedItemSchema;
           };
           processedProperties[key] = { ...typedValue, items: processItemSchema(typedValue.items) };
         } else {
