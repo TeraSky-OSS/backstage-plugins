@@ -73,7 +73,9 @@ kubernetesIngestor:
         ingestAsResources: true # Override: ingest Ingresses as Resource entities regardless of the global setting
     # By default all standard kubernetes workload types are ingested. This allows you to disable this behavior
     disableDefaultWorkloadTypes: false
-    # Allows ingestion to be opt-in or opt-out by either requiring or not a dedicated annotation to ingest a resource (terasky.backstage.io/add-to-catalog or terasky.backstage.io/exclude-from-catalog)
+    # Opt-in or opt-out ingestion. When true, a workload is ingested only if it sets
+    # terasky.backstage.io/add-to-catalog: "true" — any other value keeps it out.
+    # When false, every workload is ingested unless it sets terasky.backstage.io/exclude-from-catalog.
     onlyIngestAnnotatedResources: false
   crossplane:
     # Whether to completely disable crossplane related code for both XRDs and Claims. defaults to enabled if not provided for backwards compatibility
