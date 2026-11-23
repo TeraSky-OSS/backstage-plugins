@@ -2838,7 +2838,17 @@ export class KubernetesEntityProvider implements EntityProvider {
 
       // Build base workload types and CRD mapping once, shared across all clusters
       const baseWorkloadTypes: WorkloadType[] = await kubernetesDataProvider.buildBaseWorkloadTypes();
-      const crdMapping = await kubernetesDataProvider.fetchCRDMapping();
+      // The mapping feeds Crossplane claim translation and the plural fallback in
+      // buildKubernetesApiPath, which the delta-update subscriber uses for every kind once
+      // kubernetesIngestor.events.topic is configured. It is only dead weight when neither is
+      // on: skip it then, because the read is cluster-scoped and fails with a 403 wherever the
+      // credentials cannot read apiextensions.k8s.io (for example EKS access entries with
+      // AmazonEKSViewPolicy).
+      const deltaEventsEnabled = !!this.config.getOptionalString('kubernetesIngestor.events.topic');
+      const crdMapping =
+        isCrossplaneEnabled || deltaEventsEnabled
+          ? await kubernetesDataProvider.fetchCRDMapping()
+          : {};
 
       // Cache lookups for delta (event-bus) updates
       this.cachedCompositeKindLookup = compositeKindLookup;
