@@ -38,7 +38,11 @@ export function createBuiltInResourceEligibilityChecker(
       return false;
     }
     if (onlyIngestAnnotatedResources) {
-      if (!resource.metadata.annotations?.[`${prefix}/add-to-catalog`]) {
+      // Only an explicit "true" opts a workload in. Presence alone is not enough: overlays and
+      // charts write "false" to keep a workload out, and that value used to be ignored.
+      const addToCatalog =
+        resource.metadata.annotations?.[`${prefix}/add-to-catalog`];
+      if (addToCatalog?.trim().toLowerCase() !== 'true') {
         return false;
       }
     } else if (

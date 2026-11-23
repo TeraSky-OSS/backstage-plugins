@@ -1,4 +1,7 @@
-import { KubernetesDataProvider } from './KubernetesDataProvider';
+import {
+  createBuiltInResourceEligibilityChecker,
+  KubernetesDataProvider,
+} from './KubernetesDataProvider';
 
 describe('KubernetesDataProvider', () => {
   const mockResourceFetcher = {
@@ -1550,5 +1553,94 @@ describe('KubernetesDataProvider', () => {
 
       expect(resourceFilter).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe('createBuiltInResourceEligibilityChecker', () => {
+  const configFor = (
+    options: {
+      onlyIngestAnnotatedResources?: boolean;
+      annotationPrefix?: string;
+    } = {},
+  ) =>
+    ({
+      getOptionalString: jest.fn((key: string) =>
+        key === 'kubernetesIngestor.annotationPrefix'
+          ? options.annotationPrefix
+          : undefined,
+      ),
+      getOptionalBoolean: jest.fn((key: string) =>
+        key === 'kubernetesIngestor.components.onlyIngestAnnotatedResources'
+          ? options.onlyIngestAnnotatedResources
+          : undefined,
+      ),
+      getOptionalStringArray: jest.fn().mockReturnValue(undefined),
+    }) as any;
+
+  const deployment = (annotations?: Record<string, string>) => ({
+    apiVersion: 'apps/v1',
+    kind: 'Deployment',
+    metadata: { name: 'workload', namespace: 'default', annotations },
+  });
+
+  const optIn = (annotationPrefix?: string) =>
+    createBuiltInResourceEligibilityChecker(
+      configFor({ onlyIngestAnnotatedResources: true, annotationPrefix }),
+    );
+
+  it('ingests only a workload that explicitly opts in', () => {
+    const isEligible = optIn();
+
+    expect(isEligible(deployment())).toBe(false);
+    expect(
+      isEligible(deployment({ 'terasky.backstage.io/add-to-catalog': 'true' })),
+    ).toBe(true);
+    expect(
+      isEligible(deployment({ 'terasky.backstage.io/add-to-catalog': 'false' })),
+    ).toBe(false);
+  });
+
+  it('accepts an explicit opt-in regardless of case and padding', () => {
+    const isEligible = optIn();
+
+    for (const value of ['TRUE', 'True', ' true ']) {
+      expect(
+        isEligible(deployment({ 'terasky.backstage.io/add-to-catalog': value })),
+      ).toBe(true);
+    }
+  });
+
+  it('keeps out a workload whose annotation is any other value', () => {
+    const isEligible = optIn();
+
+    for (const value of ['', 'false', 'False', 'no', 'yes', '1']) {
+      expect(
+        isEligible(deployment({ 'terasky.backstage.io/add-to-catalog': value })),
+      ).toBe(false);
+    }
+  });
+
+  it('honours a custom annotation prefix', () => {
+    const isEligible = optIn('example.com');
+
+    expect(
+      isEligible(deployment({ 'example.com/add-to-catalog': 'false' })),
+    ).toBe(false);
+    expect(
+      isEligible(deployment({ 'example.com/add-to-catalog': 'true' })),
+    ).toBe(true);
+    // Another prefix is not an opt-in under this configuration.
+    expect(
+      isEligible(deployment({ 'terasky.backstage.io/add-to-catalog': 'true' })),
+    ).toBe(false);
+  });
+
+  it('leaves opt-out ingestion unchanged', () => {
+    const isEligible = createBuiltInResourceEligibilityChecker(configFor());
+
+    expect(isEligible(deployment())).toBe(true);
+    expect(
+      isEligible(deployment({ 'terasky.backstage.io/add-to-catalog': 'false' })),
+    ).toBe(true);
   });
 });
