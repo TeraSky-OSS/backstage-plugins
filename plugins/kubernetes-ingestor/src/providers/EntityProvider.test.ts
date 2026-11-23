@@ -862,6 +862,7 @@ describe('KubernetesEntityProvider', () => {
 
     const runProvider = async (
       crossplaneEnabled: boolean,
+      eventsTopic?: string,
     ): Promise<string[]> => {
       const config = new ConfigReader({
         kubernetesIngestor: {
@@ -869,6 +870,7 @@ describe('KubernetesEntityProvider', () => {
           crossplane: { enabled: crossplaneEnabled },
           kro: { enabled: false },
           allowedClusterNames: ['test-cluster'],
+          ...(eventsTopic ? { events: { topic: eventsTopic } } : {}),
         },
       });
 
@@ -896,6 +898,14 @@ describe('KubernetesEntityProvider', () => {
 
     it('should read CRDs for the mapping when Crossplane ingestion is enabled', async () => {
       const requestedPaths = await runProvider(true);
+
+      expect(requestedPaths).toContain(crdResourcePath);
+    });
+
+    it('should read CRDs for the mapping when delta events are configured without Crossplane', async () => {
+      // buildKubernetesApiPath resolves custom-resource plurals from this mapping, and the
+      // delta subscriber runs whenever kubernetesIngestor.events.topic is set.
+      const requestedPaths = await runProvider(false, 'kubernetes-ingestor');
 
       expect(requestedPaths).toContain(crdResourcePath);
     });
