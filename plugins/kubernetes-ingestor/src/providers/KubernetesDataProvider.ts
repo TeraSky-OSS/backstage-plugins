@@ -444,14 +444,17 @@ export class KubernetesDataProvider {
             }
           });
         } catch (clusterError) {
+          // A cluster whose credentials cannot read CRDs is not a failure of the ingest itself:
+          // the mapping is optional and only used for Crossplane claims, so reporting it as an
+          // error turns a healthy run into an error log (and alert) every task interval.
           if (clusterError instanceof Error) {
-            this.logger.error(
-              `Failed to fetch objects for cluster ${clusterName}: ${clusterError.message}`,
+            this.logger.warn(
+              `Failed to fetch CRD mapping for cluster ${clusterName}: ${clusterError.message}`,
               clusterError,
             );
           } else {
-            this.logger.error(
-              `Failed to fetch objects for cluster ${clusterName}:`,
+            this.logger.warn(
+              `Failed to fetch CRD mapping for cluster ${clusterName}:`,
               {
                 error: String(clusterError),
               },

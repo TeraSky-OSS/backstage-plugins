@@ -1218,7 +1218,7 @@ describe('KubernetesDataProvider', () => {
       });
     });
 
-    it('should handle errors when fetching CRDs for a cluster', async () => {
+    it('should warn rather than error when CRDs cannot be read for a cluster', async () => {
       mockConfig.getOptionalStringArray.mockImplementation((key: string) => {
         if (key === 'kubernetesIngestor.allowedClusterNames') return ['cluster1'];
         return undefined;
@@ -1235,10 +1235,14 @@ describe('KubernetesDataProvider', () => {
       const result = await provider.fetchCRDMapping();
 
       expect(result).toEqual({});
-      expect(mockLogger.error).toHaveBeenCalled();
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        'Failed to fetch CRD mapping for cluster cluster1: Fetch failed',
+        expect.any(Error),
+      );
+      expect(mockLogger.error).not.toHaveBeenCalled();
     });
 
-    it('should handle non-Error exceptions when fetching CRDs', async () => {
+    it('should warn on a non-Error exception when fetching CRDs', async () => {
       mockConfig.getOptionalStringArray.mockImplementation((key: string) => {
         if (key === 'kubernetesIngestor.allowedClusterNames') return ['cluster1'];
         return undefined;
@@ -1255,7 +1259,11 @@ describe('KubernetesDataProvider', () => {
       const result = await provider.fetchCRDMapping();
 
       expect(result).toEqual({});
-      expect(mockLogger.error).toHaveBeenCalled();
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        'Failed to fetch CRD mapping for cluster cluster1:',
+        { error: 'String error' },
+      );
+      expect(mockLogger.error).not.toHaveBeenCalled();
     });
 
     it('should use allowed clusters from config for CRD mapping', async () => {

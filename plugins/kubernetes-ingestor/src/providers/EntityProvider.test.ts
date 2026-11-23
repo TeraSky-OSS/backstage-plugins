@@ -857,6 +857,50 @@ describe('KubernetesEntityProvider', () => {
     });
   });
 
+  describe('CRD mapping fetch', () => {
+    const crdResourcePath = 'apiextensions.k8s.io/v1/customresourcedefinitions';
+
+    const runProvider = async (
+      crossplaneEnabled: boolean,
+    ): Promise<string[]> => {
+      const config = new ConfigReader({
+        kubernetesIngestor: {
+          components: { enabled: true },
+          crossplane: { enabled: crossplaneEnabled },
+          kro: { enabled: false },
+          allowedClusterNames: ['test-cluster'],
+        },
+      });
+
+      const provider = new KubernetesEntityProvider(
+        { run: jest.fn().mockImplementation(({ fn }) => fn()) } as any,
+        mockLogger,
+        config,
+        mockResourceFetcher as any,
+      );
+
+      await provider.connect({
+        applyMutation: jest.fn().mockResolvedValue(undefined),
+      } as any);
+
+      return mockResourceFetcher.fetchResources.mock.calls.map(
+        (call: any[]) => call[0].resourcePath,
+      );
+    };
+
+    it('should not read cluster-scoped CRDs when Crossplane ingestion is disabled', async () => {
+      const requestedPaths = await runProvider(false);
+
+      expect(requestedPaths).not.toContain(crdResourcePath);
+    });
+
+    it('should read CRDs for the mapping when Crossplane ingestion is enabled', async () => {
+      const requestedPaths = await runProvider(true);
+
+      expect(requestedPaths).toContain(crdResourcePath);
+    });
+  });
+
   describe('dependsOn annotation splitting', () => {
     it('should split comma-separated dependsOn values', async () => {
       const provider = new KubernetesEntityProvider(
