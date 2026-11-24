@@ -1571,8 +1571,9 @@ describe('KubernetesDataProvider', () => {
           }
           if (resourcePath.includes('statefulsets')) {
             // A transient 5xx — must not be read as "no statefulsets exist".
-            throw new Error(
-              'Failed to fetch Kubernetes resources: Service Unavailable',
+            throw Object.assign(
+              new Error('Failed to fetch Kubernetes resources'),
+              { statusCode: 503 },
             );
           }
           return [];
@@ -1598,7 +1599,12 @@ describe('KubernetesDataProvider', () => {
             return [{ kind: 'Deployment', metadata: { name: 'd1', namespace: 'ns' } }];
           }
           if (resourcePath.includes('statefulsets')) {
-            throw new Error('Failed to fetch Kubernetes resources: Forbidden');
+            // A 403 the service account cannot list — skipped regardless of the
+            // reason phrase, classified by status code.
+            throw Object.assign(
+              new Error('Failed to fetch Kubernetes resources'),
+              { statusCode: 403 },
+            );
           }
           return [];
         },

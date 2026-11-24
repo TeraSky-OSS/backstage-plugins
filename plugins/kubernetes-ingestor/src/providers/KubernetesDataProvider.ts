@@ -243,8 +243,11 @@ export class KubernetesDataProvider {
           // the caller then deletes them (prevRefs - currentRefs) until the next
           // good sync. Re-throw so the whole cluster fetch fails and the caller
           // skips its delta this cycle instead of deleting live entities.
-          const message = error instanceof Error ? error.message : String(error);
-          if (message.includes('Forbidden')) {
+          // Classify by HTTP status code (fetchResources attaches it), not the
+          // reason phrase, which HTTP treats as optional.
+          const statusCode = (error as { statusCode?: number } | undefined)
+            ?.statusCode;
+          if (statusCode === 403) {
             this.logger.debug(
               `Skipping forbidden ${type.group}/${type.apiVersion}/${type.plural} from cluster ${clusterName}: ${error}`,
             );

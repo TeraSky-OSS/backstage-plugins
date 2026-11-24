@@ -164,6 +164,22 @@ describe('DefaultKubernetesResourceFetcher', () => {
         }),
       ).rejects.toThrow('Failed to fetch Kubernetes resources');
     });
+
+    it('attaches the HTTP status code to the thrown error', async () => {
+      // Reason phrase intentionally omitted: callers must classify by code.
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 403,
+        statusText: '',
+      } as any);
+
+      await expect(
+        fetcher.fetchResources({
+          clusterName: 'test-cluster',
+          resourcePath: 'apps/v1/deployments',
+        }),
+      ).rejects.toMatchObject({ statusCode: 403 });
+    });
   });
 
   describe('fetchResource', () => {
