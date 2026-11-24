@@ -80,7 +80,14 @@ export class DefaultKubernetesResourceFetcher implements KubernetesResourceFetch
       if (response.status === 404) {
         return [];
       }
-      throw new Error(`Failed to fetch Kubernetes resources: with response ${JSON.stringify(response)} ${response.statusText} for request to ${path}`);
+      // Attach the HTTP status code so callers can classify the failure (e.g. a
+      // 403 permission error vs a transient 5xx) without parsing the reason
+      // phrase, which HTTP treats as optional and clients should ignore.
+      const error: Error & { statusCode?: number } = new Error(
+        `Failed to fetch Kubernetes resources: with response ${JSON.stringify(response)} ${response.statusText} for request to ${path}`,
+      );
+      error.statusCode = response.status;
+      throw error;
     }
 
     const data = await response.json();

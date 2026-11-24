@@ -1551,4 +1551,76 @@ describe('KubernetesDataProvider', () => {
       expect(resourceFilter).not.toHaveBeenCalled();
     });
   });
+
+  describe('partial-read handling', () => {
+    const defaultWorkloadConfig = () => {
+      mockConfig.getOptionalStringArray.mockImplementation((key: string) =>
+        key === 'kubernetesIngestor.allowedClusterNames'
+          ? ['cluster1']
+          : undefined,
+      );
+      mockConfig.getOptionalBoolean.mockReturnValue(false);
+    };
+
+    it('discards the whole cluster result when a resource list fails transiently, instead of returning a partial set', async () => {
+      defaultWorkloadConfig();
+      mockResourceFetcher.fetchResources.mockImplementation(
+        async ({ resourcePath }: any) => {
+          if (resourcePath.includes('deployments')) {
+            return [{ kind: 'Deployment', metadata: { name: 'd1', namespace: 'ns' } }];
+          }
+          if (resourcePath.includes('statefulsets')) {
+            // A transient 5xx — must not be read as "no statefulsets exist".
+            throw Object.assign(
+              new Error('Failed to fetch Kubernetes resources'),
+              { statusCode: 503 },
+            );
+          }
+          return [];
+        },
+      );
+
+      const provider = new KubernetesDataProvider(
+        mockResourceFetcher as any,
+        mockConfig as any,
+        mockLogger as any,
+      );
+
+      // The successfully-listed deployment must NOT be returned: a partial set
+      // would make every other entity look deleted. The cluster is skipped.
+      await expect(provider.fetchKubernetesObjects()).resolves.toEqual([]);
+    });
+
+    it('still skips a forbidden resource kind and returns the rest', async () => {
+      defaultWorkloadConfig();
+      mockResourceFetcher.fetchResources.mockImplementation(
+        async ({ resourcePath }: any) => {
+          if (resourcePath.includes('deployments')) {
+            return [{ kind: 'Deployment', metadata: { name: 'd1', namespace: 'ns' } }];
+          }
+          if (resourcePath.includes('statefulsets')) {
+            // A 403 the service account cannot list — skipped regardless of the
+            // reason phrase, classified by status code.
+            throw Object.assign(
+              new Error('Failed to fetch Kubernetes resources'),
+              { statusCode: 403 },
+            );
+          }
+          return [];
+        },
+      );
+
+      const provider = new KubernetesDataProvider(
+        mockResourceFetcher as any,
+        mockConfig as any,
+        mockLogger as any,
+      );
+
+      const result = await provider.fetchKubernetesObjects();
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual(
+        expect.objectContaining({ kind: 'Deployment' }),
+      );
+    });
+  });
 });
