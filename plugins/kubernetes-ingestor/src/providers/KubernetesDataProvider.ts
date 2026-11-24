@@ -236,13 +236,41 @@ export class KubernetesDataProvider {
             ...(type.ingestAsResources !== undefined && { ingestAsResources: type.ingestAsResources }),
           }));
         } catch (error) {
-          this.logger.debug(
-            `Failed to fetch ${type.group}/${type.apiVersion}/${type.plural} from cluster ${clusterName}: ${error}`,
+          // A 403 means the service account genuinely cannot list this kind, so
+          // skip it gracefully (as before). Any other error — a transient 5xx,
+          // 429 throttling, or a network blip — must NOT be treated as "no
+          // objects": doing so makes every entity of this kind look absent, and
+          // the caller then deletes them (prevRefs - currentRefs) until the next
+          // good sync. Re-throw so the whole cluster fetch fails and the caller
+          // skips its delta this cycle instead of deleting live entities.
+          const message = error instanceof Error ? error.message : String(error);
+          if (message.includes('Forbidden')) {
+            this.logger.debug(
+              `Skipping forbidden ${type.group}/${type.apiVersion}/${type.plural} from cluster ${clusterName}: ${error}`,
+            );
+            return [];
+          }
+          this.logger.warn(
+            `Failed to list ${type.group}/${type.apiVersion}/${type.plural} from cluster ${clusterName}; aborting this cluster's sync to avoid deleting live entities: ${error}`,
           );
-          return [];
+          throw error;
         }
       }),
     );
+
+    // If any resource type failed to list (a transient error above), treat the
+    // whole cluster fetch as failed rather than returning a partial set that
+    // would delete the missing entities. The provider's per-cluster catch skips
+    // the delta this cycle and resyncs on the next run.
+    const failedTypes = fetchedObjects.filter(
+      (result): result is PromiseRejectedResult => result.status === 'rejected',
+    );
+    if (failedTypes.length > 0) {
+      throw new Error(
+        `Failed to list ${failedTypes.length} resource type(s) for cluster ${clusterName}; ` +
+          `skipping delta to avoid deleting live entities`,
+      );
+    }
 
     const allFetchedObjects = fetchedObjects
       .filter((result): result is PromiseFulfilledResult<any[]> => result.status === 'fulfilled')
